@@ -22,6 +22,14 @@ spring:
 server:
   port: ${SERVER_PORT:8081}
 
+eureka:
+  client:
+    enabled: ${EUREKA_ENABLED:true}
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka}
+    register-with-eureka: ${EUREKA_REGISTER:true}
+    fetch-registry: ${EUREKA_FETCH_REGISTRY:true}
+
 jwt:
   issuer: seika-identity-service
   secret: ${JWT_SECRET}

@@ -1,0 +1,34 @@
+spring:
+  config:
+    import:
+      - optional:file:.env[.properties]
+      - optional:file:api-gateway/.env[.properties]
+      - optional:file:src/api-gateway/.env[.properties]
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: identity-auth-route
+              uri: lb://IDENTITY-SERVICE
+              predicates:
+                - Path=/identity/**
+              filters:
+                - StripPrefix=1
+          discovery:
+            locator:
+              enabled: ${GATEWAY_DISCOVERY_ENABLED:false}
+              lower-case-service-id: true
+
+eureka:
+  client:
+    enabled: ${EUREKA_ENABLED:true}
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka}
+    register-with-eureka: ${EUREKA_REGISTER:true}
+    fetch-registry: ${EUREKA_FETCH_REGISTRY:true}
+
+server:
+  port: ${GATEWAY_PORT:8080}
