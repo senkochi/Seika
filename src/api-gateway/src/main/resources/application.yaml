@@ -11,24 +11,30 @@ spring:
       server:
         webflux:
           routes:
-            - id: identity-auth-route
+            - id: identity-route
               uri: lb://IDENTITY-SERVICE
               predicates:
                 - Path=/identity/**
               filters:
                 - StripPrefix=1
+            - id: profile-route
+              uri: lb://PROFILE-SERVICE
+              predicates:
+                - Path=/profile/**
+              filters:
+                - StripPrefix=1
           discovery:
             locator:
-              enabled: ${GATEWAY_DISCOVERY_ENABLED:false}
+              enabled: false
               lower-case-service-id: true
 
 eureka:
   client:
-    enabled: ${EUREKA_ENABLED:true}
+    enabled: true
     service-url:
       defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka}
-    register-with-eureka: ${EUREKA_REGISTER:true}
-    fetch-registry: ${EUREKA_FETCH_REGISTRY:true}
+    register-with-eureka: true
+    fetch-registry: true
 
 server:
   port: ${GATEWAY_PORT:8080}
