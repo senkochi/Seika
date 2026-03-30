@@ -55,6 +55,7 @@ public class JwtService {
     public boolean isValidToken(String token) {
         try {
             parseClaims(token);
+            log.info("JWT service validated: token={}", token);
             return true;
         } catch (Exception e) {
             log.warn("Token validation failed: {}", e.getClass().getSimpleName());
@@ -67,10 +68,10 @@ public class JwtService {
     }
 
     private Claims parseClaims(String token) {
-        return Jwts.parser()
-                .verifyWith(secretKey)
+        return Jwts.parser() //Khởi tạo một đối tượng parser (trình phân tích) của thư viện JJWT để bắt đầu quá trình đọc và xử lý token
+                .verifyWith(secretKey) //So sánh signature của token với secretKey, nếu không khớp sẽ ném exception SignatureException
                 .build()
-                .parseSignedClaims(token)
+                .parseSignedClaims(token) // Phân tích token đã ký, kiểm tra hợp lệ các thông tin: signature, cấu trúc token, thời gian hết hạn, v.v. Nếu token không hợp lệ sẽ ném exception
                 .getPayload();
     }
 }
