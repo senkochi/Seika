@@ -1,5 +1,6 @@
 package com.seika.api_gateway.filter;
 
+import com.seika.api_gateway.config.ApiConfig;
 import com.seika.api_gateway.service.IdentityService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +22,7 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
 
     private static final String BEARER_PREFIX = "Bearer ";
     private final IdentityService identityService;
+    private final ApiConfig apiConfig;
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
@@ -32,18 +34,15 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
         if (isPublicPath(path)) {
             return chain.filter(exchange);
         }
-        log.info("Path: " + path);
 
         // Lấy header Authorization từ request 
         String authHeader = exchange.getRequest().getHeaders().getFirst("Authorization");
-        log.info("authHeader: " + authHeader);
 
         // Kiểm tra rỗng và lấy token từ header
         if (authHeader == null || !authHeader.startsWith(BEARER_PREFIX)) {
             return unauthenticated(exchange.getResponse());
         }
         String token = authHeader.substring(BEARER_PREFIX.length());
-        log.info("Token: " + token);
 
         // Gọi service để validate token, nếu valid thì tiếp tục chuỗi filter, nếu không valid thì trả về lỗi 401
         return identityService.validateToken(token)
@@ -55,19 +54,19 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
                 });
     }
 
-    private boolean isPublicPath(String path) {
-        return path.equals("/identity/api/auth/login")  || path.equals("/identity/api/auth/register");
-    }
-
     @Override
     public int getOrder() {
         return -1;
     }
 
-    Mono<Void> unauthenticated(ServerHttpResponse response){
+    Mono<Void> unauthenticated(ServerHttpResponse response) {
         String body = "unauthenticated! please login again.";
         response.setStatusCode(HttpStatus.UNAUTHORIZED);
         DataBuffer buffer = response.bufferFactory().wrap(body.getBytes());
         return response.writeWith(Mono.just(buffer));
+    }
+    
+    private boolean isPublicPath(String path) {
+        return apiConfig.getPublicEndpoints().stream().anyMatch(path::startsWith);
     }
 }

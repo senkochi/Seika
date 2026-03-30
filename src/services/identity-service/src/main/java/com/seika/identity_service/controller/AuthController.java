@@ -43,7 +43,6 @@ public class AuthController {
 
     @PostMapping("/jwt-validate")
     public ResponseEntity<Boolean> jwtValidate(@RequestParam String token){
-        log.info("ready to validate: token={}", token);
         return ResponseEntity.ok(jwtService.isValidToken(token));
     }
 

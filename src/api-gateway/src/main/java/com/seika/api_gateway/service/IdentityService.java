@@ -14,8 +14,6 @@ public class IdentityService {
 	private final WebClient.Builder webClientBuilder;
 
 	public Mono<Boolean> validateToken(String token) {
-		String url = "http://localhost:8080/identity/validateToken";
-		log.info("url from service: " + url);
 		return webClientBuilder.build()
 				.post()
 				.uri("lb://IDENTITY-SERVICE/api/auth/jwt-validate?token={token}", token)
