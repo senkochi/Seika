@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/profiles")
 @RequiredArgsConstructor
@@ -24,6 +26,11 @@ public class UserProfileController {
     @PostMapping
     public ResponseEntity<UserProfileResponse> createUserProfile(@Valid @RequestBody UserProfileRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(userProfileService.createUserProfile(request));
+    }
+
+    @GetMapping
+    public ResponseEntity<List<UserProfileResponse>> getAllUserProfiles() {
+        return ResponseEntity.ok(userProfileService.getAllUserProfiles());
     }
 
     @GetMapping("/{userId}")
