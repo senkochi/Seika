@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -67,6 +68,10 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
     }
     
     private boolean isPublicPath(String path) {
-        return apiConfig.getPublicEndpoints().stream().anyMatch(path::startsWith);
+        // Sử dụng AntPathMatcher thay vì anyMatch(path::startsWith) của stream() để tránh rủi ro Path Hijacking
+        // AntPathMatcher sẽ giúp chúng ta kiểm tra chính xác hơn các pattern của public endpoints.
+        AntPathMatcher matcher = new AntPathMatcher();
+        return apiConfig.getPublicEndpoints().stream()
+                .anyMatch(pattern -> matcher.match(pattern, path));
     }
 }

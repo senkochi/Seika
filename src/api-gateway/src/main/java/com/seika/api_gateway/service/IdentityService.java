@@ -2,7 +2,9 @@ package com.seika.api_gateway.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.stereotype.Service;
+import org.springframework.http.HttpHeaders;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
@@ -16,7 +18,8 @@ public class IdentityService {
 	public Mono<Boolean> validateToken(String token) {
 		return webClientBuilder.build()
 				.post()
-				.uri("lb://IDENTITY-SERVICE/api/auth/jwt-validate?token={token}", token)
+				.uri("lb://IDENTITY-SERVICE/api/auth/jwt-validate")
+				.header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
 				.retrieve()
 				.bodyToMono(Boolean.class)
 				.onErrorReturn(false);
