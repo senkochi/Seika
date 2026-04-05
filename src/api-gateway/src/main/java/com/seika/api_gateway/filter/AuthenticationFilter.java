@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -44,10 +45,11 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
         }
         String token = authHeader.substring(BEARER_PREFIX.length());
 
-        // Gọi service để validate token, nếu valid thì tiếp tục chuỗi filter, nếu không valid thì trả về lỗi 401
-        return identityService.validateToken(token)
-                .flatMap(valid -> {
-                    if (Boolean.TRUE.equals(valid)) {
+        // Gọi service để validate token, nếu valid thì giữ nguyên Authorization header và tiếp tục chuỗi filter
+        return identityService.introspectToken(token)
+                .flatMap(response -> { 
+                    if (response.isValid()) {
+                        // Token giữ nguyên trong Authorization header để downstream tự verify và authorize.
                         return chain.filter(exchange);
                     }
                     return unauthenticated(exchange.getResponse());
@@ -67,6 +69,10 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
     }
     
     private boolean isPublicPath(String path) {
-        return apiConfig.getPublicEndpoints().stream().anyMatch(path::startsWith);
+        // Sử dụng AntPathMatcher thay vì anyMatch(path::startsWith) của stream() để tránh rủi ro Path Hijacking
+        // AntPathMatcher sẽ giúp chúng ta kiểm tra chính xác hơn các pattern của public endpoints.
+        AntPathMatcher matcher = new AntPathMatcher();
+        return apiConfig.getPublicEndpoints().stream()
+                .anyMatch(pattern -> matcher.match(pattern, path));
     }
 }
