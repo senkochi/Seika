@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
+import com.seika.api_gateway.dto.auth.IntrospectResponse;
 
 @Service
 @RequiredArgsConstructor
@@ -15,13 +16,13 @@ public class IdentityService {
 
 	private final WebClient.Builder webClientBuilder;
 
-	public Mono<Boolean> validateToken(String token) {
-		return webClientBuilder.build()
-				.post()
-				.uri("lb://IDENTITY-SERVICE/api/auth/jwt-validate")
-				.header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-				.retrieve()
-				.bodyToMono(Boolean.class)
-				.onErrorReturn(false);
-	}
+    public Mono<IntrospectResponse> introspectToken(String token) {
+        return webClientBuilder.build()
+                .post()
+                .uri("lb://IDENTITY-SERVICE/api/auth/jwt-introspect")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                .retrieve()
+                .bodyToMono(IntrospectResponse.class) // Chuyển đổi ResponseEntity<IntrospectResponse> thành Mono<IntrospectResponse> để dễ dàng xử lý trong chuỗi reactive
+                .onErrorReturn(IntrospectResponse.builder().valid(false).build());
+    }
 }

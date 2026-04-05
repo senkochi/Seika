@@ -45,11 +45,16 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
         }
         String token = authHeader.substring(BEARER_PREFIX.length());
 
-        // Gọi service để validate token, nếu valid thì tiếp tục chuỗi filter, nếu không valid thì trả về lỗi 401
-        return identityService.validateToken(token)
-                .flatMap(valid -> {
-                    if (Boolean.TRUE.equals(valid)) {
-                        return chain.filter(exchange);
+        // Gọi service để validate token, nếu valid thì thêm thông tin user vào header và tiếp tục chuỗi filter
+        return identityService.introspectToken(token)
+                .flatMap(response -> {
+                    if (response.isValid()) {
+                        org.springframework.http.server.reactive.ServerHttpRequest request = exchange.getRequest().mutate()
+                                .header("X-User-Id", response.getUserId() != null ? response.getUserId() : "")
+                                .header("X-User-Name", response.getUsername() != null ? response.getUsername() : "")
+                                .header("X-User-Roles", response.getRoles() != null ? String.join(",", response.getRoles()) : "")
+                                .build();
+                        return chain.filter(exchange.mutate().request(request).build());
                     }
                     return unauthenticated(exchange.getResponse());
                 });

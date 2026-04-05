@@ -1,6 +1,7 @@
 package com.seika.identity_service.controller;
 
 import com.seika.identity_service.dto.auth.AuthResponse;
+import com.seika.identity_service.dto.auth.IntrospectResponse;
 import com.seika.identity_service.dto.auth.LoginRequest;
 import com.seika.identity_service.dto.auth.RegisterRequest;
 import com.seika.identity_service.dto.auth.UserInfoResponse;
@@ -37,12 +38,20 @@ public class AuthController {
         return ResponseEntity.ok(authService.me());
     }
 
-    @PostMapping("/jwt-validate")
-    public ResponseEntity<Boolean> jwtValidate(@RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader){
-        if(!authHeader.startsWith("Bearer ") || authHeader==null){
-            return ResponseEntity.ok(false);
+    @PostMapping("/jwt-introspect")
+    public ResponseEntity<IntrospectResponse> jwtIntrospect(@RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.ok(IntrospectResponse.builder().valid(false).build());
         }
         String token = authHeader.substring(7);
-        return ResponseEntity.ok(jwtService.isValidToken(token));
+        if (!jwtService.isValidToken(token)) {
+            return ResponseEntity.ok(IntrospectResponse.builder().valid(false).build());
+        }
+        return ResponseEntity.ok(IntrospectResponse.builder()
+                .valid(true)
+                .username(jwtService.extractUsername(token))
+                .roles(jwtService.extractRoles(token))
+                .userId(jwtService.extractUserId(token))
+                .build());
     }
 }
