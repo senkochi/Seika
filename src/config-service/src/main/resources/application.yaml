@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: config-service
+  cloud:
+    config:
+      server:
+        git:
+          uri: https://github.com/NguyenHungCuongg/Seika.git #Trở về repository chính của project
+          default-label: master #Nhánh chính của repository
+          search-paths: configs #Đường dẫn đến thư mục chứa file cấu hình trong repository
+
+server:
+  port: ${GATEWAY_SERVER_PORT:8888}
+
+eureka:
+  client:
+    enabled: true
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka}
+    register-with-eureka: true
+    fetch-registry: true

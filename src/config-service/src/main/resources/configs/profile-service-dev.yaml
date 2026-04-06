@@ -1,0 +1,11 @@
+spring:
+  jpa:
+    show-sql: true
+
+server:
+  port: ${PROFILE_SERVER_PORT:8082}
+
+logging:
+  level:
+    root: INFO
+    com.seika: DEBUG
