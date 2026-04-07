@@ -1,7 +1,18 @@
 spring:
-  # Config sẽ được lấy từ Config Server thông qua bootstrap.yaml
+  config:
+    import: "configserver:"
   application:
     name: profile-service
+  profiles:
+    active: ${SPRING_PROFILE:dev}
+  cloud:
+    config:
+      uri: ${CONFIG_SERVER_URL:http://localhost:8888}
+      fail-fast: true
+      retry:
+        initial-interval: 1000
+        max-interval: 2000
+        max-attempts: 6
 
 # Các cấu hình datasource, JWT, Eureka... được định nghĩa trong Config Server
 # Xem /config-service/src/main/resources/configs/profile-service.yaml

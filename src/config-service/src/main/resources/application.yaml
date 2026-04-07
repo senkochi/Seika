@@ -1,16 +1,39 @@
 spring:
+  config:
+    import:
+      - "optional:file:.env[.properties]"
+      - "optional:file:../../.env[.properties]"
+      - "optional:file:../../../.env[.properties]"
+  profiles:
+    active: native
   application:
     name: config-service
   cloud:
     config:
       server:
-        git:
-          uri: https://github.com/NguyenHungCuongg/Seika.git #Trở về repository chính của project
-          default-label: master #Nhánh chính của repository
-          search-paths: configs #Đường dẫn đến thư mục chứa file cấu hình trong repository
+        native:
+          search-locations: classpath:/configs
+        overrides:
+          EUREKA_SERVER_URL: ${EUREKA_SERVER_URL}
+          JWT_SECRET: ${JWT_SECRET}
+          JWT_ACCESS_TOKEN_EXPIRATION_MINUTES: ${JWT_ACCESS_TOKEN_EXPIRATION_MINUTES}
+          PROFILE_SERVER_URL: ${PROFILE_SERVER_URL}
+
+          IDENTITY_DB_URL: ${IDENTITY_DB_URL}
+          IDENTITY_DB_USERNAME: ${IDENTITY_DB_USERNAME}
+          IDENTITY_DB_PASSWORD: ${IDENTITY_DB_PASSWORD}
+
+          PROFILE_DB_URL: ${PROFILE_DB_URL}
+          PROFILE_DB_USERNAME: ${PROFILE_DB_USERNAME}
+          PROFILE_DB_PASSWORD: ${PROFILE_DB_PASSWORD}
+        substitute-placeholders: true
+        # git:
+        #   uri: https://github.com/NguyenHungCuongg/Seika.git #Trở về repository chính của project
+        #   default-label: master #Nhánh chính của repository
+        #   search-paths: configs #Đường dẫn đến thư mục chứa file cấu hình trong repository
 
 server:
-  port: ${GATEWAY_SERVER_PORT:8888}
+  port: ${CONFIG_SERVER_PORT:8888}
 
 eureka:
   client:

@@ -26,4 +26,4 @@ jwt:
 
 app:
   services:
-    profile: ${PROFILE_SERVER_URL}
+    profile: ${PROFILE_SERVER_URL:http://localhost:8082}
