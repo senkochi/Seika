@@ -3,6 +3,7 @@ package com.seika.identity_service.controller;
 import com.seika.identity_service.dto.auth.AuthResponse;
 import com.seika.identity_service.dto.auth.IntrospectResponse;
 import com.seika.identity_service.dto.auth.LoginRequest;
+import com.seika.identity_service.dto.auth.RefreshTokenRequest;
 import com.seika.identity_service.dto.auth.RegisterRequest;
 import com.seika.identity_service.dto.auth.UserInfoResponse;
 import com.seika.identity_service.service.AuthService;
@@ -31,6 +32,11 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
         return ResponseEntity.ok(authService.login(request));
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<AuthResponse> refresh(@Valid @RequestBody RefreshTokenRequest request) {
+        return ResponseEntity.ok(authService.refresh(request));
     }
 
     @GetMapping("/me")

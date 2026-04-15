@@ -2,13 +2,16 @@ package com.seika.identity_service.service;
 
 import com.seika.identity_service.dto.auth.AuthResponse;
 import com.seika.identity_service.dto.auth.LoginRequest;
+import com.seika.identity_service.dto.auth.RefreshTokenRequest;
 import com.seika.identity_service.dto.auth.RegisterRequest;
 import com.seika.identity_service.dto.auth.UserInfoResponse;
+import com.seika.identity_service.entity.RefreshToken;
 import com.seika.identity_service.dto.user_profile.UserProfileRequest;
 import com.seika.identity_service.entity.Role;
 import com.seika.identity_service.entity.User;
 import com.seika.identity_service.mapper.AuthMapper;
 import com.seika.identity_service.mapper.ProfileMapper;
+import com.seika.identity_service.repository.RefreshTokenRepository;
 import com.seika.identity_service.repository.RoleRepository;
 import com.seika.identity_service.repository.UserRepository;
 import com.seika.identity_service.repository.httpclient.ProfileClient;
@@ -46,6 +49,8 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final RefreshTokenService refreshTokenService;
+    private final RefreshTokenRepository refreshTokenRepository;
     private final ProfileClient profileClient;
     private final ProfileMapper profileMapper;
     private final AuthMapper authMapper;
@@ -78,8 +83,9 @@ public class AuthService {
             .collect(Collectors.toList());
         Authentication authentication = new UsernamePasswordAuthenticationToken(savedUser.getUsername(), null, authorities);
         String accessToken = jwtService.generateAccessToken(authentication);
+        String refreshToken = refreshTokenService.createTokenForUser(savedUser);
 
-        return authMapper.toAuthResponse(savedUser, accessToken);
+        return authMapper.toAuthResponse(savedUser, accessToken, refreshToken);
     }
 
     public AuthResponse login(LoginRequest request) {
@@ -91,8 +97,37 @@ public class AuthService {
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         String accessToken = jwtService.generateAccessToken(authentication);
+        String refreshToken = refreshTokenService.createTokenForUser(user);
         log.info("User logged in: username={}, roles={}", user.getUsername(), authMapper.mapRoleNames(user.getRoles()));
-        return authMapper.toAuthResponse(user, accessToken);
+        return authMapper.toAuthResponse(user, accessToken, refreshToken);
+    }
+
+    @Transactional
+    public AuthResponse refresh(RefreshTokenRequest request) {
+        RefreshToken refreshToken = refreshTokenRepository.findByToken(request.getRefreshToken())
+                .orElseThrow(() -> new IllegalArgumentException("Invalid refresh token"));
+
+        if (refreshToken.isRevoked()) {
+            throw new IllegalArgumentException("Refresh token has been revoked");
+        }
+
+        if (refreshTokenService.isExpired(refreshToken)) {
+            throw new IllegalArgumentException("Refresh token has expired");
+        }
+
+        User user = refreshToken.getUser();
+        List<GrantedAuthority> authorities = user.getRoles().stream()
+                .map(Role::getName)
+                .map(roleName -> new SimpleGrantedAuthority("ROLE_" + roleName))
+                .collect(Collectors.toList());
+        Authentication authentication = new UsernamePasswordAuthenticationToken(user.getUsername(), null, authorities);
+
+        String accessToken = jwtService.generateAccessToken(authentication);
+        refreshTokenService.revokeToken(refreshToken);
+        String newRefreshToken = refreshTokenService.createTokenForUser(user);
+
+        log.info("Refreshed token for username={}", user.getUsername());
+        return authMapper.toAuthResponse(user, accessToken, newRefreshToken);
     }
 
     public UserInfoResponse me() {
