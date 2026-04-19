@@ -13,6 +13,9 @@ import com.seika.notification_service.exception.ResourceNotFoundException;
 import com.seika.notification_service.mapper.NotificationMapper;
 import com.seika.notification_service.repository.NotificationRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -59,20 +62,30 @@ public class NotificationService {
         return notificationMapper.toResponse(saved);
     }
 
-    public List<NotificationResponse> getNotificationsByUser(String userId) {
+    public Page<NotificationResponse> getNotificationsByUser(String userId, int page, int size) {
+        if (isBlank(userId)) {
+            throw new BadRequestException("userId is required");
+        }
+        if (page < 0) {
+            throw new BadRequestException("page must be greater than or equal to 0");
+        }
+        if (size <= 0) {
+            throw new BadRequestException("size must be greater than 0");
+        }
+
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+
+        return notificationRepository.findByUserId(userId, pageRequest)
+                .map(notificationMapper::toResponse);
+    }
+
+    @Transactional
+    public NotificationResponse markAsRead(String notificationId, String userId) {
         if (isBlank(userId)) {
             throw new BadRequestException("userId is required");
         }
 
-        return notificationRepository.findByUserIdOrderByCreatedAtDesc(userId)
-                .stream()
-                .map(notificationMapper::toResponse)
-                .toList();
-    }
-
-    @Transactional
-    public NotificationResponse markAsRead(String notificationId) {
-        Notification notification = notificationRepository.findById(notificationId)
+        Notification notification = notificationRepository.findByIdAndUserId(notificationId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Notification not found"));
 
         notification.setStatus(NotificationStatus.READ);
@@ -119,8 +132,12 @@ public class NotificationService {
     }
 
     @Transactional
-    public void deleteNotification(String notificationId) {
-        Notification notification = notificationRepository.findById(notificationId)
+    public void deleteNotification(String notificationId, String userId) {
+        if (isBlank(userId)) {
+            throw new BadRequestException("userId is required");
+        }
+
+        Notification notification = notificationRepository.findByIdAndUserId(notificationId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Notification not found"));
 
         notificationRepository.delete(notification);
