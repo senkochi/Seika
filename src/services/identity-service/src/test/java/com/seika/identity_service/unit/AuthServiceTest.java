@@ -8,11 +8,13 @@ import com.seika.identity_service.entity.Role;
 import com.seika.identity_service.entity.User;
 import com.seika.identity_service.mapper.AuthMapper;
 import com.seika.identity_service.mapper.ProfileMapper;
+import com.seika.identity_service.repository.RefreshTokenRepository;
 import com.seika.identity_service.repository.RoleRepository;
 import com.seika.identity_service.repository.UserRepository;
 import com.seika.identity_service.repository.httpclient.ProfileClient;
 import com.seika.identity_service.service.AuthService;
 import com.seika.identity_service.service.JwtService;
+import com.seika.identity_service.service.RefreshTokenService;
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -48,6 +50,12 @@ public class AuthServiceTest {
 
     @Mock
     private JwtService jwtService;
+
+    @Mock
+    private RefreshTokenService refreshTokenService;
+
+    @Mock
+    private RefreshTokenRepository refreshTokenRepository;
 
     @Mock
     private ProfileClient profileClient;
@@ -100,9 +108,10 @@ public class AuthServiceTest {
         when(profileMapper.toUserProfileRequest(any(), anyString())).thenReturn(userProfileRequest);
 
         when(jwtService.generateAccessToken(any())).thenReturn("accessToken");
+        when(refreshTokenService.createTokenForUser(any(User.class))).thenReturn("refreshToken");
 
         AuthResponse response = new AuthResponse();
-        when(authMapper.toAuthResponse(mockUser, "accessToken")).thenReturn(response);
+        when(authMapper.toAuthResponse(mockUser, "accessToken", "refreshToken")).thenReturn(response);
 
         // Act
         AuthResponse result = authService.register(mockRegisterRequest);
@@ -112,6 +121,7 @@ public class AuthServiceTest {
         verify(userRepository).save(any());
         verify(profileClient).createProfile(userProfileRequest);
         verify(jwtService).generateAccessToken(any());
+        verify(refreshTokenService).createTokenForUser(mockUser);
     }
 
     @Test
@@ -146,8 +156,9 @@ public class AuthServiceTest {
         when(authenticationManager.authenticate(any())).thenReturn(authentication);
         when(userRepository.findByUsername("test_student_1")).thenReturn(Optional.of(mockUser));
         when(jwtService.generateAccessToken(authentication)).thenReturn("accessToken");
+        when(refreshTokenService.createTokenForUser(mockUser)).thenReturn("refreshToken");
         AuthResponse response = new AuthResponse();
-        when(authMapper.toAuthResponse(mockUser, "accessToken")).thenReturn(response);
+        when(authMapper.toAuthResponse(mockUser, "accessToken", "refreshToken")).thenReturn(response);
 
         // Act
         AuthResponse result = authService.login(new com.seika.identity_service.dto.auth.LoginRequest("test_student_1", "123456"));
@@ -157,6 +168,7 @@ public class AuthServiceTest {
         verify(authenticationManager).authenticate(any());
         verify(userRepository).findByUsername("test_student_1");
         verify(jwtService).generateAccessToken(authentication);
+        verify(refreshTokenService).createTokenForUser(mockUser);
     }
 
     @Test
