@@ -1,0 +1,25 @@
+server:
+  port: ${NOTIFICATION_SERVER_PORT:8083}
+
+eureka:
+  client:
+    enabled: true
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka}
+    register-with-eureka: true
+    fetch-registry: true
+spring:
+  mongodb:
+    uri: ${NOTIFICATION_MONGO_URI}
+    database: ${NOTIFICATION_MONGO_DATABASE}
+  rabbitmq:
+    host: ${RABBITMQ_HOST}
+    port: ${RABBITMQ_PORT}
+    username: ${RABBITMQ_USERNAME}
+    password: ${RABBITMQ_PASSWORD}
+
+messaging:
+  events:
+    identity-exchange: ${IDENTITY_EVENTS_EXCHANGE:identity.events}
+    user-registered-routing-key: ${USER_REGISTERED_ROUTING_KEY:user.registered}
+    user-registered-queue: ${USER_REGISTERED_QUEUE:notification.user-events}

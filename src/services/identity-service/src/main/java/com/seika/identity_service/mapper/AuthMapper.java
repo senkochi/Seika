@@ -20,10 +20,11 @@ public interface AuthMapper {
     User toUser(RegisterRequest request, String encodedPassword, Set<Role> roles);
 
     @Mapping(target = "accessToken", source = "accessToken")
+    @Mapping(target = "refreshToken", source = "refreshToken")
     @Mapping(target = "tokenType", constant = "Bearer")
     @Mapping(target = "username", source = "user.username")
     @Mapping(target = "roles", expression = "java(mapRoleNames(user.getRoles()))")
-    AuthResponse toAuthResponse(User user, String accessToken);
+    AuthResponse toAuthResponse(User user, String accessToken, String refreshToken);
 
     @Mapping(target = "id", source = "user.id")
     @Mapping(target = "username", source = "user.username")
