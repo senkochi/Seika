@@ -17,3 +17,9 @@ spring:
     port: ${RABBITMQ_PORT}
     username: ${RABBITMQ_USERNAME}
     password: ${RABBITMQ_PASSWORD}
+
+messaging:
+  events:
+    identity-exchange: ${IDENTITY_EVENTS_EXCHANGE:identity.events}
+    user-registered-routing-key: ${USER_REGISTERED_ROUTING_KEY:user.registered}
+    user-registered-queue: ${USER_REGISTERED_QUEUE:notification.user-events}
