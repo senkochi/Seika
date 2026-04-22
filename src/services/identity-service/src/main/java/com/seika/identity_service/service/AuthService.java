@@ -54,6 +54,7 @@ public class AuthService {
     private final ProfileClient profileClient;
     private final ProfileMapper profileMapper;
     private final AuthMapper authMapper;
+    private final UserEventPublisher userEventPublisher;
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
@@ -84,6 +85,8 @@ public class AuthService {
         Authentication authentication = new UsernamePasswordAuthenticationToken(savedUser.getUsername(), null, authorities);
         String accessToken = jwtService.generateAccessToken(authentication);
         String refreshToken = refreshTokenService.createTokenForUser(savedUser);
+
+        userEventPublisher.publishUserRegistered(savedUser);
 
         return authMapper.toAuthResponse(savedUser, accessToken, refreshToken);
     }

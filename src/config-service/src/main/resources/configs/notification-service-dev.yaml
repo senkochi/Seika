@@ -1,0 +1,11 @@
+spring:
+  jpa:
+    show-sql: true
+
+server:
+  port: ${NOTIFICATION_SERVER_PORT:8083}
+
+logging:
+  level:
+    root: INFO
+    com.seika: DEBUG

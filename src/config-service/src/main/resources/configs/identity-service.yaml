@@ -4,6 +4,11 @@ spring:
     username: ${IDENTITY_DB_USERNAME}
     password: ${IDENTITY_DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
+  rabbitmq:
+    host: ${RABBITMQ_HOST}
+    port: ${RABBITMQ_PORT}
+    username: ${RABBITMQ_USERNAME}
+    password: ${RABBITMQ_PASSWORD}
   jpa:
     hibernate:
       ddl-auto: update
@@ -28,3 +33,8 @@ jwt:
 app:
   services:
     profile: ${PROFILE_SERVER_URL:http://localhost:8082}
+
+messaging:
+  events:
+    identity-exchange: ${IDENTITY_EVENTS_EXCHANGE:identity.events}
+    user-registered-routing-key: ${USER_REGISTERED_ROUTING_KEY:user.registered}
