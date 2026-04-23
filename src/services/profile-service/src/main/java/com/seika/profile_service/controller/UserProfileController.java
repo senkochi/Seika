@@ -33,6 +33,7 @@ public class UserProfileController {
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<UserProfileResponse>> getAllUserProfiles() {
+        System.out.println("called");
         return ResponseEntity.ok(userProfileService.getAllUserProfiles());
     }
 

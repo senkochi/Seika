@@ -2,6 +2,7 @@ package com.seika.profile_service.config;
 
 import com.seika.profile_service.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -12,23 +13,57 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
-@EnableMethodSecurity
+@EnableMethodSecurity(prePostEnabled = true)
 @RequiredArgsConstructor
+@Slf4j
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        log.info("Configuring security filter chain for Profile Service");
+
         http
+                // Disable CSRF for stateless APIs
                 .csrf(csrf -> csrf.disable())
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
+                // Use stateless session management (no cookies)
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
+
+                // Configure authorization rules
                 .authorizeHttpRequests(auth -> auth
-                        // Endpoint này được gọi nội bộ từ identity-service khi register.
+                        // Public endpoint for internal service registration (from Identity Service)
                         .requestMatchers(HttpMethod.POST, "/api/profiles").permitAll()
+                        
+                        // Health check endpoint
+                        .requestMatchers("/actuator/health").permitAll()
+                        .requestMatchers("/actuator/health/**").permitAll()
+                        
+                        // All other endpoints require JWT token
                         .anyRequest().authenticated()
                 )
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+
+                // Add JWT filter before UsernamePasswordAuthenticationFilter
+                // This ensures JWT token from gateway is validated
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+
+                // Handle unauthorized access
+                .exceptionHandling(exception ->
+                        exception
+                                .authenticationEntryPoint((request, response, authException) -> {
+                                    log.warn("Unauthorized access attempt to {}", request.getRequestURI());
+                                    response.setStatus(401);
+                                    response.getWriter().write("{\"error\": \"Unauthorized\"}");
+                                })
+                                .accessDeniedHandler((request, response, accessDeniedException) -> {
+                                    log.warn("Access denied for {}", request.getRequestURI());
+                                    response.setStatus(403);
+                                    response.getWriter().write("{\"error\": \"Forbidden\"}");
+                                })
+                );
 
         return http.build();
     }

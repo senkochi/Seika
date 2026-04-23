@@ -28,6 +28,11 @@ spring:
               enabled: false
               lower-case-service-id: true
 
+jwt:
+  secret: ${JWT_SECRET:8db8d4987f6a51ed76090464c02e06205d68fc0b8d8f024e6c3c57cb67da7a9b}
+  issuer: ${JWT_ISSUER:seika-identity-service}
+  access-token-expiration-minutes: ${JWT_ACCESS_TOKEN_EXPIRATION_MINUTES:60}
+
 eureka:
   client:
     enabled: true
@@ -42,5 +47,17 @@ server:
 app:
   api:
     public-endpoints:
-      - /identity/api/auth/login
+      - /api/auth/login
       - /identity/api/auth/register
+      - /identity/api/auth/refresh
+      - /identity/api/auth/jwt-validate
+      - /health
+      - /actuator/**
+
+logging:
+  level:
+    root: INFO
+    com.seika.api_gateway: DEBUG
+    org.springframework.cloud.gateway: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.web.server: DEBUG

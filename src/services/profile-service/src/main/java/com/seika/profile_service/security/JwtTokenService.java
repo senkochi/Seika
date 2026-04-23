@@ -28,14 +28,31 @@ public class JwtTokenService {
         }
         this.secretKey = Keys.hmacShaKeyFor(keyBytes);
         this.issuer = issuer;
+        
+        // Log initialization để check xem config được load đúng không
+        log.error("[PROFILE-SERVICE-JWT] JwtTokenService initialized with issuer: {}", issuer);
     }
 
     public boolean isValidToken(String token) {
         try {
             Claims claims = parseClaims(token);
-            return issuer.equals(claims.getIssuer());
+            boolean issuerMatch = issuer.equals(claims.getIssuer());
+            log.info("[PROFILE-SERVICE] Token validation - issuer={}, expected={}, match={}, userId={}, username={}", 
+                    claims.getIssuer(), 
+                    issuer, 
+                    issuerMatch,
+                    claims.get("userId"),
+                    claims.getSubject());
+            if (!issuerMatch) {
+                log.error("[PROFILE-SERVICE] Issuer mismatch! Token issuer: {} != Expected: {}", 
+                        claims.getIssuer(), issuer);
+                return false;
+            }
+            return true;
         } catch (Exception e) {
-            log.warn("Token validation failed: {}", e.getClass().getSimpleName());
+            log.error("[PROFILE-SERVICE] Token validation FAILED - Error: {} - Message: {}", 
+                    e.getClass().getSimpleName(), 
+                    e.getMessage());
             return false;
         }
     }
