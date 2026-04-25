@@ -3,7 +3,7 @@ spring:
     show-sql: true
 
 server:
-  port: ${WALLET_SERVER_PORT:8084}
+  port: ${NOTIFICATION_SERVER_PORT:8083}
 
 logging:
   level:

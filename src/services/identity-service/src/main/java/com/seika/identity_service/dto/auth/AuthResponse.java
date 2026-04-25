@@ -12,6 +12,7 @@ import java.util.Set;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class AuthResponse {
     String accessToken;
+    String refreshToken;
     String tokenType;
     String username;
     Set<String> roles;
