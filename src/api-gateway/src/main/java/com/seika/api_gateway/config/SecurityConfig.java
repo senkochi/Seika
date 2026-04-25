@@ -17,7 +17,7 @@ public class SecurityConfig {
     @Bean
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
         http
-                .csrf(csrf -> csrf.disable())
+                .csrf(csrf -> csrf.disable()) //Tắt CSRF
                 .cors(Customizer.withDefaults())
                 .authorizeExchange(auth -> auth
                         .anyExchange().permitAll()  // Cho phép qua để AuthenticationFilter extract token
