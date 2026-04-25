@@ -1,0 +1,11 @@
+spring:
+  jpa:
+    show-sql: true
+
+server:
+  port: ${WALLET_SERVER_PORT:8084}
+
+logging:
+  level:
+    root: INFO
+    com.seika: DEBUG
