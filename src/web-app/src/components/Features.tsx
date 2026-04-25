@@ -1,58 +1,61 @@
-import { GraduationCap, Users, Settings, Trophy, Target, BookOpen } from 'lucide-react';
+import { GraduationCap, Users, Settings, Trophy, Target, BookOpen } from "lucide-react";
 
 export function Features() {
   const features = [
     {
       icon: GraduationCap,
-      title: 'For Students',
-      description: 'Learn through fun quizzes, earn badges, and compete with friends in a gamified learning experience.',
-      color: 'purple',
-      gradient: 'from-purple-500 to-purple-600',
-      bgColor: 'bg-purple-50',
-      borderColor: 'border-purple-300',
-      items: ['Interactive Quizzes', 'Earn Rewards', 'Track Progress']
+      title: "For Students",
+      description:
+        "Learn through fun quizzes, earn badges, and compete with friends in a gamified learning experience.",
+      color: "purple",
+      gradient: "from-purple-500 to-purple-600",
+      bgColor: "bg-purple-50",
+      borderColor: "border-purple-300",
+      items: ["Interactive Quizzes", "Earn Rewards", "Track Progress"],
     },
     {
       icon: Users,
-      title: 'For Teachers',
-      description: 'Create engaging quizzes, monitor student progress, and make learning exciting with gamification tools.',
-      color: 'yellow',
-      gradient: 'from-yellow-500 to-yellow-600',
-      bgColor: 'bg-yellow-50',
-      borderColor: 'border-yellow-300',
-      items: ['Quiz Builder', 'Analytics Dashboard', 'Student Management']
+      title: "For Teachers",
+      description:
+        "Create engaging quizzes, monitor student progress, and make learning exciting with gamification tools.",
+      color: "yellow",
+      gradient: "from-yellow-500 to-yellow-600",
+      bgColor: "bg-yellow-50",
+      borderColor: "border-yellow-300",
+      items: ["Quiz Builder", "Analytics Dashboard", "Student Management"],
     },
     {
       icon: Settings,
-      title: 'For Admins',
-      description: 'Manage users, oversee platform activity, and ensure smooth operation across all educational levels.',
-      color: 'green',
-      gradient: 'from-green-500 to-green-600',
-      bgColor: 'bg-green-50',
-      borderColor: 'border-green-300',
-      items: ['User Management', 'Reports & Insights', 'System Control']
-    }
+      title: "For Admins",
+      description:
+        "Manage users, oversee platform activity, and ensure smooth operation across all educational levels.",
+      color: "green",
+      gradient: "from-green-500 to-green-600",
+      bgColor: "bg-green-50",
+      borderColor: "border-green-300",
+      items: ["User Management", "Reports & Insights", "System Control"],
+    },
   ];
 
   const benefits = [
     {
       icon: Trophy,
-      title: 'Achievements',
-      description: 'Unlock badges and trophies',
-      color: 'text-yellow-600'
+      title: "Achievements",
+      description: "Unlock badges and trophies",
+      color: "text-yellow-600",
     },
     {
       icon: Target,
-      title: 'Goal Tracking',
-      description: 'Set and reach learning goals',
-      color: 'text-blue-600'
+      title: "Goal Tracking",
+      description: "Set and reach learning goals",
+      color: "text-blue-600",
     },
     {
       icon: BookOpen,
-      title: 'Rich Content',
-      description: 'Access diverse subjects',
-      color: 'text-green-600'
-    }
+      title: "Rich Content",
+      description: "Access diverse subjects",
+      color: "text-green-600",
+    },
   ];
 
   return (
@@ -80,7 +83,9 @@ export function Features() {
                 key={index}
                 className={`${feature.bgColor} border-2 ${feature.borderColor} rounded-3xl p-8 hover:scale-105 transition-transform shadow-lg`}
               >
-                <div className={`w-16 h-16 bg-gradient-to-br ${feature.gradient} rounded-2xl flex items-center justify-center mb-6 shadow-lg rotate-6`}>
+                <div
+                  className={`w-16 h-16 bg-gradient-to-br ${feature.gradient} rounded-2xl flex items-center justify-center mb-6 shadow-lg rotate-6`}
+                >
                   <Icon className="w-8 h-8 text-white" />
                 </div>
                 <h3 className="text-2xl font-black mb-3">{feature.title}</h3>
