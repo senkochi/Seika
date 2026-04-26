@@ -2,8 +2,28 @@ import { Sparkles, Mail, Phone, MapPin } from "lucide-react";
 
 export function Footer() {
   return (
-    <footer id="contact" className="bg-gradient-to-br from-indigo-950 via-purple-900 to-violet-950 text-white py-16">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <footer
+      id="contact"
+      className="relative bg-gradient-to-br from-indigo-950 via-purple-900 to-violet-950 py-20 text-white"
+    >
+      {/* Shape Divider */}
+      <div className="pointer-events-none absolute left-0 top-0 w-full -translate-y-full overflow-hidden leading-none">
+        <svg className="relative block h-16 w-full md:h-24" viewBox="0 0 1440 140" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="footerWaveGradient" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stopColor="#1e1b4b" />
+              <stop offset="50%" stopColor="#3e1b6d" />
+              <stop offset="100%" stopColor="#59168b" />
+            </linearGradient>
+          </defs>
+          <path
+            d="M0,40 C220,120 520,-10 760,65 C980,130 1210,50 1440,95 L1440,140 L0,140 Z"
+            fill="url(#footerWaveGradient)"
+          />
+        </svg>
+      </div>
+      {/* Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
         <div className="grid md:grid-cols-4 gap-12 mb-12">
           <div className="md:col-span-2">
             <div className="flex items-center gap-2 mb-4">

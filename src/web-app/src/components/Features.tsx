@@ -1,4 +1,4 @@
-import { GraduationCap, Users, Settings, Trophy, Target, BookOpen } from "lucide-react";
+import { GraduationCap, Users, Trophy, Target, BookOpen } from "lucide-react";
 
 export function Features() {
   const features = [
@@ -24,17 +24,6 @@ export function Features() {
       borderColor: "border-yellow-300",
       items: ["Quiz Builder", "Analytics Dashboard", "Student Management"],
     },
-    {
-      icon: Settings,
-      title: "For Admins",
-      description:
-        "Manage users, oversee platform activity, and ensure smooth operation across all educational levels.",
-      color: "green",
-      gradient: "from-green-500 to-green-600",
-      bgColor: "bg-green-50",
-      borderColor: "border-green-300",
-      items: ["User Management", "Reports & Insights", "System Control"],
-    },
   ];
 
   const benefits = [
@@ -59,8 +48,15 @@ export function Features() {
   ];
 
   return (
-    <section id="features" className="py-20 bg-gradient-to-br from-amber-400 via-yellow-500 to-amber-500">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="features" className="relative py-24 bg-gradient-to-b from-amber-400 via-yellow-500 to-amber-500">
+      {/* Shape Divider */}
+      <div className="pointer-events-none absolute left-0 top-0 w-full -translate-y-full overflow-hidden leading-none">
+        <svg className="relative block h-16 w-full md:h-24" viewBox="0 0 1440 140" preserveAspectRatio="none">
+          <path d="M0,120 C220,30 520,180 760,90 C980,10 1210,70 1440,30 L1440,140 L0,140 Z" fill="#ffba00" />
+        </svg>
+      </div>
+      {/* Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
         <div className="text-center mb-16">
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-purple-900/80 border-2 border-purple-700 rounded-full mb-4">
             <span className="text-sm text-yellow-300">Features</span>
@@ -75,7 +71,7 @@ export function Features() {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8 mb-16">
+        <div className="grid md:grid-cols-2 gap-8 mb-16">
           {features.map((feature, index) => {
             const Icon = feature.icon;
             return (

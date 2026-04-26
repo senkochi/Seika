@@ -6,7 +6,7 @@ export function Hero() {
   return (
     <section
       id="home"
-      className="relative min-h-screen flex items-center overflow-hidden bg-gradient-to-br from-indigo-950 via-purple-900 to-violet-950 pt-16"
+      className="relative min-h-screen flex items-center overflow-hidden bg-gradient-to-br from-indigo-950 via-purple-900 to-violet-950 pt-16 pb-16"
     >
       <div className="absolute inset-0 overflow-hidden">
         <SwatchBook
