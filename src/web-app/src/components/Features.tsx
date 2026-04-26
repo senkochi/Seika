@@ -59,18 +59,18 @@ export function Features() {
   ];
 
   return (
-    <section id="features" className="py-20 bg-white">
+    <section id="features" className="py-20 bg-gradient-to-br from-amber-400 via-yellow-500 to-amber-500">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-purple-100 border-2 border-purple-300 rounded-full mb-4">
-            <span className="text-sm text-purple-800">Features</span>
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-purple-900/80 border-2 border-purple-700 rounded-full mb-4">
+            <span className="text-sm text-yellow-300">Features</span>
           </div>
           <h2 className="text-4xl md:text-5xl font-black mb-4">
-            <span className="bg-gradient-to-r from-purple-600 to-yellow-600 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-purple-900 to-purple-700 bg-clip-text text-transparent">
               Designed for Everyone
             </span>
           </h2>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+          <p className="text-xl text-purple-900 max-w-2xl mx-auto">
             Whether you're a student, teacher, or admin, Seika has powerful tools to make education fun and effective.
           </p>
         </div>
@@ -81,20 +81,20 @@ export function Features() {
             return (
               <div
                 key={index}
-                className={`${feature.bgColor} border-2 ${feature.borderColor} rounded-3xl p-8 hover:scale-105 transition-transform shadow-lg`}
+                className="bg-white border-2 border-purple-200 rounded-3xl p-8 hover:scale-105 transition-transform shadow-xl hover:shadow-2xl"
               >
                 <div
                   className={`w-16 h-16 bg-gradient-to-br ${feature.gradient} rounded-2xl flex items-center justify-center mb-6 shadow-lg rotate-6`}
                 >
                   <Icon className="w-8 h-8 text-white" />
                 </div>
-                <h3 className="text-2xl font-black mb-3">{feature.title}</h3>
+                <h3 className="text-2xl font-black mb-3 text-purple-900">{feature.title}</h3>
                 <p className="text-gray-700 mb-6">{feature.description}</p>
                 <ul className="space-y-2">
                   {feature.items.map((item, i) => (
                     <li key={i} className="flex items-center gap-2">
                       <div className={`w-2 h-2 bg-gradient-to-br ${feature.gradient} rounded-full`}></div>
-                      <span className="text-sm text-gray-700">{item}</span>
+                      <span className="text-sm text-gray-600">{item}</span>
                     </li>
                   ))}
                 </ul>
@@ -109,14 +109,14 @@ export function Features() {
             return (
               <div
                 key={index}
-                className="bg-gradient-to-br from-gray-50 to-white border border-gray-200 rounded-2xl p-6 flex items-start gap-4 hover:shadow-lg transition-shadow"
+                className="bg-purple-900/80 border-2 border-purple-700 rounded-2xl p-6 flex items-start gap-4 hover:shadow-lg transition-shadow backdrop-blur-sm"
               >
-                <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm">
-                  <Icon className={`w-6 h-6 ${benefit.color}`} />
+                <div className="w-12 h-12 bg-gradient-to-br from-yellow-300 to-amber-400 rounded-xl flex items-center justify-center shadow-sm">
+                  <Icon className="w-6 h-6 text-purple-900" />
                 </div>
                 <div>
-                  <h4 className="font-black mb-1">{benefit.title}</h4>
-                  <p className="text-sm text-gray-600">{benefit.description}</p>
+                  <h4 className="font-black mb-1 text-yellow-300">{benefit.title}</h4>
+                  <p className="text-sm text-yellow-100">{benefit.description}</p>
                 </div>
               </div>
             );
