@@ -14,15 +14,15 @@ export function Hero() {
           style={{ animationDuration: "3s" }}
         />
         <PencilRuler
-          className="absolute top-40 right-20 w-16 h-16 text-violet-500 rounded-full opacity-15 animate-bounce"
+          className="absolute top-40 right-20 w-16 h-16 text-violet-500 rounded-full opacity-15 animate-pulse"
           style={{ animationDuration: "2s", animationDelay: "0.5s" }}
         />
         <div
-          className="absolute bottom-40 left-1/4 w-12 h-12 bg-emerald-400 rounded-full opacity-15 animate-bounce"
+          className="absolute bottom-40 left-1/4 w-12 h-12 bg-amber-300 rounded-full opacity-15 animate-bounce"
           style={{ animationDuration: "2.5s", animationDelay: "1s" }}
         ></div>
         <Award
-          className="absolute bottom-20 right-1/3 w-14 h-14 text-cyan-400 rounded-full opacity-15 animate-pulse"
+          className="absolute bottom-20 right-1/3 w-14 h-14 text-violet-500 rounded-full opacity-15 animate-pulse"
           style={{ animationDuration: "3.5s" }}
         />
 
@@ -90,13 +90,19 @@ export function Hero() {
         <div className="relative">
           <div className="relative z-10 flex items-center justify-center h-96">
             {/* GameJoystick - background layer */}
-            <div className="absolute z-10 inset-0 rotate-30 flex items-center justify-center translate-y-40 translate-x-20">
+            <div
+              className="animate-float-joystick absolute z-10 inset-0 rotate-30 flex items-center justify-center translate-y-40 translate-x-20 hover:scale-105 transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
+              style={{ willChange: "transform" }}
+            >
               <GameJoystick size={250} />
             </div>
 
             {/* YellowBlueSchoolBag - overlay layer with rotation */}
             <div className="absolute inset-0 flex items-center justify-center -translate-x-25">
-              <div className="transform -rotate-22">
+              <div
+                className="animate-float-bag transform -rotate-22 hover:scale-105 transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
+                style={{ willChange: "transform" }}
+              >
                 <YellowBlueSchoolBag size={500} />
               </div>
             </div>
