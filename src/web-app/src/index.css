@@ -28,3 +28,32 @@
     min-height: 100vh;
   }
 }
+
+@keyframes float-slow {
+  0%,
+  100% {
+    transform: translateY(0px) rotate(2deg);
+  }
+  50% {
+    transform: translateY(-8px) rotate(-2deg);
+  }
+}
+
+@keyframes float-slow-reverse {
+  0%,
+  100% {
+    transform: translateY(0px) rotate(15deg);
+  }
+  50% {
+    transform: translateY(-12px) rotate(17deg);
+  }
+}
+
+.animate-float-bag {
+  animation: float-slow 7s ease-in-out infinite;
+}
+
+.animate-float-joystick {
+  animation: float-slow-reverse 5.2s ease-in-out infinite;
+  animation-delay: 0.8s;
+}
