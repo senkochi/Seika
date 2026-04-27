@@ -55,5 +55,5 @@
 
 .animate-float-joystick {
   animation: float-slow-reverse 5.2s ease-in-out infinite;
-  animation-delay: 0.8s; /* lệch pha để không đồng bộ */
+  animation-delay: 0.8s;
 }

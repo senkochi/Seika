@@ -1,5 +1,6 @@
-import { Sparkles, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { useState } from "react";
+import { Logo } from "./logo/Logo";
 
 export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -8,12 +9,7 @@ export function Navbar() {
     <nav className="fixed top-0 left-0 right-0 z-50 bg-indigo-950/95 backdrop-blur-md border-b border-violet-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          <div className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-gradient-to-br from-amber-400 to-yellow-500 rounded-2xl flex items-center justify-center rotate-12 shadow-lg">
-              <Sparkles className="w-6 h-6 text-purple-950" />
-            </div>
-            <span className="text-2xl font-black text-white">Seika</span>
-          </div>
+          <Logo imageClassName="w-10 h-10" />
 
           <div className="hidden md:flex items-center gap-8">
             <a href="#home" className="text-violet-200 hover:text-amber-400 transition-colors">

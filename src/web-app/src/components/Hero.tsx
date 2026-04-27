@@ -65,7 +65,7 @@ export function Hero() {
               Get Started
             </button>
             <button className="px-8 py-4 bg-violet-800/50 text-white border-2 border-violet-600 rounded-full hover:bg-violet-700/50 transition-all">
-              Watch Demo
+              Learn More
             </button>
           </div>
 

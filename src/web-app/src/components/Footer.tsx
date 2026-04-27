@@ -1,4 +1,5 @@
-import { Sparkles, Mail, Phone, MapPin } from "lucide-react";
+import { Mail, Phone, MapPin } from "lucide-react";
+import { Logo } from "./logo/Logo";
 
 export function Footer() {
   return (
@@ -26,11 +27,8 @@ export function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
         <div className="grid md:grid-cols-4 gap-12 mb-12">
           <div className="md:col-span-2">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-10 h-10 bg-gradient-to-br from-amber-400 to-yellow-500 rounded-2xl flex items-center justify-center rotate-12 shadow-lg">
-                <Sparkles className="w-6 h-6 text-purple-950" />
-              </div>
-              <span className="text-2xl font-black">Seika</span>
+            <div className="mb-4">
+              <Logo imageClassName="w-10 h-10" textClassName="text-2xl font-black" />
             </div>
             <p className="text-violet-200 mb-6">
               Transform education into an adventure! Join thousands of students, teachers, and schools already using
