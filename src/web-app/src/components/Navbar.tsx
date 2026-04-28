@@ -1,9 +1,11 @@
 import { Menu, X } from "lucide-react";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Logo } from "./logo/Logo";
 
 export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const navigate = useNavigate();
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-indigo-950/95 backdrop-blur-md border-b border-violet-800">
@@ -28,7 +30,11 @@ export function Navbar() {
 
           <div className="hidden md:flex items-center gap-3">
             <button className="px-4 py-2 text-white hover:text-amber-400 transition-colors">Login</button>
-            <button className="px-6 py-2 bg-gradient-to-r from-amber-400 to-yellow-500 text-purple-950 rounded-full hover:shadow-lg hover:scale-105 transition-all font-black">
+            <button
+              type="button"
+              onClick={() => navigate("/auth/register")}
+              className="px-6 py-2 bg-gradient-to-r from-amber-400 to-yellow-500 text-purple-950 rounded-full hover:shadow-lg hover:scale-105 transition-all font-black"
+            >
               Register
             </button>
           </div>
@@ -56,7 +62,11 @@ export function Navbar() {
             </a>
             <div className="pt-3 border-t border-violet-800 space-y-2">
               <button className="w-full px-4 py-2 text-white border border-violet-700 rounded-full">Login</button>
-              <button className="w-full px-4 py-2 bg-gradient-to-r from-amber-400 to-yellow-500 text-purple-950 rounded-full font-black">
+              <button
+                type="button"
+                onClick={() => navigate("/auth/register")}
+                className="w-full px-4 py-2 bg-gradient-to-r from-amber-400 to-yellow-500 text-purple-950 rounded-full font-black"
+              >
                 Register
               </button>
             </div>
