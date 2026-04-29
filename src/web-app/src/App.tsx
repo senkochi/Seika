@@ -15,7 +15,7 @@ function App() {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Router>
-      <Toaster position="top-center" richColors closeButton />
+      <Toaster position="top-center" richColors duration={2000} />
     </>
   );
 }

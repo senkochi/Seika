@@ -1,10 +1,16 @@
 import { Toaster as Sonner, ToasterProps } from "sonner";
 
-const Toaster = ({ ...props }: ToasterProps) => {
+interface CustomToasterProps extends ToasterProps {
+  duration?: number;
+}
+
+const Toaster = ({ duration = 4000, ...props }: CustomToasterProps) => {
   return (
     <Sonner
       theme="light"
       className="toaster group"
+      duration={duration}
+      expand={true}
       style={
         {
           "--normal-bg": "var(--popover)",
