@@ -1,7 +1,8 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import LandingPage from './pages/home/LandingPage';
-import NotFound from './pages/not-found/NotFound';
-import Register from './pages/auth/Register';
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import LandingPage from "./pages/home/LandingPage";
+import NotFound from "./pages/not-found/NotFound";
+import Register from "./pages/auth/Register";
+import { Toaster } from "./components/ui/sonner";
 
 function App() {
   return (
@@ -14,8 +15,9 @@ function App() {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Router>
+      <Toaster position="top-center" richColors closeButton />
     </>
-  )
+  );
 }
 
-export default App
+export default App;

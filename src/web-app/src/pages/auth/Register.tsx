@@ -4,6 +4,7 @@ import { Home } from "lucide-react";
 
 import RegistrationBox from "../../components/auth/RegistrationBox";
 import { RegisterData } from "../../components/auth/types";
+import { showError } from "../../components/toast/toastUtils";
 
 export default function Register() {
   const navigate = useNavigate();
@@ -18,6 +19,26 @@ export default function Register() {
   });
 
   const handleNext = () => {
+    if (currentStep === 1) {
+      if (!formData.role) {
+        showError("Please select your role.");
+        return;
+      }
+    }
+    if (currentStep === 2) {
+      if (!formData.fullname) {
+        showError("Full name is required.");
+        return;
+      }
+      if (!formData.dateOfBirth) {
+        showError("Date of birth is required.");
+        return;
+      }
+      if (!formData.gender) {
+        showError("Please select your gender.");
+        return;
+      }
+    }
     if (currentStep < 3) {
       setCurrentStep(currentStep + 1);
     }
@@ -35,6 +56,35 @@ export default function Register() {
   };
 
   const handleSubmit = () => {
+    // Validate all fields
+    if (!formData.role) {
+      showError("Please select your role.");
+      return;
+    }
+    if (!formData.fullname) {
+      showError("Full name is required.");
+      return;
+    }
+    if (!formData.dateOfBirth) {
+      showError("Date of birth is required.");
+      return;
+    }
+    if (!formData.gender) {
+      showError("Please select your gender.");
+      return;
+    }
+    if (!formData.username) {
+      showError("Username is required.");
+      return;
+    }
+    if (!formData.password) {
+      showError("Password is required.");
+      return;
+    }
+
+    // You can add more validation here (e.g., password strength, username format)
+
+    // If all valid
     console.log("Form submitted:", formData);
     // Handle form submission here
   };

@@ -52,10 +52,6 @@ export default function RegistrationBox({
           <button
             type="button"
             onClick={onNext}
-            disabled={
-              (currentStep === 1 && !formData.role) ||
-              (currentStep === 2 && (!formData.fullname || !formData.dateOfBirth || !formData.gender))
-            }
             className="px-8 py-3 bg-gradient-to-r from-amber-400 to-yellow-500 text-purple-950 rounded-full flex items-center gap-2 font-black hover:scale-105 transition-all"
           >
             Next
@@ -65,7 +61,6 @@ export default function RegistrationBox({
           <button
             type="button"
             onClick={onSubmit}
-            disabled={!formData.username || !formData.password}
             className="px-8 py-3 bg-gradient-to-r from-amber-400 to-yellow-500 text-purple-900 rounded-full font-black hover:scale-105 transition-all"
           >
             Create Account
