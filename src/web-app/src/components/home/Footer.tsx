@@ -1,5 +1,5 @@
 import { Mail, Phone, MapPin } from "lucide-react";
-import { Logo } from "./logo/Logo";
+import { Logo } from "../logo/Logo";
 
 export function Footer() {
   return (

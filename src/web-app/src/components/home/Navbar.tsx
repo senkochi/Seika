@@ -1,7 +1,7 @@
 import { Menu, X } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Logo } from "./logo/Logo";
+import { Logo } from "../logo/Logo";
 
 export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -11,10 +11,10 @@ export function Navbar() {
     <nav className="fixed top-0 left-0 right-0 z-50 bg-indigo-950/95 backdrop-blur-md border-b border-violet-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          <Logo imageClassName="w-10 h-10" />
+          <Logo imageClassName="w-10 h-10" textClassName="text-2xl font-black text-white cursor-pointer" />
 
           <div className="hidden md:flex items-center gap-8">
-            <a href="#home" className="text-violet-200 hover:text-amber-400 transition-colors">
+            <a href="#" className="text-violet-200 hover:text-amber-400 transition-colors">
               Home
             </a>
             <a href="#about" className="text-violet-200 hover:text-amber-400 transition-colors">

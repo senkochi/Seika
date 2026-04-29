@@ -1,7 +1,7 @@
-import { Navbar } from "../../components/Navbar"
-import { Hero } from "../../components/Hero"
-import { Features } from "../../components/Features"
-import { Footer } from "../../components/Footer"
+import { Navbar } from "../../components/home/Navbar";
+import { Hero } from "../../components/home/Hero";
+import { Features } from "../../components/home/Features";
+import { Footer } from "../../components/home/Footer";
 
 function LandingPage() {
   return (
@@ -11,7 +11,7 @@ function LandingPage() {
       <Features />
       <Footer />
     </div>
-  )
+  );
 }
 
-export default LandingPage
+export default LandingPage;

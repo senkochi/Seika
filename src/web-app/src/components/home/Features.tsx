@@ -1,5 +1,5 @@
 import { Trophy, Bell, Brain, Store, CreditCard } from "lucide-react";
-import { Images } from "../assets/images";
+import { Images } from "../../assets/images";
 
 export function Features() {
   return (

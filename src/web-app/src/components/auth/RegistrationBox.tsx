@@ -1,18 +1,18 @@
-import { Dispatch, SetStateAction } from 'react'
-import { ArrowLeft, ArrowRight } from 'lucide-react'
-import RoleStep from './RoleStep'
-import PersonalStep from './PersonalStep'
-import AuthStep from './AuthStep'
-import ProgressBar from './ProgressBar'
-import { RegisterData } from './types'
+import { Dispatch, SetStateAction } from "react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
+import RoleStep from "./RoleStep";
+import PersonalStep from "./PersonalStep";
+import AuthStep from "./AuthStep";
+import ProgressBar from "./ProgressBar";
+import { RegisterData } from "./types";
 
 interface RegistrationBoxProps {
-  currentStep: number
-  formData: RegisterData
-  setFormData: Dispatch<SetStateAction<RegisterData>>
-  onBack: () => void
-  onNext: () => void
-  onSubmit: () => void
+  currentStep: number;
+  formData: RegisterData;
+  setFormData: Dispatch<SetStateAction<RegisterData>>;
+  onBack: () => void;
+  onNext: () => void;
+  onSubmit: () => void;
 }
 
 export default function RegistrationBox({
@@ -42,13 +42,10 @@ export default function RegistrationBox({
         <button
           type="button"
           onClick={onBack}
-          disabled={currentStep === 1}
-          className={`px-6 py-3 flex items-center gap-2 transition-all ${
-            currentStep === 1 ? 'text-gray-400' : 'text-gray-400 hover:text-purple-900 hover:underline'
-          }`}
+          className={`px-6 py-3 flex items-center gap-2 transition-all ${"text-gray-400 hover:text-purple-900 hover:underline"}`}
         >
           <ArrowLeft className="w-4 h-4" />
-          Back
+          {currentStep === 1 ? "Back to Home" : "Back"}
         </button>
 
         {currentStep < 3 ? (

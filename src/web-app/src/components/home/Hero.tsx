@@ -1,6 +1,6 @@
 import { Rocket, Star, Zap, SwatchBook, Award, PencilRuler } from "lucide-react";
-import GameJoystick from "./3d-objects/GameJoystick";
-import YellowBlueSchoolBag from "./3d-objects/YellowBlueSchoolBag";
+import GameJoystick from "../3d-objects/GameJoystick";
+import YellowBlueSchoolBag from "../3d-objects/YellowBlueSchoolBag";
 
 export function Hero() {
   return (
