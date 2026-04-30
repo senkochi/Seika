@@ -1,10 +1,11 @@
-import { Dispatch, SetStateAction } from "react";
+import { Dispatch, SetStateAction, useState } from "react";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import RoleStep from "./RoleStep";
 import PersonalStep from "./PersonalStep";
 import AuthStep from "./AuthStep";
 import ProgressBar from "./ProgressBar";
 import { RegisterData } from "./types";
+import { showError } from "../toast/toastUtils";
 
 interface RegistrationBoxProps {
   currentStep: number;
@@ -15,6 +16,10 @@ interface RegistrationBoxProps {
   onSubmit: () => void;
 }
 
+type StepErrors = {
+  [key: string]: string;
+};
+
 export default function RegistrationBox({
   currentStep,
   formData,
@@ -23,6 +28,70 @@ export default function RegistrationBox({
   onNext,
   onSubmit,
 }: RegistrationBoxProps) {
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [errors, setErrors] = useState<StepErrors>({});
+
+  const validateCurrentStep = () => {
+    const newErrors: StepErrors = {};
+
+    if (currentStep === 1) {
+      if (!formData.role) {
+        newErrors.role = "Please select your role.";
+      }
+    }
+
+    if (currentStep === 2) {
+      if (!formData.fullname.trim()) {
+        newErrors.fullname = "Full name is required.";
+      }
+      if (!formData.dateOfBirth) {
+        newErrors.dateOfBirth = "Date of birth is required.";
+      }
+      if (!formData.gender) {
+        newErrors.gender = "Please select your gender.";
+      }
+    }
+
+    if (currentStep === 3) {
+      if (!formData.username.trim()) {
+        newErrors.username = "Username is required.";
+      }
+      if (!formData.password) {
+        newErrors.password = "Password is required.";
+      }
+      if (!confirmPassword) {
+        newErrors.confirmPassword = "Please confirm your password.";
+      }
+      if (formData.password !== confirmPassword) {
+        newErrors.confirmPassword = "Passwords do not match.";
+      }
+    }
+
+    const valid = Object.keys(newErrors).length === 0;
+    setErrors(newErrors);
+    return { valid, newErrors };
+  };
+
+  const handleNext = () => {
+    const { valid, newErrors } = validateCurrentStep();
+    if (valid) {
+      setErrors({});
+      onNext();
+    } else {
+      showError(Object.values(newErrors)[0]);
+    }
+  };
+
+  const handleSubmit = () => {
+    const { valid, newErrors } = validateCurrentStep();
+    if (valid) {
+      setErrors({});
+      onSubmit();
+    } else {
+      showError(Object.values(newErrors)[0]);
+    }
+  };
+
   return (
     <div className="w-full max-w-lg bg-white/95 backdrop-blur-lg rounded-3xl shadow-2xl border-2 border-amber-400 overflow-hidden relative z-10">
       <div className="bg-gradient-to-r from-purple-900 to-violet-900 px-8 py-6">
@@ -33,9 +102,33 @@ export default function RegistrationBox({
       <ProgressBar currentStep={currentStep} />
 
       <div className="px-8 py-6 min-h-[300px]">
-        {currentStep === 1 && <RoleStep formData={formData} setFormData={setFormData} />}
-        {currentStep === 2 && <PersonalStep formData={formData} setFormData={setFormData} />}
-        {currentStep === 3 && <AuthStep formData={formData} setFormData={setFormData} />}
+        {currentStep === 1 && <RoleStep formData={formData} setFormData={setFormData} error={errors.role} />}
+        {currentStep === 2 && (
+          <PersonalStep
+            formData={formData}
+            setFormData={setFormData}
+            errors={{
+              fullname: errors.fullname,
+              dateOfBirth: errors.dateOfBirth,
+              gender: errors.gender,
+            }}
+            setErrors={(newErrors) => setErrors((prev) => ({ ...prev, ...newErrors }))}
+          />
+        )}
+        {currentStep === 3 && (
+          <AuthStep
+            formData={formData}
+            setFormData={setFormData}
+            confirmPassword={confirmPassword}
+            setConfirmPassword={setConfirmPassword}
+            errors={{
+              username: errors.username,
+              password: errors.password,
+              confirmPassword: errors.confirmPassword,
+            }}
+            setErrors={(newErrors) => setErrors((prev) => ({ ...prev, ...newErrors }))}
+          />
+        )}
       </div>
 
       <div className="px-8 py-6 bg-gray-50 border-t-2 border-purple-100 flex justify-between items-center">
@@ -51,7 +144,7 @@ export default function RegistrationBox({
         {currentStep < 3 ? (
           <button
             type="button"
-            onClick={onNext}
+            onClick={handleNext}
             className="px-8 py-3 bg-gradient-to-r from-amber-400 to-yellow-500 text-purple-950 rounded-full flex items-center gap-2 font-black hover:scale-105 transition-all"
           >
             Next
@@ -60,7 +153,7 @@ export default function RegistrationBox({
         ) : (
           <button
             type="button"
-            onClick={onSubmit}
+            onClick={handleSubmit}
             className="px-8 py-3 bg-gradient-to-r from-amber-400 to-yellow-500 text-purple-900 rounded-full font-black hover:scale-105 transition-all"
           >
             Create Account

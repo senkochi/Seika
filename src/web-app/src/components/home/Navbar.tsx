@@ -29,7 +29,13 @@ export function Navbar() {
           </div>
 
           <div className="hidden md:flex items-center gap-3">
-            <button className="px-4 py-2 text-white hover:text-amber-400 transition-colors">Login</button>
+            <button
+              type="button"
+              onClick={() => navigate("/auth/login")}
+              className="px-4 py-2 text-white hover:text-amber-400 transition-colors"
+            >
+              Login
+            </button>
             <button
               type="button"
               onClick={() => navigate("/auth/register")}
@@ -61,7 +67,13 @@ export function Navbar() {
               Contact
             </a>
             <div className="pt-3 border-t border-violet-800 space-y-2">
-              <button className="w-full px-4 py-2 text-white border border-violet-700 rounded-full">Login</button>
+              <button
+                type="button"
+                onClick={() => navigate("/auth/login")}
+                className="w-full px-4 py-2 text-white border border-violet-700 rounded-full"
+              >
+                Login
+              </button>
               <button
                 type="button"
                 onClick={() => navigate("/auth/register")}

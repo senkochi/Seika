@@ -1,13 +1,14 @@
-import { Dispatch, SetStateAction } from 'react'
-import { GraduationCap, User } from 'lucide-react'
-import { RegisterData } from './types'
+import { Dispatch, SetStateAction } from "react";
+import { GraduationCap, User } from "lucide-react";
+import { RegisterData } from "./types";
 
 interface RoleStepProps {
-  formData: RegisterData
-  setFormData: Dispatch<SetStateAction<RegisterData>>
+  formData: RegisterData;
+  setFormData: Dispatch<SetStateAction<RegisterData>>;
+  error?: string;
 }
 
-export default function RoleStep({ formData, setFormData }: RoleStepProps) {
+export default function RoleStep({ formData, setFormData, error }: RoleStepProps) {
   return (
     <div className="space-y-6">
       <div className="text-center mb-6">
@@ -18,18 +19,18 @@ export default function RoleStep({ formData, setFormData }: RoleStepProps) {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <button
           type="button"
-          onClick={() => setFormData({ ...formData, role: 'STUDENT' })}
+          onClick={() => setFormData({ ...formData, role: "STUDENT" })}
           className={`group p-8 rounded-2xl border-2 transition-all ${
-            formData.role === 'STUDENT'
-              ? 'border-purple-500 bg-purple-50 shadow-lg scale-105'
-              : 'border-purple-200 hover:border-purple-300 hover:bg-purple-50/50'
+            formData.role === "STUDENT"
+              ? "border-purple-500 bg-purple-50 shadow-lg scale-105"
+              : "border-purple-200 hover:border-purple-300 hover:bg-purple-50/50"
           }`}
         >
           <div
             className={`w-20 h-20 mx-auto mb-4 rounded-2xl flex items-center justify-center transition-all ${
-              formData.role === 'STUDENT'
-                ? 'bg-gradient-to-br from-purple-500 to-purple-600 rotate-6'
-                : 'bg-gradient-to-br from-purple-400 to-purple-500 group-hover:rotate-6'
+              formData.role === "STUDENT"
+                ? "bg-gradient-to-br from-purple-500 to-purple-600 rotate-6"
+                : "bg-gradient-to-br from-purple-400 to-purple-500 group-hover:rotate-6"
             }`}
           >
             <GraduationCap className="w-10 h-10 text-white" />
@@ -40,18 +41,18 @@ export default function RoleStep({ formData, setFormData }: RoleStepProps) {
 
         <button
           type="button"
-          onClick={() => setFormData({ ...formData, role: 'TEACHER' })}
+          onClick={() => setFormData({ ...formData, role: "TEACHER" })}
           className={`group p-8 rounded-2xl border-2 transition-all ${
-            formData.role === 'TEACHER'
-              ? 'border-purple-500 bg-purple-50 shadow-lg scale-105'
-              : 'border-purple-200 hover:border-purple-300 hover:bg-purple-50/50'
+            formData.role === "TEACHER"
+              ? "border-purple-500 bg-purple-50 shadow-lg scale-105"
+              : "border-purple-200 hover:border-purple-300 hover:bg-purple-50/50"
           }`}
         >
           <div
             className={`w-20 h-20 mx-auto mb-4 rounded-2xl flex items-center justify-center transition-all ${
-              formData.role === 'TEACHER'
-                ? 'bg-gradient-to-br from-purple-500 to-purple-600 rotate-6'
-                : 'bg-gradient-to-br from-purple-400 to-purple-500 group-hover:rotate-6'
+              formData.role === "TEACHER"
+                ? "bg-gradient-to-br from-purple-500 to-purple-600 rotate-6"
+                : "bg-gradient-to-br from-purple-400 to-purple-500 group-hover:rotate-6"
             }`}
           >
             <User className="w-10 h-10 text-white" />
@@ -61,5 +62,5 @@ export default function RoleStep({ formData, setFormData }: RoleStepProps) {
         </button>
       </div>
     </div>
-  )
+  );
 }

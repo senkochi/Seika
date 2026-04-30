@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import LandingPage from "./pages/home/LandingPage";
 import NotFound from "./pages/not-found/NotFound";
+import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import { Toaster } from "./components/ui/sonner";
 
@@ -11,6 +12,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Navigate to="/home" />} />
           <Route path="/home" element={<LandingPage />} />
+          <Route path="/auth/login" element={<Login />} />
           <Route path="/auth/register" element={<Register />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
