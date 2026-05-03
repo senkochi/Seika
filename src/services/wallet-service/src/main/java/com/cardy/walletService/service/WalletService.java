@@ -50,6 +50,14 @@ public class WalletService {
     }
 
     @Transactional
+    public void createWallet(UUID userId) {
+        walletRepository.findByUserId(userId)
+                .orElseGet(() -> walletRepository.save(
+                        Wallet.builder().userId(userId).balance(BigDecimal.ZERO).build()
+                ));
+    }
+
+    @Transactional
     public void deposit(UUID userId, TransactionReqDTO req) {
         updateBalance(userId, req.getAmount(), TransactionType.DEPOSIT, req.getDescription());
     }
