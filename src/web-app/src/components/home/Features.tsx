@@ -1,6 +1,7 @@
 import { Trophy, Bell, Brain, Store, CreditCard } from "lucide-react";
 import { Images } from "../../assets/images";
 import AnimatedContent from "../reactbit/AnimatedContent";
+import { SocialProof } from "./SocialProof";
 
 export function Features() {
   return (
@@ -14,10 +15,11 @@ export function Features() {
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
         <AnimatedContent>
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-purple-900/80 border-2 border-purple-700 rounded-full mb-4">
-              <span className="text-sm text-yellow-300">Features</span>
-            </div>
+          <SocialProof />
+          <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-purple-400 to-transparent opacity-50 mt-32" />
+        </AnimatedContent>
+        <AnimatedContent>
+          <div className="text-center mb-16 mt-32">
             <h2 className="text-4xl md:text-5xl font-black mb-4">
               <span className="bg-gradient-to-r from-purple-900 to-purple-700 bg-clip-text text-transparent">
                 Designed for Everyone
@@ -30,11 +32,11 @@ export function Features() {
         </AnimatedContent>
         <AnimatedContent>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div className="md:col-span-1 bg-white/95 backdrop-blur-sm overflow-hidden rounded-3xl hover:scale-[1.02] transition-all shadow-xl hover:shadow-2xl group">
+            <div className="md:col-span-1 bg-white/95 backdrop-blur-sm overflow-hidden rounded-3xl hover:scale-[1.02] transition-all shadow-md hover:shadow-lg group">
               <img src={Images.FeatureImage1} alt="Feature 1" className="w-full h-full object-cover" />
             </div>
 
-            <div className="bg-gradient-to-br from-purple-900 to-purple-800 rounded-3xl p-8 hover:scale-[1.02] transition-all shadow-xl hover:shadow-2xl text-white group">
+            <div className="bg-gradient-to-br from-purple-900 to-purple-800 rounded-3xl p-8 hover:scale-[1.02] transition-all shadow-md hover:shadow-lg text-white group">
               <div className="w-16 h-16 bg-gradient-to-br from-amber-400 to-yellow-500 rounded-2xl flex items-center justify-center mb-6 shadow-lg rotate-6 group-hover:rotate-12 transition-transform">
                 <svg className="w-8 h-8 text-purple-900" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path
@@ -51,7 +53,7 @@ export function Features() {
                 Build personal flashcard decks or explore public collections. Master concepts with spaced repetition.
               </p>
             </div>
-            <div className="md:col-span-2 bg-white/95 backdrop-blur-sm rounded-3xl p-8 hover:scale-[1.02] transition-all shadow-xl hover:shadow-2xl group overflow-hidden">
+            <div className="md:col-span-2 bg-white/95 backdrop-blur-sm rounded-3xl p-8 hover:scale-[1.02] transition-all shadow-md hover:shadow-lg group overflow-hidden">
               <div className="flex flex-col md:flex-row gap-6 h-full">
                 <div className="flex-1">
                   <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg rotate-6 group-hover:rotate-12 transition-transform">
@@ -75,7 +77,7 @@ export function Features() {
               </div>
             </div>
 
-            <div className="md:row-span-2 bg-white/95 backdrop-blur-sm rounded-3xl p-8 hover:scale-[1.02] transition-all shadow-xl hover:shadow-2xl group flex flex-col overflow-hidden">
+            <div className="md:row-span-2 bg-white/95 backdrop-blur-sm rounded-3xl p-8 hover:scale-[1.02] transition-all shadow-md hover:shadow-lg group flex flex-col overflow-hidden">
               <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg rotate-6 group-hover:rotate-12 transition-transform">
                 <CreditCard className="w-8 h-8 text-white" />
               </div>
@@ -94,7 +96,7 @@ export function Features() {
               </div>
             </div>
 
-            <div className="md:col-span-2 bg-gradient-to-br from-purple-900 to-violet-900 rounded-3xl p-8 hover:scale-[1.02] transition-all shadow-xl hover:shadow-2xl overflow-hidden relative group">
+            <div className="md:col-span-2 bg-gradient-to-br from-purple-900 to-violet-900 rounded-3xl p-8 hover:scale-[1.02] transition-all shadow-md hover:shadow-lg overflow-hidden relative group">
               <div className="absolute top-0 right-0 w-64 h-64 bg-yellow-400/10 rounded-full blur-3xl"></div>
               <div className="relative">
                 <div className="w-16 h-16 bg-gradient-to-br from-amber-400 to-yellow-500 rounded-2xl flex items-center justify-center mb-6 shadow-lg rotate-6 group-hover:rotate-12 transition-transform">
@@ -120,7 +122,7 @@ export function Features() {
               </div>
             </div>
 
-            <div className="bg-white/95 backdrop-blur-sm rounded-3xl p-8 hover:scale-[1.02] transition-all shadow-xl hover:shadow-2xl group">
+            <div className="bg-white/95 backdrop-blur-sm rounded-3xl p-8 hover:scale-[1.02] transition-all shadow-md hover:shadow-lg group">
               <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-red-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg rotate-6 group-hover:rotate-12 transition-transform">
                 <Trophy className="w-8 h-8 text-white" />
               </div>
@@ -131,7 +133,7 @@ export function Features() {
               </p>
             </div>
 
-            <div className="md:col-span-2 bg-white/95 backdrop-blur-sm rounded-3xl p-8 hover:scale-[1.02] transition-all shadow-xl hover:shadow-2xl group">
+            <div className="md:col-span-2 bg-white/95 backdrop-blur-sm rounded-3xl p-8 hover:scale-[1.02] transition-all shadow-md hover:shadow-lg group">
               <div className="flex items-start gap-6">
                 <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-2xl flex items-center justify-center shadow-lg rotate-6 group-hover:rotate-12 transition-transform flex-shrink-0">
                   <Bell className="w-8 h-8 text-white" />
@@ -146,7 +148,7 @@ export function Features() {
                 </div>
               </div>
             </div>
-            <div className="md:col-span-1 bg-white/95 backdrop-blur-sm overflow-hidden rounded-3xl hover:scale-[1.02] transition-all shadow-xl hover:shadow-2xl group">
+            <div className="md:col-span-1 bg-white/95 backdrop-blur-sm overflow-hidden rounded-3xl hover:scale-[1.02] transition-all shadow-md hover:shadow-lg group">
               <img src={Images.FeatureImage2} alt="Feature 2" className="w-full h-60 object-cover" />
             </div>
           </div>

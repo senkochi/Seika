@@ -48,6 +48,7 @@
     min-width: 320px;
     min-height: 100vh;
     background: var(--background);
+    background-color: #1e1b4b;
     color: var(--foreground);
   }
 

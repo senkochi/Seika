@@ -69,6 +69,7 @@ playwright-report/
 .windsurf/
 .roo/
 .github/copilot-instructions.md
+.github/
 *.prompt.md
 *.instructions.md
 *.agent.md
