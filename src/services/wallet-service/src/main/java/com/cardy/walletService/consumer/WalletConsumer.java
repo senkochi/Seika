@@ -31,7 +31,7 @@ public class WalletConsumer {
 
         walletService.reward(userId, dto);
 
-        System.out.println("✅ Đã cộng 20 xu vào ví của " + req.getUserId());
+        System.out.println("Đã cộng 20 xu vào ví của " + req.getUserId());
     }
 
 }

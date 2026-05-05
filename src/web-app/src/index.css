@@ -1,5 +1,4 @@
-@tailwind base;
-@tailwind components;
+@import "tailwindcss/preflight";
 @tailwind utilities;
 @import "tailwindcss";
 @import "tw-animate-css";
@@ -9,6 +8,34 @@
 }
 
 @layer base {
+  :root {
+    --background: #ffffff;
+    --foreground: #0f172a;
+    --card: #ffffff;
+    --card-foreground: #0f172a;
+    --popover: #ffffff;
+    --popover-foreground: #1e1b4b;
+    --primary: #6d28d9;
+    --primary-foreground: #fefce8;
+    --secondary: #fef3c7;
+    --secondary-foreground: #4c1d95;
+    --muted: #f5f3ff;
+    --muted-foreground: #6b7280;
+    --accent: #f59e0b;
+    --accent-foreground: #2e1065;
+    --destructive: #ef4444;
+    --destructive-foreground: #ffffff;
+    --border: #ddd6fe;
+    --input: #ddd6fe;
+    --ring: #f59e0b;
+    --success: #10b981;
+    --success-foreground: #052e16;
+    --warning: #f59e0b;
+    --warning-foreground: #1e1b4b;
+    --info: #0ea5e9;
+    --info-foreground: #0f172a;
+  }
+
   html {
     font-family: var(--font-sans);
     text-rendering: optimizeLegibility;
@@ -20,8 +47,9 @@
     margin: 0;
     min-width: 320px;
     min-height: 100vh;
-    background: white;
-    color: rgb(15 23 42);
+    background: var(--background);
+    background-color: #1e1b4b;
+    color: var(--foreground);
   }
 
   #root {
@@ -29,6 +57,7 @@
   }
 }
 
+/*Hiệu ứng floating cho Object ở trang chủ */
 @keyframes float-slow {
   0%,
   100% {

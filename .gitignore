@@ -69,9 +69,12 @@ playwright-report/
 .windsurf/
 .roo/
 .github/copilot-instructions.md
+.github/
 *.prompt.md
 *.instructions.md
 *.agent.md
+CLAUDE.md
+.rtk
 
 # Local runtime files
 *.pid
