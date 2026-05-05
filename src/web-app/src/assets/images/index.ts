@@ -9,6 +9,9 @@ import HCMUSLogo from "./home/hcmus-logo.png";
 import FPTLogo from "./home/fpt-logo.png";
 import HUSTLogo from "./home/hust-logo.png";
 import ISOCertified from "./home/iso-logo.png";
+import BusinessPeople from "../images/3d-objects/business-people.png";
+import GameJoystick from "../images/3d-objects/game-joystick.png";
+import YellowBlueSchoolBag from "../images/3d-objects/yellow-blue-school-bag.png";
 
 export const Images = {
   FeatureImage1: FeatureImage1,
@@ -22,4 +25,7 @@ export const Images = {
   FPTLogo: FPTLogo,
   HUSTLogo: HUSTLogo,
   ISOCertified: ISOCertified,
+  BusinessPeople: BusinessPeople,
+  GameJoystick: GameJoystick,
+  YellowBlueSchoolBag: YellowBlueSchoolBag,
 } as const;

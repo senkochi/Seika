@@ -1,5 +1,8 @@
 import { useState } from "react";
-import { Mail, Phone, MapPin, Send, Rocket } from "lucide-react";
+import { Mail, Phone, MapPin, Send } from "lucide-react";
+import AnimatedContent from "../reactbit/AnimatedContent";
+import SpeechBubble from "./SpeechBubble";
+import BusinessPeople from "../3d-objects/BusinessPeople";
 
 export function Contact() {
   const [formData, setFormData] = useState({
@@ -18,14 +21,27 @@ export function Contact() {
       id="contact"
       className="relative py-32 bg-gradient-to-br from-amber-400 via-yellow-500 to-amber-500 overflow-hidden"
     >
-      {/* Wave/Paper Rip Transition from purple */}
-      <div
-        className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-br from-indigo-950 via-purple-900 to-violet-950"
-        style={{
-          clipPath:
-            "polygon(0 0, 100% 0, 100% 60%, 90% 70%, 80% 60%, 70% 80%, 60% 70%, 50% 90%, 40% 70%, 30% 80%, 20% 60%, 10% 70%, 0 60%)",
-        }}
-      ></div>
+      {/* Shape Divider */}
+      <div className="absolute top-0 left-0 right-0 h-32 overflow-hidden line-height-0">
+        <svg
+          viewBox="0 0 1440 320"
+          className="w-full h-full preserve-3d"
+          preserveAspectRatio="none"
+        >
+          <defs>
+            <linearGradient id="grad1" x1="100%" y1="100%" x2="0%" y2="100%">
+              <stop offset="0%" style={{ stopColor:  '#2f0d68', stopOpacity: 1 }} /> {/* indigo-950 */}
+              <stop offset="50%" style={{ stopColor: '#44127a', stopOpacity: 1 }} /> {/* purple-900 */}
+              <stop offset="100%" style={{ stopColor: '#59168b', stopOpacity: 1 }} /> {/* violet-950 */}
+            </linearGradient>
+          </defs>
+          <path
+            fill="url(#grad1)"
+            d="M0,160L48,176C96,192,192,224,288,224C384,224,480,192,576,165.3C672,139,768,117,864,128C960,139,1056,181,1152,192C1248,203,1344,181,1392,170.7L1440,160L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
+          ></path>
+        </svg>
+      </div>
+
 
       {/* Organic blob shapes */}
       <div className="absolute top-40 right-0 w-[600px] h-[600px] bg-purple-600/10 rounded-[60%_40%_30%_70%/60%_30%_70%_40%] blur-3xl"></div>
@@ -33,195 +49,127 @@ export function Contact() {
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-20">
         {/* Chunky Header with Shadow */}
-        <div className="mb-20">
-          <h2 className="text-6xl md:text-8xl font-black text-purple-900 mb-6 drop-shadow-[4px_4px_0px_rgba(109,40,217,0.3)]">
-            Let's Talk!
-          </h2>
-          <p className="text-2xl md:text-3xl text-purple-800 drop-shadow-lg max-w-2xl">
-            Got questions? Ideas? Just want to say hi? We're all ears! 👂
-          </p>
-        </div>
+        <AnimatedContent>
+          <div className="mb-16">
+            <h2 className="text-4xl md:text-6xl font-black text-purple-900 mb-2">
+              Let's Talk!
+            </h2>
+            <p className="text-lg md:text-xl text-purple-800 max-w-2xl">
+              Got questions? Ideas? Just want to say hi? We're all ears!
+            </p>
+          </div>
+        </AnimatedContent>
 
         {/* Integrated Split Layout - NO BOXES */}
-        <div className="grid lg:grid-cols-2 gap-16 items-center">
+        <div className="grid lg:grid-cols-10 gap-20 items-center">
           {/* Left Side - Floating Form Fields */}
-          <div className="relative z-20">
-            <form onSubmit={handleSubmit} className="space-y-8">
-              {/* Floating input - glassmorphism style */}
-              <div className="relative">
-                <input
-                  type="text"
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      name: e.target.value,
-                    })
-                  }
-                  placeholder="Your Name"
-                  className="w-full px-0 py-4 bg-transparent border-0 border-b-4 border-purple-800/40 focus:border-purple-900 focus:outline-none transition-colors text-xl text-purple-900 placeholder:text-purple-700/50 font-bold"
-                  required
-                />
-              </div>
+          <div className="relative z-20 lg:col-span-4 items-center">
+            <AnimatedContent>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                {/* Floating input - glassmorphism style */}
+                <div className="relative">
+                  <input
+                    type="text"
+                    id="name"
+                    value={formData.name}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        name: e.target.value,
+                      })
+                    }
+                    placeholder="Your Name"
+                    className="w-full px-0 py-2 bg-transparent border-0 border-b-2 border-purple-800/40 focus:border-purple-900 focus:outline-none transition-colors text-lg text-purple-900 placeholder:text-purple-700/50 font-semibold"
+                    required
+                  />
+                </div>
 
-              <div className="relative">
-                <input
-                  type="email"
-                  id="email"
-                  value={formData.email}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      email: e.target.value,
-                    })
-                  }
-                  placeholder="your.email@example.com"
-                  className="w-full px-0 py-4 bg-transparent border-0 border-b-4 border-purple-800/40 focus:border-purple-900 focus:outline-none transition-colors text-xl text-purple-900 placeholder:text-purple-700/50 font-bold"
-                  required
-                />
-              </div>
+                <div className="relative">
+                  <input
+                    type="email"
+                    id="email"
+                    value={formData.email}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        email: e.target.value,
+                      })
+                    }
+                    placeholder="your.email@example.com"
+                    className="w-full px-0 py-2 bg-transparent border-0 border-b-2 border-purple-800/40 focus:border-purple-900 focus:outline-none transition-colors text-lg text-purple-900 placeholder:text-purple-700/50 font-semibold"
+                    required
+                  />
+                </div>
 
-              <div className="relative">
-                <textarea
-                  id="message"
-                  value={formData.message}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      message: e.target.value,
-                    })
-                  }
-                  placeholder="What's on your mind?"
-                  rows={5}
-                  className="w-full px-0 py-4 bg-transparent border-0 border-b-4 border-purple-800/40 focus:border-purple-900 focus:outline-none transition-colors resize-none text-xl text-purple-900 placeholder:text-purple-700/50 font-bold"
-                  required
-                />
-              </div>
+                <div className="relative">
+                  <textarea
+                    id="message"
+                    value={formData.message}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        message: e.target.value,
+                      })
+                    }
+                    placeholder="What's on your mind?"
+                    rows={5}
+                    className="w-full px-0 py-2 bg-transparent border-0 border-b-2 border-purple-800/40 focus:border-purple-900 focus:outline-none transition-colors resize-none text-lg text-purple-900 placeholder:text-purple-700/50 font-semibold"
+                    required
+                  />
+                </div>
 
-              <button
-                type="submit"
-                className="group px-10 py-5 bg-purple-900 text-amber-400 font-black text-xl hover:bg-purple-800 transition-all flex items-center gap-3 shadow-[6px_6px_0px_rgba(109,40,217,0.3)] hover:shadow-[8px_8px_0px_rgba(109,40,217,0.3)] hover:translate-x-[-2px] hover:translate-y-[-2px]"
-                style={{
-                  borderRadius: "12% 12% 12% 12% / 12% 12% 12% 12%",
-                }}
-              >
-                <Send className="w-6 h-6 group-hover:rotate-12 transition-transform" />
-                Send Message
-              </button>
-            </form>
-
+                <button
+                  type="submit"
+                  className="my-16 group px-8 py-4 bg-purple-900 text-amber-400 hover:bg-purple-800 transition-all shadow-xl hover:scale-102 transition-all flex items-center gap-2 font-black rounded-full"
+                >
+                  <Send className="w-6 h-6 group-hover:rotate-12 transition-transform" />
+                  Send Message
+                </button>
+              </form>
+            </AnimatedContent>
+            <AnimatedContent>
             {/* Contact info - overlapping, no boxes */}
-            <div className="mt-16 space-y-6">
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 bg-purple-900 flex items-center justify-center transform -rotate-6 shadow-lg">
-                  <Mail className="w-7 h-7 text-amber-400" />
+              <div className="mt-16 space-y-6">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 bg-purple-900 rounded-xl flex items-center justify-center transform -rotate-6 shadow-lg">
+                    <Mail className="w-5 h-5 text-amber-400" />
+                  </div>
+                  <div>
+                    <p className="text-purple-900 font-black text-md">hello@seika.edu</p>
+                    <p className="text-purple-800 text-sm">support@seika.edu</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-purple-900 font-black text-lg">hello@seika.edu</p>
-                  <p className="text-purple-800">support@seika.edu</p>
-                </div>
-              </div>
 
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 bg-purple-900 flex items-center justify-center transform rotate-6 shadow-lg">
-                  <Phone className="w-7 h-7 text-amber-400" />
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 bg-purple-900 rounded-xl flex items-center justify-center transform rotate-6 shadow-lg">
+                    <Phone className="w-5 h-5 text-amber-400" />
+                  </div>
+                  <div>
+                    <p className="text-purple-900 font-black text-md">+1 (555) 123-4567</p>
+                    <p className="text-purple-800 text-sm">Mon-Fri, 9am-6pm EST</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-purple-900 font-black text-lg">+1 (555) 123-4567</p>
-                  <p className="text-purple-800">Mon-Fri, 9am-6pm EST</p>
-                </div>
-              </div>
 
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 bg-purple-900 flex items-center justify-center transform -rotate-3 shadow-lg">
-                  <MapPin className="w-7 h-7 text-amber-400" />
-                </div>
-                <div>
-                  <p className="text-purple-900 font-black text-lg">123 Education Street</p>
-                  <p className="text-purple-800">Learning City, LC 12345</p>
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 bg-purple-900 rounded-xl flex items-center justify-center transform -rotate-3 shadow-lg">
+                    <MapPin className="w-5 h-5 text-amber-400" />
+                  </div>
+                  <div>
+                    <p className="text-purple-900 font-black text-md">123 Education Street</p>
+                    <p className="text-purple-800 text-sm">Learning City, LC 12345</p>
+                  </div>
                 </div>
               </div>
-            </div>
+            </AnimatedContent>
           </div>
 
+
           {/* Right Side - Large Playful 3D Mascot */}
-          <div className="relative lg:block hidden">
-            {/* Rocket pointing to form */}
-            <div className="relative transform -rotate-12 hover:rotate-[-8deg] transition-transform duration-500">
-              {/* Rocket body */}
-              <div className="relative w-64 h-96 mx-auto">
-                {/* Main rocket */}
-                <div
-                  className="absolute inset-0 bg-gradient-to-b from-purple-600 to-purple-800 shadow-2xl"
-                  style={{
-                    borderRadius: "50% 50% 50% 50% / 60% 60% 40% 40%",
-                    clipPath: "polygon(50% 0%, 100% 40%, 90% 100%, 10% 100%, 0% 40%)",
-                  }}
-                ></div>
-
-                {/* Window */}
-                <div className="absolute top-16 left-1/2 -translate-x-1/2 w-24 h-24 bg-gradient-to-br from-cyan-300 to-blue-400 rounded-full border-8 border-purple-900 shadow-inner flex items-center justify-center">
-                  <div className="text-4xl animate-bounce">👋</div>
-                </div>
-
-                {/* Rocket details */}
-                <div
-                  className="absolute bottom-24 left-1/2 -translate-x-1/2 w-16 h-20 bg-amber-400 shadow-lg"
-                  style={{
-                    clipPath: "polygon(50% 0%, 100% 100%, 0% 100%)",
-                  }}
-                ></div>
-
-                {/* Fins */}
-                <div
-                  className="absolute bottom-4 -left-8 w-20 h-32 bg-purple-700 shadow-xl"
-                  style={{
-                    clipPath: "polygon(100% 0%, 100% 100%, 0% 100%)",
-                  }}
-                ></div>
-                <div
-                  className="absolute bottom-4 -right-8 w-20 h-32 bg-purple-700 shadow-xl"
-                  style={{
-                    clipPath: "polygon(0% 0%, 100% 100%, 0% 100%)",
-                  }}
-                ></div>
-
-                {/* Flame */}
-                <div
-                  className="absolute -bottom-16 left-1/2 -translate-x-1/2 w-20 h-24 bg-gradient-to-b from-amber-400 via-orange-500 to-red-600 animate-pulse"
-                  style={{
-                    borderRadius: "50% 50% 50% 50% / 40% 40% 60% 60%",
-                    clipPath: "polygon(50% 100%, 0% 0%, 100% 0%)",
-                  }}
-                ></div>
-              </div>
-
-              {/* Stars around rocket */}
-              <div className="absolute -top-8 -right-8 text-4xl animate-spin" style={{ animationDuration: "4s" }}>
-                ⭐
-              </div>
-              <div className="absolute top-20 -left-12 text-3xl animate-pulse">✨</div>
-              <div className="absolute bottom-32 -right-16 text-2xl animate-bounce" style={{ animationDuration: "2s" }}>
-                💫
-              </div>
-            </div>
-
-            {/* Arrow pointing to form */}
-            <div className="absolute -left-24 top-1/2 transform -rotate-12">
-              <div className="text-6xl animate-bounce">👈</div>
-            </div>
-
-            {/* Speech bubble */}
-            <div
-              className="absolute top-8 -left-32 bg-white p-6 shadow-2xl transform -rotate-6"
-              style={{
-                borderRadius: "20% 20% 20% 20% / 25% 25% 25% 25%",
-              }}
-            >
-              <p className="text-purple-900 font-black text-lg whitespace-nowrap">Fill out the form!</p>
-              <div className="absolute bottom-0 left-12 w-0 h-0 border-l-[20px] border-l-transparent border-r-[20px] border-r-transparent border-t-[20px] border-t-white transform translate-y-full -rotate-12"></div>
-            </div>
+          <div className="relative lg:block hidden lg:col-span-6">
+            <AnimatedContent>
+              <SpeechBubble className="top-[-50px] left-[-70px]">Fill out the form!</SpeechBubble>
+              <BusinessPeople size={800} />
+            </AnimatedContent>
           </div>
         </div>
       </div>

@@ -41,7 +41,7 @@ export function Hero() {
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 grid lg:grid-cols-2 gap-12 items-center">
         <div className="space-y-8">
           <AnimatedContent>
-            <div className="inline-flex items-center gap-2 my-2 px-4 py-2 bg-violet-800/50 border-2 border-violet-600 rounded-full">
+            <div className="inline-flex items-center gap-2 my-2">
               <Zap className="w-4 h-4 text-amber-300" />
               <span className="text-sm text-violet-200">Learning Made Fun!</span>
             </div>
@@ -62,7 +62,7 @@ export function Hero() {
             </p>
 
             <div className="flex flex-wrap gap-4 my-6">
-              <button className="group px-8 py-4 bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-500 text-purple-950 rounded-full shadow-xl hover:shadow-2xl hover:scale-105 transition-all flex items-center gap-2 font-black">
+              <button className="group px-8 py-4 bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-500 text-purple-950 rounded-full shadow-xl hover:scale-102 transition-all flex items-center gap-2 font-black">
                 <Rocket className="w-5 h-5 group-hover:rotate-12 transition-transform" />
                 Get Started
               </button>
