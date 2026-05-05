@@ -13,6 +13,7 @@ import BusinessPeople from "../images/3d-objects/business-people.png";
 import GameJoystick from "../images/3d-objects/game-joystick.png";
 import YellowBlueSchoolBag from "../images/3d-objects/yellow-blue-school-bag.png";
 import NijiKaMember from "../images/home/nijika-member.png";
+import SenkoMember from "../images/home/senko-member.png";
 
 export const Images = {
   FeatureImage1: FeatureImage1,
@@ -30,4 +31,5 @@ export const Images = {
   GameJoystick: GameJoystick,
   YellowBlueSchoolBag: YellowBlueSchoolBag,
   NijiKaMember: NijiKaMember,
+  SenkoMember: SenkoMember,
 } as const;
