@@ -17,11 +17,11 @@ export function Navbar() {
             <a href="#" className="text-violet-200 hover:text-amber-400 transition-colors">
               Home
             </a>
-            <a href="#about" className="text-violet-200 hover:text-amber-400 transition-colors">
-              About
-            </a>
             <a href="#features" className="text-violet-200 hover:text-amber-400 transition-colors">
               Features
+            </a>
+            <a href="#about" className="text-violet-200 hover:text-amber-400 transition-colors">
+              About
             </a>
             <a href="#contact" className="text-violet-200 hover:text-amber-400 transition-colors">
               Contact
@@ -45,7 +45,7 @@ export function Navbar() {
             </button>
           </div>
 
-          <button className="md:hidden p-2" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+          <button className="md:hidden p-2 text-white" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
             {mobileMenuOpen ? <X /> : <Menu />}
           </button>
         </div>

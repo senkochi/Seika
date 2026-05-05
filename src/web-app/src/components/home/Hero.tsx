@@ -1,4 +1,4 @@
-import { Rocket, Star, Zap, SwatchBook, Award, PencilRuler } from "lucide-react";
+import { Rocket, Star, Zap} from "lucide-react";
 import GameJoystick from "../3d-objects/GameJoystick";
 import YellowBlueSchoolBag from "../3d-objects/YellowBlueSchoolBag";
 import AnimatedContent from "../reactbit/AnimatedContent";
@@ -9,35 +9,6 @@ export function Hero() {
       id="home"
       className="relative min-h-screen flex items-center overflow-hidden bg-gradient-to-br from-indigo-950 via-purple-900 to-violet-950 pt-16 pb-16"
     >
-      <div className="absolute inset-0 overflow-hidden">
-        <SwatchBook
-          className="absolute top-20 left-10 w-20 h-20 text-amber-400 opacity-20 animate-pulse"
-          style={{ animationDuration: "3s" }}
-        />
-        <PencilRuler
-          className="absolute top-40 right-20 w-16 h-16 text-violet-500 rounded-full opacity-15 animate-pulse"
-          style={{ animationDuration: "2s", animationDelay: "0.5s" }}
-        />
-        <div
-          className="absolute bottom-40 left-1/4 w-12 h-12 bg-amber-300 rounded-full opacity-15 animate-bounce"
-          style={{ animationDuration: "2.5s", animationDelay: "1s" }}
-        ></div>
-        <Award
-          className="absolute bottom-20 right-1/3 w-14 h-14 text-violet-500 rounded-full opacity-15 animate-pulse"
-          style={{ animationDuration: "3.5s" }}
-        />
-
-        <Star className="absolute top-32 right-1/4 w-8 h-8 text-amber-300 opacity-25 animate-pulse" />
-        <Star
-          className="absolute bottom-32 left-1/3 w-6 h-6 text-violet-400 opacity-25 animate-pulse"
-          style={{ animationDelay: "0.5s" }}
-        />
-        <Zap
-          className="absolute top-1/2 right-12 w-10 h-10 text-amber-300 opacity-20 animate-pulse"
-          style={{ animationDelay: "1s" }}
-        />
-      </div>
-
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 grid lg:grid-cols-2 gap-12 items-center">
         <div className="space-y-8">
           <AnimatedContent>
@@ -112,8 +83,8 @@ export function Hero() {
               </div>
             </div>
 
-            <div className="absolute -top-6 -right-6 w-32 h-32 bg-gradient-to-br from-amber-400 to-yellow-500 rounded-3xl rotate-12 opacity-30 blur-xl"></div>
-            <div className="absolute -bottom-6 -left-6 w-32 h-32 bg-gradient-to-br from-violet-600 to-purple-700 rounded-3xl -rotate-12 opacity-50 blur-xl"></div>
+            <div className="absolute -top-6 -right-6 w-42 h-42 bg-gradient-to-br from-amber-400 to-yellow-500 rounded-3xl rotate-12 opacity-10 blur-xl"></div>
+            <div className="absolute -bottom-6 -left-6 w-52 h-52 bg-gradient-to-br from-violet-600 to-purple-700 rounded-3xl -rotate-12 opacity-20 blur-2xl"></div>
 
             <div
               className="absolute top-8 -right-4 bg-violet-900 p-4 rounded-2xl shadow-xl border-2 border-amber-400 animate-bounce"
