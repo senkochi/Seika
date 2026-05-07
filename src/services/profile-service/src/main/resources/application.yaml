@@ -14,11 +14,6 @@ spring:
         max-interval: 2000
         max-attempts: 6
 
-jwt:
-  secret: 8db8d4987f6a51ed76090464c02e06205d68fc0b8d8f024e6c3c57cb67da7a9b
-  issuer: seika-identity-service
-  access-token-expiration-minutes: 60
-
 # Các cấu hình datasource, eureka... được định nghĩa trong Config Server
 # Xem /config-service/src/main/resources/configs/profile-service.yaml
 

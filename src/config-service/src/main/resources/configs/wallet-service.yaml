@@ -15,7 +15,6 @@ spring:
       connection-timeout: ${DB_CONNECTION_TIMEOUT:45000}
       validation-timeout: ${DB_VALIDATION_TIMEOUT:5000}
       leak-detection-threshold: ${DB_LEAK_DETECTION:2000}
-
   jpa:
     open-in-view: false
     database-platform: org.hibernate.dialect.PostgreSQLDialect
@@ -30,10 +29,10 @@ spring:
           use_jdbc_metadata_defaults: false
 
   rabbitmq:
-    host: localhost
-    port: 5672
-    username: guest
-    password: guest
+    host: ${RABBITMQ_HOST}
+    port: ${RABBITMQ_PORT}
+    username: ${RABBITMQ_USERNAME}
+    password: ${RABBITMQ_PASSWORD}
 
 logging:
   level:

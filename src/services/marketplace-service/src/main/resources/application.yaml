@@ -1,14 +1,15 @@
 spring:
+  config:
+    import: "configserver:"
   application:
     name: marketplace-service
-  datasource:
-    url: jdbc:postgresql://localhost:5432/marketplace-service-seika
-    username: postgres
-    password: 123
-    driver-class-name: org.postgresql.Driver
-  jpa:
-    hibernate:
-      ddl-auto: update
-    properties:
-      hibernate:
-        format_sql: true
+  profiles:
+    active: ${SPRING_PROFILE:dev}
+  cloud:
+    config:
+      uri: ${CONFIG_SERVER_URL:http://localhost:8888}
+      fail-fast: true
+      retry:
+        initial-interval: 1000
+        max-interval: 2000
+        max-attempts: 6
