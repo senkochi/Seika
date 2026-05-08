@@ -5,14 +5,14 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.TypeAlias;
 
-import java.util.List;
+import java.util.Map;
 
 @Data
-@TypeAlias("REORDER")
-public class ReorderQuiz extends BaseQuiz {
-    private List<String> correctOrder;
+@TypeAlias("MATCHING")
+public class MatchingQuiz extends BaseQuiz {
+    private Map<String, String> matchingPairs;
 
-    public ReorderQuiz() {
-        super(QuizType.REORDER);
+    public MatchingQuiz() {
+        super(QuizType.MATCHING);
     }
 }
