@@ -18,6 +18,12 @@ spring:
     username: ${RABBITMQ_USERNAME}
     password: ${RABBITMQ_PASSWORD}
 
+jwt:
+  issuer: seika-notification-service
+  secret: ${JWT_SECRET}
+  access-token-expiration-minutes: ${JWT_ACCESS_TOKEN_EXPIRATION_MINUTES}
+  refresh-token-expiration-days: ${JWT_REFRESH_TOKEN_EXPIRATION_DAYS}
+
 messaging:
   events:
     identity-exchange: ${IDENTITY_EVENTS_EXCHANGE:identity.events}
