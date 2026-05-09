@@ -11,6 +11,12 @@ spring:
       hibernate:
         format_sql: true
 
+jwt:
+  issuer: seika-profile-service
+  secret: ${JWT_SECRET}
+  access-token-expiration-minutes: ${JWT_ACCESS_TOKEN_EXPIRATION_MINUTES}
+  refresh-token-expiration-days: ${JWT_REFRESH_TOKEN_EXPIRATION_DAYS}
+
 eureka:
   client:
     enabled: true
@@ -18,3 +24,12 @@ eureka:
       defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka}
     register-with-eureka: true
     fetch-registry: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "health,info"
+  endpoint:
+    health:
+      show-details: always

@@ -38,3 +38,12 @@ messaging:
   events:
     identity-exchange: ${IDENTITY_EVENTS_EXCHANGE:identity.events}
     user-registered-routing-key: ${USER_REGISTERED_ROUTING_KEY:user.registered}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "health,info"
+  endpoint:
+    health:
+      show-details: always
