@@ -23,3 +23,12 @@ messaging:
     identity-exchange: ${IDENTITY_EVENTS_EXCHANGE:identity.events}
     user-registered-routing-key: ${USER_REGISTERED_ROUTING_KEY:user.registered}
     user-registered-queue: ${USER_REGISTERED_QUEUE:notification.user-events}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "health,info"
+  endpoint:
+    health:
+      show-details: always
