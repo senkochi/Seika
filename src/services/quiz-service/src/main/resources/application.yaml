@@ -1,6 +1,18 @@
 spring:
+  config:
+    import: "configserver:"
   application:
     name: quiz_service
-  data:
-    mongodb:
-      uri: mongodb://admin:password@localhost:27017/quiz_service?authSource=admin
+  profiles:
+    active: ${SPRING_PROFILE:dev}
+  cloud:
+    config:
+      uri: ${CONFIG_SERVER_URL:http://localhost:8888}
+      fail-fast: false
+      retry:
+        initial-interval: 1000
+        max-interval: 2000
+        max-attempts: 6
+
+# MongoDB, eureka, and logging are defined in Config Server
+# See /config-service/src/main/resources/configs/quiz_service.yaml

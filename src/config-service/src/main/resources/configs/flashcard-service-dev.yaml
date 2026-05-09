@@ -6,7 +6,7 @@ spring:
     name: flashcard-service
   data:
     mongodb:
-      uri: mongodb+srv://senko:123@clustercard.bdhmypa.mongodb.net/flashcard_db?retryWrites=true&w=majority
+      uri: ${FLASHCARD_DB_URI}
       socket-timeout-ms: 30000
       connection-timeout-ms: 30000
   cloud:
@@ -14,7 +14,7 @@ spring:
       client:
         config:
           wallet-service:
-            url: http://localhost:8084
+            url: ${WALLET_SERVER_URL:http://localhost:8084}
           default:
             connect-timeout: 10000
             read-timeout: 10000

@@ -1,0 +1,28 @@
+server:
+  port: ${QUIZ_SERVER_PORT:8087}
+
+spring:
+  application:
+    name: quiz_service
+  data:
+    mongodb:
+      uri: ${QUIZ_DB_URI}
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
+
+logging:
+  level:
+    root: INFO
+    org.springframework.data.mongodb: DEBUG
+    org.mongodb.driver: DEBUG
+    com.seika.quiz_service: DEBUG
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka/}
+  instance:
+    prefer-ip-address: true
