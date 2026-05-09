@@ -1,6 +1,6 @@
 spring:
   application:
-    name: quiz_service
+    name: quiz-service
   data:
     mongodb:
       uri: mongodb://admin:password@localhost:27017/quiz_service?authSource=admin
