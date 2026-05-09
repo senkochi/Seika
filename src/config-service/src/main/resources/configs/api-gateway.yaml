@@ -14,10 +14,6 @@ spring:
                 - Path=/identity/**
               filters:
                 - StripPrefix=1
-            - id: flashcard-service
-              uri: lb://FLASHCARD-SERVICE
-              predicates:
-                - Path=/api/flashcards/**,/api/flashcards
             - id: profile-route
               uri: lb://PROFILE-SERVICE
               predicates:
