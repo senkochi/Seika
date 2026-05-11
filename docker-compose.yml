@@ -1,0 +1,310 @@
+version: "3.9"
+
+services:
+  rabbitmq:
+    image: rabbitmq:4.3.0-rc.1-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  mongo:
+    image: mongo:7.0
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test:
+        ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  mongo-init:
+    image: mongo:7.0
+    depends_on:
+      mongo:
+        condition: service_healthy
+    entrypoint:
+      - bash
+      - -c
+      - >-
+        mongosh --host mongo:27017 --eval
+        "try { rs.status() } catch (e) { rs.initiate({_id:'rs0',members:[{_id:0,host:'mongo:27017'}]}) }"
+    restart: "no"
+
+  identity-db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: identity-service-seika
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123456
+    volumes:
+      - identity_db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  profile-db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: profile-service-seika
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123456
+    volumes:
+      - profile_db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  wallet-db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: wallet-service-seika
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123456
+    volumes:
+      - wallet_db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  marketplace-db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: marketplace-service-seika
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123456
+    volumes:
+      - marketplace_db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  eureka:
+    build:
+      context: ./src/eureka
+    ports:
+      - "8761:8761"
+    environment:
+      EUREKA_PORT: 8761
+    restart: unless-stopped
+
+  config-service:
+    build:
+      context: ./src/config-service
+    ports:
+      - "8888:8888"
+    environment:
+      CONFIG_SERVER_PORT: 8888
+      EUREKA_SERVER_URL: http://eureka:8761/eureka
+      ADMIN_INITIAL_ENABLED: "true"
+      ADMIN_INITIAL_USERNAME: admin
+      ADMIN_INITIAL_PASSWORD: seika123
+      JWT_SECRET: 8db8d4987f6a51ed76090464c02e06205d68fc0b8d8f024e6c3c57cb67da7a9b
+      JWT_ACCESS_TOKEN_EXPIRATION_MINUTES: 60
+      JWT_REFRESH_TOKEN_EXPIRATION_DAYS: 30
+      PROFILE_SERVER_URL: http://profile-service:8082
+      WALLET_SERVER_PORT: 8084
+      FLASHCARD_DB_URI: mongodb://mongo:27017/flashcard-service-seika?replicaSet=rs0
+      QUIZ_DB_URI: mongodb://mongo:27017/quiz-service-seika?replicaSet=rs0
+      IDENTITY_DB_URL: jdbc:postgresql://identity-db:5432/identity-service-seika
+      IDENTITY_DB_USERNAME: postgres
+      IDENTITY_DB_PASSWORD: 123456
+      PROFILE_DB_URL: jdbc:postgresql://profile-db:5432/profile-service-seika
+      PROFILE_DB_USERNAME: postgres
+      PROFILE_DB_PASSWORD: 123456
+      WALLET_DB_URL: jdbc:postgresql://wallet-db:5432/wallet-service-seika
+      WALLET_DB_USERNAME: postgres
+      WALLET_DB_PASSWORD: 123456
+      WALLET_DB_SCHEMA: public
+      MARKETPLACE_DB_URL: jdbc:postgresql://marketplace-db:5432/marketplace-service-seika
+      MARKETPLACE_DB_USERNAME: postgres
+      MARKETPLACE_DB_PASSWORD: 123456
+      MARKETPLACE_DB_SCHEMA: public
+      NOTIFICATION_MONGO_URI: mongodb://mongo:27017/notification-service-seika?replicaSet=rs0
+      NOTIFICATION_MONGO_DATABASE: notification-service-seika
+      NOTIFICATION_SERVER_PORT: 8083
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: guest
+      RABBITMQ_PASSWORD: guest
+      IDENTITY_EVENTS_EXCHANGE: identity.events
+      USER_REGISTERED_ROUTING_KEY: user.registered
+      USER_REGISTERED_QUEUE: notification.user-events
+    depends_on:
+      eureka:
+        condition: service_started
+    restart: unless-stopped
+
+  identity-service:
+    build:
+      context: ./src/services/identity-service
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_PROFILE: dev
+      CONFIG_SERVER_URL: http://config-service:8888
+    depends_on:
+      config-service:
+        condition: service_started
+      identity-db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+
+  profile-service:
+    build:
+      context: ./src/services/profile-service
+    ports:
+      - "8082:8082"
+    environment:
+      SPRING_PROFILE: dev
+      CONFIG_SERVER_URL: http://config-service:8888
+    depends_on:
+      config-service:
+        condition: service_started
+      profile-db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+
+  wallet-service:
+    build:
+      context: ./src/services/wallet-service
+    ports:
+      - "8084:8084"
+    environment:
+      SPRING_PROFILE: dev
+      CONFIG_SERVER_URL: http://config-service:8888
+    depends_on:
+      config-service:
+        condition: service_started
+      wallet-db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+
+  marketplace-service:
+    build:
+      context: ./src/services/marketplace-service
+    ports:
+      - "8085:8085"
+    environment:
+      SPRING_PROFILE: dev
+      CONFIG_SERVER_URL: http://config-service:8888
+    depends_on:
+      config-service:
+        condition: service_started
+      marketplace-db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+
+  notification-service:
+    build:
+      context: ./src/services/notification-service
+    ports:
+      - "8083:8083"
+    environment:
+      SPRING_PROFILE: dev
+      CONFIG_SERVER_URL: http://config-service:8888
+      SPRING_DATA_MONGODB_URI: mongodb://mongo:27017/notification-service-seika?replicaSet=rs0
+      SPRING_DATA_MONGODB_DATABASE: notification-service-seika
+    depends_on:
+      config-service:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
+      mongo:
+        condition: service_healthy
+      mongo-init:
+        condition: service_started
+    restart: unless-stopped
+
+  flashcard-service:
+    build:
+      context: ./src/services/flashcard-service
+    ports:
+      - "8086:8086"
+    environment:
+      SPRING_PROFILE: dev
+      CONFIG_SERVER_URL: http://config-service:8888
+    depends_on:
+      config-service:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
+      mongo:
+        condition: service_healthy
+      mongo-init:
+        condition: service_started
+    restart: unless-stopped
+
+  quiz-service:
+    build:
+      context: ./src/services/quiz-service
+    ports:
+      - "8087:8087"
+    environment:
+      SPRING_PROFILE: dev
+      CONFIG_SERVER_URL: http://config-service:8888
+    depends_on:
+      config-service:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
+      mongo:
+        condition: service_healthy
+      mongo-init:
+        condition: service_started
+    restart: unless-stopped
+
+  api-gateway:
+    build:
+      context: ./src/api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILE: dev
+      CONFIG_SERVER_URL: http://config-service:8888
+    depends_on:
+      config-service:
+        condition: service_started
+      eureka:
+        condition: service_started
+    restart: unless-stopped
+
+volumes:
+  mongo_data:
+  identity_db:
+  profile_db:
+  wallet_db:
+  marketplace_db:

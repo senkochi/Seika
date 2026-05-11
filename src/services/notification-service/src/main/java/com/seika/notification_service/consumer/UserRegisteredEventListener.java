@@ -10,6 +10,7 @@ import com.seika.notification_service.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.amqp.AmqpRejectAndDontRequeueException;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -48,8 +49,10 @@ public class UserRegisteredEventListener {
                     event.getUserId(), event.getEventId());
         } catch (JsonProcessingException exception) {
             log.error("Failed to deserialize user.registered message. payload={}", rawMessage, exception);
+            throw new AmqpRejectAndDontRequeueException("Invalid user.registered payload", exception);
         } catch (Exception exception) {
             log.error("Failed to process user.registered message. payload={}", rawMessage, exception);
+            throw exception;
         }
     }
 

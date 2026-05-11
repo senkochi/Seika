@@ -9,9 +9,9 @@ eureka:
     register-with-eureka: true
     fetch-registry: true
 spring:
-  mongodb:
-    uri: ${NOTIFICATION_MONGO_URI}
-    database: ${NOTIFICATION_MONGO_DATABASE}
+  data:
+    mongodb:
+      uri: ${NOTIFICATION_MONGO_URI}
   rabbitmq:
     host: ${RABBITMQ_HOST}
     port: ${RABBITMQ_PORT}
