@@ -29,29 +29,6 @@ spring:
           enabled: false
           lower-case-service-id: true
 
-jwt:
-  secret: ${JWT_SECRET:8db8d4987f6a51ed76090464c02e06205d68fc0b8d8f024e6c3c57cb67da7a9b}
-  issuer: ${JWT_ISSUER:seika-identity-service}
-  access-token-expiration-minutes: ${JWT_ACCESS_TOKEN_EXPIRATION_MINUTES:60}
-
-eureka:
-  client:
-    enabled: true
-    service-url:
-      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka}
-    register-with-eureka: true
-    fetch-registry: true
-
-app:
-  api:
-    public-endpoints:
-      - /api/auth/login
-      - /api/auth/register
-      - /api/auth/refresh
-      - /api/auth/jwt-validate
-      - /health
-      - /actuator/**
-
 logging:
   level:
     root: INFO
