@@ -14,7 +14,7 @@ spring:
       client:
         config:
           wallet-service:
-            url: ${WALLET_SERVER_URL:http://localhost:8084}
+            url: ${WALLET_SERVER_URL}
           default:
             connect-timeout: 10000
             read-timeout: 10000

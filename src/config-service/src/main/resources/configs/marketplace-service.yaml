@@ -17,10 +17,10 @@ spring:
         temp:
           use_jdbc_metadata_defaults: false
   rabbitmq:
-    host: ${RABBITMQ_HOST:localhost}
-    port: ${RABBITMQ_PORT:5672}
-    username: ${RABBITMQ_USERNAME:guest}
-    password: ${RABBITMQ_PASSWORD:guest}
+    host: ${RABBITMQ_HOST}
+    port: ${RABBITMQ_PORT}
+    username: ${RABBITMQ_USERNAME}
+    password: ${RABBITMQ_PASSWORD}
 
 jwt:
   issuer: seika-marketplace-service
@@ -32,7 +32,7 @@ eureka:
   client:
     enabled: true
     service-url:
-      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka}
+      defaultZone: ${EUREKA_SERVER_URL}
     register-with-eureka: true
     fetch-registry: true
 

@@ -1,15 +1,13 @@
-FROM maven:3.9.8-eclipse-temurin-21 AS build
-WORKDIR /app
-COPY .mvn/ .mvn/
-COPY mvnw pom.xml ./
-RUN chmod +x mvnw
-RUN ./mvnw -q -DskipTests dependency:go-offline
-COPY src/ src/
-RUN ./mvnw -q -Dmaven.test.skip=true package
-RUN rm -f target/original-*.jar
-RUN mv target/*.jar /app/app.jar
+FROM maven:3.9.9-eclipse-temurin-21 AS build
+WORKDIR /workspace
+COPY pom.xml .
+RUN mvn -q -DskipTests dependency:go-offline
+COPY src ./src
+RUN mvn -q -DskipTests package
+RUN JAR_FILE=$(ls target/*.jar | grep -v 'original' | head -n 1) && cp "$JAR_FILE" /workspace/app.jar
 
-FROM eclipse-temurin:21-jre
+FROM eclipse-temurin:21-jre-jammy
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
-COPY --from=build /app/app.jar /app/app.jar
-ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+COPY --from=build /workspace/app.jar /app/app.jar
+ENTRYPOINT ["java","-jar","/app/app.jar"]

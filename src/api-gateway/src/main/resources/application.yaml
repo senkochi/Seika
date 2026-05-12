@@ -4,8 +4,40 @@ spring:
   application:
     name: api-gateway
   cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: identity-auth-route
+              uri: lb://IDENTITY-SERVICE
+              predicates:
+                - Path=/api/auth/**
+            - id: identity-route
+              uri: lb://IDENTITY-SERVICE
+              predicates:
+                - Path=/identity/**
+              filters:
+                - StripPrefix=1
+            - id: flashcard-service
+              uri: lb://FLASHCARD-SERVICE
+              predicates:
+                - Path=/api/flashcards/**,/api/flashcards
+            - id: profile-route
+              uri: lb://PROFILE-SERVICE
+              predicates:
+                - Path=/api/profiles/**,/api/profiles
+            - id: wallet-route
+              uri: lb://WALLET-SERVICE
+              predicates:
+                - Path=/api/wallet/**,/api/wallet
+          discovery:
+            locator:
+              enabled: false
+              lower-case-service-id: true
+          route-definition-locator:
+            enabled: true
     config:
-      uri: ${CONFIG_SERVER_URL:http://localhost:8888}
+      uri: ${CONFIG_SERVER_URL}
       fail-fast: true
       retry:
         initial-interval: 1000

@@ -8,10 +8,10 @@ spring:
     mongodb:
       uri: ${QUIZ_DB_URI}
   rabbitmq:
-    host: ${RABBITMQ_HOST:localhost}
+    host: ${RABBITMQ_HOST}
     port: ${RABBITMQ_PORT}
-    username: ${RABBITMQ_USERNAME:guest}
-    password: ${RABBITMQ_PASSWORD:guest}
+    username: ${RABBITMQ_USERNAME}
+    password: ${RABBITMQ_PASSWORD}
 
 jwt:
   issuer: seika-quiz-service
@@ -28,6 +28,6 @@ logging:
 eureka:
   client:
     service-url:
-      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka/}
+      defaultZone: ${EUREKA_SERVER_URL}
   instance:
     prefer-ip-address: true

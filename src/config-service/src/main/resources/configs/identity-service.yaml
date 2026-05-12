@@ -23,10 +23,12 @@ spring:
     password: ${RABBITMQ_PASSWORD}
 
 eureka:
+  instance:
+    prefer-ip-address: true
   client:
     enabled: true
     service-url:
-      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka}
+      defaultZone: ${EUREKA_SERVER_URL}
     register-with-eureka: true
     fetch-registry: true
 
@@ -38,7 +40,7 @@ jwt:
 
 app:
   services:
-    profile: ${PROFILE_SERVER_URL:http://localhost:8082}
+    profile: ${PROFILE_SERVER_URL}
 
 messaging:
   events:

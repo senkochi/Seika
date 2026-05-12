@@ -1,3 +1,5 @@
+version: "3.9"
+
 services:
   rabbitmq:
     image: rabbitmq:4.3.0-rc.1-management
@@ -156,6 +158,15 @@ services:
       IDENTITY_EVENTS_EXCHANGE: ${IDENTITY_EVENTS_EXCHANGE}
       USER_REGISTERED_ROUTING_KEY: ${USER_REGISTERED_ROUTING_KEY}
       USER_REGISTERED_QUEUE: ${USER_REGISTERED_QUEUE}
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          'curl -fsS http://localhost:8888/actuator/health | grep -q "UP"',
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
     depends_on:
       eureka:
         condition: service_started
@@ -167,11 +178,11 @@ services:
     ports:
       - "${IDENTITY_SERVER_PORT}:${IDENTITY_SERVER_PORT}"
     environment:
-      SPRING_PROFILE: ${SPRING_PROFILE}
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILE}
       CONFIG_SERVER_URL: ${CONFIG_SERVER_URL}
     depends_on:
       config-service:
-        condition: service_started
+        condition: service_healthy
       identity-db:
         condition: service_healthy
       rabbitmq:
@@ -184,11 +195,11 @@ services:
     ports:
       - "${PROFILE_SERVER_PORT}:${PROFILE_SERVER_PORT}"
     environment:
-      SPRING_PROFILE: ${SPRING_PROFILE}
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILE}
       CONFIG_SERVER_URL: ${CONFIG_SERVER_URL}
     depends_on:
       config-service:
-        condition: service_started
+        condition: service_healthy
       profile-db:
         condition: service_healthy
       rabbitmq:
@@ -201,11 +212,11 @@ services:
     ports:
       - "${WALLET_SERVER_PORT}:${WALLET_SERVER_PORT}"
     environment:
-      SPRING_PROFILE: ${SPRING_PROFILE}
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILE}
       CONFIG_SERVER_URL: ${CONFIG_SERVER_URL}
     depends_on:
       config-service:
-        condition: service_started
+        condition: service_healthy
       wallet-db:
         condition: service_healthy
       rabbitmq:
@@ -218,11 +229,11 @@ services:
     ports:
       - "${MARKETPLACE_SERVER_PORT}:${MARKETPLACE_SERVER_PORT}"
     environment:
-      SPRING_PROFILE: ${SPRING_PROFILE}
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILE}
       CONFIG_SERVER_URL: ${CONFIG_SERVER_URL}
     depends_on:
       config-service:
-        condition: service_started
+        condition: service_healthy
       marketplace-db:
         condition: service_healthy
       rabbitmq:
@@ -235,13 +246,13 @@ services:
     ports:
       - "${NOTIFICATION_SERVER_PORT}:${NOTIFICATION_SERVER_PORT}"
     environment:
-      SPRING_PROFILE: ${SPRING_PROFILE}
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILE}
       CONFIG_SERVER_URL: ${CONFIG_SERVER_URL}
       SPRING_DATA_MONGODB_URI: ${NOTIFICATION_MONGO_URI}
       SPRING_DATA_MONGODB_DATABASE: ${NOTIFICATION_MONGO_DATABASE}
     depends_on:
       config-service:
-        condition: service_started
+        condition: service_healthy
       rabbitmq:
         condition: service_healthy
       mongo:
@@ -256,11 +267,11 @@ services:
     ports:
       - "${FLASHCARD_SERVER_PORT}:${FLASHCARD_SERVER_PORT}"
     environment:
-      SPRING_PROFILE: ${SPRING_PROFILE}
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILE}
       CONFIG_SERVER_URL: ${CONFIG_SERVER_URL}
     depends_on:
       config-service:
-        condition: service_started
+        condition: service_healthy
       rabbitmq:
         condition: service_healthy
       mongo:
@@ -275,11 +286,11 @@ services:
     ports:
       - "${QUIZ_SERVER_PORT}:${QUIZ_SERVER_PORT}"
     environment:
-      SPRING_PROFILE: ${SPRING_PROFILE}
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILE}
       CONFIG_SERVER_URL: ${CONFIG_SERVER_URL}
     depends_on:
       config-service:
-        condition: service_started
+        condition: service_healthy
       rabbitmq:
         condition: service_healthy
       mongo:
@@ -294,11 +305,11 @@ services:
     ports:
       - "${GATEWAY_PORT}:${GATEWAY_PORT}"
     environment:
-      SPRING_PROFILE: ${SPRING_PROFILE}
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILE}
       CONFIG_SERVER_URL: ${CONFIG_SERVER_URL}
     depends_on:
       config-service:
-        condition: service_started
+        condition: service_healthy
       eureka:
         condition: service_started
     restart: unless-stopped
