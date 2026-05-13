@@ -41,7 +41,18 @@ services:
       - -c
       - >-
         mongosh --host mongo:27017 --eval
-        "try { rs.status() } catch (e) { rs.initiate({_id:'rs0',members:[{_id:0,host:'mongo:27017'}]}) }"
+        "try {
+          const cfg = rs.conf();
+          const desiredHost = 'mongo:27017';
+          if (!cfg.members || cfg.members.length === 0) {
+            rs.initiate({_id:'rs0',members:[{_id:0,host:desiredHost}]});
+          } else if (cfg.members[0].host !== desiredHost) {
+            cfg.members[0].host = desiredHost;
+            rs.reconfig(cfg, { force: true });
+          }
+        } catch (e) {
+          rs.initiate({_id:'rs0',members:[{_id:0,host:'mongo:27017'}]})
+        }"
     restart: "no"
 
   identity-db:
