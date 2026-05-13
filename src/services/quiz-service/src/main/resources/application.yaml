@@ -16,3 +16,4 @@ spring:
 
 # MongoDB, eureka, and logging are defined in Config Server
 # See /config-service/src/main/resources/configs/quiz_service.yaml
+

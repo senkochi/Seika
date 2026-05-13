@@ -1,7 +1,12 @@
 package com.seika.quiz_service.service;
 
-import com.seika.quiz_service.domain.BaseQuiz;
+import com.seika.quiz_service.domain.*;
+import com.seika.quiz_service.dto.quiz.QuizCreateRequest;
 import com.seika.quiz_service.dto.quiz.QuizResponse;
+import com.seika.quiz_service.dto.quiz.request_sub_types.FillInBlankRequest;
+import com.seika.quiz_service.dto.quiz.request_sub_types.MatchingRequest;
+import com.seika.quiz_service.dto.quiz.request_sub_types.McqRequest;
+import com.seika.quiz_service.dto.quiz.request_sub_types.ReorderRequest;
 import com.seika.quiz_service.exception.ResourceNotFoundException;
 import com.seika.quiz_service.repository.QuizRepository;
 import lombok.RequiredArgsConstructor;
@@ -9,7 +14,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -61,14 +65,48 @@ public class QuizService {
             .map(this::convertToResponse)
             .collect(Collectors.toList());
     }
-    
+
     /**
      * Create new quiz
      */
-    public QuizResponse create(BaseQuiz quiz) {
-        log.info("Creating new quiz: {}", quiz.getQuestionText());
+    public QuizResponse create(QuizCreateRequest request) {
+        log.info("Creating new quiz: {}", request.getQuestionText());
+        BaseQuiz quiz = switch (request) {
+            case MatchingRequest req -> {
+                MatchingQuiz matchingQuiz = new MatchingQuiz();
+                matchingQuiz.setMatchingPairs(req.getMatchingPairs());
+                yield matchingQuiz;
+            }
+            case ReorderRequest req -> {
+                ReorderQuiz reorderQuiz = new ReorderQuiz();
+                reorderQuiz.setCorrectOrder(req.getCorrectOrder());
+                yield reorderQuiz;
+            }
+            case FillInBlankRequest req -> {
+                FillInBlankQuiz fillInBlankQuiz = new FillInBlankQuiz();
+                fillInBlankQuiz.setAcceptedAnswers(req.getAcceptedAnswers());
+                yield fillInBlankQuiz;
+            }
+            case McqRequest req -> {
+                MultipleChoiceQuiz mcqQuiz = new MultipleChoiceQuiz();
+                mcqQuiz.setOptions(req.getOptions());
+                mcqQuiz.setCorrectOptionIndex(req.getCorrectOptionIndex());
+                yield mcqQuiz;
+            }
+            default -> throw new IllegalArgumentException("Invalid Quiz Type");
+        };
+
+        quiz.setQuestionText(request.getQuestionText());
+        quiz.setCreatedBy("mock_user_id");
+
         BaseQuiz saved = quizRepository.save(quiz);
-        return convertToResponse(saved);
+        return QuizResponse.builder()
+                .id(saved.getId())
+                .questionText(saved.getQuestionText())
+                .createdBy(saved.getCreatedBy())
+                .createdAt(saved.getCreatedAt())
+                .type(saved.getType())
+                .build();
     }
     
     /**
