@@ -15,10 +15,10 @@ import java.util.concurrent.TimeUnit;
 @Configuration
 public class MongoConfig {
 
-    @Value("${spring.data.mongodb.uri:${FLASHCARD_DB_URI}}")
+    @Value("${spring.data.mongodb.uri:mongodb://mongo:27017/flashcard-service-seika?replicaSet=rs0}")
     private String mongoUri;
 
-    @Value("${spring.data.mongodb.database:${FLASHCARD_DB_DATABASE}}")
+    @Value("${spring.data.mongodb.database:flashcard-service-seika}")
     private String databaseName;
 
     @Bean

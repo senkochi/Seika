@@ -14,10 +14,10 @@ import java.util.Objects;
 @Configuration
 public class MongoConfig {
 
-    @Value("${spring.data.mongodb.uri:${QUIZ_DB_URI}}")
+    @Value("${spring.data.mongodb.uri:mongodb://mongo:27017/quiz-service-seika?replicaSet=rs0}")
     private String mongoUri;
 
-    @Value("${spring.data.mongodb.database:${QUIZ_DB_DATABASE}}")
+    @Value("${spring.data.mongodb.database:quiz-service-seika}")
     private String databaseName;
 
     @Bean
