@@ -1,14 +1,4 @@
-import {
-  Sparkles,
-  TrendingUp,
-  TrendingDown,
-  Gift,
-  Trophy,
-  ShoppingBag,
-  Zap,
-  Star,
-  Coins,
-} from "lucide-react";
+import { Sparkles, TrendingUp, TrendingDown, Zap, Coins } from "lucide-react";
 
 function Wallet() {
   const walletStats = {
@@ -136,12 +126,12 @@ function Wallet() {
       <div className="mb-8">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           <div>
-            <h1 className="text-4xl font-black text-white mb-2">
+            <h1 className="text-4xl font-black text-[var(--foreground)] mb-2">
               <span className="bg-gradient-to-r from-amber-300 to-yellow-400 bg-clip-text text-transparent">
                 Wallet
               </span>
             </h1>
-            <p className="text-violet-300">
+            <p className="text-[var(--muted-foreground)]">
               Track your Xu and treasure history
             </p>
           </div>
@@ -153,7 +143,7 @@ function Wallet() {
               <div className="bg-gradient-to-br from-purple-950 to-violet-950 rounded-[22px] px-8 py-6">
                 <div className="flex items-center gap-4">
                   <div className="w-16 h-16 bg-gradient-to-br from-amber-400 to-yellow-500 rounded-2xl flex items-center justify-center shadow-lg">
-                    <Sparkles className="w-8 h-8 text-purple-900" />
+                    <Sparkles className="w-8 h-8 text-[var(--foreground)]" />
                   </div>
                   <div>
                     <p className="text-amber-300 text-sm font-black uppercase tracking-wider mb-1">
@@ -162,13 +152,13 @@ function Wallet() {
                     <p className="text-white text-4xl font-black">
                       {walletStats.totalXu.toLocaleString()}
                     </p>
-                    <p className="text-violet-300 text-sm">Xu</p>
+                    <p className="text-[var(--muted-foreground)] text-sm">Xu</p>
                   </div>
                 </div>
-                <div className="mt-4 pt-4 border-t border-purple-800/50 flex items-center justify-between">
+                <div className="mt-4 pt-4 border-t border-[var(--border)] flex items-center justify-between">
                   <div>
                     <p className="text-violet-400 text-xs">Rank</p>
-                    <p className="text-amber-400 font-black">
+                    <p className="text-[var(--primary)] font-black">
                       {walletStats.rank}
                     </p>
                   </div>
@@ -195,12 +185,16 @@ function Wallet() {
               className="relative bg-gradient-to-br from-purple-900/40 to-violet-900/40 backdrop-blur-sm border-2 border-purple-600/30 rounded-3xl p-6 hover:border-purple-500/50 transition-all"
             >
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 bg-purple-800/50 rounded-2xl flex items-center justify-center">
+                <div className="w-14 h-14 bg-[var(--card)] rounded-2xl flex items-center justify-center">
                   <Icon className={`w-7 h-7 ${stat.color}`} />
                 </div>
                 <div>
-                  <p className="text-violet-300 text-sm">{stat.label}</p>
-                  <p className="text-white text-2xl font-black">{stat.value}</p>
+                  <p className="text-[var(--muted-foreground)] text-sm">
+                    {stat.label}
+                  </p>
+                  <p className="text-[var(--foreground)] text-2xl font-black">
+                    {stat.value}
+                  </p>
                 </div>
               </div>
             </div>
@@ -211,15 +205,17 @@ function Wallet() {
       {/* Treasure Log */}
       <div>
         <div className="flex items-center gap-3 mb-6">
-          <Coins className="w-8 h-8 text-amber-400" />
-          <h2 className="text-3xl font-black text-white">Treasure Log</h2>
+          <Coins className="w-8 h-8 text-[var(--primary)]" />
+          <h2 className="text-3xl font-black text-[var(--foreground)]">
+            Treasure Log
+          </h2>
         </div>
 
         <div className="space-y-4">
           {treasureLog.map((entry) => (
             <div
               key={entry.id}
-              className="group relative bg-gradient-to-br from-purple-900/60 to-violet-900/60 backdrop-blur-sm border-2 border-purple-600/50 rounded-3xl p-6 hover:border-purple-500 hover:scale-[1.02] transition-all"
+              className="group relative bg-gradient-to-br from-purple-900/60 to-violet-900/60 backdrop-blur-sm border-2 border-[var(--border)] rounded-3xl p-6 hover:border-[var(--ring)] hover:scale-[1.02] transition-all"
             >
               <div className="flex items-center gap-6">
                 {/* Icon */}
@@ -233,10 +229,10 @@ function Wallet() {
                 <div className="flex-1">
                   <div className="flex items-start justify-between mb-2">
                     <div>
-                      <h3 className="text-xl font-black text-white mb-1">
+                      <h3 className="text-xl font-black text-[var(--foreground)] mb-1">
                         {entry.title}
                       </h3>
-                      <p className="text-violet-300 text-sm">
+                      <p className="text-[var(--muted-foreground)] text-sm">
                         {entry.description}
                       </p>
                     </div>
@@ -247,17 +243,19 @@ function Wallet() {
                         {entry.type === "earn" ? "+" : ""}
                         {entry.amount}
                       </p>
-                      <p className="text-violet-400 text-xs">Xu</p>
+                      <p className="text-[var(--muted-foreground)] text-xs">
+                        Xu
+                      </p>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-4">
-                    <div className="px-3 py-1 bg-purple-800/50 border border-purple-600/50 rounded-full">
-                      <span className="text-violet-300 text-xs font-black">
+                    <div className="px-3 py-1 bg-[var(--card)] border border-[var(--border)] rounded-full">
+                      <span className="text-[var(--muted-foreground)] text-xs font-black">
                         {entry.category}
                       </span>
                     </div>
-                    <span className="text-violet-400 text-xs">
+                    <span className="text-[var(--muted-foreground)] text-xs">
                       {entry.time}
                     </span>
                   </div>
@@ -286,13 +284,13 @@ function Wallet() {
       {/* Summary Footer */}
       <div className="mt-12 relative group">
         <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-violet-600/20 rounded-3xl blur-2xl"></div>
-        <div className="relative bg-gradient-to-br from-purple-900/60 to-violet-900/60 backdrop-blur-sm border-2 border-purple-600/50 rounded-3xl p-8">
+        <div className="relative bg-gradient-to-br from-purple-900/60 to-violet-900/60 backdrop-blur-sm border-2 border-[var(--border)] rounded-3xl p-8">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-violet-300 mb-2">
+              <p className="text-[var(--muted-foreground)] mb-2">
                 Keep learning to earn more Xu!
               </p>
-              <p className="text-white text-lg font-black">
+              <p className="text-[var(--foreground)] text-lg font-black">
                 Complete quizzes, maintain streaks, and master new skills.
               </p>
             </div>

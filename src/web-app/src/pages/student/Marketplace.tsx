@@ -5,7 +5,6 @@ import {
   Flame,
   Star,
   Crown,
-  Lock,
   ShoppingCart,
 } from "lucide-react";
 
@@ -156,8 +155,10 @@ function Marketplace() {
     <div className="p-8">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white mb-2">Marketplace</h1>
-        <p className="text-gray-400">
+        <h1 className="text-3xl font-bold text-[var(--foreground)] mb-2">
+          Marketplace
+        </h1>
+        <p className="text-[var(--muted-foreground)]">
           Power up your learning with exclusive items!
         </p>
       </div>
@@ -165,9 +166,11 @@ function Marketplace() {
       {/* Limited Time Offers */}
       <div className="mb-12">
         <div className="flex items-center gap-3 mb-6">
-          <Flame className="w-6 h-6 text-purple-500 animate-pulse" />
-          <h2 className="text-xl font-bold text-white">Limited Time Offers</h2>
-          <Clock className="w-5 h-5 text-purple-400" />
+          <Flame className="w-6 h-6 text-[var(--primary)] animate-pulse" />
+          <h2 className="text-xl font-bold text-[var(--foreground)]">
+            Limited Time Offers
+          </h2>
+          <Clock className="w-5 h-5 text-[var(--primary)]" />
         </div>
 
         <div className="grid md:grid-cols-2 gap-6">
@@ -196,7 +199,7 @@ function Marketplace() {
                     </div>
                     <div className="bg-red-500/20 border border-red-500/50 px-3 py-1 rounded-full flex items-center gap-1">
                       <Clock className="w-3 h-3 text-red-400" />
-                      <span className="text-red-300 text-xs font-black">
+                      <span className="text-[var(--primary)] text-xs font-black">
                         {offer.timeLeft}
                       </span>
                     </div>
@@ -208,21 +211,23 @@ function Marketplace() {
                       {offer.icon}
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-2xl font-black text-white mb-2">
+                      <h3 className="text-2xl font-black text-[var(--foreground)] mb-2">
                         {offer.title}
                       </h3>
-                      <p className="text-violet-300 mb-4">
+                      <p className="text-[var(--muted-foreground)] mb-4">
                         {offer.description}
                       </p>
                       <div className="flex items-center gap-3">
                         <div className="flex items-center gap-1">
                           <Sparkles className="w-5 h-5 text-amber-400" />
-                          <span className="text-3xl font-black text-white">
+                          <span className="text-3xl font-black text-[var(--foreground)]">
                             {offer.price}
                           </span>
-                          <span className="text-violet-300 text-sm">Xu</span>
+                          <span className="text-[var(--muted-foreground)] text-sm">
+                            Xu
+                          </span>
                         </div>
-                        <span className="text-gray-500 line-through text-lg">
+                        <span className="text-[var(--muted-foreground)] line-through text-lg">
                           {offer.originalPrice}
                         </span>
                         <span className="px-2 py-1 bg-green-500/20 text-green-400 rounded-full text-xs font-black">
@@ -252,8 +257,10 @@ function Marketplace() {
       {/* All Items */}
       <div>
         <div className="flex items-center gap-3 mb-6">
-          <Store className="w-8 h-8 text-amber-400" />
-          <h2 className="text-3xl font-black text-white">All Items</h2>
+          <Store className="w-8 h-8 text-[var(--primary)]" />
+          <h2 className="text-3xl font-black text-[var(--foreground)]">
+            All Items
+          </h2>
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -270,7 +277,7 @@ function Marketplace() {
               )}
 
               {/* Item card */}
-              <div className="relative bg-gradient-to-br from-purple-900/60 to-violet-900/60 backdrop-blur-sm border-2 border-purple-600/50 rounded-3xl p-6 hover:border-purple-500 hover:scale-105 transition-all h-full flex flex-col">
+              <div className="relative bg-gradient-to-br from-purple-900/60 to-violet-900/60 backdrop-blur-sm border-2 border-[var(--border)] rounded-3xl p-6 hover:border-[var(--ring)] hover:scale-105 transition-all h-full flex flex-col">
                 {/* Badge */}
                 {item.badge && (
                   <div className="absolute top-4 right-4 z-10">
@@ -293,7 +300,7 @@ function Marketplace() {
 
                 {/* Category */}
                 <div className="mb-3">
-                  <span className="text-violet-400 text-xs font-black uppercase tracking-wider">
+                  <span className="text-[var(--muted-foreground)] text-xs font-black uppercase tracking-wider">
                     {item.category}
                   </span>
                 </div>
@@ -304,25 +311,27 @@ function Marketplace() {
                 </div>
 
                 {/* Title and description */}
-                <h3 className="text-xl font-black text-white mb-2">
+                <h3 className="text-xl font-black text-[var(--foreground)] mb-2">
                   {item.title}
                 </h3>
-                <p className="text-violet-300 text-sm mb-4 flex-1">
+                <p className="text-[var(--muted-foreground)] text-sm mb-4 flex-1">
                   {item.description}
                 </p>
 
                 {/* Price */}
                 <div className="flex items-center gap-2 mb-4">
-                  <Sparkles className="w-4 h-4 text-amber-400" />
-                  <span className="text-2xl font-black text-white">
+                  <Sparkles className="w-4 h-4 text-[var(--primary)]" />
+                  <span className="text-2xl font-black text-[var(--foreground)]">
                     {item.price}
                   </span>
-                  <span className="text-violet-300 text-sm">Xu</span>
+                  <span className="text-[var(--muted-foreground)] text-sm">
+                    Xu
+                  </span>
                 </div>
 
                 {/* Buy button */}
                 <button
-                  className={`w-full px-4 py-3 bg-gradient-to-r ${item.color} text-white rounded-xl font-black hover:shadow-lg hover:shadow-${item.color}/50 transition-all flex items-center justify-center gap-2`}
+                  className={`w-full px-4 py-3 bg-gradient-to-r ${item.color} text-[var(--foreground)] rounded-xl font-black hover:shadow-lg transition-all flex items-center justify-center gap-2`}
                 >
                   <ShoppingCart className="w-4 h-4" />
                   Purchase

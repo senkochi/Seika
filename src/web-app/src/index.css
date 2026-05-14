@@ -9,31 +9,39 @@
 
 @layer base {
   :root {
-    --background: #ffffff;
-    --foreground: #0f172a;
-    --card: #ffffff;
-    --card-foreground: #0f172a;
-    --popover: #ffffff;
-    --popover-foreground: #1e1b4b;
-    --primary: #6d28d9;
-    --primary-foreground: #fefce8;
-    --secondary: #fef3c7;
-    --secondary-foreground: #4c1d95;
-    --muted: #f5f3ff;
-    --muted-foreground: #6b7280;
-    --accent: #f59e0b;
-    --accent-foreground: #2e1065;
+    /* Dark purple + gold accent theme (matches attached UI) */
+    --background: linear-gradient(
+      135deg,
+      #0f1724 0%,
+      #3e1b6d 50%,
+      #59168b 100%
+    );
+    --foreground: #f7f3ff;
+    --card: rgba(21, 20, 41, 0.62);
+    --second-card: rgba(28, 27, 54, 0.52);
+    --card-foreground: #f7f3ff;
+    --popover: #17162a;
+    --popover-foreground: #efe9ff;
+    --primary: #8b5cf6; /* violet accent */
+    --primary-foreground: #fff7ed;
+    --secondary: #fde68a;
+    --secondary-foreground: #3b0764;
+    --muted: rgba(31, 23, 48, 0.45);
+    --second-muted: rgba(44, 40, 91, 0.62);
+    --muted-foreground: #a8a0c9;
+    --accent: #fbbf24; /* gold/amber */
+    --accent-foreground: #2b0b3a;
     --destructive: #ef4444;
     --destructive-foreground: #ffffff;
-    --border: #ddd6fe;
-    --input: #ddd6fe;
-    --ring: #f59e0b;
+    --border: rgba(255, 255, 255, 0.12);
+    --input: #22203b;
+    --ring: #fbbf24;
     --success: #10b981;
     --success-foreground: #052e16;
     --warning: #f59e0b;
     --warning-foreground: #1e1b4b;
-    --info: #0ea5e9;
-    --info-foreground: #0f172a;
+    --info: #60a5fa;
+    --info-foreground: #0f1724;
   }
 
   html {
@@ -48,8 +56,10 @@
     min-width: 320px;
     min-height: 100vh;
     background: var(--background);
-    background-color: #1e1b4b;
+    background-color: #0f1724;
     color: var(--foreground);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   #root {
