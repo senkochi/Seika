@@ -5,7 +5,6 @@ import {
   Flame,
   Star,
   Crown,
-  Lock,
   ShoppingCart,
 } from "lucide-react";
 
@@ -45,7 +44,6 @@ function Marketplace() {
       description: "50 physics & chemistry quizzes",
       price: 450,
       icon: "🔬",
-      color: "from-green-500 to-emerald-600",
       badge: "New",
       featured: false,
     },
@@ -56,7 +54,6 @@ function Marketplace() {
       description: "100 world history cards",
       price: 350,
       icon: "🏛️",
-      color: "from-blue-500 to-cyan-600",
       badge: null,
       featured: false,
     },
@@ -156,8 +153,10 @@ function Marketplace() {
     <div className="p-8">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white mb-2">Marketplace</h1>
-        <p className="text-gray-400">
+        <h1 className="text-3xl font-bold text-[var(--foreground)] mb-2">
+          Marketplace
+        </h1>
+        <p className="text-[var(--muted-foreground)]">
           Power up your learning with exclusive items!
         </p>
       </div>
@@ -165,9 +164,11 @@ function Marketplace() {
       {/* Limited Time Offers */}
       <div className="mb-12">
         <div className="flex items-center gap-3 mb-6">
-          <Flame className="w-6 h-6 text-purple-500 animate-pulse" />
-          <h2 className="text-xl font-bold text-white">Limited Time Offers</h2>
-          <Clock className="w-5 h-5 text-purple-400" />
+          <Flame className="w-6 h-6 text-[var(--primary)] animate-pulse" />
+          <h2 className="text-xl font-bold text-[var(--foreground)]">
+            Limited Time Offers
+          </h2>
+          <Clock className="w-5 h-5 text-[var(--primary)]" />
         </div>
 
         <div className="grid md:grid-cols-2 gap-6">
@@ -175,12 +176,12 @@ function Marketplace() {
             <div key={offer.id} className="group relative">
               {/* Intense glow effect */}
               <div
-                className={`absolute inset-0 bg-gradient-to-br ${offer.color} rounded-3xl blur-2xl opacity-40 group-hover:opacity-70 transition-all animate-pulse`}
+                className={`absolute inset-0 bg-gradient-to-br ${offer.color} rounded-3xl group-hover:opacity-70 transition-all animate-pulse`}
               ></div>
 
               {/* Offer card */}
               <div
-                className={`relative bg-gradient-to-br ${offer.color} rounded-3xl p-1 shadow-2xl`}
+                className={`relative bg-gradient-to-br from-amber-400 to-yellow-500 rounded-3xl p-1 shadow-2xl`}
               >
                 <div className="bg-gradient-to-br from-purple-950 to-violet-950 rounded-[22px] p-6">
                   {/* Badge and timer */}
@@ -196,7 +197,7 @@ function Marketplace() {
                     </div>
                     <div className="bg-red-500/20 border border-red-500/50 px-3 py-1 rounded-full flex items-center gap-1">
                       <Clock className="w-3 h-3 text-red-400" />
-                      <span className="text-red-300 text-xs font-black">
+                      <span className="text-[var(--primary)] text-xs font-black">
                         {offer.timeLeft}
                       </span>
                     </div>
@@ -204,25 +205,27 @@ function Marketplace() {
 
                   {/* Content */}
                   <div className="flex items-start gap-6 mb-6">
-                    <div className="text-6xl transform group-hover:scale-110 transition-transform">
+                    <div className="text-6xl transform transition-transform">
                       {offer.icon}
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-2xl font-black text-white mb-2">
+                      <h3 className="text-2xl font-black text-[var(--foreground)] mb-2">
                         {offer.title}
                       </h3>
-                      <p className="text-violet-300 mb-4">
+                      <p className="text-[var(--muted-foreground)] mb-4">
                         {offer.description}
                       </p>
                       <div className="flex items-center gap-3">
                         <div className="flex items-center gap-1">
                           <Sparkles className="w-5 h-5 text-amber-400" />
-                          <span className="text-3xl font-black text-white">
+                          <span className="text-3xl font-black text-[var(--foreground)]">
                             {offer.price}
                           </span>
-                          <span className="text-violet-300 text-sm">Xu</span>
+                          <span className="text-[var(--muted-foreground)] text-sm">
+                            Coin
+                          </span>
                         </div>
-                        <span className="text-gray-500 line-through text-lg">
+                        <span className="text-[var(--muted-foreground)] line-through text-lg">
                           {offer.originalPrice}
                         </span>
                         <span className="px-2 py-1 bg-green-500/20 text-green-400 rounded-full text-xs font-black">
@@ -238,7 +241,7 @@ function Marketplace() {
                   </div>
 
                   {/* Buy button */}
-                  <button className="w-full px-6 py-4 bg-gradient-to-r from-amber-400 to-yellow-500 text-purple-950 rounded-2xl font-black text-lg hover:shadow-2xl hover:shadow-amber-400/50 hover:scale-[1.02] transition-all flex items-center justify-center gap-2">
+                  <button className="w-full px-6 py-4 bg-gradient-to-r from-amber-400 to-yellow-500 text-purple-950 rounded-2xl font-black hover:bg-gradient-to-r hover:from-[#f2bc22] hover:to-[#f5c12c] text-lg hover:-translate-y-0.5 active:translate-y-0 hover:shadow-[0_5px_10px_0px_rgba(245,193,44,0.2)] transition-all duration-300 flex items-center justify-center gap-2">
                     <ShoppingCart className="w-5 h-5" />
                     Buy Now
                   </button>
@@ -252,8 +255,10 @@ function Marketplace() {
       {/* All Items */}
       <div>
         <div className="flex items-center gap-3 mb-6">
-          <Store className="w-8 h-8 text-amber-400" />
-          <h2 className="text-3xl font-black text-white">All Items</h2>
+          <Store className="w-8 h-8 text-[var(--primary)]" />
+          <h2 className="text-3xl font-black text-[var(--foreground)]">
+            All Items
+          </h2>
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -265,12 +270,12 @@ function Marketplace() {
               {/* Glow effect for featured items */}
               {item.featured && (
                 <div
-                  className={`absolute inset-0 bg-gradient-to-br ${item.color} rounded-3xl blur-xl opacity-0 group-hover:opacity-50 transition-all`}
+                  className={`absolute inset-0 bg-gradient-to-br rounded-3xl blur-xl opacity-0 group-hover:opacity-50 transition-all`}
                 ></div>
               )}
 
               {/* Item card */}
-              <div className="relative bg-gradient-to-br from-purple-900/60 to-violet-900/60 backdrop-blur-sm border-2 border-purple-600/50 rounded-3xl p-6 hover:border-purple-500 hover:scale-105 transition-all h-full flex flex-col">
+              <div className="relative bg-gradient-to-br from-purple-900/60 to-violet-900/60 backdrop-blur-sm border-2 border-[var(--border)] rounded-3xl p-6 hover:border-[var(--ring)] transition-all h-full flex flex-col">
                 {/* Badge */}
                 {item.badge && (
                   <div className="absolute top-4 right-4 z-10">
@@ -293,36 +298,40 @@ function Marketplace() {
 
                 {/* Category */}
                 <div className="mb-3">
-                  <span className="text-violet-400 text-xs font-black uppercase tracking-wider">
+                  <span className="text-[var(--muted-foreground)] text-xs font-black uppercase tracking-wider">
                     {item.category}
                   </span>
                 </div>
 
                 {/* Icon */}
-                <div className="text-5xl mb-4 transform group-hover:scale-110 transition-transform">
+                <div className="text-5xl mb-4 transform transition-transform">
                   {item.icon}
                 </div>
 
                 {/* Title and description */}
-                <h3 className="text-xl font-black text-white mb-2">
+                <h3 className="text-xl font-black text-[var(--foreground)] mb-2">
                   {item.title}
                 </h3>
-                <p className="text-violet-300 text-sm mb-4 flex-1">
+                <p className="text-[var(--muted-foreground)] text-sm mb-4 flex-1">
                   {item.description}
                 </p>
 
                 {/* Price */}
                 <div className="flex items-center gap-2 mb-4">
-                  <Sparkles className="w-4 h-4 text-amber-400" />
-                  <span className="text-2xl font-black text-white">
+                  <Sparkles className="w-4 h-4 text-[var(--primary)]" />
+                  <span className="text-2xl font-black text-[var(--foreground)]">
                     {item.price}
                   </span>
-                  <span className="text-violet-300 text-sm">Xu</span>
+                  <span className="text-[var(--muted-foreground)] text-sm">
+                    Coin
+                  </span>
                 </div>
 
                 {/* Buy button */}
                 <button
-                  className={`w-full px-4 py-3 bg-gradient-to-r ${item.color} text-white rounded-xl font-black hover:shadow-lg hover:shadow-${item.color}/50 transition-all flex items-center justify-center gap-2`}
+                  className={
+                    "w-full px-4 py-3 bg-gradient-to-r from-amber-400 to-yellow-500 text-purple-950 rounded-xl font-black shadow-md hover:-translate-y-0.5 active:translate-y-0 hover:shadow-[0_5px_10px_0px_rgba(245,193,44,0.2)] transition-all duration-300 flex items-center justify-center gap-2"
+                  }
                 >
                   <ShoppingCart className="w-4 h-4" />
                   Purchase

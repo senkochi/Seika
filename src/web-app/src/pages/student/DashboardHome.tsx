@@ -93,10 +93,10 @@ function DashboardHome() {
     <div className="p-8">
       {/* Welcome Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white mb-2">
+        <h1 className="text-3xl font-bold text-[var(--foreground)] mb-2">
           Welcome back, {userData.name}!
         </h1>
-        <p className="text-gray-400">
+        <p className="text-[var(--muted-foreground)]">
           Here's what's happening with your learning today.
         </p>
       </div>
@@ -108,14 +108,14 @@ function DashboardHome() {
           return (
             <div
               key={index}
-              className="relative group bg-[#0a0b14] border border-gray-800 rounded-2xl p-6 hover:border-gray-700 transition-all"
+              className="relative group bg-[var(--card)] backdrop-blur-xl border border-[var(--border)] shadow-[0_20px_60px_rgba(10,10,20,0.28)] rounded-2xl p-6 hover:border-[var(--primary)] transition-all"
             >
               <div className="relative">
                 <div className="flex items-start justify-between mb-4">
                   <div
                     className={`w-12 h-12 bg-gradient-to-br ${stat.color} rounded-xl flex items-center justify-center`}
                   >
-                    <Icon className="w-6 h-6 text-white" />
+                    <Icon className="w-6 h-6 text-[var(--foreground)]" />
                   </div>
                   <div
                     className={`flex items-center gap-1 px-3 py-1 rounded-full ${
@@ -133,7 +133,9 @@ function DashboardHome() {
                   </div>
                 </div>
                 <p className="text-gray-400 text-sm mb-1">{stat.label}</p>
-                <p className="text-3xl font-bold text-white">{stat.value}</p>
+                <p className="text-3xl font-bold text-[var(--foreground)]">
+                  {stat.value}
+                </p>
               </div>
             </div>
           );
@@ -143,10 +145,12 @@ function DashboardHome() {
       {/* Main Content Grid */}
       <div className="grid lg:grid-cols-3 gap-6 mb-8">
         {/* Activity Chart */}
-        <div className="lg:col-span-2 bg-[#0a0b14] border border-gray-800 rounded-2xl p-6">
+        <div className="lg:col-span-2 bg-[var(--card)] backdrop-blur-xl border border-[var(--border)] shadow-[0_20px_60px_rgba(10,10,20,0.28)] hover:border-[var(--primary)] rounded-2xl p-6">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-bold text-white">Weekly Activity</h2>
-            <button className="text-sm text-gray-400 hover:text-purple-500 transition-colors">
+            <h2 className="text-lg font-bold text-[var(--foreground)]">
+              Weekly Activity
+            </h2>
+            <button className="text-sm text-[var(--muted-foreground)] hover:text-[var(--primary)] transition-colors">
               View Details
             </button>
           </div>
@@ -159,7 +163,7 @@ function DashboardHome() {
                 className="flex-1 flex flex-col items-center gap-2"
               >
                 <div
-                  className="w-full bg-[#10111a] rounded-t-xl relative overflow-hidden"
+                  className="w-full bg-[var(--card)] rounded-t-xl relative overflow-hidden"
                   style={{ height: `${(item.value / maxValue) * 100}%` }}
                 >
                   <div className="absolute inset-0 bg-purple-600 rounded-t-xl"></div>
@@ -175,14 +179,18 @@ function DashboardHome() {
           <div className="mt-6 flex items-center justify-center gap-6">
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 bg-purple-600 rounded-full"></div>
-              <span className="text-xs text-gray-400">Quizzes Completed</span>
+              <span className="text-xs text-[var(--muted-foreground)]">
+                Quizzes Completed
+              </span>
             </div>
           </div>
         </div>
 
         {/* Progress Circle */}
-        <div className="bg-[#0a0b14] border border-gray-800 rounded-2xl p-6 flex flex-col items-center justify-center">
-          <h3 className="text-lg font-bold text-white mb-6">Level Progress</h3>
+        <div className="bg-[var(--card)] backdrop-blur-xl border border-[var(--border)] shadow-[0_20px_60px_rgba(10,10,20,0.28)] hover:border-[var(--primary)] rounded-2xl p-6 flex flex-col items-center justify-center">
+          <h3 className="text-lg font-bold text-[var(--foreground)] mb-6">
+            Level Progress
+          </h3>
 
           {/* Circular Progress */}
           <div className="relative w-40 h-40 mb-6">
@@ -213,16 +221,19 @@ function DashboardHome() {
 
             {/* Center text */}
             <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <p className="text-4xl font-bold text-white">
+              <p className="text-4xl font-bold text-[var(--foreground)]">
                 {Math.round((userData.currentXP / userData.nextLevelXP) * 100)}%
               </p>
-              <p className="text-gray-500 text-sm">Complete</p>
+              <p className="text-[var(--muted-foreground)] text-sm">Complete</p>
             </div>
           </div>
 
           <div className="text-center">
             <p className="text-gray-400 text-sm mb-1">Current Level</p>
-            <p className="text-2xl font-bold text-white mb-4">
+            <p className="text-[var(--muted-foreground)] text-sm mb-1">
+              Current Level
+            </p>
+            <p className="text-2xl font-bold text-[var(--foreground)] mb-4">
               Level {userData.level}
             </p>
             <p className="text-xs text-gray-500">
@@ -236,10 +247,12 @@ function DashboardHome() {
       {/* Bottom Grid */}
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Recent Activity */}
-        <div className="lg:col-span-2 bg-[#0a0b14] border border-gray-800 rounded-2xl p-6">
+        <div className="lg:col-span-2 bg-[var(--card)] backdrop-blur-xl border border-[var(--border)] shadow-[0_20px_60px_rgba(10,10,20,0.28)] hover:border-[var(--primary)] rounded-2xl p-6">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-bold text-white">Recent Activity</h2>
-            <button className="text-sm text-gray-400 hover:text-purple-500 transition-colors flex items-center gap-1">
+            <h2 className="text-lg font-bold text-[var(--foreground)]">
+              Recent Activity
+            </h2>
+            <button className="text-sm text-[var(--muted-foreground)] hover:text-[var(--light-primary)] transition-colors flex items-center gap-1">
               See All
               <ArrowRight className="w-4 h-4" />
             </button>
@@ -249,18 +262,20 @@ function DashboardHome() {
             {recentActivities.map((activity, index) => (
               <div
                 key={index}
-                className="flex items-center gap-4 p-4 bg-[#10111a] rounded-xl hover:bg-[#2a2a2a] transition-colors"
+                className="flex items-center gap-4 p-4 bg-[var(--second-card)] backdrop-blur-md rounded-xl hover:bg-[var(--second-muted)] transition-colors"
               >
                 <div className="text-2xl">{activity.icon}</div>
                 <div className="flex-1">
-                  <p className="text-white font-semibold text-sm">
+                  <p className="text-[var(--foreground)] font-semibold text-sm">
                     {activity.title}
                   </p>
-                  <p className="text-gray-500 text-xs">{activity.time}</p>
+                  <p className="text-[var(--muted-foreground)] text-xs">
+                    {activity.time}
+                  </p>
                 </div>
-                <div className="flex items-center gap-1 px-3 py-1 bg-purple-600/10 rounded-full">
-                  <Sparkles className="w-3 h-3 text-purple-400" />
-                  <span className="text-purple-400 text-sm font-semibold">
+                <div className="flex items-center gap-1 px-3 py-1 bg-[var(--primary)]/10 rounded-full">
+                  <Sparkles className="w-3 h-3 text-[var(--primary)]" />
+                  <span className="text-[var(--primary)] text-sm font-semibold">
                     +{activity.xp}
                   </span>
                 </div>
@@ -276,15 +291,17 @@ function DashboardHome() {
             return (
               <div
                 key={index}
-                className="bg-[#0a0b14] border border-gray-800 rounded-2xl p-6 hover:border-gray-700 transition-all"
+                className="bg-[var(--card)] backdrop-blur-xl border border-[var(--border)] shadow-[0_20px_60px_rgba(10,10,20,0.28)] rounded-2xl p-6 hover:border-[var(--primary)] transition-all"
               >
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-[#10111a] rounded-xl flex items-center justify-center">
+                  <div className="w-12 h-12 bg-[var(--card)] rounded-xl flex items-center justify-center">
                     <Icon className={`w-6 h-6 ${stat.color}`} />
                   </div>
                   <div>
-                    <p className="text-gray-400 text-sm">{stat.label}</p>
-                    <p className="text-2xl font-bold text-white">
+                    <p className="text-[var(--muted-foreground)] text-sm">
+                      {stat.label}
+                    </p>
+                    <p className="text-2xl font-bold text-[var(--foreground)]">
                       {stat.value}
                     </p>
                   </div>

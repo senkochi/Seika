@@ -1,12 +1,4 @@
-import {
-  BookOpen,
-  Sparkles,
-  Star,
-  Zap,
-  Trophy,
-  Target,
-  Lock,
-} from "lucide-react";
+import { BookOpen, Sparkles, Zap, Target, Lock } from "lucide-react";
 
 function LearningHub() {
   const flashcardDecks = [
@@ -106,15 +98,15 @@ function LearningHub() {
   const getRarityColor = (rarity: string) => {
     switch (rarity) {
       case "Common":
-        return "text-gray-400";
+        return "text-[var(--muted-foreground)]";
       case "Rare":
         return "text-blue-400";
       case "Epic":
-        return "text-purple-400";
+        return "text-[var(--primary)]";
       case "Legendary":
-        return "text-amber-400";
+        return "text-[var(--primary)]";
       default:
-        return "text-gray-400";
+        return "text-[var(--muted-foreground)]";
     }
   };
 
@@ -122,8 +114,10 @@ function LearningHub() {
     <div className="p-8">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white mb-2">Learning Hub</h1>
-        <p className="text-gray-400">
+        <h1 className="text-3xl font-bold text-[var(--foreground)] mb-2">
+          Learning Hub
+        </h1>
+        <p className="text-[var(--muted-foreground)]">
           Choose your adventure and level up your skills!
         </p>
       </div>
@@ -131,8 +125,10 @@ function LearningHub() {
       {/* Flashcard Decks - Trading Card Style */}
       <div className="mb-16">
         <div className="flex items-center gap-3 mb-6">
-          <BookOpen className="w-6 h-6 text-purple-500" />
-          <h2 className="text-xl font-bold text-white">Flashcard Decks</h2>
+          <BookOpen className="w-6 h-6 text-[var(--primary)]" />
+          <h2 className="text-xl font-bold text-[var(--foreground)]">
+            Flashcard Decks
+          </h2>
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -146,12 +142,12 @@ function LearningHub() {
               <div className="relative transform transition-all duration-300 group-hover:scale-105">
                 {/* Trading Card */}
                 <div
-                  className={`relative bg-[#1a1a1a] border border-gray-800 rounded-2xl p-6 h-full hover:border-gray-700 transition-all ${deck.locked ? "opacity-60" : ""}`}
+                  className={`relative bg-[var(--card)] border border-[var(--border)] rounded-2xl p-6 h-full hover:border-[var(--primary)] transition-all ${deck.locked ? "opacity-60" : ""}`}
                 >
                   {/* Rarity indicator */}
                   <div className="flex justify-between items-start mb-4">
                     <div
-                      className={`px-3 py-1 bg-[#252525] rounded-full border border-gray-700`}
+                      className={`px-3 py-1 bg-[var(--muted)] rounded-full border border-[var(--border)]`}
                     >
                       <span
                         className={`text-xs font-semibold ${getRarityColor(deck.rarity)}`}
@@ -160,8 +156,8 @@ function LearningHub() {
                       </span>
                     </div>
                     {deck.locked && (
-                      <div className="w-8 h-8 bg-[#252525] rounded-full flex items-center justify-center">
-                        <Lock className="w-4 h-4 text-gray-500" />
+                      <div className="w-8 h-8 bg-[var(--muted)] rounded-full flex items-center justify-center">
+                        <Lock className="w-4 h-4 text-[var(--primary)]" />
                       </div>
                     )}
                   </div>
@@ -177,17 +173,19 @@ function LearningHub() {
                   {/* Stats */}
                   <div className="space-y-2 mb-4">
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-400">{deck.cards} Cards</span>
-                      <span className="text-purple-400 font-semibold">
+                      <span className="text-[var(--muted-foreground)]">
+                        {deck.cards} Cards
+                      </span>
+                      <span className="text-[var(--primary)] font-semibold">
                         {deck.mastered} Mastered
                       </span>
                     </div>
 
                     {/* Progress bar */}
                     {!deck.locked && (
-                      <div className="h-2 bg-[#252525] rounded-full overflow-hidden">
+                      <div className="h-2 bg-[var(--muted)] rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-purple-600 rounded-full"
+                          className="h-full bg-[var(--primary)] rounded-full"
                           style={{
                             width: `${(deck.mastered / deck.cards) * 100}%`,
                           }}
@@ -198,11 +196,11 @@ function LearningHub() {
 
                   {/* Action button */}
                   {!deck.locked ? (
-                    <button className="w-full px-4 py-2 bg-purple-600 text-white rounded-xl font-semibold hover:bg-purple-700 transition-all">
+                    <button className="w-full px-4 py-2 bg-[var(--primary)] text-[var(--foreground)] rounded-xl font-semibold hover:bg-[var(--primary)]/90 transition-all">
                       Study Now
                     </button>
                   ) : (
-                    <button className="w-full px-4 py-2 bg-[#252525] text-gray-500 rounded-xl font-semibold cursor-not-allowed">
+                    <button className="w-full px-4 py-2 bg-[var(--muted)] text-[var(--muted-foreground)] rounded-xl font-semibold cursor-not-allowed">
                       Locked
                     </button>
                   )}
@@ -221,7 +219,7 @@ function LearningHub() {
         </div>
 
         {/* Quest Map Container */}
-        <div className="relative bg-[#1a1a1a] border border-gray-800 rounded-2xl p-8 min-h-[600px]">
+        <div className="relative bg-[var(--card)] border border-[var(--border)] rounded-2xl p-8 min-h-[600px]">
           {/* Map background pattern */}
           <div className="absolute inset-0 opacity-5 rounded-2xl overflow-hidden">
             <div
@@ -262,7 +260,7 @@ function LearningHub() {
           </svg>
 
           {/* Quest nodes */}
-          {quests.map((quest, index) => (
+          {quests.map((quest) => (
             <div
               key={quest.id}
               className="absolute group cursor-pointer"
@@ -274,7 +272,7 @@ function LearningHub() {
               {/* Quest node */}
               <div className="relative">
                 <div
-                  className={`w-16 h-16 bg-gradient-to-br ${quest.color} rounded-full flex items-center justify-center text-3xl border-2 border-gray-900 shadow-lg transform group-hover:scale-110 transition-all`}
+                  className={`w-16 h-16 bg-gradient-to-br ${quest.color} rounded-full flex items-center justify-center text-3xl border-2 border-[var(--border)] shadow-lg transform group-hover:scale-110 transition-all`}
                 >
                   {quest.icon}
                 </div>
@@ -306,8 +304,8 @@ function LearningHub() {
 
                 {/* Quest info popup */}
                 <div className="absolute left-full ml-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-                  <div className="bg-[#1a1a1a] border border-gray-700 rounded-xl p-4 shadow-xl whitespace-nowrap">
-                    <h4 className="text-white font-bold text-base mb-2">
+                  <div className="bg-[var(--card)] border border-[var(--border)] rounded-xl p-4 shadow-xl whitespace-nowrap">
+                    <h4 className="text-[var(--foreground)] font-bold text-base mb-2">
                       {quest.title}
                     </h4>
                     <div className="flex items-center gap-3 mb-2">
@@ -327,20 +325,20 @@ function LearningHub() {
                     </div>
                     <div className="flex gap-4 text-sm">
                       <div className="flex items-center gap-1">
-                        <Zap className="w-4 h-4 text-purple-400" />
-                        <span className="text-white font-semibold">
+                        <Zap className="w-4 h-4 text-[var(--primary)]" />
+                        <span className="text-[var(--foreground)] font-semibold">
                           +{quest.xp} XP
                         </span>
                       </div>
                       <div className="flex items-center gap-1">
-                        <Sparkles className="w-4 h-4 text-purple-400" />
-                        <span className="text-white font-semibold">
+                        <Sparkles className="w-4 h-4 text-[var(--primary)]" />
+                        <span className="text-[var(--foreground)] font-semibold">
                           +{quest.coins} Xu
                         </span>
                       </div>
                     </div>
                     {quest.progress > 0 && (
-                      <div className="mt-2 text-xs text-gray-400">
+                      <div className="mt-2 text-xs text-[var(--muted-foreground)]">
                         Progress: {quest.progress}%
                       </div>
                     )}
@@ -351,24 +349,26 @@ function LearningHub() {
           ))}
 
           {/* Legend */}
-          <div className="absolute bottom-4 right-4 bg-[#252525] border border-gray-700 rounded-xl p-4">
-            <p className="text-white font-bold text-sm mb-2">Difficulty</p>
+          <div className="absolute bottom-4 right-4 bg-[var(--muted)] border border-[var(--border)] rounded-xl p-4">
+            <p className="text-[var(--foreground)] font-bold text-sm mb-2">
+              Difficulty
+            </p>
             <div className="space-y-1 text-xs">
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                <span className="text-gray-400">Easy</span>
+                <span className="text-[var(--muted-foreground)]">Easy</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                <span className="text-gray-400">Medium</span>
+                <span className="text-[var(--muted-foreground)]">Medium</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
-                <span className="text-gray-400">Hard</span>
+                <span className="text-[var(--muted-foreground)]">Hard</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                <span className="text-gray-400">Expert</span>
+                <span className="text-[var(--muted-foreground)]">Expert</span>
               </div>
             </div>
           </div>
