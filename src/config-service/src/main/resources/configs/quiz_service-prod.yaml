@@ -1,0 +1,21 @@
+server:
+  port: ${QUIZ_SERVER_PORT:8087}
+
+spring:
+  application:
+    name: quiz_service
+  data:
+    mongodb:
+      uri: ${QUIZ_DB_URI}
+
+logging:
+  level:
+    root: WARN
+    com.seika: INFO
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL}
+  instance:
+    prefer-ip-address: true

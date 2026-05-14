@@ -5,18 +5,24 @@ eureka:
   client:
     enabled: true
     service-url:
-      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka}
+      defaultZone: ${EUREKA_SERVER_URL}
     register-with-eureka: true
     fetch-registry: true
 spring:
-  mongodb:
-    uri: ${NOTIFICATION_MONGO_URI}
-    database: ${NOTIFICATION_MONGO_DATABASE}
+  data:
+    mongodb:
+      uri: ${NOTIFICATION_MONGO_URI}
   rabbitmq:
     host: ${RABBITMQ_HOST}
     port: ${RABBITMQ_PORT}
     username: ${RABBITMQ_USERNAME}
     password: ${RABBITMQ_PASSWORD}
+
+jwt:
+  issuer: seika-notification-service
+  secret: ${JWT_SECRET}
+  access-token-expiration-minutes: ${JWT_ACCESS_TOKEN_EXPIRATION_MINUTES}
+  refresh-token-expiration-days: ${JWT_REFRESH_TOKEN_EXPIRATION_DAYS}
 
 messaging:
   events:

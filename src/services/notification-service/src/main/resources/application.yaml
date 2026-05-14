@@ -3,16 +3,16 @@ spring:
     import: "configserver:"
   application:
     name: notification-service
-  mongodb:
-    uri: ${NOTIFICATION_MONGO_URI}
-    database: ${NOTIFICATION_MONGO_DATABASE:seika_notification}
   profiles:
     active: ${SPRING_PROFILE:dev}
   cloud:
     config:
-      uri: ${CONFIG_SERVER_URL:http://localhost:8888}
+      uri: ${CONFIG_SERVER_URL}
       fail-fast: true
       retry:
         initial-interval: 1000
         max-interval: 2000
         max-attempts: 6
+
+# MongoDB, RabbitMQ, JWT, and Eureka are defined in Config Server
+# See /config-service/src/main/resources/configs/notification-service.yaml

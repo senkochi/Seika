@@ -1,0 +1,343 @@
+version: "3.9"
+
+services:
+  rabbitmq:
+    image: rabbitmq:4.3.0-rc.1-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  mongo:
+    image: mongo:7.0
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test:
+        ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  mongo-init:
+    image: mongo:7.0
+    depends_on:
+      mongo:
+        condition: service_healthy
+    entrypoint:
+      - bash
+      - -c
+      - >-
+        mongosh --host mongo:27017 --eval
+        "try {
+          const cfg = rs.conf();
+          const desiredHost = 'mongo:27017';
+          if (!cfg.members || cfg.members.length === 0) {
+            rs.initiate({_id:'rs0',members:[{_id:0,host:desiredHost}]});
+          } else if (cfg.members[0].host !== desiredHost) {
+            cfg.members[0].host = desiredHost;
+            rs.reconfig(cfg, { force: true });
+          }
+        } catch (e) {
+          rs.initiate({_id:'rs0',members:[{_id:0,host:'mongo:27017'}]})
+        }"
+    restart: "no"
+
+  identity-db:
+    image: postgres:16
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: identity-service-seika
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${IDENTITY_DB_PASSWORD}
+    volumes:
+      - identity_db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  profile-db:
+    image: postgres:16
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: profile-service-seika
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${PROFILE_DB_PASSWORD}
+    volumes:
+      - profile_db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  wallet-db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: wallet-service-seika
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${WALLET_DB_PASSWORD}
+    ports:
+      - "5434:5432"
+    volumes:
+      - wallet_db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  marketplace-db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: marketplace-service-seika
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${MARKETPLACE_DB_PASSWORD}
+    ports:
+      - "5435:5432"
+    volumes:
+      - marketplace_db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  eureka:
+    build:
+      context: ./src/eureka
+    ports:
+      - "8761:8761"
+    environment:
+      EUREKA_PORT: 8761
+    restart: unless-stopped
+
+  config-service:
+    build:
+      context: ./src/config-service
+    ports:
+      - "8888:8888"
+    environment:
+      CONFIG_SERVER_PORT: ${CONFIG_SERVER_PORT}
+      EUREKA_SERVER_URL: ${EUREKA_SERVER_URL}
+      ADMIN_INITIAL_ENABLED: ${ADMIN_INITIAL_ENABLED}
+      ADMIN_INITIAL_USERNAME: ${ADMIN_INITIAL_USERNAME}
+      ADMIN_INITIAL_PASSWORD: ${ADMIN_INITIAL_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ACCESS_TOKEN_EXPIRATION_MINUTES: ${JWT_ACCESS_TOKEN_EXPIRATION_MINUTES}
+      JWT_REFRESH_TOKEN_EXPIRATION_DAYS: ${JWT_REFRESH_TOKEN_EXPIRATION_DAYS}
+      PROFILE_SERVER_URL: ${PROFILE_SERVER_URL}
+      WALLET_SERVER_URL: ${WALLET_SERVER_URL}
+      WALLET_SERVER_PORT: ${WALLET_SERVER_PORT}
+      FLASHCARD_SERVER_PORT: ${FLASHCARD_SERVER_PORT}
+      QUIZ_SERVER_PORT: ${QUIZ_SERVER_PORT}
+      FLASHCARD_DB_URI: ${FLASHCARD_DB_URI}
+      QUIZ_DB_URI: ${QUIZ_DB_URI}
+      IDENTITY_DB_URL: ${IDENTITY_DB_URL}
+      IDENTITY_DB_USERNAME: ${IDENTITY_DB_USERNAME}
+      IDENTITY_DB_PASSWORD: ${IDENTITY_DB_PASSWORD}
+      PROFILE_DB_URL: ${PROFILE_DB_URL}
+      PROFILE_DB_USERNAME: ${PROFILE_DB_USERNAME}
+      PROFILE_DB_PASSWORD: ${PROFILE_DB_PASSWORD}
+      WALLET_DB_URL: ${WALLET_DB_URL}
+      WALLET_DB_USERNAME: ${WALLET_DB_USERNAME}
+      WALLET_DB_PASSWORD: ${WALLET_DB_PASSWORD}
+      WALLET_DB_SCHEMA: ${WALLET_DB_SCHEMA}
+      MARKETPLACE_DB_URL: ${MARKETPLACE_DB_URL}
+      MARKETPLACE_DB_USERNAME: ${MARKETPLACE_DB_USERNAME}
+      MARKETPLACE_DB_PASSWORD: ${MARKETPLACE_DB_PASSWORD}
+      MARKETPLACE_DB_SCHEMA: ${MARKETPLACE_DB_SCHEMA}
+      NOTIFICATION_MONGO_URI: ${NOTIFICATION_MONGO_URI}
+      NOTIFICATION_MONGO_DATABASE: ${NOTIFICATION_MONGO_DATABASE}
+      NOTIFICATION_SERVER_PORT: ${NOTIFICATION_SERVER_PORT}
+      FLASHCARD_DB_DATABASE: ${FLASHCARD_DB_DATABASE}
+      QUIZ_DB_DATABASE: ${QUIZ_DB_DATABASE}
+      RABBITMQ_HOST: ${RABBITMQ_HOST}
+      RABBITMQ_PORT: ${RABBITMQ_PORT}
+      RABBITMQ_USERNAME: ${RABBITMQ_USERNAME}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+      IDENTITY_EVENTS_EXCHANGE: ${IDENTITY_EVENTS_EXCHANGE}
+      USER_REGISTERED_ROUTING_KEY: ${USER_REGISTERED_ROUTING_KEY}
+      USER_REGISTERED_QUEUE: ${USER_REGISTERED_QUEUE}
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          'curl -fsS http://localhost:8888/actuator/health | grep -q "UP"',
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    depends_on:
+      eureka:
+        condition: service_started
+    restart: unless-stopped
+
+  identity-service:
+    build:
+      context: ./src/services/identity-service
+    ports:
+      - "${IDENTITY_SERVER_PORT}:${IDENTITY_SERVER_PORT}"
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILE}
+      CONFIG_SERVER_URL: ${CONFIG_SERVER_URL}
+    depends_on:
+      config-service:
+        condition: service_healthy
+      identity-db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+
+  profile-service:
+    build:
+      context: ./src/services/profile-service
+    ports:
+      - "${PROFILE_SERVER_PORT}:${PROFILE_SERVER_PORT}"
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILE}
+      CONFIG_SERVER_URL: ${CONFIG_SERVER_URL}
+    depends_on:
+      config-service:
+        condition: service_healthy
+      profile-db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+
+  wallet-service:
+    build:
+      context: ./src/services/wallet-service
+    ports:
+      - "${WALLET_SERVER_PORT}:${WALLET_SERVER_PORT}"
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILE}
+      CONFIG_SERVER_URL: ${CONFIG_SERVER_URL}
+    depends_on:
+      config-service:
+        condition: service_healthy
+      wallet-db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+
+  marketplace-service:
+    build:
+      context: ./src/services/marketplace-service
+    ports:
+      - "${MARKETPLACE_SERVER_PORT}:${MARKETPLACE_SERVER_PORT}"
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILE}
+      CONFIG_SERVER_URL: ${CONFIG_SERVER_URL}
+    depends_on:
+      config-service:
+        condition: service_healthy
+      marketplace-db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+
+  notification-service:
+    build:
+      context: ./src/services/notification-service
+    ports:
+      - "${NOTIFICATION_SERVER_PORT}:${NOTIFICATION_SERVER_PORT}"
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILE}
+      CONFIG_SERVER_URL: ${CONFIG_SERVER_URL}
+      SPRING_DATA_MONGODB_URI: ${NOTIFICATION_MONGO_URI}
+      SPRING_DATA_MONGODB_DATABASE: ${NOTIFICATION_MONGO_DATABASE}
+    depends_on:
+      config-service:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      mongo:
+        condition: service_healthy
+      mongo-init:
+        condition: service_started
+    restart: unless-stopped
+
+  flashcard-service:
+    build:
+      context: ./src/services/flashcard-service
+    ports:
+      - "${FLASHCARD_SERVER_PORT}:${FLASHCARD_SERVER_PORT}"
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILE}
+      CONFIG_SERVER_URL: ${CONFIG_SERVER_URL}
+    depends_on:
+      config-service:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      mongo:
+        condition: service_healthy
+      mongo-init:
+        condition: service_started
+    restart: unless-stopped
+
+  quiz-service:
+    build:
+      context: ./src/services/quiz-service
+    ports:
+      - "${QUIZ_SERVER_PORT}:${QUIZ_SERVER_PORT}"
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILE}
+      CONFIG_SERVER_URL: ${CONFIG_SERVER_URL}
+    depends_on:
+      config-service:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      mongo:
+        condition: service_healthy
+      mongo-init:
+        condition: service_started
+    restart: unless-stopped
+
+  api-gateway:
+    build:
+      context: ./src/api-gateway
+    ports:
+      - "${GATEWAY_PORT}:${GATEWAY_PORT}"
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILE}
+      CONFIG_SERVER_URL: ${CONFIG_SERVER_URL}
+    depends_on:
+      config-service:
+        condition: service_healthy
+      eureka:
+        condition: service_started
+    restart: unless-stopped
+
+volumes:
+  mongo_data:
+  identity_db:
+  profile_db:
+  wallet_db:
+  marketplace_db:

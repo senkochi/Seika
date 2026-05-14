@@ -29,7 +29,7 @@ public class NotificationService {
     private final NotificationRepository notificationRepository;
     private final NotificationMapper notificationMapper;
 
-    @Transactional
+    // @Transactional (MongoDB đang ở chế độ standalone - do đang local, không hỗ trợ transaction, khi nào deploy lên cluster thì sẽ bật lại)
     public NotificationResponse createNotification(CreateNotificationRequest request) {
         if (isBlank(request.getUserId())) {
             throw new BadRequestException("userId is required");
@@ -79,7 +79,7 @@ public class NotificationService {
                 .map(notificationMapper::toResponse);
     }
 
-    @Transactional
+    // @Transactional (MongoDB đang ở chế độ standalone - do đang local, không hỗ trợ transaction, khi nào deploy lên cluster thì sẽ bật lại)
     public NotificationResponse markAsRead(String notificationId, String userId) {
         if (isBlank(userId)) {
             throw new BadRequestException("userId is required");
@@ -95,7 +95,7 @@ public class NotificationService {
         return notificationMapper.toResponse(saved);
     }
 
-    @Transactional
+    // @Transactional (MongoDB đang ở chế độ standalone - do đang local, không hỗ trợ transaction, khi nào deploy lên cluster thì sẽ bật lại)
     public MarkAllAsReadResponse markAllAsRead(String userId) {
         if (isBlank(userId)) {
             throw new BadRequestException("userId is required");
@@ -131,7 +131,7 @@ public class NotificationService {
                 .build();
     }
 
-    @Transactional
+    // @Transactional (MongoDB đang ở chế độ standalone - do đang local, không hỗ trợ transaction, khi nào deploy lên cluster thì sẽ bật lại)
     public void deleteNotification(String notificationId, String userId) {
         if (isBlank(userId)) {
             throw new BadRequestException("userId is required");

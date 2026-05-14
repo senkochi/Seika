@@ -7,7 +7,7 @@ spring:
     active: ${SPRING_PROFILE:dev}
   cloud:
     config:
-      uri: ${CONFIG_SERVER_URL:http://localhost:8888}
+      uri: ${CONFIG_SERVER_URL}
       fail-fast: true
       retry:
         initial-interval: 1000

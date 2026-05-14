@@ -1,6 +1,7 @@
 # Nguyên Tắc Phát Triển Seika Microservices
 
 ## Mục Lục
+
 1. [Quy Tắc Đặt Tên](#quy-tắc-đặt-tên)
 2. [Cấu Trúc Project](#cấu-trúc-project)
 3. [REST API Standards](#rest-api-standards)
@@ -17,21 +18,23 @@
 ## 1. Quy Tắc Đặt Tên
 
 ### 1.1 Package Naming
+
 ```
 com.seika.{service-name}.{layer}
 
 Ví dụ:
-- com.seika.flashcard_service.controller
-- com.seika.flashcard_service.service
-- com.seika.flashcard_service.repository
-- com.seika.flashcard_service.entity
-- com.seika.flashcard_service.dto
-- com.seika.flashcard_service.exception
-- com.seika.flashcard_service.config
-- com.seika.flashcard_service.util
+- com.seika.flashcard-service.controller
+- com.seika.flashcard-service.service
+- com.seika.flashcard-service.repository
+- com.seika.flashcard-service.entity
+- com.seika.flashcard-service.dto
+- com.seika.flashcard-service.exception
+- com.seika.flashcard-service.config
+- com.seika.flashcard-service.util
 ```
 
 ### 1.2 Class Naming
+
 ```
 Entity:           Entity, Flashcard, User, Quiz
 DTO:              FlashcardDTO, FlashcardRequest, FlashcardResponse
@@ -44,6 +47,7 @@ Utility:          DateUtil, StringUtil, ValidationUtil
 ```
 
 ### 1.3 Method Naming
+
 ```
 GET:      getById(), getAll(), findByName(), search()
 POST:     create(), save(), add()
@@ -53,6 +57,7 @@ DELETE:   delete(), remove()
 ```
 
 ### 1.4 Variable Naming
+
 ```
 Local variables:      userId, flashcardId, userName (camelCase)
 Constants:            MAX_PAGE_SIZE, DEFAULT_TIMEOUT (UPPER_SNAKE_CASE)
@@ -61,6 +66,7 @@ Collections:          users, flashcards (plural form)
 ```
 
 ### 1.5 Property Naming
+
 ```
 createdAt:       Thời gian tạo
 updatedAt:       Thời gian cập nhật
@@ -105,6 +111,7 @@ flashcard-service/
 ## 3. REST API Standards
 
 ### 3.1 Endpoint Conventions
+
 ```
 GET     /api/v1/{resource}              - Lấy tất cả
 GET     /api/v1/{resource}/{id}         - Lấy chi tiết
@@ -123,6 +130,7 @@ DELETE  /api/v1/flashcards/{id}
 ```
 
 ### 3.2 Query Parameters
+
 ```
 Pagination:
 ?page=0&size=10&sort=createdAt,desc
@@ -135,6 +143,7 @@ Filtering:
 ```
 
 ### 3.3 HTTP Status Codes
+
 ```
 200 OK              - Request thành công, có dữ liệu trả về
 201 Created         - Resource được tạo thành công
@@ -154,6 +163,7 @@ Filtering:
 ### 4.1 DTO Structure
 
 #### Request DTO
+
 ```java
 @Data
 @NoArgsConstructor
@@ -179,6 +189,7 @@ public class FlashcardRequest {
 ```
 
 #### Response DTO
+
 ```java
 @Data
 @NoArgsConstructor
@@ -198,6 +209,7 @@ public class FlashcardResponse {
 ```
 
 ### 4.2 Standard Response Wrapper
+
 ```java
 @Data
 @NoArgsConstructor
@@ -227,6 +239,7 @@ public class ApiResponse<T> {
 ```
 
 ### 4.3 Paginated Response
+
 ```java
 @Data
 @NoArgsConstructor
@@ -259,6 +272,7 @@ public class PagedResponse<T> {
 ## 5. Exception Handling
 
 ### 5.1 Custom Exceptions
+
 ```java
 // Base Exception
 public class SeikaSException extends RuntimeException {
@@ -299,6 +313,7 @@ public class ForbiddenException extends SeikaSException {
 ```
 
 ### 5.2 Global Exception Handler
+
 ```java
 @RestControllerAdvice
 @Slf4j
@@ -306,7 +321,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ApiResponse<?>> handleNotFound(
-            ResourceNotFoundException ex, 
+            ResourceNotFoundException ex,
             HttpServletRequest request) {
         log.error("Resource not found: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -315,7 +330,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(InvalidRequestException.class)
     public ResponseEntity<ApiResponse<?>> handleInvalidRequest(
-            InvalidRequestException ex, 
+            InvalidRequestException ex,
             HttpServletRequest request) {
         log.error("Invalid request: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -348,6 +363,7 @@ public class GlobalExceptionHandler {
 ## 6. Cấu Trúc Controller
 
 ### 6.1 Controller Template
+
 ```java
 @RestController
 @RequestMapping("/api/v1/flashcards")
@@ -425,6 +441,7 @@ public class FlashcardController {
 ## 7. Cấu Trúc Service
 
 ### 7.1 Service Interface
+
 ```java
 public interface FlashcardService {
     PagedResponse<FlashcardResponse> getAll(int page, int size, String sort);
@@ -436,6 +453,7 @@ public interface FlashcardService {
 ```
 
 ### 7.2 Service Implementation
+
 ```java
 @Service
 @Slf4j
@@ -450,13 +468,13 @@ public class FlashcardServiceImpl implements FlashcardService {
     @Transactional(readOnly = true)
     public PagedResponse<FlashcardResponse> getAll(int page, int size, String sort) {
         log.debug("Getting all flashcards - page: {}, size: {}", page, size);
-        
+
         Sort sortOrder = Sort.by(Sort.Direction.DESC, "createdAt");
         Pageable pageable = PageRequest.of(page, size, sortOrder);
-        
+
         Page<Flashcard> flashcards = repository.findAll(pageable);
         Page<FlashcardResponse> response = flashcards.map(mapper::toResponse);
-        
+
         return PagedResponse.of(response);
     }
 
@@ -472,39 +490,39 @@ public class FlashcardServiceImpl implements FlashcardService {
     @Override
     public FlashcardResponse create(FlashcardRequest request) {
         log.info("Creating flashcard: {}", request.getTitle());
-        
+
         Flashcard flashcard = mapper.toEntity(request);
         flashcard.setCreatedAt(LocalDateTime.now());
-        
+
         Flashcard saved = repository.save(flashcard);
         log.info("Flashcard created with id: {}", saved.getId());
-        
+
         return mapper.toResponse(saved);
     }
 
     @Override
     public FlashcardResponse update(String id, FlashcardRequest request) {
         log.info("Updating flashcard: {}", id);
-        
+
         Flashcard flashcard = repository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Flashcard", id));
-        
+
         mapper.updateEntity(request, flashcard);
         flashcard.setUpdatedAt(LocalDateTime.now());
-        
+
         Flashcard updated = repository.save(flashcard);
         log.info("Flashcard updated: {}", id);
-        
+
         return mapper.toResponse(updated);
     }
 
     @Override
     public void delete(String id) {
         log.info("Deleting flashcard: {}", id);
-        
+
         Flashcard flashcard = repository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Flashcard", id));
-        
+
         repository.delete(flashcard);
         log.info("Flashcard deleted: {}", id);
     }
@@ -516,6 +534,7 @@ public class FlashcardServiceImpl implements FlashcardService {
 ## 8. Database Layer
 
 ### 8.1 Entity Structure
+
 ```java
 @Entity
 @Document(collection = "flashcards")
@@ -565,6 +584,7 @@ public class Flashcard {
 ```
 
 ### 8.2 Repository Pattern
+
 ```java
 @Repository
 public interface FlashcardRepository extends MongoRepository<Flashcard, String> {
@@ -579,6 +599,7 @@ public interface FlashcardRepository extends MongoRepository<Flashcard, String> 
 ## 9. Validation
 
 ### 9.1 Input Validation
+
 ```
 @NotNull       - Không được null
 @NotBlank      - Không được trống (xóa khoảng trắng)
@@ -593,6 +614,7 @@ public interface FlashcardRepository extends MongoRepository<Flashcard, String> 
 ```
 
 ### 9.2 Validation Example
+
 ```java
 @Data
 public class UserRequest {
@@ -618,6 +640,7 @@ public class UserRequest {
 ## 10. Logging
 
 ### 10.1 Logging Levels
+
 ```
 TRACE  - Chi tiết cực kỳ chi tiết (hiếm dùng)
 DEBUG  - Thông tin debug (thường trong dev)
@@ -628,6 +651,7 @@ FATAL  - Lỗi nghiêm trọng (hiếm dùng)
 ```
 
 ### 10.2 Logging Best Practices
+
 ```java
 // ✅ GOOD
 @Slf4j
@@ -648,6 +672,7 @@ public void create(FlashcardRequest request) {
 ```
 
 ### 10.3 Application Properties
+
 ```yaml
 logging:
   level:
@@ -666,18 +691,18 @@ logging:
 
 ## Tóm Tắt Nguyên Tắc Chính
 
-| Khía Cạnh | Nguyên Tắc |
-|----------|-----------|
-| **Đặt tên** | camelCase (biến), PascalCase (class), UPPER_SNAKE_CASE (constant) |
-| **Endpoint** | `/api/v1/{resource}` |
-| **Response** | Luôn dùng `ApiResponse<T>` wrapper |
-| **Exception** | Dùng custom exceptions kế thừa từ `SeikaSException` |
-| **Service** | 1 Service = 1 Entity |
-| **DTO** | Tách biệt Request/Response DTOs |
-| **Validation** | Dùng Bean Validation annotations |
-| **Logging** | Dùng `@Slf4j` + structured logging |
-| **Transaction** | `@Transactional` trên Service |
-| **Repository** | Spring Data Repository + custom queries khi cần |
+| Khía Cạnh       | Nguyên Tắc                                                        |
+| --------------- | ----------------------------------------------------------------- |
+| **Đặt tên**     | camelCase (biến), PascalCase (class), UPPER_SNAKE_CASE (constant) |
+| **Endpoint**    | `/api/v1/{resource}`                                              |
+| **Response**    | Luôn dùng `ApiResponse<T>` wrapper                                |
+| **Exception**   | Dùng custom exceptions kế thừa từ `SeikaSException`               |
+| **Service**     | 1 Service = 1 Entity                                              |
+| **DTO**         | Tách biệt Request/Response DTOs                                   |
+| **Validation**  | Dùng Bean Validation annotations                                  |
+| **Logging**     | Dùng `@Slf4j` + structured logging                                |
+| **Transaction** | `@Transactional` trên Service                                     |
+| **Repository**  | Spring Data Repository + custom queries khi cần                   |
 
 ---
 

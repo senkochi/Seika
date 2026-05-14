@@ -1,0 +1,34 @@
+server:
+  port: ${QUIZ_SERVER_PORT}
+
+spring:
+  application:
+    name: quiz_service
+  data:
+    mongodb:
+      uri: ${QUIZ_DB_URI}
+  rabbitmq:
+    host: ${RABBITMQ_HOST}
+    port: ${RABBITMQ_PORT}
+    username: ${RABBITMQ_USERNAME}
+    password: ${RABBITMQ_PASSWORD}
+
+logging:
+  level:
+    root: INFO
+    org.springframework.data.mongodb: DEBUG
+    org.mongodb.driver: DEBUG
+    com.seika.quiz_service: DEBUG
+
+jwt:
+  issuer: seika-quiz-service
+  secret: ${JWT_SECRET}
+  access-token-expiration-minutes: ${JWT_ACCESS_TOKEN_EXPIRATION_MINUTES}
+  refresh-token-expiration-days: ${JWT_REFRESH_TOKEN_EXPIRATION_DAYS}
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL}
+  instance:
+    prefer-ip-address: true
