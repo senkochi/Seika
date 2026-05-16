@@ -132,7 +132,9 @@ function DashboardHome() {
                     <span className="text-sm font-semibold">{stat.trend}</span>
                   </div>
                 </div>
-                <p className="text-gray-400 text-sm mb-1">{stat.label}</p>
+                <p className="text-[var(--muted-foreground)] text-sm mb-1">
+                  {stat.label}
+                </p>
                 <p className="text-3xl font-bold text-[var(--foreground)]">
                   {stat.value}
                 </p>
@@ -168,7 +170,7 @@ function DashboardHome() {
                 >
                   <div className="absolute inset-0 bg-purple-600 rounded-t-xl"></div>
                 </div>
-                <span className="text-xs text-gray-500 font-medium">
+                <span className="text-xs text-[var(--muted-foreground)] font-medium">
                   {item.day}
                 </span>
               </div>
@@ -229,14 +231,16 @@ function DashboardHome() {
           </div>
 
           <div className="text-center">
-            <p className="text-gray-400 text-sm mb-1">Current Level</p>
+            <p className="text-[var(--muted-foreground)] text-sm mb-1">
+              Current Level
+            </p>
             <p className="text-[var(--muted-foreground)] text-sm mb-1">
               Current Level
             </p>
             <p className="text-2xl font-bold text-[var(--foreground)] mb-4">
               Level {userData.level}
             </p>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-[var(--muted-foreground)]">
               {userData.currentXP.toLocaleString()} /{" "}
               {userData.nextLevelXP.toLocaleString()} XP
             </p>

@@ -1,15 +1,32 @@
-import {
-  Sparkles,
-  Zap,
-  Clock,
-  Flame,
-  Star,
-  Crown,
-  ShoppingCart,
-} from "lucide-react";
+import { Clock, Flame, Store } from "lucide-react";
+import MarketplaceOfferCard from "@/components/student/MarketplaceOfferCard";
+import MarketplaceItemCard from "@/components/student/MarketplaceItemCard";
+
+type MarketplaceOffer = {
+  id: number;
+  title: string;
+  description: string;
+  price: number;
+  originalPrice: number;
+  icon: string;
+  color: string;
+  badge: "Limited" | "Hot";
+  timeLeft: string;
+};
+
+type MarketplaceItem = {
+  id: number;
+  category: string;
+  title: string;
+  description: string;
+  price: number;
+  icon: string;
+  color?: string;
+  badge: "New" | "Hot" | null;
+};
 
 function Marketplace() {
-  const limitedOffers = [
+  const limitedOffers: MarketplaceOffer[] = [
     {
       id: 1,
       title: "Legendary Math Bundle",
@@ -20,7 +37,6 @@ function Marketplace() {
       color: "from-amber-400 to-yellow-500",
       badge: "Limited",
       timeLeft: "2:34:12",
-      glow: true,
     },
     {
       id: 2,
@@ -32,11 +48,10 @@ function Marketplace() {
       color: "from-purple-500 to-violet-600",
       badge: "Hot",
       timeLeft: "5:12:45",
-      glow: true,
     },
   ];
 
-  const items = [
+  const items: MarketplaceItem[] = [
     {
       id: 1,
       category: "Quiz Packs",
@@ -45,7 +60,6 @@ function Marketplace() {
       price: 450,
       icon: "🔬",
       badge: "New",
-      featured: false,
     },
     {
       id: 2,
@@ -55,7 +69,6 @@ function Marketplace() {
       price: 350,
       icon: "🏛️",
       badge: null,
-      featured: false,
     },
     {
       id: 3,
@@ -66,7 +79,6 @@ function Marketplace() {
       icon: "🛡️",
       color: "from-cyan-400 to-blue-500",
       badge: "Hot",
-      featured: true,
     },
     {
       id: 4,
@@ -77,7 +89,6 @@ function Marketplace() {
       icon: "✨",
       color: "from-amber-400 to-yellow-500",
       badge: null,
-      featured: true,
     },
     {
       id: 5,
@@ -88,7 +99,6 @@ function Marketplace() {
       icon: "📖",
       color: "from-violet-500 to-purple-600",
       badge: "New",
-      featured: false,
     },
     {
       id: 6,
@@ -99,7 +109,6 @@ function Marketplace() {
       icon: "🚀",
       color: "from-red-500 to-orange-600",
       badge: "Hot",
-      featured: true,
     },
     {
       id: 7,
@@ -110,7 +119,6 @@ function Marketplace() {
       icon: "💎",
       color: "from-indigo-500 to-purple-600",
       badge: null,
-      featured: false,
     },
     {
       id: 8,
@@ -121,7 +129,6 @@ function Marketplace() {
       icon: "🌈",
       color: "from-pink-500 to-violet-600",
       badge: null,
-      featured: false,
     },
     {
       id: 9,
@@ -132,22 +139,8 @@ function Marketplace() {
       icon: "🎁",
       color: "from-purple-600 to-pink-600",
       badge: null,
-      featured: false,
     },
   ];
-
-  const getBadgeStyles = (badge: string | null) => {
-    switch (badge) {
-      case "Limited":
-        return "bg-red-500 text-white";
-      case "Hot":
-        return "bg-orange-500 text-white";
-      case "New":
-        return "bg-green-500 text-white";
-      default:
-        return "";
-    }
-  };
 
   return (
     <div className="p-8">
@@ -164,90 +157,16 @@ function Marketplace() {
       {/* Limited Time Offers */}
       <div className="mb-12">
         <div className="flex items-center gap-3 mb-6">
-          <Flame className="w-6 h-6 text-[var(--primary)] animate-pulse" />
+          <Flame className="w-6 h-6 text-[var(--accent)]" />
           <h2 className="text-xl font-bold text-[var(--foreground)]">
             Limited Time Offers
           </h2>
-          <Clock className="w-5 h-5 text-[var(--primary)]" />
+          <Clock className="w-5 h-5 text-[var(--accent)]" />
         </div>
 
         <div className="grid md:grid-cols-2 gap-6">
           {limitedOffers.map((offer) => (
-            <div key={offer.id} className="group relative">
-              {/* Intense glow effect */}
-              <div
-                className={`absolute inset-0 bg-gradient-to-br ${offer.color} rounded-3xl group-hover:opacity-70 transition-all animate-pulse`}
-              ></div>
-
-              {/* Offer card */}
-              <div
-                className={`relative bg-gradient-to-br from-amber-400 to-yellow-500 rounded-3xl p-1 shadow-2xl`}
-              >
-                <div className="bg-gradient-to-br from-purple-950 to-violet-950 rounded-[22px] p-6">
-                  {/* Badge and timer */}
-                  <div className="flex justify-between items-start mb-4">
-                    <div
-                      className={`px-3 py-1 ${getBadgeStyles(offer.badge)} rounded-full text-xs font-black uppercase flex items-center gap-1`}
-                    >
-                      {offer.badge === "Limited" && (
-                        <Flame className="w-3 h-3" />
-                      )}
-                      {offer.badge === "Hot" && <Zap className="w-3 h-3" />}
-                      {offer.badge}
-                    </div>
-                    <div className="bg-red-500/20 border border-red-500/50 px-3 py-1 rounded-full flex items-center gap-1">
-                      <Clock className="w-3 h-3 text-red-400" />
-                      <span className="text-[var(--primary)] text-xs font-black">
-                        {offer.timeLeft}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Content */}
-                  <div className="flex items-start gap-6 mb-6">
-                    <div className="text-6xl transform transition-transform">
-                      {offer.icon}
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="text-2xl font-black text-[var(--foreground)] mb-2">
-                        {offer.title}
-                      </h3>
-                      <p className="text-[var(--muted-foreground)] mb-4">
-                        {offer.description}
-                      </p>
-                      <div className="flex items-center gap-3">
-                        <div className="flex items-center gap-1">
-                          <Sparkles className="w-5 h-5 text-amber-400" />
-                          <span className="text-3xl font-black text-[var(--foreground)]">
-                            {offer.price}
-                          </span>
-                          <span className="text-[var(--muted-foreground)] text-sm">
-                            Coin
-                          </span>
-                        </div>
-                        <span className="text-[var(--muted-foreground)] line-through text-lg">
-                          {offer.originalPrice}
-                        </span>
-                        <span className="px-2 py-1 bg-green-500/20 text-green-400 rounded-full text-xs font-black">
-                          {Math.round(
-                            ((offer.originalPrice - offer.price) /
-                              offer.originalPrice) *
-                              100,
-                          )}
-                          % OFF
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Buy button */}
-                  <button className="w-full px-6 py-4 bg-gradient-to-r from-amber-400 to-yellow-500 text-purple-950 rounded-2xl font-black hover:bg-gradient-to-r hover:from-[#f2bc22] hover:to-[#f5c12c] text-lg hover:-translate-y-0.5 active:translate-y-0 hover:shadow-[0_5px_10px_0px_rgba(245,193,44,0.2)] transition-all duration-300 flex items-center justify-center gap-2">
-                    <ShoppingCart className="w-5 h-5" />
-                    Buy Now
-                  </button>
-                </div>
-              </div>
-            </div>
+            <MarketplaceOfferCard key={offer.id} {...offer} />
           ))}
         </div>
       </div>
@@ -263,107 +182,12 @@ function Marketplace() {
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {items.map((item) => (
-            <div
-              key={item.id}
-              className={`group relative ${item.featured ? "lg:row-span-1" : ""}`}
-            >
-              {/* Glow effect for featured items */}
-              {item.featured && (
-                <div
-                  className={`absolute inset-0 bg-gradient-to-br rounded-3xl blur-xl opacity-0 group-hover:opacity-50 transition-all`}
-                ></div>
-              )}
-
-              {/* Item card */}
-              <div className="relative bg-gradient-to-br from-purple-900/60 to-violet-900/60 backdrop-blur-sm border-2 border-[var(--border)] rounded-3xl p-6 hover:border-[var(--ring)] transition-all h-full flex flex-col">
-                {/* Badge */}
-                {item.badge && (
-                  <div className="absolute top-4 right-4 z-10">
-                    <div
-                      className={`px-3 py-1 ${getBadgeStyles(item.badge)} rounded-full text-xs font-black uppercase flex items-center gap-1 shadow-lg`}
-                    >
-                      {item.badge === "Hot" && <Flame className="w-3 h-3" />}
-                      {item.badge === "New" && <Star className="w-3 h-3" />}
-                      {item.badge}
-                    </div>
-                  </div>
-                )}
-
-                {/* Featured indicator */}
-                {item.featured && (
-                  <div className="absolute top-4 left-4 z-10">
-                    <Crown className="w-6 h-6 text-amber-400" />
-                  </div>
-                )}
-
-                {/* Category */}
-                <div className="mb-3">
-                  <span className="text-[var(--muted-foreground)] text-xs font-black uppercase tracking-wider">
-                    {item.category}
-                  </span>
-                </div>
-
-                {/* Icon */}
-                <div className="text-5xl mb-4 transform transition-transform">
-                  {item.icon}
-                </div>
-
-                {/* Title and description */}
-                <h3 className="text-xl font-black text-[var(--foreground)] mb-2">
-                  {item.title}
-                </h3>
-                <p className="text-[var(--muted-foreground)] text-sm mb-4 flex-1">
-                  {item.description}
-                </p>
-
-                {/* Price */}
-                <div className="flex items-center gap-2 mb-4">
-                  <Sparkles className="w-4 h-4 text-[var(--primary)]" />
-                  <span className="text-2xl font-black text-[var(--foreground)]">
-                    {item.price}
-                  </span>
-                  <span className="text-[var(--muted-foreground)] text-sm">
-                    Coin
-                  </span>
-                </div>
-
-                {/* Buy button */}
-                <button
-                  className={
-                    "w-full px-4 py-3 bg-gradient-to-r from-amber-400 to-yellow-500 text-purple-950 rounded-xl font-black shadow-md hover:-translate-y-0.5 active:translate-y-0 hover:shadow-[0_5px_10px_0px_rgba(245,193,44,0.2)] transition-all duration-300 flex items-center justify-center gap-2"
-                  }
-                >
-                  <ShoppingCart className="w-4 h-4" />
-                  Purchase
-                </button>
-              </div>
-            </div>
+            <MarketplaceItemCard key={item.id} {...item} />
           ))}
         </div>
       </div>
     </div>
   );
 }
-
-const Store = ({ className }: { className?: string }) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={className}
-  >
-    <path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7" />
-    <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
-    <path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4" />
-    <path d="M2 7h20" />
-    <path d="M22 7v3a2 2 0 0 1-2 2v0a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 16 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 12 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 8 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 4 12v0a2 2 0 0 1-2-2V7" />
-  </svg>
-);
 
 export default Marketplace;

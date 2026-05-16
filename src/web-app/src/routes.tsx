@@ -1,6 +1,9 @@
 import { lazy, Suspense, type ReactNode } from "react";
-import { createBrowserRouter, Navigate } from "react-router-dom";
-
+import {
+  createBrowserRouter,
+  Navigate,
+  RouterProvider,
+} from "react-router-dom";
 import PageLoader from "./pages/loading/PageLoader";
 
 const LandingPage = lazy(() => import("./pages/home/LandingPage"));
@@ -11,6 +14,7 @@ const DashboardHome = lazy(() => import("./pages/student/DashboardHome"));
 const LearningHub = lazy(() => import("./pages/student/LearningHub"));
 const Marketplace = lazy(() => import("./pages/student/Marketplace"));
 const Wallet = lazy(() => import("./pages/student/Wallet"));
+const StudentProfile = lazy(() => import("./pages/student/StudentProfile"));
 const StudentDashboardLayout = lazy(
   () => import("./layouts/StudentDashboardLayout"),
 );
@@ -19,7 +23,7 @@ const withLoader = (content: ReactNode) => (
   <Suspense fallback={<PageLoader />}>{content}</Suspense>
 );
 
-export const router = createBrowserRouter([
+const router = createBrowserRouter([
   {
     path: "/",
     element: <Navigate to="/home" replace />,
@@ -60,6 +64,10 @@ export const router = createBrowserRouter([
         path: "wallet",
         element: withLoader(<Wallet />),
       },
+      {
+        path: "profile",
+        element: withLoader(<StudentProfile />),
+      },
     ],
   },
   {
@@ -67,3 +75,7 @@ export const router = createBrowserRouter([
     element: withLoader(<NotFound />),
   },
 ]);
+
+export default function AppRouter() {
+  return <RouterProvider router={router} />;
+}

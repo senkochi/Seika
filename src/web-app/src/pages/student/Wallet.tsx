@@ -1,8 +1,10 @@
 import { Sparkles, TrendingUp, TrendingDown, Zap, Coins } from "lucide-react";
+import StudentActionButton from "@/components/student/StudentActionButton";
+import StudentBadge from "@/components/student/StudentBadge";
 
 function Wallet() {
   const walletStats = {
-    totalXu: 2847,
+    totalCoin: 2847,
     earnedToday: 350,
     spentThisWeek: 1200,
     rank: "Gold Collector",
@@ -64,39 +66,6 @@ function Wallet() {
       time: "2 days ago",
       category: "Cosmetic",
     },
-    {
-      id: 6,
-      type: "earn",
-      title: "Daily Login",
-      description: "Daily reward claimed",
-      amount: 50,
-      icon: "🎁",
-      color: "from-pink-500 to-purple-600",
-      time: "2 days ago",
-      category: "Daily Bonus",
-    },
-    {
-      id: 7,
-      type: "earn",
-      title: "Perfect Score!",
-      description: 'Got 100% on "Grammar Quest"',
-      amount: 250,
-      icon: "💯",
-      color: "from-blue-500 to-cyan-600",
-      time: "3 days ago",
-      category: "Quest Reward",
-    },
-    {
-      id: 8,
-      type: "spend",
-      title: "Science Explorer Pack",
-      description: "Purchased from Marketplace",
-      amount: -450,
-      icon: "🔬",
-      color: "from-green-500 to-emerald-600",
-      time: "3 days ago",
-      category: "Quiz Pack",
-    },
   ];
 
   const quickStats = [
@@ -127,44 +96,44 @@ function Wallet() {
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           <div>
             <h1 className="text-4xl font-black text-[var(--foreground)] mb-2">
-              <span className="bg-gradient-to-r from-amber-300 to-yellow-400 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-amber-300 to-yellow-400 bg-clip-text">
                 Wallet
               </span>
             </h1>
             <p className="text-[var(--muted-foreground)]">
-              Track your Xu and treasure history
+              Track your Coin and treasure history
             </p>
           </div>
 
           {/* Balance Card */}
-          <div className="relative group">
-            <div className="absolute inset-0 bg-gradient-to-br from-amber-400 to-yellow-500 rounded-3xl blur-2xl opacity-50 group-hover:opacity-70 transition-all"></div>
-            <div className="relative bg-gradient-to-br from-amber-400 to-yellow-500 rounded-3xl p-1 shadow-2xl">
-              <div className="bg-gradient-to-br from-purple-950 to-violet-950 rounded-[22px] px-8 py-6">
+          <div className="relative group w-full md:w-[30rem] lg:w-[34rem] md:ml-auto">
+            <div className="relative w-full bg-gradient-to-b from-amber-400 to-yellow-500 rounded-3xl p-1 shadow-2xl">
+              <div className="rounded-[22px] px-8 py-6">
                 <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 bg-gradient-to-br from-amber-400 to-yellow-500 rounded-2xl flex items-center justify-center shadow-lg">
-                    <Sparkles className="w-8 h-8 text-[var(--foreground)]" />
-                  </div>
                   <div>
-                    <p className="text-amber-300 text-sm font-black uppercase tracking-wider mb-1">
+                    <p className="text-white text-sm font-black uppercase tracking-wider mb-1">
                       Your Balance
                     </p>
-                    <p className="text-white text-4xl font-black">
-                      {walletStats.totalXu.toLocaleString()}
+                    <p className="text-purple-950 text-4xl font-black">
+                      {walletStats.totalCoin.toLocaleString()}
                     </p>
-                    <p className="text-[var(--muted-foreground)] text-sm">Xu</p>
+                    <p className="text-purple-900/90 text-sm font-semibold">
+                      Coin
+                    </p>
                   </div>
                 </div>
-                <div className="mt-4 pt-4 border-t border-[var(--border)] flex items-center justify-between">
+                <div className="mt-4 pt-4 border-t border-white/40 flex items-center justify-between">
                   <div>
-                    <p className="text-violet-400 text-xs">Rank</p>
-                    <p className="text-[var(--primary)] font-black">
+                    <p className="text-white/85 text-xs font-semibold">Rank</p>
+                    <p className="text-purple-950 font-black">
                       {walletStats.rank}
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="text-violet-400 text-xs">Earned Today</p>
-                    <p className="text-green-400 font-black">
+                    <p className="text-white/85 text-xs font-semibold">
+                      Earned Today
+                    </p>
+                    <p className="text-purple-950 font-black">
                       +{walletStats.earnedToday}
                     </p>
                   </div>
@@ -182,10 +151,10 @@ function Wallet() {
           return (
             <div
               key={index}
-              className="relative bg-gradient-to-br from-purple-900/40 to-violet-900/40 backdrop-blur-sm border-2 border-purple-600/30 rounded-3xl p-6 hover:border-purple-500/50 transition-all"
+              className="relative bg-[var(--card)] backdrop-blur-xl border border-[var(--border)] rounded-3xl p-6 shadow-[0_20px_60px_rgba(10,10,20,0.18)] hover:border-[var(--ring)] transition-all"
             >
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 bg-[var(--card)] rounded-2xl flex items-center justify-center">
+                <div className="w-14 h-14 bg-[var(--second-card)] rounded-2xl flex items-center justify-center border border-[var(--border)]">
                   <Icon className={`w-7 h-7 ${stat.color}`} />
                 </div>
                 <div>
@@ -211,16 +180,16 @@ function Wallet() {
           </h2>
         </div>
 
-        <div className="space-y-4">
+        <div className="max-h-[28rem] lg:max-h-[34rem] overflow-y-auto pr-2 space-y-4">
           {treasureLog.map((entry) => (
             <div
               key={entry.id}
-              className="group relative bg-gradient-to-br from-purple-900/60 to-violet-900/60 backdrop-blur-sm border-2 border-[var(--border)] rounded-3xl p-6 hover:border-[var(--ring)] hover:scale-[1.02] transition-all"
+              className="group relative bg-[var(--card)] backdrop-blur-xl border border-[var(--border)] rounded-3xl p-6 shadow-[0_20px_60px_rgba(10,10,20,0.18)] hover:border-[var(--ring)] transition-all"
             >
               <div className="flex items-center gap-6">
                 {/* Icon */}
                 <div
-                  className={`w-16 h-16 bg-gradient-to-br ${entry.color} rounded-2xl flex items-center justify-center text-3xl shadow-lg group-hover:scale-110 transition-transform`}
+                  className={`w-16 h-16 bg-gradient-to-br ${entry.color} rounded-2xl flex items-center justify-center text-3xl shadow-lg transition-transform`}
                 >
                   {entry.icon}
                 </div>
@@ -244,17 +213,15 @@ function Wallet() {
                         {entry.amount}
                       </p>
                       <p className="text-[var(--muted-foreground)] text-xs">
-                        Xu
+                        Coin
                       </p>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-4">
-                    <div className="px-3 py-1 bg-[var(--card)] border border-[var(--border)] rounded-full">
-                      <span className="text-[var(--muted-foreground)] text-xs font-black">
-                        {entry.category}
-                      </span>
-                    </div>
+                    <StudentBadge variant="glass" uppercase={false}>
+                      {entry.category}
+                    </StudentBadge>
                     <span className="text-[var(--muted-foreground)] text-xs">
                       {entry.time}
                     </span>
@@ -284,7 +251,7 @@ function Wallet() {
       {/* Summary Footer */}
       <div className="mt-12 relative group">
         <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-violet-600/20 rounded-3xl blur-2xl"></div>
-        <div className="relative bg-gradient-to-br from-purple-900/60 to-violet-900/60 backdrop-blur-sm border-2 border-[var(--border)] rounded-3xl p-8">
+        <div className="relative bg-[var(--card)] backdrop-blur-xl border border-[var(--border)] rounded-3xl p-8 shadow-[0_20px_60px_rgba(10,10,20,0.18)]">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-[var(--muted-foreground)] mb-2">
@@ -294,10 +261,14 @@ function Wallet() {
                 Complete quizzes, maintain streaks, and master new skills.
               </p>
             </div>
-            <button className="px-8 py-4 bg-gradient-to-r from-amber-400 to-yellow-500 text-purple-950 rounded-2xl font-black hover:shadow-2xl hover:shadow-amber-400/50 hover:scale-105 transition-all flex items-center gap-2">
-              <Zap className="w-5 h-5" />
+            <StudentActionButton
+              size="lg"
+              icon={Zap}
+              fullWidth={false}
+              className="px-8"
+            >
               Start Learning
-            </button>
+            </StudentActionButton>
           </div>
         </div>
       </div>
