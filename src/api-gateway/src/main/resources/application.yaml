@@ -8,6 +8,7 @@ spring:
       server:
         webflux:
           routes:
+            # API routes
             - id: identity-auth-route
               uri: lb://IDENTITY-SERVICE
               predicates:
