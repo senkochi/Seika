@@ -14,5 +14,13 @@ spring:
         max-interval: 2000
         max-attempts: 6
 
+springdoc:
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    display-request-duration: true
+  api-docs:
+    path: /v3/api-docs
+
 # Data source, JWT, eureka, and logging are defined in Config Server
 # See /config-service/src/main/resources/configs/flashcard-service.yaml
