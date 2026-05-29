@@ -1,0 +1,7 @@
+**/target
+**/node_modules
+.git
+.idea
+.vscode
+web-app/node_modules
+src/web-app/node_modules

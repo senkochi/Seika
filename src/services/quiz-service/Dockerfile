@@ -1,10 +1,13 @@
 FROM maven:3.9.9-eclipse-temurin-21 AS build
 WORKDIR /workspace
-COPY pom.xml .
-RUN mvn -q -DskipTests dependency:go-offline
-COPY src ./src
-RUN mvn -q -Dmaven.test.skip=true package
-RUN JAR_FILE=$(ls target/*.jar | grep -v 'original' | head -n 1) && cp "$JAR_FILE" /workspace/app.jar
+
+ARG MODULE_DIR=src/services/quiz-service
+
+COPY . .
+RUN mvn -q -N -DskipTests install
+RUN mvn -q -DskipTests -pl ${MODULE_DIR} -am dependency:go-offline
+RUN mvn -q -DskipTests -pl ${MODULE_DIR} -am package
+RUN JAR_FILE=$(ls ${MODULE_DIR}/target/*.jar | grep -v 'original' | head -n 1) && cp "$JAR_FILE" /workspace/app.jar
 
 FROM eclipse-temurin:21-jre-jammy
 WORKDIR /app
