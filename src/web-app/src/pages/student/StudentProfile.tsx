@@ -131,7 +131,7 @@ function StudentProfile() {
                 onChange={(event) =>
                   setFormData({ ...formData, fullName: event.target.value })
                 }
-                className="w-full rounded-2xl border border-[var(--border)] bg-[var(--second-card)] px-4 py-3 text-[var(--foreground)] outline-none placeholder:text-[var(--muted-foreground)] focus:border-[var(--ring)]"
+                className="w-full rounded-2xl border border-[var(--border)] bg-[var(--second-card)] px-4 py-3 text-[var(--primary-foreground)] outline-none placeholder:text-[var(--muted-foreground)] focus:border-[var(--ring)]"
                 placeholder="Your full name"
               />
             </label>
