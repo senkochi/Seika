@@ -14,5 +14,13 @@ spring:
         max-interval: 2000
         max-attempts: 6
 
+springdoc:
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    display-request-duration: true
+  api-docs:
+    path: /v3/api-docs
+
 # Các cấu hình datasource, jwt, eureka... được định nghĩa trong Config Server
 # Xem /config-service/src/main/resources/configs/wallet-service.yaml

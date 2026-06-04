@@ -4,6 +4,50 @@ spring:
       server:
         webflux:
           routes:
+            # OpenAPI aggregation routes
+            - id: identity-openapi
+              uri: lb://IDENTITY-SERVICE
+              predicates:
+                - Path=/v3/api-docs/identity-service/**,/v3/api-docs/identity-service
+              filters:
+                - RewritePath=/v3/api-docs/identity-service(?:/.*)?,/v3/api-docs
+            - id: flashcard-openapi
+              uri: lb://FLASHCARD-SERVICE
+              predicates:
+                - Path=/v3/api-docs/flashcard-service/**,/v3/api-docs/flashcard-service
+              filters:
+                - RewritePath=/v3/api-docs/flashcard-service(?:/.*)?,/v3/api-docs
+            - id: profile-openapi
+              uri: lb://PROFILE-SERVICE
+              predicates:
+                - Path=/v3/api-docs/profile-service/**,/v3/api-docs/profile-service
+              filters:
+                - RewritePath=/v3/api-docs/profile-service(?:/.*)?,/v3/api-docs
+            - id: wallet-openapi
+              uri: lb://WALLET-SERVICE
+              predicates:
+                - Path=/v3/api-docs/wallet-service/**,/v3/api-docs/wallet-service
+              filters:
+                - RewritePath=/v3/api-docs/wallet-service(?:/.*)?,/v3/api-docs
+            - id: marketplace-openapi
+              uri: lb://MARKETPLACE-SERVICE
+              predicates:
+                - Path=/v3/api-docs/marketplace-service/**,/v3/api-docs/marketplace-service
+              filters:
+                - RewritePath=/v3/api-docs/marketplace-service(?:/.*)?,/v3/api-docs
+            - id: quiz-openapi
+              uri: lb://QUIZ-SERVICE
+              predicates:
+                - Path=/v3/api-docs/quiz-service/**,/v3/api-docs/quiz-service
+              filters:
+                - RewritePath=/v3/api-docs/quiz-service(?:/.*)?,/v3/api-docs
+            - id: notification-openapi
+              uri: lb://NOTIFICATION-SERVICE
+              predicates:
+                - Path=/v3/api-docs/notification-service/**,/v3/api-docs/notification-service
+              filters:
+                - RewritePath=/v3/api-docs/notification-service(?:/.*)?,/v3/api-docs
+            # API routes
             - id: identity-auth-route
               uri: lb://IDENTITY-SERVICE
               predicates:
@@ -55,6 +99,10 @@ app:
       - /api/auth/jwt-validate
       - /health
       - /actuator/**
+      - /swagger-ui.html
+      - /swagger-ui/**
+      - /v3/api-docs/**
+      - /*/v3/api-docs/**
 
 logging:
   level:

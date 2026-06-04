@@ -14,5 +14,13 @@ spring:
         max-interval: 2000
         max-attempts: 6
 
+springdoc:
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    display-request-duration: true
+  api-docs:
+    path: /v3/api-docs
+
 # MongoDB, RabbitMQ, JWT, and Eureka are defined in Config Server
 # See /config-service/src/main/resources/configs/notification-service.yaml

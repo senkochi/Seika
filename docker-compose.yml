@@ -125,7 +125,10 @@ services:
 
   eureka:
     build:
-      context: ./src/eureka
+      context: .
+      dockerfile: src/eureka/Dockerfile
+      args:
+        MODULE_DIR: src/eureka
     ports:
       - "8761:8761"
     environment:
@@ -134,7 +137,10 @@ services:
 
   config-service:
     build:
-      context: ./src/config-service
+      context: .
+      dockerfile: src/config-service/Dockerfile
+      args:
+        MODULE_DIR: src/config-service
     ports:
       - "8888:8888"
     environment:
@@ -195,7 +201,10 @@ services:
 
   identity-service:
     build:
-      context: ./src/services/identity-service
+      context: .
+      dockerfile: src/services/identity-service/Dockerfile
+      args:
+        MODULE_DIR: src/services/identity-service
     ports:
       - "${IDENTITY_SERVER_PORT}:${IDENTITY_SERVER_PORT}"
     environment:
@@ -212,7 +221,10 @@ services:
 
   profile-service:
     build:
-      context: ./src/services/profile-service
+      context: .
+      dockerfile: src/services/profile-service/Dockerfile
+      args:
+        MODULE_DIR: src/services/profile-service
     ports:
       - "${PROFILE_SERVER_PORT}:${PROFILE_SERVER_PORT}"
     environment:
@@ -229,7 +241,10 @@ services:
 
   wallet-service:
     build:
-      context: ./src/services/wallet-service
+      context: .
+      dockerfile: src/services/wallet-service/Dockerfile
+      args:
+        MODULE_DIR: src/services/wallet-service
     ports:
       - "${WALLET_SERVER_PORT}:${WALLET_SERVER_PORT}"
     environment:
@@ -246,7 +261,10 @@ services:
 
   marketplace-service:
     build:
-      context: ./src/services/marketplace-service
+      context: .
+      dockerfile: src/services/marketplace-service/Dockerfile
+      args:
+        MODULE_DIR: src/services/marketplace-service
     ports:
       - "${MARKETPLACE_SERVER_PORT}:${MARKETPLACE_SERVER_PORT}"
     environment:
@@ -263,7 +281,10 @@ services:
 
   notification-service:
     build:
-      context: ./src/services/notification-service
+      context: .
+      dockerfile: src/services/notification-service/Dockerfile
+      args:
+        MODULE_DIR: src/services/notification-service
     ports:
       - "${NOTIFICATION_SERVER_PORT}:${NOTIFICATION_SERVER_PORT}"
     environment:
@@ -284,7 +305,10 @@ services:
 
   flashcard-service:
     build:
-      context: ./src/services/flashcard-service
+      context: .
+      dockerfile: src/services/flashcard-service/Dockerfile
+      args:
+        MODULE_DIR: src/services/flashcard-service
     ports:
       - "${FLASHCARD_SERVER_PORT}:${FLASHCARD_SERVER_PORT}"
     environment:
@@ -303,7 +327,10 @@ services:
 
   quiz-service:
     build:
-      context: ./src/services/quiz-service
+      context: .
+      dockerfile: src/services/quiz-service/Dockerfile
+      args:
+        MODULE_DIR: src/services/quiz-service
     ports:
       - "${QUIZ_SERVER_PORT}:${QUIZ_SERVER_PORT}"
     environment:
@@ -322,7 +349,10 @@ services:
 
   api-gateway:
     build:
-      context: ./src/api-gateway
+      context: .
+      dockerfile: src/api-gateway/Dockerfile
+      args:
+        MODULE_DIR: src/api-gateway
     ports:
       - "${GATEWAY_PORT}:${GATEWAY_PORT}"
     environment:
