@@ -4,9 +4,9 @@ WORKDIR /workspace
 ARG MODULE_DIR=src/services/quiz-service
 
 COPY . .
-RUN mvn -q -N -DskipTests install
-RUN mvn -q -DskipTests -pl ${MODULE_DIR} -am dependency:go-offline
-RUN mvn -q -DskipTests -pl ${MODULE_DIR} -am package
+RUN mvn -q -N -Dmaven.test.skip=true install
+RUN mvn -q -Dmaven.test.skip=true -pl ${MODULE_DIR} -am dependency:go-offline
+RUN mvn -q -Dmaven.test.skip=true -pl ${MODULE_DIR} -am package
 RUN JAR_FILE=$(ls ${MODULE_DIR}/target/*.jar | grep -v 'original' | head -n 1) && cp "$JAR_FILE" /workspace/app.jar
 
 FROM eclipse-temurin:21-jre-jammy

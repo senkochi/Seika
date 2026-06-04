@@ -98,6 +98,17 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
     }
     
     private boolean isPublicPath(String path) {
+        if (path == null) {
+            return false;
+        }
+
+        if (path.equals("/swagger-ui.html")
+                || path.startsWith("/swagger-ui/")
+                || path.startsWith("/webjars/")
+                || path.startsWith("/v3/api-docs/")) {
+            return true;
+        }
+
         // Sử dụng AntPathMatcher để kiểm tra public endpoints
         AntPathMatcher matcher = new AntPathMatcher();
         return apiConfig.getPublicEndpoints().stream()
