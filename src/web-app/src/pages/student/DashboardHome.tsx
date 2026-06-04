@@ -5,8 +5,9 @@ import {
   Zap,
   Target,
   Trophy,
-  Clock,
   ArrowRight,
+  Sword,
+  Swords,
 } from "lucide-react";
 
 function DashboardHome() {
@@ -74,11 +75,16 @@ function DashboardHome() {
   ];
 
   const quickStats = [
-    { label: "Study Hours", value: "23h", icon: Clock, color: "text-blue-400" },
     {
-      label: "Win Rate",
-      value: "87%",
-      icon: TrendingUp,
+      label: "Current Streak",
+      value: "0",
+      icon: Sword,
+      color: "text-blue-400",
+    },
+    {
+      label: "Longest Streak",
+      value: "12",
+      icon: Swords,
       color: "text-green-400",
     },
     {

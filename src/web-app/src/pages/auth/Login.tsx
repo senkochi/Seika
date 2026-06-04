@@ -70,18 +70,26 @@ export default function Login() {
       <div className="w-full max-w-lg bg-white/95 backdrop-blur-lg rounded-3xl shadow-2xl border-2 border-amber-400 overflow-hidden relative z-10">
         <div className="bg-gradient-to-r from-purple-900 to-violet-900 px-8 py-6">
           <h1 className="text-2xl font-black text-yellow-400">Welcome Back</h1>
-          <p className="text-sm text-purple-200 mt-2">Sign in to continue your learning/teaching journey</p>
+          <p className="text-sm text-purple-200 mt-2">
+            Sign in to continue your learning/teaching journey
+          </p>
         </div>
 
         <div className="px-8 py-6 min-h-[300px] space-y-6">
           <div className="text-center space-y-2">
-            <h2 className="text-2xl font-black text-purple-900">Sign in to Seika</h2>
-            <p className="text-sm text-gray-600">Access quizzes, flashcards, and your coin balance</p>
+            <h2 className="text-2xl font-black text-purple-900">
+              Sign in to Seika
+            </h2>
+            <p className="text-sm text-gray-600">
+              Access quizzes, flashcards, and your coin balance
+            </p>
           </div>
 
           <div className="space-y-5">
             <div>
-              <label className="block text-sm font-black text-purple-900 mb-2">Username</label>
+              <label className="block text-sm font-black text-purple-900 mb-2">
+                Username
+              </label>
               <div className="relative">
                 <User className="w-4 h-4 text-purple-400 absolute left-4 top-1/2 -translate-y-1/2" />
                 <input
@@ -92,18 +100,22 @@ export default function Login() {
                     if (errors.username) clearError("username");
                   }}
                   placeholder="Enter your username"
-                  className={`w-full pl-11 pr-4 py-3 border-2 rounded-xl focus:outline-none transition-colors ${
+                  className={`w-full pl-11 pr-4 py-3 text-purple-900 border-2 rounded-xl focus:outline-none transition-colors ${
                     errors.username
                       ? "border-red-500 bg-red-50 focus:border-red-500"
                       : "border-purple-200 focus:border-purple-500"
                   }`}
                 />
               </div>
-              {errors.username && <p className="text-xs text-red-500 mt-1">{errors.username}</p>}
+              {errors.username && (
+                <p className="text-xs text-red-500 mt-1">{errors.username}</p>
+              )}
             </div>
 
             <div>
-              <label className="block text-sm font-black text-purple-900 mb-2">Password</label>
+              <label className="block text-sm font-black text-purple-900 mb-2">
+                Password
+              </label>
               <div className="relative">
                 <Lock className="w-4 h-4 text-purple-400 absolute left-4 top-1/2 -translate-y-1/2" />
                 <input
@@ -114,7 +126,7 @@ export default function Login() {
                     if (errors.password) clearError("password");
                   }}
                   placeholder="Enter your password"
-                  className={`w-full pl-11 pr-12 py-3 border-2 rounded-xl focus:outline-none transition-colors ${
+                  className={`w-full pl-11 pr-12 py-3 text-purple-900 border-2 rounded-xl focus:outline-none transition-colors ${
                     errors.password
                       ? "border-red-500 bg-red-50 focus:border-red-500"
                       : "border-purple-200 focus:border-purple-500"
@@ -126,10 +138,16 @@ export default function Login() {
                   className="absolute right-4 top-1/2 -translate-y-1/2 text-purple-400 hover:text-purple-700 transition-colors"
                   aria-label={showPassword ? "Hide password" : "Show password"}
                 >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showPassword ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
                 </button>
               </div>
-              {errors.password && <p className="text-xs text-red-500 mt-1">{errors.password}</p>}
+              {errors.password && (
+                <p className="text-xs text-red-500 mt-1">{errors.password}</p>
+              )}
             </div>
 
             <div className="flex items-center justify-between gap-4 text-sm">
@@ -137,12 +155,17 @@ export default function Login() {
                 <input
                   type="checkbox"
                   checked={formData.rememberMe}
-                  onChange={(e) => setFormData({ ...formData, rememberMe: e.target.checked })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, rememberMe: e.target.checked })
+                  }
                   className="rounded border-purple-300 text-purple-600 focus:ring-purple-500"
                 />
                 Remember me
               </label>
-              <button type="button" className="text-purple-700 font-semibold hover:underline">
+              <button
+                type="button"
+                className="text-purple-700 font-semibold hover:underline"
+              >
                 Forgot password?
               </button>
             </div>

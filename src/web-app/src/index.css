@@ -9,40 +9,59 @@
 
 @layer base {
   :root {
-    /* Dark purple background with white glass cards and amber accent */
     --background: linear-gradient(
       135deg,
-      #0f1724 0%,
-      #401871 50%,
-      #44136b 100%
+      #12091f 0%,
+      #22103d 35%,
+      #34115e 70%,
+      #4c1d95 100%
     );
-    --foreground: #f7f3ff;
-    --card: rgba(255, 255, 255, 0.12);
-    --second-card: rgba(255, 255, 255, 0.08);
-    --card-foreground: #f5f3ff;
-    --popover: rgba(255, 255, 255, 0.12);
-    --popover-foreground: #f5f3ff;
-    --primary: #fbbf24; /* amber accent */
-    --light-primary: #fde68a;
-    --primary-foreground: #3b0764;
+
+    --foreground: #faf7ff;
+
+    --card: rgba(30, 18, 58, 0.92);
+    --second-card: rgba(45, 27, 78, 0.85);
+
+    --card-foreground: #faf7ff;
+
+    --popover: rgba(30, 18, 58, 0.96);
+    --popover-foreground: #faf7ff;
+
+    --primary: #8b5cf6;
+    --primary-hover: #7c3aed;
+    --primary-light: #a78bfa;
+    --primary-foreground: #ffffff;
+
+    --accent: #facc15;
+    --accent-hover: #eab308;
+    --accent-light: #fde047;
+    --accent-foreground: #2e1065;
+
     --secondary: #c4b5fd;
-    --secondary-foreground: #2b0b3a;
-    --muted: rgba(255, 255, 255, 0.08);
-    --second-muted: rgba(255, 255, 255, 0.14);
-    --muted-foreground: rgba(237, 233, 255, 0.78);
-    --accent: #fbbf24; /* gold/amber */
-    --accent-foreground: #2b0b3a;
-    --destructive: #ef4444;
-    --destructive-foreground: #ffffff;
-    --border: rgba(255, 255, 255, 0.16);
-    --input: rgba(255, 255, 255, 0.1);
-    --ring: #fbbf24;
-    --success: #10b981;
-    --success-foreground: #052e16;
+    --secondary-foreground: #1f1147;
+
+    --muted: rgba(255, 255, 255, 0.05);
+    --second-muted: rgba(255, 255, 255, 0.08);
+    --muted-foreground: #b8a9d9;
+
+    --border: rgba(255, 255, 255, 0.08);
+    --input: rgba(255, 255, 255, 0.06);
+    --ring: #facc15;
+
+    --xp: #38bdf8;
+    --level: #facc15;
+    --streak: #fb7185;
+
+    --success: #22c55e;
     --warning: #f59e0b;
-    --warning-foreground: #1e1b4b;
-    --info: #60a5fa;
-    --info-foreground: #0f1724;
+    --info: #38bdf8;
+    --destructive: #ef4444;
+
+    --common: #94a3b8;
+    --rare: #3b82f6;
+    --epic: #a855f7;
+    --legendary: #facc15;
+    --mythic: #fb7185;
   }
 
   html {
