@@ -18,4 +18,9 @@ public class UserProfileResponse {
 	LocalDate dateOfBirth;
 	String gender;
 	String profilePictureUrl;
+
+	long exp;
+	int level;
+	int currentStreak;
+	int longestStreak;
 }
