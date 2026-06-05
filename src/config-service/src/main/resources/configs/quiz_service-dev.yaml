@@ -3,7 +3,7 @@ server:
 
 spring:
   application:
-    name: quiz_service
+    name: quiz-service
   data:
     mongodb:
       uri: ${QUIZ_DB_URI}
@@ -28,7 +28,10 @@ jwt:
 
 eureka:
   client:
+    enabled: true
     service-url:
       defaultZone: ${EUREKA_SERVER_URL}
+    register-with-eureka: true
+    fetch-registry: true
   instance:
     prefer-ip-address: true

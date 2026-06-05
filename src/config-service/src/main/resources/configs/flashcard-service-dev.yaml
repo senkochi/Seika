@@ -40,7 +40,10 @@ logging:
 
 eureka:
   client:
+    enabled: true
     service-url:
       defaultZone: ${EUREKA_SERVER_URL}
+    register-with-eureka: true
+    fetch-registry: true
   instance:
     prefer-ip-address: true

@@ -70,6 +70,10 @@ spring:
               uri: lb://WALLET-SERVICE
               predicates:
                 - Path=/api/wallet/**,/api/wallet
+            - id: quiz-route
+              uri: lb://QUIZ-SERVICE
+              predicates:
+                - Path=/api/quiz/**,/api/quiz
           discovery:
             locator:
               enabled: false

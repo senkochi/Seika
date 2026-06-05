@@ -47,7 +47,6 @@ spring:
                 - Path=/v3/api-docs/notification-service/**,/v3/api-docs/notification-service
               filters:
                 - RewritePath=/v3/api-docs/notification-service(?:/.*)?,/v3/api-docs
-                
             # API routes
             - id: identity-auth-route
               uri: lb://IDENTITY-SERVICE
@@ -71,6 +70,10 @@ spring:
               uri: lb://WALLET-SERVICE
               predicates:
                 - Path=/api/wallet/**,/api/wallet
+            - id: quiz-route
+              uri: lb://QUIZ-SERVICE
+              predicates:
+                - Path=/api/quiz/**,/api/quiz
           discovery:
             locator:
               enabled: false

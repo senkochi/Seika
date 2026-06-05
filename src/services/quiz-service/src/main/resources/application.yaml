@@ -2,7 +2,7 @@ spring:
   config:
     import: "configserver:"
   application:
-    name: quiz_service
+    name: quiz-service
   profiles:
     active: ${SPRING_PROFILE:dev}
   cloud:
