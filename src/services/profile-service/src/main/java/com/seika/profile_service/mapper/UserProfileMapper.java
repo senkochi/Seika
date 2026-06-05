@@ -2,14 +2,15 @@ package com.seika.profile_service.mapper;
 
 import com.seika.profile_service.dto.user_profile.UserProfileResponse;
 import com.seika.profile_service.enity.UserProfile;
-import com.seika.profile_service.enity.GameProfile;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 import java.util.List;
 
 @Mapper(componentModel = "spring")
 public interface UserProfileMapper {
-    UserProfileResponse toUserProfileResponse(UserProfile userProfile, GameProfile gameProfile);
+    @Mapping(target = "userId", source = "userProfile.userId")
+    UserProfileResponse toUserProfileResponse(UserProfile userProfile);
 
     List<UserProfileResponse> toUserProfileResponseList(List<UserProfile> userProfileList);
 }
