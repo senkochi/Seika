@@ -55,4 +55,8 @@ export type UserProfileResponse = {
   dateOfBirth: string;
   gender: string;
   profilePictureUrl?: string;
+  exp?: number;
+  level?: number;
+  currentStreak?: number;
+  longestStreak?: number;
 };
