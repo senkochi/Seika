@@ -1,3 +1,7 @@
+/**
+ * File này chứa các hàm liên quan đến xử lý lỗi từ API. Nó cung cấp một hàm tiện ích để trích xuất thông
+ * điệp lỗi từ các lỗi trả về bởi Axios, giúp hiển thị thông báo lỗi rõ ràng hơn cho người dùng.
+ */
 import { isAxiosError } from "axios";
 
 type ApiErrorPayload = {
