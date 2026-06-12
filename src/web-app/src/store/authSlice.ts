@@ -1,3 +1,10 @@
+/**
+ * File này chứa Redux slice để quản lý trạng thái xác thực người dùng trong ứng dụng. Nó sử
+ * dụng Redux Toolkit để tạo slice, bao gồm các action và reducer liên quan đến đăng nhập, đăng ký,
+ * và lưu trữ thông tin xác thực. Slice này cũng xử lý việc lưu trữ token vào localStorage hoặc
+ * sessionStorage dựa trên lựa chọn "Remember Me" của người dùng, và cung cấp các action để đăng
+ * xuất và xóa lỗi xác thực.
+ */
 import {
   createAsyncThunk,
   createSlice,
@@ -7,6 +14,7 @@ import {
 import { authService, getApiErrorMessage, setAuthToken } from "../api";
 import type { AuthResponse, LoginRequest, RegisterRequest } from "../api";
 
+// Định nghĩa kiểu dữ liệu cho Auth State của slice.
 type AuthStorageState = {
   accessToken: string | null;
   refreshToken: string | null;
@@ -15,6 +23,7 @@ type AuthStorageState = {
   roles: string[];
 };
 
+// Kết hợp AuthStorageState với các trường bổ sung để quản lý trạng thái và lỗi của quá trình xác thực.
 type AuthState = AuthStorageState & {
   status: "idle" | "loading" | "succeeded" | "failed";
   error: string | null;
@@ -22,6 +31,7 @@ type AuthState = AuthStorageState & {
 
 const storageKey = "seika.auth";
 
+// Định nghĩa trạng thái rỗng mặc định cho Auth State.
 const emptyAuthStorageState: AuthStorageState = {
   accessToken: null,
   refreshToken: null,
@@ -30,6 +40,7 @@ const emptyAuthStorageState: AuthStorageState = {
   roles: [],
 };
 
+// Hàm để lấy thông tin xác thực đã lưu trữ từ localStorage hoặc sessionStorage.
 const getStoredAuth = (): AuthStorageState => {
   if (typeof window === "undefined") {
     return emptyAuthStorageState;
@@ -52,18 +63,27 @@ const getStoredAuth = (): AuthStorageState => {
   }
 };
 
+/**
+ * Hàm lưu trữ thông tin xác thực vào localStorage hoặc sessionStorage dựa trên lựa chọn "Remember Me"
+ * của người dùng. Nếu rememberMe là true, thông tin sẽ được lưu vào localStorage, ngược lại sẽ lưu vào
+ * sessionStorage. Hàm này cũng đảm bảo rằng nếu có thông tin cũ tồn tại trong storage không được sử dụng,
+ * nó sẽ bị xóa bỏ trước khi lưu thông tin mới.
+ */
 const persistAuth = (auth: AuthStorageState, rememberMe: boolean) => {
   if (typeof window === "undefined") {
     return;
   }
 
-  const storage = rememberMe ? window.localStorage : window.sessionStorage;
-  const staleStorage = rememberMe ? window.sessionStorage : window.localStorage;
+  const storage = rememberMe ? window.localStorage : window.sessionStorage; // Biến lưu trữ tạm thời để xác định nơi lưu trữ dựa trên lựa chọn của người dùng.
+  const staleStorage = rememberMe ? window.sessionStorage : window.localStorage; // Biến lưu trữ tạm thời để xác định nơi lưu trữ cũ (nếu có) để xóa bỏ.
 
   staleStorage.removeItem(storageKey);
   storage.setItem(storageKey, JSON.stringify(auth));
 };
 
+/**
+ * Hàm xóa thông tin xác thực đã lưu trữ khỏi localStorage và sessionStorage. Dùng khi đăng xuất.
+ */
 const clearPersistedAuth = () => {
   if (typeof window === "undefined") {
     return;
@@ -73,6 +93,10 @@ const clearPersistedAuth = () => {
   window.sessionStorage.removeItem(storageKey);
 };
 
+/**
+ * Hàm adapter để chuyển đổi dữ liệu từ định dạng AuthResponse của API sang định dạng AuthStorageState mà
+ * ứng dụng sử dụng.
+ */
 const toAuthStorageState = (auth: AuthResponse): AuthStorageState => ({
   accessToken: auth.accessToken,
   refreshToken: auth.refreshToken,
@@ -84,6 +108,11 @@ const toAuthStorageState = (auth: AuthResponse): AuthStorageState => ({
 const storedAuth = getStoredAuth();
 setAuthToken(storedAuth.accessToken);
 
+/**
+ * Khởi tạo trạng thái ban đầu cho slice bằng cách kết hợp thông tin xác thực đã lưu trữ (nếu có)
+ * với trạng thái mặc định. Nếu có thông tin xác thực hợp lệ, token sẽ được thiết lập để sử dụng
+ * cho các yêu cầu API tiếp theo. Trạng thái ban đầu cũng đặt status là "idle" và error là null.
+ */
 const initialState: AuthState = {
   ...storedAuth,
   status: "idle",
