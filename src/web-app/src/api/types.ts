@@ -63,3 +63,58 @@ export type UserProfileResponse = {
   currentStreak?: number;
   longestStreak?: number;
 };
+
+// Flashcard types
+export interface Card {
+  front: string;
+  back: string;
+}
+
+export interface CardSetCreateRequest {
+  title: string;
+  description: string;
+  price: number;
+  cards: Card[];
+}
+
+export interface CardSetResponse {
+  id: string;
+  title: string;
+  description: string;
+  price: number;
+  cards: Card[];
+  authorId: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+// Quiz types
+export type QuizType =
+  | "MULTIPLE_CHOICE"
+  | "REORDER"
+  | "MATCHING"
+  | "FILL_IN_THE_BLANK";
+
+export interface QuizCreateRequest {
+  questionText: string;
+  type: QuizType;
+  options?: string[];
+  correctOptionIndex?: number;
+  matchingPairs?: Record<string, string>;
+  correctOrder?: string[];
+  acceptedAnswers?: string[];
+}
+
+export interface QuizResponse {
+  id: string;
+  questionText: string;
+  type: QuizType;
+  createdBy: string;
+  createdAt?: string;
+  updatedAt?: string;
+  options?: string[];
+  correctOptionIndex?: number;
+  matchingPairs?: Record<string, string>;
+  correctOrder?: string[];
+  acceptedAnswers?: string[];
+}

@@ -1,2 +1,5 @@
 export * from "./auth";
 export * from "./userProfiles";
+export * from "./flashcards";
+export * from "./quizzes";
+export * from "./wallet";

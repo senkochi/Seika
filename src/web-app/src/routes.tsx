@@ -18,7 +18,15 @@ const StudentProfile = lazy(() => import("./pages/student/StudentProfile"));
 const StudentDashboardLayout = lazy(
   () => import("./layouts/StudentDashboardLayout"),
 );
-const TeacherDashboard = lazy(() => import("./pages/teacher/TeacherDashboard"));
+const TeacherDashboardLayout = lazy(
+  () => import("./layouts/TeacherDashboardLayout"),
+);
+const TeacherDashboardHome = lazy(
+  () => import("./pages/teacher/TeacherDashboardHome"),
+);
+const ContentManager = lazy(() => import("./pages/teacher/ContentManager"));
+const TeacherWallet = lazy(() => import("./pages/teacher/TeacherWallet"));
+const TeacherProfile = lazy(() => import("./pages/teacher/TeacherProfile"));
 
 const withLoader = (content: ReactNode) => (
   <Suspense fallback={<PageLoader />}>{content}</Suspense>
@@ -78,7 +86,25 @@ const router = createBrowserRouter([
   },
   {
     path: "/teacher/dashboard",
-    element: withLoader(<TeacherDashboard />),
+    element: withLoader(<TeacherDashboardLayout />),
+    children: [
+      {
+        index: true,
+        element: withLoader(<TeacherDashboardHome />),
+      },
+      {
+        path: "content",
+        element: withLoader(<ContentManager />),
+      },
+      {
+        path: "wallet",
+        element: withLoader(<TeacherWallet />),
+      },
+      {
+        path: "profile",
+        element: withLoader(<TeacherProfile />),
+      },
+    ],
   },
   {
     path: "*",
