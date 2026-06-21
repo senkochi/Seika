@@ -91,7 +91,7 @@ export default function Register() {
     // You can add more validation here (e.g., password strength, username format)
 
     try {
-      await dispatch(
+      const authState = await dispatch(
         register({
           username: formData.username.trim(),
           password: formData.password,
@@ -103,7 +103,13 @@ export default function Register() {
       ).unwrap();
 
       showSuccess("Account created successfully.");
-      navigate("/dashboard");
+
+      const isTeacher = authState.roles.some(
+        (role) =>
+          role.toUpperCase() === "ROLE_TEACHER" ||
+          role.toUpperCase() === "TEACHER",
+      );
+      navigate(isTeacher ? "/teacher/dashboard" : "/student/dashboard");
     } catch (error) {
       showError(
         typeof error === "string"

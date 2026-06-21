@@ -13,6 +13,9 @@ import {
 } from "lucide-react";
 import GridBackground from "./GridBackground";
 import { Logo } from "../components/logo/Logo";
+import { useAppDispatch, useAppSelector } from "../store/hooks";
+import { logout } from "../store/authSlice";
+import { clearUserProfile } from "../store/userProfileSlice";
 
 function StudentDashboardLayout() {
   const navigate = useNavigate();
@@ -20,22 +23,46 @@ function StudentDashboardLayout() {
   const [avatarMenuOpen, setAvatarMenuOpen] = useState(false);
   const avatarMenuRef = useRef<HTMLDivElement | null>(null);
 
+  const dispatch = useAppDispatch();
+  const { fullName, username, level, profilePictureUrl } = useAppSelector(
+    (state) => state.userProfile,
+  );
+  const authUsername = useAppSelector((state) => state.auth.username);
+
+  const displayName = fullName ?? username ?? authUsername ?? "Learner";
+
+  const handleLogout = () => {
+    dispatch(logout());
+    dispatch(clearUserProfile());
+    navigate("/auth/login");
+  };
+
   const navItems = [
-    { id: "home", label: "Dashboard", icon: Home, path: "/dashboard" },
+    { id: "home", label: "Dashboard", icon: Home, path: "/student/dashboard" },
     {
       id: "learning",
       label: "Learning Hub",
       icon: BookOpen,
-      path: "/dashboard/learning",
+      path: "/student/dashboard/learning",
     },
     {
       id: "marketplace",
       label: "Marketplace",
       icon: Store,
-      path: "/dashboard/marketplace",
+      path: "/student/dashboard/marketplace",
     },
-    { id: "wallet", label: "Wallet", icon: Wallet, path: "/dashboard/wallet" },
-    { id: "profile", label: "Profile", icon: User, path: "/dashboard/profile" },
+    {
+      id: "wallet",
+      label: "Wallet",
+      icon: Wallet,
+      path: "/student/dashboard/wallet",
+    },
+    {
+      id: "profile",
+      label: "Profile",
+      icon: User,
+      path: "/student/dashboard/profile",
+    },
   ];
 
   useEffect(() => {
@@ -107,7 +134,7 @@ function StudentDashboardLayout() {
         <div className="p-4 border-t border-[var(--border)] space-y-2">
           <button
             type="button"
-            onClick={() => navigate("/dashboard")}
+            onClick={() => navigate("/student/dashboard")}
             className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[var(--muted-foreground)] hover:bg-[var(--muted)]/50 hover:text-[var(--foreground)] transition-all"
           >
             <Settings className="w-5 h-5" />
@@ -115,7 +142,7 @@ function StudentDashboardLayout() {
           </button>
           <button
             type="button"
-            onClick={() => navigate("/")}
+            onClick={handleLogout}
             className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[var(--muted-foreground)] hover:bg-[var(--muted)]/50 hover:text-[var(--foreground)] transition-all"
           >
             <LogOut className="w-5 h-5" />
@@ -158,19 +185,25 @@ function StudentDashboardLayout() {
                   onClick={() => setAvatarMenuOpen((current) => !current)}
                   className="flex items-center gap-3 rounded-2xl px-2 py-1.5 transition-colors hover:bg-[rgba(255,255,255,0.06)]"
                 >
-                  <div className="w-10 h-10 rounded-full border-2 border-[var(--border)] overflow-hidden">
-                    <img
-                      src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=200"
-                      alt="Avatar"
-                      className="w-full h-full object-cover"
-                    />
+                  <div className="w-10 h-10 rounded-full border-2 border-[var(--border)] overflow-hidden flex items-center justify-center bg-[var(--second-card)]">
+                    {profilePictureUrl ? (
+                      <img
+                        src={profilePictureUrl}
+                        alt="Avatar"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-sm font-bold text-[var(--foreground)]">
+                        {displayName[0].toUpperCase()}
+                      </span>
+                    )}
                   </div>
                   <div className="text-left">
                     <p className="text-[var(--foreground)] text-sm font-bold">
-                      Alex
+                      {displayName}
                     </p>
                     <p className="text-[var(--muted-foreground)] text-xs">
-                      Level 12
+                      Level {level}
                     </p>
                   </div>
                 </button>
@@ -181,7 +214,7 @@ function StudentDashboardLayout() {
                       type="button"
                       onClick={() => {
                         setAvatarMenuOpen(false);
-                        navigate("/dashboard/profile");
+                        navigate("/student/dashboard/profile");
                       }}
                       className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm font-bold text-[var(--foreground)] transition-colors hover:bg-[rgba(255,255,255,0.06)]"
                     >
@@ -192,7 +225,7 @@ function StudentDashboardLayout() {
                       type="button"
                       onClick={() => {
                         setAvatarMenuOpen(false);
-                        navigate("/dashboard/profile");
+                        navigate("/student/dashboard");
                       }}
                       className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm font-bold text-[var(--foreground)] transition-colors hover:bg-[rgba(255,255,255,0.06)]"
                     >
@@ -203,7 +236,7 @@ function StudentDashboardLayout() {
                       type="button"
                       onClick={() => {
                         setAvatarMenuOpen(false);
-                        navigate("/");
+                        handleLogout();
                       }}
                       className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm font-bold text-[var(--foreground)] transition-colors hover:bg-[rgba(239,68,68,0.14)]"
                     >

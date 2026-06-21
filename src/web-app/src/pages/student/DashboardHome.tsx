@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import {
   Sparkles,
   TrendingUp,
@@ -8,23 +9,48 @@ import {
   ArrowRight,
   Sword,
   Swords,
+  Loader2,
 } from "lucide-react";
 
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
+import { fetchCurrentUserProfile } from "../../store/userProfileSlice";
+
+// Hằng số XP cần để lên level (có thể mở rộng thành công thức sau)
+const XP_PER_LEVEL = 1000;
+
 function DashboardHome() {
-  // Mock data
-  const userData = {
-    name: "Alex",
-    level: 12,
-    currentXP: 3450,
-    nextLevelXP: 5000,
-    coins: 2847,
-    streak: 7,
-  };
+  const dispatch = useAppDispatch();
+  const {
+    status,
+    error,
+    fullName,
+    username,
+    level,
+    exp,
+    currentStreak,
+    longestStreak,
+  } = useAppSelector((state) => state.userProfile);
+
+  // Lấy username từ auth state để dùng khi profile chưa load xong
+  const authUsername = useAppSelector((state) => state.auth.username);
+
+  useEffect(() => {
+    // Chỉ fetch khi chưa có data
+    if (status === "idle") {
+      dispatch(fetchCurrentUserProfile());
+    }
+  }, [dispatch, status]);
+
+  // Tính toán XP progress trong level hiện tại
+  const currentLevelXP = exp % XP_PER_LEVEL;
+  const nextLevelXP = XP_PER_LEVEL;
+
+  const displayName = fullName ?? username ?? authUsername ?? "Learner";
 
   const topStats = [
     {
       label: "Total XP",
-      value: "12,450",
+      value: exp.toLocaleString(),
       trend: "+12%",
       trendUp: true,
       icon: Zap,
@@ -32,8 +58,8 @@ function DashboardHome() {
     },
     {
       label: "Quizzes Completed",
-      value: "148",
-      trend: "+8%",
+      value: "0",
+      trend: "+0%",
       trendUp: true,
       icon: Target,
       color: "from-purple-500 to-violet-600",
@@ -77,30 +103,61 @@ function DashboardHome() {
   const quickStats = [
     {
       label: "Current Streak",
-      value: "0",
+      value: currentStreak.toString(),
       icon: Sword,
       color: "text-blue-400",
     },
     {
       label: "Longest Streak",
-      value: "12",
+      value: longestStreak.toString(),
       icon: Swords,
       color: "text-green-400",
     },
     {
       label: "Achievements",
-      value: "34",
+      value: "0",
       icon: Trophy,
       color: "text-amber-400",
     },
   ];
+
+  if (status === "loading") {
+    return (
+      <div className="p-8 flex items-center justify-center min-h-[60vh]">
+        <div className="flex flex-col items-center gap-4 text-[var(--muted-foreground)]">
+          <Loader2 className="w-10 h-10 animate-spin text-[var(--primary)]" />
+          <p>Loading your dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (status === "failed") {
+    return (
+      <div className="p-8 flex items-center justify-center min-h-[60vh]">
+        <div className="flex flex-col items-center gap-4 text-center">
+          <div className="text-4xl">⚠️</div>
+          <p className="text-[var(--foreground)] font-bold">
+            Failed to load profile
+          </p>
+          <p className="text-[var(--muted-foreground)] text-sm">{error}</p>
+          <button
+            onClick={() => dispatch(fetchCurrentUserProfile())}
+            className="px-4 py-2 bg-[var(--primary)] text-white rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-8">
       {/* Welcome Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-[var(--foreground)] mb-2">
-          Welcome back, {userData.name}!
+          Welcome back, {displayName}!
         </h1>
         <p className="text-[var(--muted-foreground)]">
           Here's what's happening with your learning today.
@@ -221,7 +278,7 @@ function DashboardHome() {
                 strokeWidth="12"
                 fill="none"
                 strokeDasharray={`${2 * Math.PI * 70}`}
-                strokeDashoffset={`${2 * Math.PI * 70 * (1 - userData.currentXP / userData.nextLevelXP)}`}
+                strokeDashoffset={`${2 * Math.PI * 70 * (1 - currentLevelXP / nextLevelXP)}`}
                 strokeLinecap="round"
                 className="transition-all duration-500"
               />
@@ -230,7 +287,7 @@ function DashboardHome() {
             {/* Center text */}
             <div className="absolute inset-0 flex flex-col items-center justify-center">
               <p className="text-4xl font-bold text-[var(--foreground)]">
-                {Math.round((userData.currentXP / userData.nextLevelXP) * 100)}%
+                {Math.round((currentLevelXP / nextLevelXP) * 100)}%
               </p>
               <p className="text-[var(--muted-foreground)] text-sm">Complete</p>
             </div>
@@ -240,15 +297,12 @@ function DashboardHome() {
             <p className="text-[var(--muted-foreground)] text-sm mb-1">
               Current Level
             </p>
-            <p className="text-[var(--muted-foreground)] text-sm mb-1">
-              Current Level
-            </p>
             <p className="text-2xl font-bold text-[var(--foreground)] mb-4">
-              Level {userData.level}
+              Level {level}
             </p>
             <p className="text-xs text-[var(--muted-foreground)]">
-              {userData.currentXP.toLocaleString()} /{" "}
-              {userData.nextLevelXP.toLocaleString()} XP
+              {currentLevelXP.toLocaleString()} / {nextLevelXP.toLocaleString()}{" "}
+              XP
             </p>
           </div>
         </div>

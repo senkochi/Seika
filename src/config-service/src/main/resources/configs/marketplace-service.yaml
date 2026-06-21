@@ -23,7 +23,7 @@ spring:
     password: ${RABBITMQ_PASSWORD}
 
 jwt:
-  issuer: seika-marketplace-service
+  issuer: seika-identity-service
   secret: ${JWT_SECRET}
   access-token-expiration-minutes: ${JWT_ACCESS_TOKEN_EXPIRATION_MINUTES}
   refresh-token-expiration-days: ${JWT_REFRESH_TOKEN_EXPIRATION_DAYS}

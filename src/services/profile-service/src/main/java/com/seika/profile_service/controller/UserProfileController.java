@@ -38,7 +38,7 @@ public class UserProfileController {
     }
 
     @GetMapping("/{userId}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or #userId == authentication.principal")
     public ResponseEntity<UserProfileResponse> getUserProfile(@PathVariable String userId) {
         return ResponseEntity.ok(userProfileService.getUserProfileByUserId(userId));
     }

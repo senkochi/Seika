@@ -49,7 +49,7 @@ export default function Login() {
 
     if (valid) {
       try {
-        await dispatch(
+        const authState = await dispatch(
           login({
             credentials: {
               username: formData.username.trim(),
@@ -60,7 +60,13 @@ export default function Login() {
         ).unwrap();
 
         showSuccess("Logged in successfully.");
-        navigate("/dashboard");
+
+        const isTeacher = authState.roles.some(
+          (role) =>
+            role.toUpperCase() === "ROLE_TEACHER" ||
+            role.toUpperCase() === "TEACHER",
+        );
+        navigate(isTeacher ? "/teacher/dashboard" : "/student/dashboard");
       } catch (error) {
         showError(
           typeof error === "string" ? error : "Login failed. Please try again.",
