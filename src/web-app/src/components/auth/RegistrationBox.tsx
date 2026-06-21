@@ -14,6 +14,7 @@ interface RegistrationBoxProps {
   onBack: () => void;
   onNext: () => void;
   onSubmit: () => void;
+  isSubmitting?: boolean;
 }
 
 type StepErrors = {
@@ -27,6 +28,7 @@ export default function RegistrationBox({
   onBack,
   onNext,
   onSubmit,
+  isSubmitting = false,
 }: RegistrationBoxProps) {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [errors, setErrors] = useState<StepErrors>({});
@@ -95,14 +97,22 @@ export default function RegistrationBox({
   return (
     <div className="w-full max-w-lg bg-white/95 backdrop-blur-lg rounded-3xl shadow-2xl border-2 border-amber-400 overflow-hidden relative z-10">
       <div className="bg-gradient-to-r from-purple-900 to-violet-900 px-8 py-6">
-        <h1 className="text-2xl font-black text-yellow-400">Create Your Account</h1>
+        <h1 className="text-2xl font-black text-yellow-400">
+          Create Your Account
+        </h1>
         <p className="text-sm text-purple-200 mt-2">Step {currentStep} of 3</p>
       </div>
 
       <ProgressBar currentStep={currentStep} />
 
       <div className="px-8 py-6 min-h-[300px]">
-        {currentStep === 1 && <RoleStep formData={formData} setFormData={setFormData} error={errors.role} />}
+        {currentStep === 1 && (
+          <RoleStep
+            formData={formData}
+            setFormData={setFormData}
+            error={errors.role}
+          />
+        )}
         {currentStep === 2 && (
           <PersonalStep
             formData={formData}
@@ -112,7 +122,9 @@ export default function RegistrationBox({
               dateOfBirth: errors.dateOfBirth,
               gender: errors.gender,
             }}
-            setErrors={(newErrors) => setErrors((prev) => ({ ...prev, ...newErrors }))}
+            setErrors={(newErrors) =>
+              setErrors((prev) => ({ ...prev, ...newErrors }))
+            }
           />
         )}
         {currentStep === 3 && (
@@ -126,7 +138,9 @@ export default function RegistrationBox({
               password: errors.password,
               confirmPassword: errors.confirmPassword,
             }}
-            setErrors={(newErrors) => setErrors((prev) => ({ ...prev, ...newErrors }))}
+            setErrors={(newErrors) =>
+              setErrors((prev) => ({ ...prev, ...newErrors }))
+            }
           />
         )}
       </div>
@@ -154,9 +168,10 @@ export default function RegistrationBox({
           <button
             type="button"
             onClick={handleSubmit}
-            className="px-8 py-3 bg-gradient-to-r from-amber-400 to-yellow-500 text-purple-900 rounded-full font-black hover:scale-105 transition-all"
+            disabled={isSubmitting}
+            className="px-8 py-3 bg-gradient-to-r from-amber-400 to-yellow-500 text-purple-900 rounded-full font-black hover:scale-105 transition-all disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:scale-100"
           >
-            Create Account
+            {isSubmitting ? "Creating..." : "Create Account"}
           </button>
         )}
       </div>

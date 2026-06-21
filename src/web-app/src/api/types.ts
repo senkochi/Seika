@@ -1,3 +1,6 @@
+/**
+ * File này khai báo các Interface và Type dùng chung cho toàn bộ tầng API.
+ */
 export type RegisterRole = "STUDENT" | "TEACHER";
 
 export type RegisterRequest = {
@@ -55,4 +58,8 @@ export type UserProfileResponse = {
   dateOfBirth: string;
   gender: string;
   profilePictureUrl?: string;
+  exp?: number;
+  level?: number;
+  currentStreak?: number;
+  longestStreak?: number;
 };

@@ -4,10 +4,16 @@ import { Home } from "lucide-react";
 
 import RegistrationBox from "../../components/auth/RegistrationBox";
 import { RegisterData } from "../../components/auth/types";
-import { showError } from "../../components/toast/toastUtils";
+import { showError, showSuccess } from "../../components/toast/toastUtils";
+import { register } from "../../store/authSlice";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
 
 export default function Register() {
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+  const isSubmitting = useAppSelector(
+    (state) => state.auth.status === "loading",
+  );
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<RegisterData>({
     role: null,
@@ -55,7 +61,7 @@ export default function Register() {
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     // Validate all fields
     if (!formData.role) {
       showError("Please select your role.");
@@ -84,9 +90,33 @@ export default function Register() {
 
     // You can add more validation here (e.g., password strength, username format)
 
-    // If all valid
-    console.log("Form submitted:", formData);
-    // Handle form submission here
+    try {
+      const authState = await dispatch(
+        register({
+          username: formData.username.trim(),
+          password: formData.password,
+          role: formData.role,
+          fullName: formData.fullname.trim(),
+          dateOfBirth: formData.dateOfBirth,
+          gender: formData.gender,
+        }),
+      ).unwrap();
+
+      showSuccess("Account created successfully.");
+
+      const isTeacher = authState.roles.some(
+        (role) =>
+          role.toUpperCase() === "ROLE_TEACHER" ||
+          role.toUpperCase() === "TEACHER",
+      );
+      navigate(isTeacher ? "/teacher/dashboard" : "/student/dashboard");
+    } catch (error) {
+      showError(
+        typeof error === "string"
+          ? error
+          : "Registration failed. Please try again.",
+      );
+    }
   };
 
   return (
@@ -120,6 +150,7 @@ export default function Register() {
         onBack={handleBack}
         onNext={handleNext}
         onSubmit={handleSubmit}
+        isSubmitting={isSubmitting}
       />
     </div>
   );

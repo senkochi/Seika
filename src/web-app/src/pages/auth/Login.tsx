@@ -3,9 +3,15 @@ import { Eye, EyeOff, Home, Lock, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import { showError, showSuccess } from "../../components/toast/toastUtils";
+import { login } from "../../store/authSlice";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
 
 export default function Login() {
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+  const isSubmitting = useAppSelector(
+    (state) => state.auth.status === "loading",
+  );
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     username: "",
@@ -17,7 +23,7 @@ export default function Login() {
     password?: string;
   }>({});
 
-  const validateForm = (): boolean => {
+  const validateForm = () => {
     const newErrors: typeof errors = {};
 
     if (!formData.username.trim()) {
@@ -28,19 +34,46 @@ export default function Login() {
     }
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    return {
+      valid: Object.keys(newErrors).length === 0,
+      newErrors,
+    };
   };
 
   const clearError = (field: string) => {
     setErrors((prev) => ({ ...prev, [field]: undefined }));
   };
 
-  const handleSubmit = () => {
-    if (validateForm()) {
-      showSuccess("Login submitted.");
-      console.log("Login submitted:", formData);
+  const handleSubmit = async () => {
+    const { valid, newErrors } = validateForm();
+
+    if (valid) {
+      try {
+        const authState = await dispatch(
+          login({
+            credentials: {
+              username: formData.username.trim(),
+              password: formData.password,
+            },
+            rememberMe: formData.rememberMe,
+          }),
+        ).unwrap();
+
+        showSuccess("Logged in successfully.");
+
+        const isTeacher = authState.roles.some(
+          (role) =>
+            role.toUpperCase() === "ROLE_TEACHER" ||
+            role.toUpperCase() === "TEACHER",
+        );
+        navigate(isTeacher ? "/teacher/dashboard" : "/student/dashboard");
+      } catch (error) {
+        showError(
+          typeof error === "string" ? error : "Login failed. Please try again.",
+        );
+      }
     } else {
-      showError(Object.values(errors)[0] || "Please fill in all fields.");
+      showError(Object.values(newErrors)[0] || "Please fill in all fields.");
     }
   };
 
@@ -184,9 +217,10 @@ export default function Login() {
           <button
             type="button"
             onClick={handleSubmit}
-            className="px-8 py-3 bg-gradient-to-r from-amber-400 to-yellow-500 text-purple-950 rounded-full flex items-center justify-center gap-2 font-black hover:scale-105 transition-all"
+            disabled={isSubmitting}
+            className="px-8 py-3 bg-gradient-to-r from-amber-400 to-yellow-500 text-purple-950 rounded-full flex items-center justify-center gap-2 font-black hover:scale-105 transition-all disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:scale-100"
           >
-            Login
+            {isSubmitting ? "Logging in..." : "Login"}
           </button>
         </div>
       </div>

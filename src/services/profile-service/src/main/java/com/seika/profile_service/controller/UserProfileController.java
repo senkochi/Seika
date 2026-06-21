@@ -38,8 +38,18 @@ public class UserProfileController {
     }
 
     @GetMapping("/{userId}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<UserProfileResponse> getUserProfile(@PathVariable String userId) {
+    public ResponseEntity<UserProfileResponse> getUserProfile(
+            @PathVariable String userId,
+            org.springframework.security.core.Authentication authentication) {
+        
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        boolean isOwner = userId.equals(authentication.getPrincipal());
+        
+        if (!isAdmin && !isOwner) {
+            throw new org.springframework.security.access.AccessDeniedException("Access denied");
+        }
+        
         return ResponseEntity.ok(userProfileService.getUserProfileByUserId(userId));
     }
 }

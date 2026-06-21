@@ -18,6 +18,7 @@ const StudentProfile = lazy(() => import("./pages/student/StudentProfile"));
 const StudentDashboardLayout = lazy(
   () => import("./layouts/StudentDashboardLayout"),
 );
+const TeacherDashboard = lazy(() => import("./pages/teacher/TeacherDashboard"));
 
 const withLoader = (content: ReactNode) => (
   <Suspense fallback={<PageLoader />}>{content}</Suspense>
@@ -44,8 +45,13 @@ const router = createBrowserRouter([
     path: "/loading",
     element: <PageLoader />,
   },
+  // Redirect /dashboard cũ về /student/dashboard để backward-compat
   {
     path: "/dashboard",
+    element: <Navigate to="/student/dashboard" replace />,
+  },
+  {
+    path: "/student/dashboard",
     element: withLoader(<StudentDashboardLayout />),
     children: [
       {
@@ -69,6 +75,10 @@ const router = createBrowserRouter([
         element: withLoader(<StudentProfile />),
       },
     ],
+  },
+  {
+    path: "/teacher/dashboard",
+    element: withLoader(<TeacherDashboard />),
   },
   {
     path: "*",
