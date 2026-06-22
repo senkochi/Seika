@@ -91,4 +91,16 @@ public class CardSetService {
         return cardSetRepository.existsById(id);
     }
 
+    /**
+     * Xóa flashcard set – chỉ author mới được xóa
+     */
+    public void delete(String id, String requesterId){
+        CardSet cardSet = cardSetRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy bộ thẻ: " + id));
+        if (!cardSet.getAuthorId().equals(requesterId)){
+            throw new IllegalStateException("Bạn không có quyền xóa bộ thẻ này");
+        }
+        cardSetRepository.deleteById(id);
+    }
+
 }

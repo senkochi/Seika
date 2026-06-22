@@ -45,4 +45,14 @@ export const flashcardsService = {
     });
     return response.data;
   },
+
+  /**
+   * Xóa flashcard set (giáo viên – chỉ xóa được của mình)
+   */
+  deleteSet: async (id: string) => {
+    const response = await apiClient.delete<string>(
+      `/flashcards/${encodeURIComponent(id)}`,
+    );
+    return response.data;
+  },
 };

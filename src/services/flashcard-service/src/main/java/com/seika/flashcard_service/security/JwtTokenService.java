@@ -5,6 +5,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.stereotype.Service;
@@ -31,31 +32,34 @@ public class JwtTokenService {
         this.secretKey = Keys.hmacShaKeyFor(keyBytes);
         this.issuer = issuer;
 
-        log.error("[WALLET-SERVICE-JWT] JwtTokenService initialized with issuer: {}", issuer);
+        log.info("[FLASHCARD-SERVICE-JWT] JwtTokenService initialized with issuer: {}", issuer);
     }
 
     public Jwt decodeToJwt(String token) {
-        return NimbusJwtDecoder.withSecretKey(secretKey).build().decode(token);
+        return NimbusJwtDecoder.withSecretKey(secretKey)
+                .macAlgorithm(MacAlgorithm.HS512)
+                .build()
+                .decode(token);
     }
 
     public boolean isValidToken(String token) {
         try {
             Claims claims = parseClaims(token);
             boolean issuerMatch = issuer.equals(claims.getIssuer());
-            log.info("[WALLET-SERVICE] Token validation - issuer={}, expected={}, match={}, userId={}, username={}",
+            log.info("[FLASHCARD-SERVICE] Token validation - issuer={}, expected={}, match={}, userId={}, username={}",
                     claims.getIssuer(),
                     issuer,
                     issuerMatch,
                     claims.get("userId"),
                     claims.getSubject());
             if (!issuerMatch) {
-                log.error("[WALLET-SERVICE] Issuer mismatch! Token issuer: {} != Expected: {}",
+                log.error("[FLASHCARD-SERVICE] Issuer mismatch! Token issuer: {} != Expected: {}",
                         claims.getIssuer(), issuer);
                 return false;
             }
             return true;
         } catch (Exception e) {
-            log.error("[WALLET-SERVICE] Token validation FAILED - Error: {} - Message: {}",
+            log.error("[FLASHCARD-SERVICE] Token validation FAILED - Error: {} - Message: {}",
                     e.getClass().getSimpleName(),
                     e.getMessage());
             return false;
@@ -87,4 +91,5 @@ public class JwtTokenService {
                 .getPayload();
     }
 }
+
 

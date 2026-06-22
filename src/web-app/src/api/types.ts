@@ -66,8 +66,8 @@ export type UserProfileResponse = {
 
 // Flashcard types
 export interface Card {
-  front: string;
-  back: string;
+  frontSide: string;
+  backSide: string;
 }
 
 export interface CardSetCreateRequest {
@@ -112,9 +112,29 @@ export interface QuizResponse {
   createdBy: string;
   createdAt?: string;
   updatedAt?: string;
+  // MULTIPLE_CHOICE
   options?: string[];
   correctOptionIndex?: number;
+  // MATCHING
   matchingPairs?: Record<string, string>;
+  // REORDER
   correctOrder?: string[];
+  // FILL_IN_THE_BLANK
   acceptedAnswers?: string[];
+}
+
+export interface QuizSetCreateRequest {
+  title: string;
+  description: string;
+  questions: QuizCreateRequest[];
+}
+
+export interface QuizSetResponse {
+  id: string;
+  title: string;
+  description: string;
+  quizzes: QuizResponse[];
+  createdBy: string;
+  createdAt: string;
+  updatedAt?: string;
 }

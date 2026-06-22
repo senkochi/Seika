@@ -7,36 +7,123 @@ import {
   FileText,
   DollarSign,
   Loader2,
-  CheckCircle2,
+  AlertTriangle,
+  X,
 } from "lucide-react";
-import { useAppSelector } from "../../store/hooks";
+import { useAppSelector, useAppDispatch } from "../../store/hooks";
+import { fetchCurrentUserProfile } from "../../store/userProfileSlice";
 import { flashcardsService, quizzesService } from "../../api";
-import type { CardSetResponse, QuizResponse, QuizType, Card } from "../../api";
+import type {
+  CardSetResponse,
+  QuizSetResponse,
+  QuizType,
+  Card,
+} from "../../api";
 import { showSuccess, showError } from "../../components/toast/toastUtils";
 
+// ────────────────────────────────────────────────────────────────
+// Confirm Delete Dialog
+// ────────────────────────────────────────────────────────────────
+interface ConfirmDialogProps {
+  title: string;
+  description: string;
+  onConfirm: () => void;
+  onCancel: () => void;
+  loading: boolean;
+}
+
+function ConfirmDialog({
+  title,
+  description,
+  onConfirm,
+  onCancel,
+  loading,
+}: ConfirmDialogProps) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+      <div className="bg-[var(--card)] border border-red-500/30 rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl shadow-red-900/30">
+        <div className="flex items-start gap-4 mb-5">
+          <div className="p-2 bg-red-500/10 rounded-xl shrink-0">
+            <AlertTriangle className="w-6 h-6 text-red-400" />
+          </div>
+          <div>
+            <h3 className="text-lg font-bold text-[var(--foreground)] mb-1">
+              {title}
+            </h3>
+            <p className="text-sm text-[var(--muted-foreground)]">
+              {description}
+            </p>
+          </div>
+        </div>
+        <div className="flex justify-end gap-3">
+          <button
+            onClick={onCancel}
+            disabled={loading}
+            className="px-5 py-2 rounded-xl border border-[var(--border)] text-sm font-semibold text-[var(--muted-foreground)] hover:text-[var(--foreground)] disabled:opacity-50"
+          >
+            Hủy
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={loading}
+            className="px-5 py-2 rounded-xl bg-red-600 text-white text-sm font-bold hover:bg-red-500 disabled:opacity-50 flex items-center gap-2"
+          >
+            {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+            Xóa
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ────────────────────────────────────────────────────────────────
+// Main Component
+// ────────────────────────────────────────────────────────────────
 function ContentManager() {
-  const { userId } = useAppSelector((state) => state.userProfile);
-  const [activeTab, setActiveTab] = useState<"flashcards" | "quizzes">(
+  const dispatch = useAppDispatch();
+  const { userId, status } = useAppSelector((state) => state.userProfile);
+
+  useEffect(() => {
+    if (status === "idle") {
+      dispatch(fetchCurrentUserProfile());
+    }
+  }, [status, dispatch]);
+  const [activeTab, setActiveTab] = useState<"flashcards" | "quiz-sets">(
     "flashcards",
   );
 
   // State danh sách
   const [flashcardSets, setFlashcardSets] = useState<CardSetResponse[]>([]);
-  const [quizzes, setQuizzes] = useState<QuizResponse[]>([]);
+  const [quizSets, setQuizSets] = useState<QuizSetResponse[]>([]);
   const [loadingList, setLoadingList] = useState(false);
 
   // Trạng thái Form
   const [isCreatingSet, setIsCreatingSet] = useState(false);
-  const [isCreatingQuiz, setIsCreatingQuiz] = useState(false);
+  const [isCreatingQuizSet, setIsCreatingQuizSet] = useState(false);
   const [loadingSubmit, setLoadingSubmit] = useState(false);
+
+  // Confirm delete dialog
+  const [deleteTarget, setDeleteTarget] = useState<{
+    type: "flashcard" | "quizset";
+    id: string;
+    title: string;
+  } | null>(null);
+  const [loadingDelete, setLoadingDelete] = useState(false);
 
   // Dữ liệu Form Flashcard Set
   const [setTitle, setSetTitle] = useState("");
   const [setDescription, setSetDescription] = useState("");
   const [setPrice, setSetPrice] = useState<number>(0);
-  const [cards, setCards] = useState<Card[]>([{ front: "", back: "" }]);
+  const [cards, setCards] = useState<Card[]>([{ frontSide: "", backSide: "" }]);
 
-  // Dữ liệu Form Quiz
+  // Dữ liệu Form Quiz Set
+  const [quizSetTitle, setQuizSetTitle] = useState("");
+  const [quizSetDescription, setQuizSetDescription] = useState("");
+  const [quizSetQuestions, setQuizSetQuestions] = useState<any[]>([]);
+
+  // Dữ liệu Form cho câu hỏi đang tạo
+  const [showQuestionForm, setShowQuestionForm] = useState(false);
   const [quizText, setQuizText] = useState("");
   const [quizType, setQuizType] = useState<QuizType>("MULTIPLE_CHOICE");
   const [mcqOptions, setMcqOptions] = useState<string[]>(["", "", "", ""]);
@@ -47,7 +134,9 @@ function ContentManager() {
   const [reorderItems, setReorderItems] = useState<string[]>(["", ""]);
   const [blankAnswers, setBlankAnswers] = useState<string[]>([""]);
 
-  // Fetch dữ liệu
+  // ──────────────────────────────────────────
+  // Data fetching
+  // ──────────────────────────────────────────
   const loadData = async () => {
     if (!userId) return;
     setLoadingList(true);
@@ -56,16 +145,12 @@ function ContentManager() {
         const sets = await flashcardsService.getByAuthorId(userId);
         setFlashcardSets(sets);
       } else {
-        const response = await quizzesService.getAll();
-        // Lọc các quiz do giáo viên này tạo ra
-        const myQuizzes = (response.data || []).filter(
-          (q) => q.createdBy === userId,
-        );
-        setQuizzes(myQuizzes);
+        const response = await quizzesService.getMyQuizSets();
+        setQuizSets(response.data || []);
       }
     } catch (err) {
       console.error(err);
-      showError("Failed to load content list.");
+      showError("Không thể tải danh sách nội dung.");
     } finally {
       setLoadingList(false);
     }
@@ -75,9 +160,11 @@ function ContentManager() {
     loadData();
   }, [activeTab, userId]);
 
-  // Thêm / Xóa card trong Form Flashcard
+  // ──────────────────────────────────────────
+  // Flashcard form handlers
+  // ──────────────────────────────────────────
   const handleAddCard = () => {
-    setCards([...cards, { front: "", back: "" }]);
+    setCards([...cards, { frontSide: "", backSide: "" }]);
   };
 
   const handleRemoveCard = (index: number) => {
@@ -87,7 +174,7 @@ function ContentManager() {
 
   const handleCardChange = (
     index: number,
-    field: "front" | "back",
+    field: "frontSide" | "backSide",
     val: string,
   ) => {
     const newCards = [...cards];
@@ -95,12 +182,11 @@ function ContentManager() {
     setCards(newCards);
   };
 
-  // Submit tạo Flashcard Set
   const handleSubmitFlashcardSet = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!setTitle.trim()) return showError("Title is required.");
-    if (cards.some((c) => !c.front.trim() || !c.back.trim())) {
-      return showError("All cards must have front and back content.");
+    if (!setTitle.trim()) return showError("Tiêu đề là bắt buộc.");
+    if (cards.some((c) => !c.frontSide.trim() || !c.backSide.trim())) {
+      return showError("Mỗi thẻ phải có nội dung mặt trước và mặt sau.");
     }
 
     setLoadingSubmit(true);
@@ -111,62 +197,38 @@ function ContentManager() {
         price: Number(setPrice),
         cards: cards,
       });
-      showSuccess("Flashcard Set created successfully!");
-      // Reset form
+      showSuccess("Flashcard Set đã được tạo thành công!");
       setSetTitle("");
       setSetDescription("");
       setSetPrice(0);
-      setCards([{ front: "", back: "" }]);
+      setCards([{ frontSide: "", backSide: "" }]);
       setIsCreatingSet(false);
       loadData();
     } catch (err) {
       console.error(err);
-      showError("Failed to create Flashcard Set.");
+      showError("Không thể tạo Flashcard Set.");
     } finally {
       setLoadingSubmit(false);
     }
   };
 
-  // Thêm/Xóa phần tử động trong Form Quiz
-  const handleAddMatchingPair = () => {
-    setMatchingPairs([...matchingPairs, { key: "", val: "" }]);
-  };
-  const handleRemoveMatchingPair = (index: number) => {
-    if (matchingPairs.length === 1) return;
-    setMatchingPairs(matchingPairs.filter((_, i) => i !== index));
-  };
-  const handleMatchingChange = (
-    index: number,
-    field: "key" | "val",
-    val: string,
-  ) => {
-    const newPairs = [...matchingPairs];
-    newPairs[index][field] = val;
-    setMatchingPairs(newPairs);
+  // ──────────────────────────────────────────
+  // Quiz Set form handlers
+  // ──────────────────────────────────────────
+  const resetQuestionForm = () => {
+    setQuizText("");
+    setQuizType("MULTIPLE_CHOICE");
+    setMcqOptions(["", "", "", ""]);
+    setMcqCorrectIndex(0);
+    setMatchingPairs([{ key: "", val: "" }]);
+    setReorderItems(["", ""]);
+    setBlankAnswers([""]);
+    setShowQuestionForm(false);
   };
 
-  const handleAddReorderItem = () => {
-    setReorderItems([...reorderItems, ""]);
-  };
-  const handleRemoveReorderItem = (index: number) => {
-    if (reorderItems.length === 2) return;
-    setReorderItems(reorderItems.filter((_, i) => i !== index));
-  };
+  const handleAddQuestionToSet = () => {
+    if (!quizText.trim()) return showError("Nội dung câu hỏi là bắt buộc.");
 
-  const handleAddBlankAnswer = () => {
-    setBlankAnswers([...blankAnswers, ""]);
-  };
-  const handleRemoveBlankAnswer = (index: number) => {
-    if (blankAnswers.length === 1) return;
-    setBlankAnswers(blankAnswers.filter((_, i) => i !== index));
-  };
-
-  // Submit tạo Quiz
-  const handleSubmitQuiz = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!quizText.trim()) return showError("Question text is required.");
-
-    // Xây dựng payload dựa trên QuizType
     const payload: any = {
       questionText: quizText,
       type: quizType,
@@ -174,13 +236,13 @@ function ContentManager() {
 
     if (quizType === "MULTIPLE_CHOICE") {
       if (mcqOptions.some((o) => !o.trim())) {
-        return showError("Please fill in all MCQ options.");
+        return showError("Vui lòng điền đầy đủ các lựa chọn MCQ.");
       }
       payload.options = mcqOptions;
       payload.correctOptionIndex = mcqCorrectIndex;
     } else if (quizType === "MATCHING") {
       if (matchingPairs.some((p) => !p.key.trim() || !p.val.trim())) {
-        return showError("Please fill in all matching pairs.");
+        return showError("Vui lòng điền đầy đủ các cặp matching.");
       }
       const pairRecord: Record<string, string> = {};
       matchingPairs.forEach((p) => {
@@ -189,75 +251,167 @@ function ContentManager() {
       payload.matchingPairs = pairRecord;
     } else if (quizType === "REORDER") {
       if (reorderItems.some((item) => !item.trim())) {
-        return showError("Please fill in all reorder items.");
+        return showError("Vui lòng điền đầy đủ các phần tử reorder.");
       }
       payload.correctOrder = reorderItems;
     } else if (quizType === "FILL_IN_THE_BLANK") {
       if (blankAnswers.some((ans) => !ans.trim())) {
-        return showError("Please fill in all accepted blank answers.");
+        return showError("Vui lòng điền đầy đủ các đáp án được chấp nhận.");
       }
       if (!quizText.includes("_")) {
         return showError(
-          "Question text must contain an underscore '_' to represent the blank.",
+          "Nội dung câu hỏi phải chứa dấu gạch dưới '_' để đại diện cho chỗ trống.",
         );
       }
       payload.acceptedAnswers = blankAnswers;
     }
 
+    setQuizSetQuestions([...quizSetQuestions, payload]);
+    resetQuestionForm();
+  };
+
+  const handleSubmitQuizSet = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!quizSetTitle.trim()) return showError("Tiêu đề bộ đề là bắt buộc.");
+    if (quizSetQuestions.length === 0) {
+      return showError("Bộ đề phải có ít nhất một câu hỏi.");
+    }
+
     setLoadingSubmit(true);
     try {
-      await quizzesService.create(payload);
-      showSuccess("Quiz Question created successfully!");
-      // Reset form
-      setQuizText("");
-      setMcqOptions(["", "", "", ""]);
-      setMcqCorrectIndex(0);
-      setMatchingPairs([{ key: "", val: "" }]);
-      setReorderItems(["", ""]);
-      setBlankAnswers([""]);
-      setIsCreatingQuiz(false);
+      await quizzesService.createQuizSet({
+        title: quizSetTitle,
+        description: quizSetDescription,
+        questions: quizSetQuestions,
+      });
+      showSuccess("Bộ đề Quiz đã được tạo thành công!");
+      setQuizSetTitle("");
+      setQuizSetDescription("");
+      setQuizSetQuestions([]);
+      setIsCreatingQuizSet(false);
       loadData();
     } catch (err) {
       console.error(err);
-      showError("Failed to create Quiz.");
+      showError("Không thể tạo Bộ đề Quiz.");
     } finally {
       setLoadingSubmit(false);
     }
   };
 
+  // ──────────────────────────────────────────
+  // Delete handlers
+  // ──────────────────────────────────────────
+  const openDeleteDialog = (
+    type: "flashcard" | "quizset",
+    id: string,
+    title: string,
+  ) => {
+    setDeleteTarget({ type, id, title });
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteTarget) return;
+    setLoadingDelete(true);
+    try {
+      if (deleteTarget.type === "flashcard") {
+        await flashcardsService.deleteSet(deleteTarget.id);
+        showSuccess("Đã xóa Flashcard Set thành công.");
+      } else {
+        await quizzesService.deleteQuizSet(deleteTarget.id);
+        showSuccess("Đã xóa Bộ đề Quiz thành công.");
+      }
+      setDeleteTarget(null);
+      loadData();
+    } catch (err) {
+      console.error(err);
+      showError("Xóa thất bại. Vui lòng thử lại.");
+    } finally {
+      setLoadingDelete(false);
+    }
+  };
+
+  // ──────────────────────────────────────────
+  // Quiz type badge color
+  // ──────────────────────────────────────────
+  const quizTypeBadge = (type: string) => {
+    const map: Record<string, { bg: string; text: string; label: string }> = {
+      MULTIPLE_CHOICE: {
+        bg: "bg-blue-500/10",
+        text: "text-blue-400",
+        label: "Trắc nghiệm",
+      },
+      MATCHING: {
+        bg: "bg-violet-500/10",
+        text: "text-violet-400",
+        label: "Ghép cặp",
+      },
+      REORDER: {
+        bg: "bg-amber-500/10",
+        text: "text-amber-400",
+        label: "Sắp xếp",
+      },
+      FILL_IN_THE_BLANK: {
+        bg: "bg-emerald-500/10",
+        text: "text-emerald-400",
+        label: "Điền từ",
+      },
+    };
+    return (
+      map[type] ?? { bg: "bg-gray-500/10", text: "text-gray-400", label: type }
+    );
+  };
+
+  // ──────────────────────────────────────────
+  // RENDER
+  // ──────────────────────────────────────────
   return (
     <div className="p-8">
-      {/* Title */}
+      {/* Confirm Delete Dialog */}
+      {deleteTarget && (
+        <ConfirmDialog
+          title={
+            deleteTarget.type === "flashcard"
+              ? "Xóa Flashcard Set?"
+              : "Xóa Bộ đề Quiz?"
+          }
+          description={`Bạn có chắc chắn muốn xóa "${deleteTarget.title}" không? Hành động này không thể hoàn tác.`}
+          onConfirm={handleConfirmDelete}
+          onCancel={() => setDeleteTarget(null)}
+          loading={loadingDelete}
+        />
+      )}
+
+      {/* Header */}
       <div className="mb-8 flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-[var(--foreground)] mb-2">
             Content Manager
           </h1>
           <p className="text-[var(--muted-foreground)]">
-            Create, configure and manage your learning material (Flashcards and
-            Quizzes).
+            Tạo, cấu hình và quản lý tài liệu học tập của bạn (Flashcard & Quiz
+            Sets).
           </p>
         </div>
-        {!isCreatingSet && !isCreatingQuiz && (
+        {!isCreatingSet && !isCreatingQuizSet && (
           <button
+            id="btn-create-content"
             onClick={() => {
               if (activeTab === "flashcards") setIsCreatingSet(true);
-              else setIsCreatingQuiz(true);
+              else setIsCreatingQuizSet(true);
             }}
             className="flex items-center gap-2 px-5 py-3 bg-[var(--primary)] text-white font-bold text-sm rounded-xl hover:opacity-90 transition-all shadow-lg shadow-purple-600/20"
           >
             <Plus className="w-4 h-4" />
-            {activeTab === "flashcards"
-              ? "New Flashcard Set"
-              : "New Quiz Question"}
+            {activeTab === "flashcards" ? "Bộ Flashcard Mới" : "Bộ đề Quiz Mới"}
           </button>
         )}
       </div>
 
       {/* Tabs */}
-      {!isCreatingSet && !isCreatingQuiz && (
+      {!isCreatingSet && !isCreatingQuizSet && (
         <div className="flex gap-4 border-b border-[var(--border)] mb-8">
           <button
+            id="tab-flashcards"
             onClick={() => setActiveTab("flashcards")}
             className={`px-4 py-3 font-bold text-sm flex items-center gap-2 border-b-2 transition-all ${
               activeTab === "flashcards"
@@ -269,39 +423,41 @@ function ContentManager() {
             Flashcard Sets
           </button>
           <button
-            onClick={() => setActiveTab("quizzes")}
+            id="tab-quiz-sets"
+            onClick={() => setActiveTab("quiz-sets")}
             className={`px-4 py-3 font-bold text-sm flex items-center gap-2 border-b-2 transition-all ${
-              activeTab === "quizzes"
+              activeTab === "quiz-sets"
                 ? "border-[var(--primary)] text-[var(--primary)]"
                 : "border-transparent text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
             }`}
           >
             <HelpCircle className="w-4 h-4" />
-            Quizzes (Questions)
+            Quiz Sets (Bộ đề)
           </button>
         </div>
       )}
 
-      {/* Main List Section */}
-      {!isCreatingSet && !isCreatingQuiz && (
+      {/* ── MAIN LIST ── */}
+      {!isCreatingSet && !isCreatingQuizSet && (
         <div>
           {loadingList ? (
             <div className="flex flex-col items-center justify-center p-20 text-[var(--muted-foreground)] gap-4">
               <Loader2 className="w-10 h-10 animate-spin text-[var(--primary)]" />
-              <p>Fetching your published material...</p>
+              <p>Đang tải nội dung của bạn...</p>
             </div>
           ) : activeTab === "flashcards" ? (
-            /* Flashcard List */
+            /* ── Flashcard List ── */
             flashcardSets.length === 0 ? (
               <div className="text-center p-20 bg-[var(--card)] border border-[var(--border)] rounded-2xl">
+                <BookOpen className="w-12 h-12 mx-auto text-[var(--muted-foreground)] mb-4 opacity-50" />
                 <p className="text-[var(--muted-foreground)] mb-4">
-                  You haven't created any Flashcard set yet.
+                  Bạn chưa tạo bộ Flashcard nào.
                 </p>
                 <button
                   onClick={() => setIsCreatingSet(true)}
                   className="px-4 py-2 bg-purple-900/40 text-purple-300 border border-purple-800 rounded-xl text-sm font-semibold"
                 >
-                  Create one now
+                  Tạo ngay
                 </button>
               </div>
             ) : (
@@ -309,86 +465,90 @@ function ContentManager() {
                 {flashcardSets.map((set) => (
                   <div
                     key={set.id}
-                    className="bg-[var(--card)] backdrop-blur-xl border border-[var(--border)] rounded-2xl p-6 flex flex-col justify-between hover:border-[var(--primary)] transition-all"
+                    className="bg-[var(--card)] backdrop-blur-xl border border-[var(--border)] rounded-2xl p-6 flex flex-col justify-between hover:border-[var(--primary)] transition-all group"
                   >
                     <div>
                       <div className="flex justify-between items-start mb-4">
                         <span className="px-3 py-1 bg-purple-500/10 text-purple-400 text-xs font-semibold rounded-full">
-                          {set.cards.length} cards
+                          {set.cards?.length || 0} thẻ
                         </span>
                         <span className="flex items-center text-yellow-400 font-bold text-sm">
                           <DollarSign className="w-4 h-4" />
-                          {set.price > 0 ? `${set.price} Coins` : "Free"}
+                          {set.price > 0 ? `${set.price} Coins` : "Miễn phí"}
                         </span>
                       </div>
                       <h3 className="text-lg font-bold text-[var(--foreground)] mb-2">
                         {set.title}
                       </h3>
                       <p className="text-[var(--muted-foreground)] text-sm line-clamp-3 mb-6">
-                        {set.description || "No description provided."}
+                        {set.description || "Chưa có mô tả."}
                       </p>
                     </div>
-                    <div className="flex items-center justify-between text-xs text-[var(--muted-foreground)] pt-4 border-t border-[var(--border)]">
-                      <span>Created by you</span>
+                    <div className="flex items-center justify-between pt-4 border-t border-[var(--border)]">
+                      <span className="text-xs text-[var(--muted-foreground)]">
+                        Tạo bởi bạn
+                      </span>
+                      <button
+                        onClick={() =>
+                          openDeleteDialog("flashcard", set.id, set.title)
+                        }
+                        className="p-2 text-[var(--muted-foreground)] hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                        title="Xóa bộ thẻ"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </div>
                   </div>
                 ))}
               </div>
             )
-          ) : /* Quiz List */
-          quizzes.length === 0 ? (
+          ) : /* ── Quiz Sets List ── */
+          quizSets.length === 0 ? (
             <div className="text-center p-20 bg-[var(--card)] border border-[var(--border)] rounded-2xl">
+              <HelpCircle className="w-12 h-12 mx-auto text-[var(--muted-foreground)] mb-4 opacity-50" />
               <p className="text-[var(--muted-foreground)] mb-4">
-                You haven't created any Quiz Question yet.
+                Bạn chưa tạo Bộ đề Quiz nào.
               </p>
               <button
-                onClick={() => setIsCreatingQuiz(true)}
+                onClick={() => setIsCreatingQuizSet(true)}
                 className="px-4 py-2 bg-purple-900/40 text-purple-300 border border-purple-800 rounded-xl text-sm font-semibold"
               >
-                Create one now
+                Tạo ngay
               </button>
             </div>
           ) : (
-            <div className="space-y-4">
-              {quizzes.map((quiz) => (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {quizSets.map((set) => (
                 <div
-                  key={quiz.id}
-                  className="bg-[var(--card)] backdrop-blur-xl border border-[var(--border)] rounded-2xl p-6 hover:border-[var(--primary)] transition-all flex items-start justify-between gap-6"
+                  key={set.id}
+                  className="bg-[var(--card)] backdrop-blur-xl border border-[var(--border)] rounded-2xl p-6 flex flex-col justify-between hover:border-[var(--primary)] transition-all group"
                 >
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-3">
+                  <div>
+                    <div className="flex justify-between items-start mb-4">
                       <span className="px-3 py-1 bg-blue-500/10 text-blue-400 text-xs font-semibold rounded-full">
-                        {quiz.type.replace(/_/g, " ")}
+                        {set.quizzes?.length || 0} câu hỏi
                       </span>
                     </div>
-                    <h4 className="text-[var(--foreground)] font-bold text-base mb-2">
-                      {quiz.questionText}
-                    </h4>
-                    {/* MCQ Options Display */}
-                    {quiz.type === "MULTIPLE_CHOICE" && quiz.options && (
-                      <div className="grid grid-cols-2 gap-2 mt-4 max-w-lg">
-                        {quiz.options.map((opt, oIdx) => (
-                          <div
-                            key={oIdx}
-                            className={`p-3 rounded-xl border text-sm flex items-center gap-2 ${
-                              oIdx === quiz.correctOptionIndex
-                                ? "border-green-500/50 bg-green-500/5"
-                                : "border-[var(--border)] bg-[var(--second-card)]"
-                            }`}
-                          >
-                            <span className="font-bold text-purple-400">
-                              {String.fromCharCode(65 + oIdx)}.
-                            </span>
-                            <span className="text-[var(--foreground)]">
-                              {opt}
-                            </span>
-                            {oIdx === quiz.correctOptionIndex && (
-                              <CheckCircle2 className="w-4 h-4 text-green-400 ml-auto shrink-0" />
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    )}
+                    <h3 className="text-lg font-bold text-[var(--foreground)] mb-2">
+                      {set.title}
+                    </h3>
+                    <p className="text-[var(--muted-foreground)] text-sm line-clamp-3 mb-6">
+                      {set.description || "Chưa có mô tả."}
+                    </p>
+                  </div>
+                  <div className="flex items-center justify-between pt-4 border-t border-[var(--border)]">
+                    <span className="text-xs text-[var(--muted-foreground)]">
+                      {new Date(set.createdAt).toLocaleDateString()}
+                    </span>
+                    <button
+                      onClick={() =>
+                        openDeleteDialog("quizset", set.id, set.title)
+                      }
+                      className="p-2 text-[var(--muted-foreground)] hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                      title="Xóa bộ đề"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   </div>
                 </div>
               ))}
@@ -397,22 +557,23 @@ function ContentManager() {
         </div>
       )}
 
-      {/* CREATE FLASHCARD SET FORM */}
+      {/* ── CREATE FLASHCARD SET FORM ── */}
       {isCreatingSet && (
         <form
           onSubmit={handleSubmitFlashcardSet}
           className="bg-[var(--card)] border border-[var(--border)] rounded-3xl p-8 max-w-4xl mx-auto shadow-2xl space-y-6"
         >
+          {/* Form details (same as before) */}
           <div className="border-b border-[var(--border)] pb-4 flex justify-between items-center">
             <h2 className="text-xl font-bold text-[var(--foreground)]">
-              Create New Flashcard Set
+              Tạo Bộ Flashcard Mới
             </h2>
             <button
               type="button"
               onClick={() => setIsCreatingSet(false)}
-              className="text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+              className="p-2 text-[var(--muted-foreground)] hover:text-[var(--foreground)] rounded-lg hover:bg-white/5"
             >
-              Cancel
+              <X className="w-5 h-5" />
             </button>
           </div>
 
@@ -420,12 +581,11 @@ function ContentManager() {
             <div className="md:col-span-2 space-y-4">
               <div>
                 <label className="block text-sm font-bold text-[var(--foreground)] mb-2">
-                  Set Title
+                  Tiêu đề Bộ thẻ
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. English Grammar Essentials"
                   value={setTitle}
                   onChange={(e) => setSetTitle(e.target.value)}
                   className="w-full px-4 py-3 bg-[rgba(255,255,255,0.06)] border border-[var(--border)] rounded-xl text-[var(--foreground)] focus:outline-none focus:border-[var(--ring)]"
@@ -433,10 +593,9 @@ function ContentManager() {
               </div>
               <div>
                 <label className="block text-sm font-bold text-[var(--foreground)] mb-2">
-                  Description
+                  Mô tả
                 </label>
                 <textarea
-                  placeholder="Describe what students will learn from this deck..."
                   value={setDescription}
                   onChange={(e) => setSetDescription(e.target.value)}
                   rows={3}
@@ -444,47 +603,37 @@ function ContentManager() {
                 />
               </div>
             </div>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-bold text-[var(--foreground)] mb-2">
-                  Marketplace Price (Coins)
-                </label>
-                <div className="relative">
-                  <DollarSign className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted-foreground)]" />
-                  <input
-                    type="number"
-                    min={0}
-                    placeholder="0 for Free"
-                    value={setPrice}
-                    onChange={(e) => setSetPrice(Number(e.target.value))}
-                    className="w-full pl-10 pr-4 py-3 bg-[rgba(255,255,255,0.06)] border border-[var(--border)] rounded-xl text-[var(--foreground)] focus:outline-none focus:border-[var(--ring)]"
-                  />
-                </div>
-                <p className="text-[var(--muted-foreground)] text-xs mt-2">
-                  Set price above 0 if you want students to buy this card set
-                  from the marketplace.
-                </p>
+            <div>
+              <label className="block text-sm font-bold text-[var(--foreground)] mb-2">
+                Giá Marketplace (Coins)
+              </label>
+              <div className="relative">
+                <DollarSign className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted-foreground)]" />
+                <input
+                  type="number"
+                  min={0}
+                  value={setPrice}
+                  onChange={(e) => setSetPrice(Number(e.target.value))}
+                  className="w-full pl-10 pr-4 py-3 bg-[rgba(255,255,255,0.06)] border border-[var(--border)] rounded-xl text-[var(--foreground)] focus:outline-none focus:border-[var(--ring)]"
+                />
               </div>
             </div>
           </div>
 
-          {/* Cards Section */}
           <div className="border-t border-[var(--border)] pt-6 space-y-4">
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-bold text-[var(--foreground)] flex items-center gap-2">
                 <FileText className="w-5 h-5 text-[var(--primary)]" />
-                Cards List ({cards.length})
+                Danh sách Thẻ ({cards.length})
               </h3>
               <button
                 type="button"
                 onClick={handleAddCard}
                 className="px-4 py-2 bg-purple-900/40 text-purple-300 border border-purple-800 rounded-xl text-xs font-semibold"
               >
-                + Add Card
+                + Thêm thẻ
               </button>
             </div>
-
             <div className="space-y-4 max-h-[30rem] overflow-y-auto pr-2">
               {cards.map((card, index) => (
                 <div
@@ -497,30 +646,30 @@ function ContentManager() {
                   <div className="flex-1 grid md:grid-cols-2 gap-4">
                     <input
                       type="text"
-                      placeholder="Front Side (Term / Question)"
+                      placeholder="Mặt trước"
                       required
-                      value={card.front}
+                      value={card.frontSide}
                       onChange={(e) =>
-                        handleCardChange(index, "front", e.target.value)
+                        handleCardChange(index, "frontSide", e.target.value)
                       }
-                      className="px-4 py-2.5 bg-[var(--card)] border border-[var(--border)] rounded-xl text-[var(--foreground)] focus:outline-none focus:border-[var(--ring)]"
+                      className="px-4 py-2.5 bg-[var(--card)] border border-[var(--border)] rounded-xl text-[var(--foreground)] focus:outline-none"
                     />
                     <input
                       type="text"
-                      placeholder="Back Side (Definition / Answer)"
+                      placeholder="Mặt sau"
                       required
-                      value={card.back}
+                      value={card.backSide}
                       onChange={(e) =>
-                        handleCardChange(index, "back", e.target.value)
+                        handleCardChange(index, "backSide", e.target.value)
                       }
-                      className="px-4 py-2.5 bg-[var(--card)] border border-[var(--border)] rounded-xl text-[var(--foreground)] focus:outline-none focus:border-[var(--ring)]"
+                      className="px-4 py-2.5 bg-[var(--card)] border border-[var(--border)] rounded-xl text-[var(--foreground)] focus:outline-none"
                     />
                   </div>
                   <button
                     type="button"
                     disabled={cards.length === 1}
                     onClick={() => handleRemoveCard(index)}
-                    className="p-2 text-red-400 hover:text-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="p-2 text-red-400 hover:text-red-500 disabled:opacity-30"
                   >
                     <Trash2 className="w-5 h-5" />
                   </button>
@@ -529,301 +678,383 @@ function ContentManager() {
             </div>
           </div>
 
-          {/* Form Actions */}
           <div className="border-t border-[var(--border)] pt-6 flex justify-end gap-3">
             <button
               type="button"
               onClick={() => setIsCreatingSet(false)}
               className="px-6 py-3 border border-[var(--border)] rounded-xl text-sm font-bold text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
             >
-              Cancel
+              Hủy
             </button>
             <button
               type="submit"
               disabled={loadingSubmit}
-              className="px-8 py-3 bg-[var(--primary)] text-white rounded-xl text-sm font-bold hover:opacity-90 disabled:opacity-50 flex items-center gap-2"
+              className="px-8 py-3 bg-[var(--primary)] text-white rounded-xl text-sm font-bold hover:opacity-90 flex items-center gap-2"
             >
-              {loadingSubmit && <Loader2 className="w-4 h-4 animate-spin" />}
-              Publish Set
+              {loadingSubmit && <Loader2 className="w-4 h-4 animate-spin" />}{" "}
+              Xuất bản Bộ thẻ
             </button>
           </div>
         </form>
       )}
 
-      {/* CREATE QUIZ QUESTION FORM */}
-      {isCreatingQuiz && (
-        <form
-          onSubmit={handleSubmitQuiz}
-          className="bg-[var(--card)] border border-[var(--border)] rounded-3xl p-8 max-w-3xl mx-auto shadow-2xl space-y-6"
-        >
+      {/* ── CREATE QUIZ SET FORM ── */}
+      {isCreatingQuizSet && (
+        <div className="bg-[var(--card)] border border-[var(--border)] rounded-3xl p-8 max-w-4xl mx-auto shadow-2xl space-y-6">
           <div className="border-b border-[var(--border)] pb-4 flex justify-between items-center">
             <h2 className="text-xl font-bold text-[var(--foreground)]">
-              Create New Quiz Question
+              Tạo Bộ Đề Quiz Mới
             </h2>
             <button
-              type="button"
-              onClick={() => setIsCreatingQuiz(false)}
-              className="text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+              onClick={() => setIsCreatingQuizSet(false)}
+              className="p-2 text-[var(--muted-foreground)] hover:text-[var(--foreground)] rounded-lg hover:bg-white/5"
             >
-              Cancel
+              <X className="w-5 h-5" />
             </button>
           </div>
 
+          {/* Form Thông tin chung */}
           <div className="space-y-4">
-            <div className="grid md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-bold text-[var(--foreground)] mb-2">
-                  Question Type
-                </label>
-                <select
-                  value={quizType}
-                  onChange={(e) => setQuizType(e.target.value as QuizType)}
-                  className="w-full px-4 py-3 bg-[rgba(255,255,255,0.06)] border border-[var(--border)] rounded-xl text-[var(--foreground)] focus:outline-none focus:border-[var(--ring)]"
-                >
-                  <option value="MULTIPLE_CHOICE" className="bg-[var(--card)]">
-                    Multiple Choice (MCQ)
-                  </option>
-                  <option value="MATCHING" className="bg-[var(--card)]">
-                    Matching Pairs
-                  </option>
-                  <option value="REORDER" className="bg-[var(--card)]">
-                    Reorder Elements
-                  </option>
-                  <option
-                    value="FILL_IN_THE_BLANK"
-                    className="bg-[var(--card)]"
-                  >
-                    Fill in the Blank
-                  </option>
-                </select>
-              </div>
-            </div>
-
             <div>
               <label className="block text-sm font-bold text-[var(--foreground)] mb-2">
-                Question Text
+                Tiêu đề Bộ đề
+              </label>
+              <input
+                type="text"
+                required
+                placeholder="VD: Bài kiểm tra 15 phút Toán học"
+                value={quizSetTitle}
+                onChange={(e) => setQuizSetTitle(e.target.value)}
+                className="w-full px-4 py-3 bg-[rgba(255,255,255,0.06)] border border-[var(--border)] rounded-xl text-[var(--foreground)] focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-bold text-[var(--foreground)] mb-2">
+                Mô tả
               </label>
               <textarea
-                required
-                placeholder={
-                  quizType === "FILL_IN_THE_BLANK"
-                    ? "e.g. Paris is the capital of _."
-                    : "e.g. What is the value of 2 + 2?"
-                }
-                value={quizText}
-                onChange={(e) => setQuizText(e.target.value)}
-                rows={3}
-                className="w-full px-4 py-3 bg-[rgba(255,255,255,0.06)] border border-[var(--border)] rounded-xl text-[var(--foreground)] focus:outline-none focus:border-[var(--ring)] resize-none"
+                placeholder="Mô tả về bộ đề..."
+                value={quizSetDescription}
+                onChange={(e) => setQuizSetDescription(e.target.value)}
+                rows={2}
+                className="w-full px-4 py-3 bg-[rgba(255,255,255,0.06)] border border-[var(--border)] rounded-xl text-[var(--foreground)] focus:outline-none resize-none"
               />
-              {quizType === "FILL_IN_THE_BLANK" && (
-                <p className="text-[var(--muted-foreground)] text-xs mt-1">
-                  * Must include at least one underscore character "_" to
-                  represent the blank space.
-                </p>
-              )}
+            </div>
+          </div>
+
+          {/* Danh sách câu hỏi đã thêm */}
+          <div className="border-t border-[var(--border)] pt-6 space-y-4">
+            <div className="flex justify-between items-center">
+              <h3 className="text-lg font-bold text-[var(--foreground)]">
+                Danh sách Câu hỏi ({quizSetQuestions.length})
+              </h3>
             </div>
 
-            {/* MCQ Fields */}
-            {quizType === "MULTIPLE_CHOICE" && (
-              <div className="space-y-4 pt-4 border-t border-[var(--border)]">
-                <label className="block text-sm font-bold text-[var(--foreground)]">
-                  MCQ Options & Correct Index
-                </label>
-                <div className="space-y-3">
-                  {mcqOptions.map((opt, idx) => (
-                    <div key={idx} className="flex items-center gap-3">
-                      <input
-                        type="radio"
-                        name="correct-option"
-                        checked={mcqCorrectIndex === idx}
-                        onChange={() => setMcqCorrectIndex(idx)}
-                        className="w-4 h-4 text-purple-600 focus:ring-purple-500"
-                      />
-                      <span className="font-bold text-sm text-[var(--muted-foreground)] w-6">
-                        {String.fromCharCode(65 + idx)}
+            <div className="space-y-3">
+              {quizSetQuestions.map((q, idx) => {
+                const badge = quizTypeBadge(q.type);
+                return (
+                  <div
+                    key={idx}
+                    className="p-4 bg-[var(--second-card)] border border-[var(--border)] rounded-2xl flex justify-between items-start gap-4"
+                  >
+                    <div>
+                      <span
+                        className={`inline-block mb-2 px-2 py-0.5 ${badge.bg} ${badge.text} text-xs font-semibold rounded-md`}
+                      >
+                        {badge.label}
                       </span>
-                      <input
-                        type="text"
-                        required
-                        placeholder={`Option ${String.fromCharCode(65 + idx)}`}
-                        value={opt}
-                        onChange={(e) => {
-                          const newOpts = [...mcqOptions];
-                          newOpts[idx] = e.target.value;
-                          setMcqOptions(newOpts);
-                        }}
-                        className="flex-1 px-4 py-2.5 bg-[var(--second-card)] border border-[var(--border)] rounded-xl text-[var(--foreground)] focus:outline-none"
-                      />
+                      <p className="text-[var(--foreground)] font-medium text-sm">
+                        {q.questionText}
+                      </p>
                     </div>
-                  ))}
-                </div>
-              </div>
-            )}
+                    <button
+                      onClick={() =>
+                        setQuizSetQuestions(
+                          quizSetQuestions.filter((_, i) => i !== idx),
+                        )
+                      }
+                      className="text-red-400 hover:text-red-500"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
 
-            {/* MATCHING Fields */}
-            {quizType === "MATCHING" && (
-              <div className="space-y-4 pt-4 border-t border-[var(--border)]">
-                <div className="flex justify-between items-center">
-                  <label className="block text-sm font-bold text-[var(--foreground)]">
-                    Matching Pairs (Key & Value)
-                  </label>
-                  <button
-                    type="button"
-                    onClick={handleAddMatchingPair}
-                    className="px-3 py-1 bg-purple-900/40 text-purple-300 border border-purple-800 rounded-lg text-xs font-semibold"
-                  >
-                    + Add Pair
-                  </button>
+            {!showQuestionForm ? (
+              <button
+                onClick={() => setShowQuestionForm(true)}
+                className="w-full py-4 border-2 border-dashed border-[var(--border)] rounded-2xl text-[var(--muted-foreground)] hover:border-[var(--primary)] hover:text-[var(--primary)] transition-all font-semibold flex flex-col items-center justify-center gap-2"
+              >
+                <Plus className="w-6 h-6" />
+                Thêm Câu hỏi mới
+              </button>
+            ) : (
+              <div className="p-6 bg-[rgba(255,255,255,0.02)] border border-[var(--border)] rounded-2xl space-y-4 relative">
+                <button
+                  onClick={resetQuestionForm}
+                  className="absolute top-4 right-4 text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+                <h4 className="font-bold text-[var(--foreground)]">
+                  Soạn Câu hỏi
+                </h4>
+
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-bold text-[var(--foreground)] mb-2">
+                      Loại câu hỏi
+                    </label>
+                    <select
+                      value={quizType}
+                      onChange={(e) => setQuizType(e.target.value as QuizType)}
+                      className="w-full px-4 py-3 bg-[var(--card)] border border-[var(--border)] rounded-xl text-[var(--foreground)] focus:outline-none"
+                    >
+                      <option value="MULTIPLE_CHOICE">Trắc nghiệm (MCQ)</option>
+                      <option value="MATCHING">Ghép cặp</option>
+                      <option value="REORDER">Sắp xếp thứ tự</option>
+                      <option value="FILL_IN_THE_BLANK">
+                        Điền vào chỗ trống
+                      </option>
+                    </select>
+                  </div>
                 </div>
-                <div className="space-y-3">
-                  {matchingPairs.map((pair, idx) => (
-                    <div key={idx} className="flex items-center gap-3">
-                      <input
-                        type="text"
-                        required
-                        placeholder="Keyword (e.g. Dog)"
-                        value={pair.key}
-                        onChange={(e) =>
-                          handleMatchingChange(idx, "key", e.target.value)
+
+                <div>
+                  <label className="block text-sm font-bold text-[var(--foreground)] mb-2">
+                    Nội dung câu hỏi
+                  </label>
+                  <textarea
+                    required
+                    placeholder={
+                      quizType === "FILL_IN_THE_BLANK"
+                        ? "VD: Paris là thủ đô của _."
+                        : "Nhập câu hỏi..."
+                    }
+                    value={quizText}
+                    onChange={(e) => setQuizText(e.target.value)}
+                    rows={2}
+                    className="w-full px-4 py-3 bg-[var(--card)] border border-[var(--border)] rounded-xl text-[var(--foreground)] focus:outline-none resize-none"
+                  />
+                </div>
+
+                {/* MCQ Options */}
+                {quizType === "MULTIPLE_CHOICE" && (
+                  <div className="space-y-3">
+                    <label className="block text-sm font-bold text-[var(--foreground)]">
+                      Các lựa chọn & Đáp án đúng
+                    </label>
+                    {mcqOptions.map((opt, idx) => (
+                      <div key={idx} className="flex items-center gap-3">
+                        <input
+                          type="radio"
+                          name="correct-option"
+                          checked={mcqCorrectIndex === idx}
+                          onChange={() => setMcqCorrectIndex(idx)}
+                          className="w-4 h-4 text-purple-600 focus:ring-purple-500"
+                        />
+                        <span className="font-bold text-sm text-[var(--muted-foreground)] w-6">
+                          {String.fromCharCode(65 + idx)}
+                        </span>
+                        <input
+                          type="text"
+                          required
+                          value={opt}
+                          onChange={(e) => {
+                            const newOpts = [...mcqOptions];
+                            newOpts[idx] = e.target.value;
+                            setMcqOptions(newOpts);
+                          }}
+                          className="flex-1 px-4 py-2.5 bg-[var(--card)] border border-[var(--border)] rounded-xl text-[var(--foreground)] focus:outline-none"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* MATCHING Fields */}
+                {quizType === "MATCHING" && (
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <label className="block text-sm font-bold text-[var(--foreground)]">
+                        Cặp ghép (Key ↔ Value)
+                      </label>
+                      <button
+                        onClick={() =>
+                          setMatchingPairs([
+                            ...matchingPairs,
+                            { key: "", val: "" },
+                          ])
                         }
-                        className="flex-1 px-4 py-2.5 bg-[var(--second-card)] border border-[var(--border)] rounded-xl text-[var(--foreground)] focus:outline-none"
-                      />
-                      <span className="text-[var(--muted-foreground)]">⇔</span>
-                      <input
-                        type="text"
-                        required
-                        placeholder="Matches with (e.g. Canine)"
-                        value={pair.val}
-                        onChange={(e) =>
-                          handleMatchingChange(idx, "val", e.target.value)
-                        }
-                        className="flex-1 px-4 py-2.5 bg-[var(--second-card)] border border-[var(--border)] rounded-xl text-[var(--foreground)] focus:outline-none"
-                      />
-                      <button
-                        type="button"
-                        disabled={matchingPairs.length === 1}
-                        onClick={() => handleRemoveMatchingPair(idx)}
-                        className="text-red-400 hover:text-red-500 disabled:opacity-50"
+                        className="px-3 py-1 bg-purple-900/40 text-purple-300 rounded-lg text-xs"
                       >
-                        <Trash2 className="w-5 h-5" />
+                        + Thêm
                       </button>
                     </div>
-                  ))}
-                </div>
-              </div>
-            )}
+                    {matchingPairs.map((pair, idx) => (
+                      <div key={idx} className="flex items-center gap-3">
+                        <input
+                          type="text"
+                          placeholder="Từ khoá"
+                          value={pair.key}
+                          onChange={(e) => {
+                            const newP = [...matchingPairs];
+                            newP[idx].key = e.target.value;
+                            setMatchingPairs(newP);
+                          }}
+                          className="flex-1 px-4 py-2.5 bg-[var(--card)] border border-[var(--border)] rounded-xl text-[var(--foreground)] focus:outline-none"
+                        />
+                        <span className="text-[var(--muted-foreground)]">
+                          ⇔
+                        </span>
+                        <input
+                          type="text"
+                          placeholder="Ghép với"
+                          value={pair.val}
+                          onChange={(e) => {
+                            const newP = [...matchingPairs];
+                            newP[idx].val = e.target.value;
+                            setMatchingPairs(newP);
+                          }}
+                          className="flex-1 px-4 py-2.5 bg-[var(--card)] border border-[var(--border)] rounded-xl text-[var(--foreground)] focus:outline-none"
+                        />
+                        <button
+                          disabled={matchingPairs.length === 1}
+                          onClick={() =>
+                            setMatchingPairs(
+                              matchingPairs.filter((_, i) => i !== idx),
+                            )
+                          }
+                          className="text-red-400 hover:text-red-500 disabled:opacity-30"
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
 
-            {/* REORDER Fields */}
-            {quizType === "REORDER" && (
-              <div className="space-y-4 pt-4 border-t border-[var(--border)]">
-                <div className="flex justify-between items-center">
-                  <label className="block text-sm font-bold text-[var(--foreground)]">
-                    Items in Correct Order
-                  </label>
-                  <button
-                    type="button"
-                    onClick={handleAddReorderItem}
-                    className="px-3 py-1 bg-purple-900/40 text-purple-300 border border-purple-800 rounded-lg text-xs font-semibold"
-                  >
-                    + Add Item
-                  </button>
-                </div>
-                <div className="space-y-3">
-                  {reorderItems.map((item, idx) => (
-                    <div key={idx} className="flex items-center gap-3">
-                      <span className="font-bold text-xs text-[var(--muted-foreground)] w-6 text-center">
-                        {idx + 1}
-                      </span>
-                      <input
-                        type="text"
-                        required
-                        placeholder={`Element ${idx + 1} in order`}
-                        value={item}
-                        onChange={(e) => {
-                          const newItems = [...reorderItems];
-                          newItems[idx] = e.target.value;
-                          setReorderItems(newItems);
-                        }}
-                        className="flex-1 px-4 py-2.5 bg-[var(--second-card)] border border-[var(--border)] rounded-xl text-[var(--foreground)] focus:outline-none"
-                      />
+                {/* REORDER Fields */}
+                {quizType === "REORDER" && (
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <label className="block text-sm font-bold text-[var(--foreground)]">
+                        Thứ tự đúng
+                      </label>
                       <button
-                        type="button"
-                        disabled={reorderItems.length === 2}
-                        onClick={() => handleRemoveReorderItem(idx)}
-                        className="text-red-400 hover:text-red-500 disabled:opacity-50"
+                        onClick={() => setReorderItems([...reorderItems, ""])}
+                        className="px-3 py-1 bg-purple-900/40 text-purple-300 rounded-lg text-xs"
                       >
-                        <Trash2 className="w-5 h-5" />
+                        + Thêm
                       </button>
                     </div>
-                  ))}
-                </div>
-              </div>
-            )}
+                    {reorderItems.map((item, idx) => (
+                      <div key={idx} className="flex items-center gap-3">
+                        <span className="font-bold text-xs text-[var(--muted-foreground)] w-6 text-center">
+                          {idx + 1}
+                        </span>
+                        <input
+                          type="text"
+                          value={item}
+                          onChange={(e) => {
+                            const newI = [...reorderItems];
+                            newI[idx] = e.target.value;
+                            setReorderItems(newI);
+                          }}
+                          className="flex-1 px-4 py-2.5 bg-[var(--card)] border border-[var(--border)] rounded-xl text-[var(--foreground)] focus:outline-none"
+                        />
+                        <button
+                          disabled={reorderItems.length === 2}
+                          onClick={() =>
+                            setReorderItems(
+                              reorderItems.filter((_, i) => i !== idx),
+                            )
+                          }
+                          className="text-red-400 hover:text-red-500 disabled:opacity-30"
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
 
-            {/* FILL_IN_THE_BLANK Fields */}
-            {quizType === "FILL_IN_THE_BLANK" && (
-              <div className="space-y-4 pt-4 border-t border-[var(--border)]">
-                <div className="flex justify-between items-center">
-                  <label className="block text-sm font-bold text-[var(--foreground)]">
-                    Accepted Correct Answers
-                  </label>
-                  <button
-                    type="button"
-                    onClick={handleAddBlankAnswer}
-                    className="px-3 py-1 bg-purple-900/40 text-purple-300 border border-purple-800 rounded-lg text-xs font-semibold"
-                  >
-                    + Add Alternative Answer
-                  </button>
-                </div>
-                <div className="space-y-3">
-                  {blankAnswers.map((ans, idx) => (
-                    <div key={idx} className="flex items-center gap-3">
-                      <input
-                        type="text"
-                        required
-                        placeholder={`Correct answer ${idx + 1}`}
-                        value={ans}
-                        onChange={(e) => {
-                          const newAns = [...blankAnswers];
-                          newAns[idx] = e.target.value;
-                          setBlankAnswers(newAns);
-                        }}
-                        className="flex-1 px-4 py-2.5 bg-[var(--second-card)] border border-[var(--border)] rounded-xl text-[var(--foreground)] focus:outline-none"
-                      />
+                {/* FILL_IN_THE_BLANK Fields */}
+                {quizType === "FILL_IN_THE_BLANK" && (
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <label className="block text-sm font-bold text-[var(--foreground)]">
+                        Đáp án được chấp nhận
+                      </label>
                       <button
-                        type="button"
-                        disabled={blankAnswers.length === 1}
-                        onClick={() => handleRemoveBlankAnswer(idx)}
-                        className="text-red-400 hover:text-red-500 disabled:opacity-50"
+                        onClick={() => setBlankAnswers([...blankAnswers, ""])}
+                        className="px-3 py-1 bg-purple-900/40 text-purple-300 rounded-lg text-xs"
                       >
-                        <Trash2 className="w-5 h-5" />
+                        + Thêm
                       </button>
                     </div>
-                  ))}
+                    {blankAnswers.map((ans, idx) => (
+                      <div key={idx} className="flex items-center gap-3">
+                        <input
+                          type="text"
+                          value={ans}
+                          onChange={(e) => {
+                            const newA = [...blankAnswers];
+                            newA[idx] = e.target.value;
+                            setBlankAnswers(newA);
+                          }}
+                          className="flex-1 px-4 py-2.5 bg-[var(--card)] border border-[var(--border)] rounded-xl text-[var(--foreground)] focus:outline-none"
+                        />
+                        <button
+                          disabled={blankAnswers.length === 1}
+                          onClick={() =>
+                            setBlankAnswers(
+                              blankAnswers.filter((_, i) => i !== idx),
+                            )
+                          }
+                          className="text-red-400 hover:text-red-500 disabled:opacity-30"
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <div className="flex justify-end pt-2">
+                  <button
+                    onClick={handleAddQuestionToSet}
+                    className="px-5 py-2 bg-[var(--primary)] text-white text-sm font-bold rounded-xl"
+                  >
+                    Thêm vào Bộ đề
+                  </button>
                 </div>
               </div>
             )}
           </div>
 
-          {/* Form Actions */}
+          {/* Actions */}
           <div className="border-t border-[var(--border)] pt-6 flex justify-end gap-3">
             <button
               type="button"
-              onClick={() => setIsCreatingQuiz(false)}
+              onClick={() => setIsCreatingQuizSet(false)}
               className="px-6 py-3 border border-[var(--border)] rounded-xl text-sm font-bold text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
             >
-              Cancel
+              Hủy
             </button>
             <button
-              type="submit"
-              disabled={loadingSubmit}
+              onClick={handleSubmitQuizSet}
+              disabled={loadingSubmit || quizSetQuestions.length === 0}
               className="px-8 py-3 bg-[var(--primary)] text-white rounded-xl text-sm font-bold hover:opacity-90 disabled:opacity-50 flex items-center gap-2"
             >
               {loadingSubmit && <Loader2 className="w-4 h-4 animate-spin" />}
-              Publish Quiz
+              Xuất bản Bộ đề
             </button>
           </div>
-        </form>
+        </div>
       )}
     </div>
   );

@@ -7,6 +7,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
 
 @Data
 @AllArgsConstructor
@@ -19,4 +21,17 @@ public class QuizResponse {
     private LocalDateTime updatedAt;
     private String createdBy;
     private QuizType type;
+
+    // MULTIPLE_CHOICE
+    private List<String> options;
+    private Integer correctOptionIndex;
+
+    // MATCHING
+    private Map<String, String> matchingPairs;
+
+    // REORDER
+    private List<String> correctOrder;
+
+    // FILL_IN_THE_BLANK
+    private List<String> acceptedAnswers;
 }
