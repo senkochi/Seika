@@ -73,7 +73,7 @@ spring:
             - id: quiz-route
               uri: lb://QUIZ-SERVICE
               predicates:
-                - Path=/api/quiz/**,/api/quiz
+                - Path=/api/quiz/**,/api/quiz,/api/quiz-sets/**,/api/quiz-sets
           discovery:
             locator:
               enabled: false

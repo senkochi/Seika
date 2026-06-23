@@ -33,6 +33,7 @@ public class OrderController {
                 .productType(ProductType.valueOf(itemReq.getProductType()))
                 .referenceId(itemReq.getReferenceId())
                 .productName(itemReq.getProductName())
+                .sellerUserId(itemReq.getSellerUserId())
                 .unitPrice(itemReq.getUnitPrice())
                 .quantity(itemReq.getQuantity())
                 .build())

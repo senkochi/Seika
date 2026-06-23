@@ -28,4 +28,7 @@ public class UserProfileRequest {
     String gender;
 
     String profilePictureUrl;
+
+    // Role of the user – used to auto-create role-specific profiles (e.g. TeacherProfile)
+    String role;
 }

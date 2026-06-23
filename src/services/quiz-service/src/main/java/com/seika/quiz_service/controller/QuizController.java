@@ -6,7 +6,10 @@ import com.seika.quiz_service.service.QuizService;
 import com.seika.quiz_service.shared.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.HttpStatus;
 
 import java.util.List;
 
@@ -20,21 +23,63 @@ public class QuizController {
         this.quizService = quizService;
     }
 
+    /**
+     * GET /api/quiz – lấy toàn bộ quiz (public, dùng cho học sinh)
+     */
     @GetMapping()
     public ResponseEntity<ApiResponse<List<QuizResponse>>> getQuizzes() {
         List<QuizResponse> response = quizService.getQuizzes();
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
+    /**
+     * GET /api/quiz/my – lấy quiz của giáo viên đang đăng nhập
+     */
+    @GetMapping("/my")
+    public ResponseEntity<ApiResponse<List<QuizResponse>>> getMyQuizzes() {
+        String userId = extractUserId();
+        List<QuizResponse> response = quizService.getByCreatedBy(userId);
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    /**
+     * GET /api/quiz/{id}
+     */
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<QuizResponse>> getQuiz(@PathVariable String id) {
         QuizResponse response = quizService.getById(id);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
+    /**
+     * POST /api/quiz – giáo viên tạo quiz mới
+     */
     @PostMapping()
     public ResponseEntity<ApiResponse<QuizResponse>> createQuiz(@RequestBody QuizCreateRequest request){
-        QuizResponse response = quizService.create(request);
-        return ResponseEntity.ok(ApiResponse.created(response));
+        String userId = extractUserId();
+        QuizResponse response = quizService.create(request, userId);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.created(response));
+    }
+
+    /**
+     * DELETE /api/quiz/{id} – giáo viên xóa quiz của mình
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse<Void>> deleteQuiz(@PathVariable String id) {
+        String userId = extractUserId();
+        quizService.deleteByOwner(id, userId);
+        return ResponseEntity.ok(ApiResponse.success(null));
+    }
+
+    /**
+     * Lấy userId từ SecurityContext (được inject bởi JwtAuthenticationFilter)
+     */
+    private String extractUserId() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || auth.getPrincipal() == null) {
+            throw new IllegalStateException("User not authenticated");
+        }
+        return auth.getPrincipal().toString();
     }
 }
+

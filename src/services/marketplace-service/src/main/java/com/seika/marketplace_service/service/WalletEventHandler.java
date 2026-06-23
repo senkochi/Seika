@@ -33,6 +33,7 @@ public class WalletEventHandler {
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
     private final UserInventoryRepository userInventoryRepository;
+    private final ContentPurchasedEventPublisher contentPurchasedEventPublisher;
 
     @Transactional
     public void handleWalletDebitEvent(WalletDebitEvent event, String rawPayload) {
@@ -138,6 +139,17 @@ public class WalletEventHandler {
                 .build();
 
             userInventoryRepository.save(inventory);
+
+            // Publish content.purchased so profile-service can increment teacher's totalStudentsReached
+            if (item.getSellerUserId() != null && !item.getSellerUserId().isBlank()) {
+                contentPurchasedEventPublisher.publishContentPurchased(
+                        orderId,
+                        userId,
+                        item.getSellerUserId(),
+                        item.getProductId(),
+                        item.getProductType() != null ? item.getProductType().name() : "UNKNOWN"
+                );
+            }
         }
     }
 

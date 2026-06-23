@@ -4,6 +4,7 @@ import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.FanoutExchange;
 import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.JacksonJsonMessageConverter;
@@ -16,6 +17,15 @@ public class RabbitMQConfig {
     public static final String LEARN_FANOUT_EXCHANGE = "learn.exchange";
     public static final String LEARN_QUEUE = "learn.queue";
     public static final String WALLET_QUEUE = "wallet.queue";
+
+    // Content events (for teacher stats tracking in profile-service)
+    public static final String CONTENT_EVENTS_EXCHANGE = "content.events";
+    public static final String FLASHCARD_SET_CREATED_ROUTING_KEY = "flashcard.set.created";
+
+    @Bean
+    public TopicExchange contentEventsExchange() {
+        return new TopicExchange(CONTENT_EVENTS_EXCHANGE, true, false);
+    }
 
     @Bean
     public FanoutExchange learnExchange() { return new FanoutExchange(LEARN_FANOUT_EXCHANGE); }

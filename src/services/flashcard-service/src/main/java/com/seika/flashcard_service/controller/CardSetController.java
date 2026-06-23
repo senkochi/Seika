@@ -30,7 +30,7 @@ public class CardSetController {
     public ResponseEntity<CardSetDTO> create(
             @Valid @RequestBody CardSetCreateDTO req,
             @AuthenticationPrincipal Jwt jwt){
-        String authorId = jwt.getSubject();
+        String authorId = jwt.getClaimAsString("userId");
         CardSetDTO cardSet = cardSetService.create(req, authorId);
         return ResponseEntity.status(HttpStatus.CREATED).body(cardSet);
     }
@@ -69,12 +69,21 @@ public class CardSetController {
     public ResponseEntity<?> sendProgress(@RequestBody LearnProgressDTO req){
         boolean exists = cardSetService.isCardSetExists(req.getCardSetId());
         if(!exists){
-            return ResponseEntity.badRequest().body("Cardset ID không tồn tại");
+            return ResponseEntity.badRequest().body("Cardset ID kh\u00f4ng t\u1ed3n t\u1ea1i");
         }
 
         req.setCreatedAt(LocalDateTime.now());
         rabbitTemplate.convertAndSend(RabbitMQConfig.LEARN_FANOUT_EXCHANGE, req);
-        return ResponseEntity.ok("Đã ghi nhận, tiến độ đang được xử lí");
+        return ResponseEntity.ok("\u0110\u00e3 ghi nh\u1eadn, ti\u1ebfn \u0111\u1ed9 \u0111ang \u0111\u01b0\u1ee3c x\u1eed l\u00ed");
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> delete(
+            @PathVariable String id,
+            @AuthenticationPrincipal Jwt jwt) {
+        String requesterId = jwt.getSubject();
+        cardSetService.delete(id, requesterId);
+        return ResponseEntity.ok("X\u00f3a b\u1ed9 th\u1ebb th\u00e0nh c\u00f4ng");
     }
 }
 

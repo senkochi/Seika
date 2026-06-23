@@ -7,6 +7,7 @@ import com.seika.quiz_service.dto.quiz.request_sub_types.FillInBlankRequest;
 import com.seika.quiz_service.dto.quiz.request_sub_types.MatchingRequest;
 import com.seika.quiz_service.dto.quiz.request_sub_types.McqRequest;
 import com.seika.quiz_service.dto.quiz.request_sub_types.ReorderRequest;
+import com.seika.quiz_service.exception.ForbiddenException;
 import com.seika.quiz_service.exception.ResourceNotFoundException;
 import com.seika.quiz_service.repository.QuizRepository;
 import lombok.RequiredArgsConstructor;
@@ -68,9 +69,11 @@ public class QuizService {
 
     /**
      * Create new quiz
+     * @param request quiz creation payload
+     * @param createdBy userId extracted from JWT by the controller
      */
-    public QuizResponse create(QuizCreateRequest request) {
-        log.info("Creating new quiz: {}", request.getQuestionText());
+    public QuizResponse create(QuizCreateRequest request, String createdBy) {
+        log.info("Creating new quiz: {} by user: {}", request.getQuestionText(), createdBy);
         BaseQuiz quiz = switch (request) {
             case MatchingRequest req -> {
                 MatchingQuiz matchingQuiz = new MatchingQuiz();
@@ -97,16 +100,10 @@ public class QuizService {
         };
 
         quiz.setQuestionText(request.getQuestionText());
-        quiz.setCreatedBy("mock_user_id");
+        quiz.setCreatedBy(createdBy);
 
         BaseQuiz saved = quizRepository.save(quiz);
-        return QuizResponse.builder()
-                .id(saved.getId())
-                .questionText(saved.getQuestionText())
-                .createdBy(saved.getCreatedBy())
-                .createdAt(saved.getCreatedAt())
-                .type(saved.getType())
-                .build();
+        return convertToResponse(saved);
     }
     
     /**
@@ -123,7 +120,21 @@ public class QuizService {
     }
     
     /**
-     * Delete quiz
+     * Delete quiz – chỉ owner mới được xóa
+     */
+    public void deleteByOwner(String id, String requesterId) {
+        log.info("Deleting quiz id: {} requested by: {}", id, requesterId);
+        BaseQuiz quiz = quizRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Quiz", id));
+        if (!quiz.getCreatedBy().equals(requesterId)) {
+            throw new ForbiddenException("You are not allowed to delete this quiz");
+        }
+        quizRepository.deleteById(id);
+        log.info("Quiz {} deleted successfully", id);
+    }
+
+    /**
+     * Delete quiz (internal – no ownership check, kept for legacy compatibility)
      */
     public void delete(String id) {
         log.info("Deleting quiz with id: {}", id);
@@ -132,18 +143,30 @@ public class QuizService {
         }
         quizRepository.deleteById(id);
     }
-    
+
     /**
-     * Convert BaseQuiz to QuizResponse
+     * Convert BaseQuiz to QuizResponse, including type-specific fields
      */
-    private QuizResponse convertToResponse(BaseQuiz quiz) {
-        return QuizResponse.builder()
+    public QuizResponse convertToResponse(BaseQuiz quiz) {
+        QuizResponse.QuizResponseBuilder builder = QuizResponse.builder()
             .id(quiz.getId())
             .questionText(quiz.getQuestionText())
             .createdAt(quiz.getCreatedAt())
             .updatedAt(quiz.getUpdatedAt())
             .createdBy(quiz.getCreatedBy())
-            .type(quiz.getType())
-            .build();
+            .type(quiz.getType());
+
+        if (quiz instanceof MultipleChoiceQuiz mcq) {
+            builder.options(mcq.getOptions());
+            builder.correctOptionIndex(mcq.getCorrectOptionIndex());
+        } else if (quiz instanceof MatchingQuiz matching) {
+            builder.matchingPairs(matching.getMatchingPairs());
+        } else if (quiz instanceof ReorderQuiz reorder) {
+            builder.correctOrder(reorder.getCorrectOrder());
+        } else if (quiz instanceof FillInBlankQuiz fillIn) {
+            builder.acceptedAnswers(fillIn.getAcceptedAnswers());
+        }
+
+        return builder.build();
     }
 }

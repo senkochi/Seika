@@ -30,10 +30,15 @@ public class CardSetService {
     @Autowired
     private CardSetMapper mapper;
 
+    @Autowired
+    private ContentEventPublisher contentEventPublisher;
+
     public CardSetDTO create(CardSetCreateDTO req, String authorId){
         CardSet cardSet = mapper.toEntity(req);
         cardSet.setAuthorId(authorId);
         CardSet res = cardSetRepository.save(cardSet);
+        // Publish event so profile-service can update teacher stats
+        contentEventPublisher.publishFlashcardSetCreated(res.getId(), authorId);
         return mapper.toDto(res);
     }
 
@@ -89,6 +94,18 @@ public class CardSetService {
 
     public boolean isCardSetExists(String id){
         return cardSetRepository.existsById(id);
+    }
+
+    /**
+     * Xóa flashcard set – chỉ author mới được xóa
+     */
+    public void delete(String id, String requesterId){
+        CardSet cardSet = cardSetRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy bộ thẻ: " + id));
+        if (!cardSet.getAuthorId().equals(requesterId)){
+            throw new IllegalStateException("Bạn không có quyền xóa bộ thẻ này");
+        }
+        cardSetRepository.deleteById(id);
     }
 
 }
