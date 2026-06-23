@@ -8,6 +8,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.convert.DefaultDbRefResolver;
+import org.springframework.data.mongodb.core.convert.DefaultMongoTypeMapper;
+import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
+import org.springframework.data.mongodb.core.mapping.MongoMappingContext;
 
 import java.util.Objects;
 
@@ -35,6 +39,23 @@ public class MongoConfig {
                 new ConnectionString(mongoUri).getDatabase(),
                 () -> databaseName);
 
-        return new MongoTemplate(mongoClient(), resolvedDatabase);
+        MongoTemplate template = new MongoTemplate(mongoClient(), resolvedDatabase);
+
+        // Make sure polymorphic @TypeAlias annotations are honored when reading
+        // polymorphic entities (e.g. BaseQuiz -> MultipleChoiceQuiz, ...).
+        MappingMongoConverter converter =
+                (MappingMongoConverter) template.getConverter();
+        if (converter.getMappingContext() instanceof MongoMappingContext mappingContext) {
+            mappingContext.setInitialEntitySet(
+                    new java.util.HashSet<>(java.util.Arrays.asList(
+                            com.seika.quiz_service.domain.BaseQuiz.class,
+                            com.seika.quiz_service.domain.MultipleChoiceQuiz.class,
+                            com.seika.quiz_service.domain.MatchingQuiz.class,
+                            com.seika.quiz_service.domain.ReorderQuiz.class,
+                            com.seika.quiz_service.domain.FillInBlankQuiz.class,
+                            com.seika.quiz_service.domain.QuizSet.class)));
+            mappingContext.afterPropertiesSet();
+        }
+        return template;
     }
 }

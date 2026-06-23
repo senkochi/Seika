@@ -147,7 +147,7 @@ public class QuizService {
     /**
      * Convert BaseQuiz to QuizResponse, including type-specific fields
      */
-    private QuizResponse convertToResponse(BaseQuiz quiz) {
+    public QuizResponse convertToResponse(BaseQuiz quiz) {
         QuizResponse.QuizResponseBuilder builder = QuizResponse.builder()
             .id(quiz.getId())
             .questionText(quiz.getQuestionText())

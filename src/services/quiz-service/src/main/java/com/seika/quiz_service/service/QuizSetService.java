@@ -1,5 +1,6 @@
 package com.seika.quiz_service.service;
 
+import com.seika.quiz_service.domain.BaseQuiz;
 import com.seika.quiz_service.domain.QuizSet;
 import com.seika.quiz_service.dto.quiz.QuizResponse;
 import com.seika.quiz_service.dto.quizset.QuizSetCreateRequest;
@@ -9,6 +10,10 @@ import com.seika.quiz_service.exception.ResourceNotFoundException;
 import com.seika.quiz_service.repository.QuizSetRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.bson.types.ObjectId;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +27,7 @@ public class QuizSetService {
 
     private final QuizSetRepository quizSetRepository;
     private final QuizService quizService;
+    private final MongoTemplate mongoTemplate;
 
     @Transactional
     public QuizSetResponse create(QuizSetCreateRequest request, String createdBy) {
@@ -86,7 +92,7 @@ public class QuizSetService {
         List<QuizResponse> quizzes = quizSet.getQuizIds().stream()
                 .map(id -> {
                     try {
-                        return quizService.getById(id);
+                        return fetchQuizById(id);
                     } catch (Exception e) {
                         log.warn("Could not fetch quiz {} for quizSet {}", id, quizSet.getId());
                         return null;
@@ -96,6 +102,29 @@ public class QuizSetService {
                 .collect(Collectors.toList());
 
         return convertToResponse(quizSet, quizzes);
+    }
+
+    /**
+     * Fetch a quiz by its string ID, querying the underlying _id field directly
+     * via MongoTemplate. The polymorphic MongoRepository.findById on BaseQuiz does
+     * not resolve the _id mapping correctly when documents are stored with an
+     * ObjectId _id but the entity declares {@code @Id String id}, so we bypass it
+     * by querying the {@code _id} field with an explicit Criteria.
+     */
+    private QuizResponse fetchQuizById(String id) {
+        ObjectId objectId;
+        try {
+            objectId = new ObjectId(id);
+        } catch (IllegalArgumentException e) {
+            throw new ResourceNotFoundException("Quiz", id);
+        }
+
+        Query query = Query.query(Criteria.where("_id").is(objectId));
+        BaseQuiz quiz = mongoTemplate.findOne(query, BaseQuiz.class, "quizzes");
+        if (quiz == null) {
+            throw new ResourceNotFoundException("Quiz", id);
+        }
+        return quizService.convertToResponse(quiz);
     }
 
     private QuizSetResponse convertToResponse(QuizSet quizSet, List<QuizResponse> quizzes) {
