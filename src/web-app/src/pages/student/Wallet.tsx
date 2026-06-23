@@ -1,4 +1,4 @@
-import { Sparkles, TrendingUp, TrendingDown, Zap, Coins } from "lucide-react";
+import { TrendingUp, TrendingDown, Zap, Coins } from "lucide-react";
 import StudentActionButton from "@/components/student/StudentActionButton";
 import StudentBadge from "@/components/student/StudentBadge";
 

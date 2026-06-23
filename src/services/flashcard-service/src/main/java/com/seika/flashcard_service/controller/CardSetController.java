@@ -5,6 +5,7 @@ import com.seika.flashcard_service.dto.CardSetCreateDTO;
 import com.seika.flashcard_service.dto.CardSetDTO;
 import com.seika.flashcard_service.dto.LearnProgressDTO;
 import com.seika.flashcard_service.service.CardSetService;
+import com.seika.flashcard_service.shared.ApiResponse;
 import jakarta.validation.Valid;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,54 +28,54 @@ public class CardSetController {
     private RabbitTemplate rabbitTemplate;
 
     @PostMapping
-    public ResponseEntity<CardSetDTO> create(
+    public ResponseEntity<ApiResponse<CardSetDTO>> create(
             @Valid @RequestBody CardSetCreateDTO req,
             @AuthenticationPrincipal Jwt jwt){
         String authorId = jwt.getSubject();
         CardSetDTO cardSet = cardSetService.create(req, authorId);
-        return ResponseEntity.status(HttpStatus.CREATED).body(cardSet);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.created(cardSet));
     }
 
     @GetMapping()
-    public List<CardSetDTO> getMarket(){
-        return cardSetService.getAll();
+    public ResponseEntity<ApiResponse<List<CardSetDTO>>> getMarket(){
+        return ResponseEntity.ok(ApiResponse.success(cardSetService.getAll()));
     }
 
     @GetMapping("/author/{userId}")
-    public List<CardSetDTO> getByAuthor(@PathVariable String userId){
-        return cardSetService.getByAuthor(userId);
+    public ResponseEntity<ApiResponse<List<CardSetDTO>>> getByAuthor(@PathVariable String userId){
+        return ResponseEntity.ok(ApiResponse.success(cardSetService.getByAuthor(userId)));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<CardSetDTO> getById(@PathVariable String id){
-        return ResponseEntity.ok(cardSetService.getById(id));
+    public ResponseEntity<ApiResponse<CardSetDTO>> getById(@PathVariable String id){
+        return ResponseEntity.ok(ApiResponse.success(cardSetService.getById(id)));
     }
 
     @GetMapping("/search")
-    public List<CardSetDTO> search(@RequestParam String key) {
-        return cardSetService.getByKeyword(key);
+    public ResponseEntity<ApiResponse<List<CardSetDTO>>> search(@RequestParam String key) {
+        return ResponseEntity.ok(ApiResponse.success(cardSetService.getByKeyword(key)));
     }
 
     @PostMapping("/buy")
-    public ResponseEntity<?> buy(
+    public ResponseEntity<ApiResponse<Void>> buy(
             @RequestParam String id,
             @AuthenticationPrincipal Jwt jwt
     ){
         String userId = jwt.getClaim("userId");
         cardSetService.buy(id, userId, jwt.getTokenValue());
-        return ResponseEntity.ok("Đã mua thẻ thành công");
+        return ResponseEntity.ok(ApiResponse.success(null, "Đã mua thẻ thành công"));
     }
 
     @PostMapping("/learn")
-    public ResponseEntity<?> sendProgress(@RequestBody LearnProgressDTO req){
+    public ResponseEntity<ApiResponse<Void>> sendProgress(@RequestBody LearnProgressDTO req){
         boolean exists = cardSetService.isCardSetExists(req.getCardSetId());
         if(!exists){
-            return ResponseEntity.badRequest().body("Cardset ID không tồn tại");
+            return ResponseEntity.badRequest().body(ApiResponse.error(400, "Cardset ID không tồn tại"));
         }
 
         req.setCreatedAt(LocalDateTime.now());
         rabbitTemplate.convertAndSend(RabbitMQConfig.LEARN_FANOUT_EXCHANGE, req);
-        return ResponseEntity.ok("Đã ghi nhận, tiến độ đang được xử lí");
+        return ResponseEntity.ok(ApiResponse.success(null, "Đã ghi nhận, tiến độ đang được xử lí"));
     }
 }
 

@@ -8,6 +8,7 @@ import com.seika.identity_service.dto.auth.RegisterRequest;
 import com.seika.identity_service.dto.auth.UserInfoResponse;
 import com.seika.identity_service.service.AuthService;
 import com.seika.identity_service.service.JwtService;
+import com.seika.identity_service.shared.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,39 +27,39 @@ public class AuthController {
     private final JwtService jwtService;
 
     @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
-        return ResponseEntity.ok(authService.register(request));
+    public ResponseEntity<ApiResponse<AuthResponse>> register(@Valid @RequestBody RegisterRequest request) {
+        return ResponseEntity.ok(ApiResponse.success(authService.register(request)));
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
-        return ResponseEntity.ok(authService.login(request));
+    public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest request) {
+        return ResponseEntity.ok(ApiResponse.success(authService.login(request)));
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<AuthResponse> refresh(@Valid @RequestBody RefreshTokenRequest request) {
-        return ResponseEntity.ok(authService.refresh(request));
+    public ResponseEntity<ApiResponse<AuthResponse>> refresh(@Valid @RequestBody RefreshTokenRequest request) {
+        return ResponseEntity.ok(ApiResponse.success(authService.refresh(request)));
     }
 
     @GetMapping("/me")
-    public ResponseEntity<UserInfoResponse> me() {
-        return ResponseEntity.ok(authService.me());
+    public ResponseEntity<ApiResponse<UserInfoResponse>> me() {
+        return ResponseEntity.ok(ApiResponse.success(authService.me()));
     }
 
     @PostMapping("/jwt-introspect")
-    public ResponseEntity<IntrospectResponse> jwtIntrospect(@RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader) {
+    public ResponseEntity<ApiResponse<IntrospectResponse>> jwtIntrospect(@RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader) {
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return ResponseEntity.ok(IntrospectResponse.builder().valid(false).build());
+            return ResponseEntity.ok(ApiResponse.success(IntrospectResponse.builder().valid(false).build()));
         }
         String token = authHeader.substring(7);
         if (!jwtService.isValidToken(token)) {
-            return ResponseEntity.ok(IntrospectResponse.builder().valid(false).build());
+            return ResponseEntity.ok(ApiResponse.success(IntrospectResponse.builder().valid(false).build()));
         }
-        return ResponseEntity.ok(IntrospectResponse.builder()
+        return ResponseEntity.ok(ApiResponse.success(IntrospectResponse.builder()
                 .valid(true)
                 .username(jwtService.extractUsername(token))
                 .roles(jwtService.extractRoles(token))
                 .userId(jwtService.extractUserId(token))
-                .build());
+                .build()));
     }
 }

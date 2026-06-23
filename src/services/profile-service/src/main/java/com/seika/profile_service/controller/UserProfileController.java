@@ -3,8 +3,10 @@ package com.seika.profile_service.controller;
 import com.seika.profile_service.dto.user_profile.UserProfileRequest;
 import com.seika.profile_service.dto.user_profile.UserProfileResponse;
 import com.seika.profile_service.service.UserProfileService;
+import com.seika.profile_service.shared.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -20,21 +22,25 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/profiles")
 @RequiredArgsConstructor
+@Slf4j
 public class UserProfileController {
 
     private final UserProfileService userProfileService;
 
     @PostMapping
     @PreAuthorize("permitAll()")
-    public ResponseEntity<UserProfileResponse> createUserProfile(@Valid @RequestBody UserProfileRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(userProfileService.createUserProfile(request));
+    public ResponseEntity<ApiResponse<UserProfileResponse>> createUserProfile(@Valid @RequestBody UserProfileRequest request) {
+        log.info("Creating user profile for: {}", request.getFullName());
+        UserProfileResponse response = userProfileService.createUserProfile(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.created(response));
     }
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<UserProfileResponse>> getAllUserProfiles() {
-        System.out.println("called");
-        return ResponseEntity.ok(userProfileService.getAllUserProfiles());
+    public ResponseEntity<ApiResponse<List<UserProfileResponse>>> getAllUserProfiles() {
+        log.info("Fetching all user profiles");
+        List<UserProfileResponse> profiles = userProfileService.getAllUserProfiles();
+        return ResponseEntity.ok(ApiResponse.success(profiles));
     }
 
     @GetMapping("/{userId}")

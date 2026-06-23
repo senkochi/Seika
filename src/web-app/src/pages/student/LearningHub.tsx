@@ -1,8 +1,10 @@
-import { BookOpen, Sparkles, Zap, Target, Lock } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { BookOpen, Target, Lock } from "lucide-react";
 import StudentActionButton from "@/components/student/StudentActionButton";
 import StudentBadge from "@/components/student/StudentBadge";
 
 function LearningHub() {
+  const navigate = useNavigate();
   const flashcardDecks = [
     {
       id: 1,
@@ -46,57 +48,6 @@ function LearningHub() {
     },
   ];
 
-  const quests = [
-    {
-      id: 1,
-      title: "Algebra Adventure",
-      difficulty: "Easy",
-      xp: 100,
-      coins: 50,
-      progress: 70,
-      icon: "⚔️",
-      color: "from-green-500 to-emerald-600",
-      position: { top: "20%", left: "15%" },
-      completed: false,
-    },
-    {
-      id: 2,
-      title: "Grammar Quest",
-      difficulty: "Medium",
-      xp: 200,
-      coins: 100,
-      progress: 40,
-      icon: "📖",
-      color: "from-blue-500 to-cyan-600",
-      position: { top: "35%", left: "45%" },
-      completed: false,
-    },
-    {
-      id: 3,
-      title: "Physics Challenge",
-      difficulty: "Hard",
-      xp: 350,
-      coins: 200,
-      progress: 0,
-      icon: "🚀",
-      color: "from-purple-500 to-violet-600",
-      position: { top: "55%", left: "25%" },
-      completed: false,
-    },
-    {
-      id: 4,
-      title: "Boss Battle: Finals",
-      difficulty: "Expert",
-      xp: 500,
-      coins: 500,
-      progress: 0,
-      icon: "👹",
-      color: "from-red-500 to-orange-600",
-      position: { top: "75%", left: "60%" },
-      completed: false,
-    },
-  ];
-
   return (
     <div className="p-8">
       {/* Header */}
@@ -135,7 +86,7 @@ function LearningHub() {
                         deck.rarity === "Rare"
                           ? "info"
                           : deck.rarity === "Epic" ||
-                              deck.rarity === "Legendary"
+                            deck.rarity === "Legendary"
                             ? "purple"
                             : "glass"
                       }
@@ -184,7 +135,10 @@ function LearningHub() {
                   </div>
 
                   {!deck.locked ? (
-                    <StudentActionButton className="py-2 font-bold">
+                    <StudentActionButton
+                      className="py-2 font-bold"
+                      onClick={() => navigate(`/flashcard/${deck.id}`)}
+                    >
                       Study Now
                     </StudentActionButton>
                   ) : (
