@@ -49,6 +49,9 @@ public class OrderItem {
     @Column(name = "product_name", nullable = false, length = 255)
     String productName;
 
+    @Column(name = "seller_user_id")
+    String sellerUserId;  // userId of the teacher/creator who owns this product
+
     @Column(name = "unit_price", nullable = false, precision = 19, scale = 2)
     BigDecimal unitPrice;
 

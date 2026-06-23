@@ -3,11 +3,13 @@ package com.seika.profile_service.service;
 import com.seika.profile_service.dto.user_profile.UserProfileRequest;
 import com.seika.profile_service.dto.user_profile.UserProfileResponse;
 import com.seika.profile_service.enity.GameProfile;
+import com.seika.profile_service.enity.TeacherProfile;
 import com.seika.profile_service.enity.UserProfile;
 import com.seika.profile_service.exception.ConflictException;
 import com.seika.profile_service.exception.ResourceNotFoundException;
 import com.seika.profile_service.mapper.UserProfileMapper;
 import com.seika.profile_service.repository.GameProfileRepository;
+import com.seika.profile_service.repository.TeacherProfileRepository;
 import com.seika.profile_service.repository.UserProfileRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +27,7 @@ public class UserProfileService {
     private final UserProfileRepository userProfileRepository;
     private final UserProfileMapper userProfileMapper;
     private final GameProfileRepository gameProfileRepository;
+    private final TeacherProfileRepository teacherProfileRepository;
 
     @Transactional
     public UserProfileResponse createUserProfile(UserProfileRequest request) {
@@ -53,6 +56,16 @@ public class UserProfileService {
 
         UserProfile savedUserProfile = userProfileRepository.save(userProfile);
         GameProfile saveGameProfile =  gameProfileRepository.save(gameProfile);
+
+        // Auto-create TeacherProfile if the user is a TEACHER
+        if ("TEACHER".equalsIgnoreCase(request.getRole())) {
+            TeacherProfile teacherProfile = TeacherProfile.builder()
+                .userId(request.getUserId())
+                .build();
+            teacherProfileRepository.save(teacherProfile);
+            log.info("Created TeacherProfile for userId={}", request.getUserId());
+        }
+
         log.info("Created profile for userId={}", savedUserProfile.getUserId());
         return userProfileMapper.toUserProfileResponse(savedUserProfile, saveGameProfile);
     }

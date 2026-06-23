@@ -30,10 +30,15 @@ public class CardSetService {
     @Autowired
     private CardSetMapper mapper;
 
+    @Autowired
+    private ContentEventPublisher contentEventPublisher;
+
     public CardSetDTO create(CardSetCreateDTO req, String authorId){
         CardSet cardSet = mapper.toEntity(req);
         cardSet.setAuthorId(authorId);
         CardSet res = cardSetRepository.save(cardSet);
+        // Publish event so profile-service can update teacher stats
+        contentEventPublisher.publishFlashcardSetCreated(res.getId(), authorId);
         return mapper.toDto(res);
     }
 

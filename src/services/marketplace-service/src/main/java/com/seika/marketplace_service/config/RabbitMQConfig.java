@@ -18,6 +18,15 @@ public class RabbitMQConfig {
     public static final String WALLET_COMMANDS_EXCHANGE = "wallet.commands";
     public static final String WALLET_DEBIT_ROUTING_KEY = "wallet.debit.requested";
 
+    // Marketplace events (published after a successful purchase)
+    public static final String MARKETPLACE_EVENTS_EXCHANGE = "marketplace.events";
+    public static final String CONTENT_PURCHASED_ROUTING_KEY = "content.purchased";
+
+    @Bean
+    public TopicExchange marketplaceEventsExchange() {
+        return new TopicExchange(MARKETPLACE_EVENTS_EXCHANGE, true, false);
+    }
+
     @Bean
     public TopicExchange walletEventsExchange() {
         return new TopicExchange(WALLET_EVENTS_EXCHANGE);

@@ -20,7 +20,7 @@ import lombok.NoArgsConstructor;
         @JsonSubTypes.Type(value = McqRequest.class, name = "MULTIPLE_CHOICE"),
         @JsonSubTypes.Type(value = ReorderRequest.class, name = "REORDER"),
         @JsonSubTypes.Type(value = MatchingRequest.class, name = "MATCHING"),
-        @JsonSubTypes.Type(value = FillInBlankRequest.class, name = "FILL_IN_BLANK")
+        @JsonSubTypes.Type(value = FillInBlankRequest.class, name = "FILL_IN_THE_BLANK")
 })
 @Data
 @NoArgsConstructor

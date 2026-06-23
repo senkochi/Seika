@@ -138,3 +138,18 @@ export interface QuizSetResponse {
   createdAt: string;
   updatedAt?: string;
 }
+
+// Teacher Profile types
+export interface TeacherProfileResponse {
+  id: string;
+  userId: string;
+  fullName: string;
+  dateOfBirth: string;
+  gender: string;
+  profilePictureUrl?: string;
+  exp: number;
+  level: number;
+  totalQuizCreated: number;
+  totalFlashcardsCreated: number;
+  totalStudentsReached: number;
+}

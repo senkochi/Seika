@@ -16,4 +16,5 @@ public class CreateOrderItemRequest {
     private String productName;
     private BigDecimal unitPrice;
     private Integer quantity;
+    private String sellerUserId;
 }

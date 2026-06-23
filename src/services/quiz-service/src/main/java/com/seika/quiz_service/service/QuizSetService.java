@@ -28,6 +28,7 @@ public class QuizSetService {
     private final QuizSetRepository quizSetRepository;
     private final QuizService quizService;
     private final MongoTemplate mongoTemplate;
+    private final ContentEventPublisher contentEventPublisher;
 
     @Transactional
     public QuizSetResponse create(QuizSetCreateRequest request, String createdBy) {
@@ -50,6 +51,9 @@ public class QuizSetService {
                 .build();
 
         QuizSet saved = quizSetRepository.save(quizSet);
+
+        // Publish event so profile-service can update teacher stats
+        contentEventPublisher.publishQuizSetCreated(saved.getId(), createdBy);
 
         return convertToResponse(saved, createdQuizzes);
     }
