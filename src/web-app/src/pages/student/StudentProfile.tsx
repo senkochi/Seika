@@ -4,6 +4,8 @@ import StudentActionButton from "@/components/student/StudentActionButton";
 
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { fetchCurrentUserProfile } from "../../store/userProfileSlice";
+import { userProfilesService } from "../../api";
+import { showSuccess, showError } from "../../components/toast/toastUtils";
 
 function StudentProfile() {
   const dispatch = useAppDispatch();
@@ -16,7 +18,6 @@ function StudentProfile() {
     dateOfBirth,
     gender,
     profilePictureUrl,
-    profileId,
   } = useAppSelector((state) => state.userProfile);
 
   const [formData, setFormData] = useState({
@@ -25,6 +26,7 @@ function StudentProfile() {
     gender: gender ?? "Male",
     profilePictureUrl: profilePictureUrl ?? "",
   });
+  const [isUpdating, setIsUpdating] = useState(false);
 
   // Sync form khi Redux state có data
   useEffect(() => {
@@ -53,10 +55,24 @@ function StudentProfile() {
     }).format(new Date(value));
   };
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    // TODO: Tích hợp API cập nhật profile (PUT /profiles/{userId})
-    console.log("Profile submitted:", { userId, profileId, ...formData });
+    if (!userId) return;
+
+    try {
+      setIsUpdating(true);
+      await userProfilesService.update(userId, {
+        userId,
+        ...formData,
+      });
+      showSuccess("Cập nhật hồ sơ thành công!");
+      dispatch(fetchCurrentUserProfile());
+    } catch (err) {
+      showError("Cập nhật hồ sơ thất bại. Vui lòng thử lại.");
+      console.error(err);
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
   if (status === "loading") {
@@ -265,8 +281,20 @@ function StudentProfile() {
           </div>
 
           <div className="mt-8 flex justify-end">
-            <StudentActionButton size="lg" className="px-8" type="submit">
-              Save Changes
+            <StudentActionButton
+              size="lg"
+              className="px-8"
+              type="submit"
+              disabled={isUpdating}
+            >
+              {isUpdating ? (
+                <>
+                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                "Save Changes"
+              )}
             </StudentActionButton>
           </div>
         </form>
