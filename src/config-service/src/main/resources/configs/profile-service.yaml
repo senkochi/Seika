@@ -13,6 +13,11 @@ spring:
         format_sql: true
         temp:
           use_jdbc_metadata_defaults: false
+  rabbitmq:
+    host: ${RABBITMQ_HOST}
+    port: ${RABBITMQ_PORT}
+    username: ${RABBITMQ_USERNAME}
+    password: ${RABBITMQ_PASSWORD}
 
 jwt:
   issuer: seika-identity-service

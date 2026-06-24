@@ -100,4 +100,21 @@ public class UserProfileService {
                 })
                 .toList();
     }
+
+    @Transactional
+    public UserProfileResponse updateUserProfile(String userId, UserProfileRequest request) {
+        UserProfile userProfile = userProfileRepository.findByUserId(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Profile not found for userId: " + userId));
+
+        userProfile.setFullName(request.getFullName());
+        userProfile.setDateOfBirth(request.getDateOfBirth());
+        userProfile.setGender(request.getGender());
+        userProfile.setProfilePictureUrl(request.getProfilePictureUrl());
+
+        UserProfile savedUserProfile = userProfileRepository.save(userProfile);
+        GameProfile gameProfile = gameProfileRepository.findByUserId(userId).orElse(new GameProfile());
+
+        log.info("Updated profile for userId={}", userId);
+        return userProfileMapper.toUserProfileResponse(savedUserProfile, gameProfile);
+    }
 }

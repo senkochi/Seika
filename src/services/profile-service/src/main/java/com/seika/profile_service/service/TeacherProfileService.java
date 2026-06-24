@@ -22,7 +22,7 @@ public class TeacherProfileService {
     private final GameProfileRepository gameProfileRepository;
     private final TeacherProfileRepository teacherProfileRepository;
 
-    @Transactional(readOnly = true)
+    @Transactional
     public TeacherProfileResponse getTeacherProfile(String userId) {
         log.info("Fetching teacher profile for userId={}", userId);
 
@@ -30,10 +30,27 @@ public class TeacherProfileService {
                 .orElseThrow(() -> new ResourceNotFoundException("Profile not found for userId: " + userId));
 
         GameProfile gameProfile = gameProfileRepository.findByUserId(userId)
-                .orElse(new GameProfile());
+                .orElseGet(() -> {
+                    GameProfile newGp = GameProfile.builder()
+                            .userId(userId)
+                            .exp(0)
+                            .level(1)
+                            .build();
+                    log.info("Lazy-creating missing GameProfile for userId={}", userId);
+                    return gameProfileRepository.save(newGp);
+                });
 
         TeacherProfile teacherProfile = teacherProfileRepository.findByUserId(userId)
-                .orElse(TeacherProfile.builder().userId(userId).build());
+                .orElseGet(() -> {
+                    TeacherProfile newTp = TeacherProfile.builder()
+                            .userId(userId)
+                            .totalQuizCreated(0)
+                            .totalFlashcardsCreated(0)
+                            .totalStudentsReached(0)
+                            .build();
+                    log.info("Lazy-creating missing TeacherProfile for userId={}", userId);
+                    return teacherProfileRepository.save(newTp);
+                });
 
         return TeacherProfileResponse.builder()
                 .id(userProfile.getId())
