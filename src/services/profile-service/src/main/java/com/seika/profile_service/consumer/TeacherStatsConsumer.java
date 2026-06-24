@@ -36,8 +36,8 @@ public class TeacherStatsConsumer {
             }
             ensureTeacherProfileExists(event.getCreatedBy());
             teacherProfileRepository.incrementQuizCreated(event.getCreatedBy());
-            addTeacherExp(event.getCreatedBy(), 100L);
-            log.info("Incremented totalQuizCreated and awarded 100 EXP for teacherId={}", event.getCreatedBy());
+            addTeacherExp(event.getCreatedBy(), 50L);
+            log.info("Incremented totalQuizCreated and awarded 50 EXP for teacherId={}", event.getCreatedBy());
         } catch (JsonProcessingException e) {
             log.error("Failed to deserialize quiz.set.created message. payload={}", rawMessage, e);
         } catch (Exception e) {
@@ -56,8 +56,8 @@ public class TeacherStatsConsumer {
             }
             ensureTeacherProfileExists(event.getCreatedBy());
             teacherProfileRepository.incrementFlashcardsCreated(event.getCreatedBy());
-            addTeacherExp(event.getCreatedBy(), 80L);
-            log.info("Incremented totalFlashcardsCreated and awarded 80 EXP for teacherId={}", event.getCreatedBy());
+            addTeacherExp(event.getCreatedBy(), 50L);
+            log.info("Incremented totalFlashcardsCreated and awarded 50 EXP for teacherId={}", event.getCreatedBy());
         } catch (JsonProcessingException e) {
             log.error("Failed to deserialize flashcard.set.created message. payload={}", rawMessage, e);
         } catch (Exception e) {

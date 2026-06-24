@@ -19,11 +19,14 @@ public class ContentEventPublisher {
     private final RabbitTemplate rabbitTemplate;
     private final ObjectMapper objectMapper;
 
-    public void publishFlashcardSetCreated(String cardSetId, String createdBy) {
-        Map<String, String> event = Map.of(
+    public void publishFlashcardSetCreated(String cardSetId, String createdBy, String title, String description, java.math.BigDecimal price) {
+        Map<String, Object> event = Map.of(
                 "eventId", UUID.randomUUID().toString(),
                 "cardSetId", cardSetId,
-                "createdBy", createdBy
+                "createdBy", createdBy,
+                "title", title,
+                "description", description == null ? "" : description,
+                "price", price == null ? java.math.BigDecimal.ZERO : price
         );
         try {
             String message = objectMapper.writeValueAsString(event);

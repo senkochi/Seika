@@ -45,6 +45,28 @@ public class RabbitMQConfig {
             .with(WALLET_EVENTS_ROUTING_KEY);
     }
 
+    // Content events
+    public static final String CONTENT_EVENTS_EXCHANGE = "content.events";
+    public static final String MARKETPLACE_CONTENT_EVENTS_QUEUE = "marketplace.content-events";
+
+    @Bean
+    public TopicExchange contentEventsExchange() {
+        return new TopicExchange(CONTENT_EVENTS_EXCHANGE, true, false);
+    }
+
+    @Bean
+    public Queue marketplaceContentEventsQueue() {
+        return new Queue(MARKETPLACE_CONTENT_EVENTS_QUEUE, true);
+    }
+
+    @Bean
+    public Binding marketplaceContentEventsBinding(Queue marketplaceContentEventsQueue, TopicExchange contentEventsExchange) {
+        return BindingBuilder
+                .bind(marketplaceContentEventsQueue)
+                .to(contentEventsExchange)
+                .with("*.*.created"); // catches flashcard.set.created and quiz.set.created
+    }
+
     @Bean
     public TopicExchange walletCommandsExchange() {
         return new TopicExchange(WALLET_COMMANDS_EXCHANGE);

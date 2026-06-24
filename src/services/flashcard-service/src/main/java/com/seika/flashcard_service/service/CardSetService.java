@@ -37,8 +37,14 @@ public class CardSetService {
         CardSet cardSet = mapper.toEntity(req);
         cardSet.setAuthorId(authorId);
         CardSet res = cardSetRepository.save(cardSet);
-        // Publish event so profile-service can update teacher stats
-        contentEventPublisher.publishFlashcardSetCreated(res.getId(), authorId);
+        // Publish event so profile-service can update teacher stats and marketplace can create product
+        contentEventPublisher.publishFlashcardSetCreated(
+                res.getId(), 
+                authorId, 
+                res.getTitle(), 
+                res.getDescription(), 
+                res.getPrice()
+        );
         return mapper.toDto(res);
     }
 

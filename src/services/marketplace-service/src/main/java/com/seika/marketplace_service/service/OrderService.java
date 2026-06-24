@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -39,6 +40,25 @@ public class OrderService {
         }
         if (items == null || items.isEmpty()) {
             throw new IllegalArgumentException("items is required");
+        }
+
+        // Check if buying own item
+        for (OrderItem item : items) {
+            if (userId.equals(item.getSellerUserId())) {
+                throw new IllegalArgumentException("Bạn không thể tự mua sản phẩm của chính mình.");
+            }
+        }
+
+        // Check if already purchased
+        List<String> productIds = items.stream().map(OrderItem::getProductId).toList();
+        boolean alreadyPurchased = orderRepository.existsByUserIdAndProductIdsAndStatuses(
+            userId,
+            productIds,
+            Arrays.asList(OrderStatus.PENDING_PAYMENT, OrderStatus.PAID)
+        );
+
+        if (alreadyPurchased) {
+            throw new IllegalArgumentException("Bạn đã sở hữu hoặc đang có giao dịch mua sản phẩm này rồi.");
         }
 
         // Tính toán tổng amount của order dựa trên unitPrice và quantity của từng OrderItem

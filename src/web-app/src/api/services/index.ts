@@ -4,3 +4,4 @@ export * from "./flashcards";
 export * from "./quizzes";
 export * from "./wallet";
 export * from "./teacherProfile";
+export * from "./marketplace";

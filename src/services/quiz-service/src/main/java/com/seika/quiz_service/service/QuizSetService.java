@@ -46,6 +46,7 @@ public class QuizSetService {
         QuizSet quizSet = QuizSet.builder()
                 .title(request.getTitle())
                 .description(request.getDescription())
+                .price(request.getPrice() != null ? request.getPrice() : java.math.BigDecimal.ZERO)
                 .quizIds(quizIds)
                 .createdBy(createdBy)
                 .build();
@@ -53,7 +54,7 @@ public class QuizSetService {
         QuizSet saved = quizSetRepository.save(quizSet);
 
         // Publish event so profile-service can update teacher stats
-        contentEventPublisher.publishQuizSetCreated(saved.getId(), createdBy);
+        contentEventPublisher.publishQuizSetCreated(saved.getId(), createdBy, saved.getTitle(), saved.getDescription(), saved.getPrice());
 
         return convertToResponse(saved, createdQuizzes);
     }
@@ -136,6 +137,7 @@ public class QuizSetService {
                 .id(quizSet.getId())
                 .title(quizSet.getTitle())
                 .description(quizSet.getDescription())
+                .price(quizSet.getPrice())
                 .quizzes(quizzes)
                 .createdBy(quizSet.getCreatedBy())
                 .createdAt(quizSet.getCreatedAt())

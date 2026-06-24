@@ -17,6 +17,7 @@ public class QuizSetResponse {
     private String id;
     private String title;
     private String description;
+    private java.math.BigDecimal price;
     private List<QuizResponse> quizzes;
     private String createdBy;
     private LocalDateTime createdAt;

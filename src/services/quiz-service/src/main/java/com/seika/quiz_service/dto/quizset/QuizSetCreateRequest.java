@@ -15,5 +15,6 @@ import java.util.List;
 public class QuizSetCreateRequest {
     private String title;
     private String description;
+    private java.math.BigDecimal price;
     private List<QuizCreateRequest> questions;
 }

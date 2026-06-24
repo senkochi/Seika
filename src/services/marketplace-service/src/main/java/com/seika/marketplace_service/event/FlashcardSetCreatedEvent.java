@@ -1,7 +1,8 @@
-package com.seika.quiz_service.event;
+package com.seika.marketplace_service.event;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import java.math.BigDecimal;
 
 @Getter
 @Setter
@@ -9,12 +10,11 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class QuizSetCreatedEvent {
+public class FlashcardSetCreatedEvent {
     String eventId;
-    String quizSetId;
+    String cardSetId;
     String createdBy;
     String title;
     String description;
-    java.math.BigDecimal price;
+    BigDecimal price;
 }
-

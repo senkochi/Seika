@@ -1,13 +1,9 @@
-package com.seika.profile_service.event;
+package com.seika.marketplace_service.event;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import java.math.BigDecimal;
 
-/**
- * Published by quiz-service when a QuizSet is created.
- * Routing key: quiz.set.created
- * Exchange: content.events
- */
 @Getter
 @Setter
 @NoArgsConstructor
@@ -17,9 +13,8 @@ import lombok.experimental.FieldDefaults;
 public class QuizSetCreatedEvent {
     String eventId;
     String quizSetId;
-    String createdBy;   // userId of the teacher who created the quiz set
+    String createdBy;
     String title;
     String description;
-    java.math.BigDecimal price;
+    BigDecimal price;
 }
-
