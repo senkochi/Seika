@@ -84,13 +84,23 @@ function TeacherProfile() {
 
     setLoadingSubmit(true);
     try {
-      await userProfilesService.create({
-        userId: profileState.userId,
-        fullName,
-        dateOfBirth,
-        gender,
-        profilePictureUrl: profilePictureUrl || undefined,
-      });
+      if (profileState.profileId) {
+        await userProfilesService.update(profileState.userId, {
+          userId: profileState.userId,
+          fullName,
+          dateOfBirth,
+          gender,
+          profilePictureUrl: profilePictureUrl || undefined,
+        });
+      } else {
+        await userProfilesService.create({
+          userId: profileState.userId,
+          fullName,
+          dateOfBirth,
+          gender,
+          profilePictureUrl: profilePictureUrl || undefined,
+        });
+      }
       showSuccess("Cập nhật hồ sơ thành công!");
       setIsEditing(false);
       dispatch(fetchCurrentUserProfile());

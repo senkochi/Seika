@@ -19,11 +19,14 @@ public class ContentEventPublisher {
     private final RabbitTemplate rabbitTemplate;
     private final ObjectMapper objectMapper;
 
-    public void publishQuizSetCreated(String quizSetId, String createdBy) {
+    public void publishQuizSetCreated(String quizSetId, String createdBy, String title, String description, java.math.BigDecimal price) {
         QuizSetCreatedEvent event = QuizSetCreatedEvent.builder()
                 .eventId(UUID.randomUUID().toString())
                 .quizSetId(quizSetId)
                 .createdBy(createdBy)
+                .title(title)
+                .description(description == null ? "" : description)
+                .price(price == null ? java.math.BigDecimal.ZERO : price)
                 .build();
         try {
             String message = objectMapper.writeValueAsString(event);

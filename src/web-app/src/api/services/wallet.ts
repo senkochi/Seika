@@ -19,10 +19,15 @@ export interface TransactionResponse {
 export const walletService = {
   getBalance: async () => {
     // API GET /api/wallet/balance
-    const response = await apiClient.get<{ balance: number }>(
-      "/wallet/balance",
-    );
-    return response.data;
+    const response = await apiClient.get<any>("/wallet/balance");
+    const data = response.data;
+    if (typeof data === "number") {
+      return { balance: data };
+    }
+    if (data && typeof data.balance === "number") {
+      return data;
+    }
+    return { balance: Number(data) || 0 };
   },
 
   getHistory: async () => {

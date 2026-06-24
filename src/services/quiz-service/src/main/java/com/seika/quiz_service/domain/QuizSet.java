@@ -21,6 +21,7 @@ public class QuizSet {
     @Builder.Default
     private List<String> quizIds = new ArrayList<>();
     private String createdBy;
+    private java.math.BigDecimal price = java.math.BigDecimal.ZERO;
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
     private LocalDateTime updatedAt;

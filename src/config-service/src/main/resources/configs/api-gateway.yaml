@@ -74,6 +74,10 @@ spring:
               uri: lb://QUIZ-SERVICE
               predicates:
                 - Path=/api/quiz/**,/api/quiz,/api/quiz-sets/**,/api/quiz-sets
+            - id: marketplace-route
+              uri: lb://MARKETPLACE-SERVICE
+              predicates:
+                - Path=/api/marketplace/**,/api/marketplace
           discovery:
             locator:
               enabled: false

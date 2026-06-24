@@ -147,7 +147,8 @@ public class WalletEventHandler {
                         userId,
                         item.getSellerUserId(),
                         item.getProductId(),
-                        item.getProductType() != null ? item.getProductType().name() : "UNKNOWN"
+                        item.getProductType() != null ? item.getProductType().name() : "UNKNOWN",
+                        item.getTotalPrice()
                 );
             }
         }

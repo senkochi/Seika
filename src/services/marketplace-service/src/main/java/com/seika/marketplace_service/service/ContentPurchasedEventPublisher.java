@@ -21,14 +21,15 @@ public class ContentPurchasedEventPublisher {
     private final ObjectMapper objectMapper;
 
     public void publishContentPurchased(String orderId, String buyerUserId, String teacherUserId,
-                                        String productId, String productType) {
-        Map<String, String> event = new HashMap<>();
+                                        String productId, String productType, java.math.BigDecimal price) {
+        Map<String, Object> event = new HashMap<>();
         event.put("eventId", UUID.randomUUID().toString());
         event.put("orderId", orderId);
         event.put("buyerUserId", buyerUserId);
         event.put("teacherUserId", teacherUserId);
         event.put("productId", productId);
         event.put("productType", productType);
+        event.put("price", price == null ? java.math.BigDecimal.ZERO : price);
 
         try {
             String message = objectMapper.writeValueAsString(event);

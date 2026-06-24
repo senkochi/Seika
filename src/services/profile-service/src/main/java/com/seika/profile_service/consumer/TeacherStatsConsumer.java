@@ -3,9 +3,12 @@ package com.seika.profile_service.consumer;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.seika.profile_service.config.RabbitMQConfig;
+import com.seika.profile_service.enity.GameProfile;
+import com.seika.profile_service.enity.TeacherProfile;
 import com.seika.profile_service.event.ContentPurchasedEvent;
 import com.seika.profile_service.event.FlashcardSetCreatedEvent;
 import com.seika.profile_service.event.QuizSetCreatedEvent;
+import com.seika.profile_service.repository.GameProfileRepository;
 import com.seika.profile_service.repository.TeacherProfileRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class TeacherStatsConsumer {
 
     private final TeacherProfileRepository teacherProfileRepository;
+    private final GameProfileRepository gameProfileRepository;
     private final ObjectMapper objectMapper;
 
     @RabbitListener(queues = RabbitMQConfig.PROFILE_QUIZ_SET_CREATED_QUEUE)
@@ -30,12 +34,10 @@ public class TeacherStatsConsumer {
                 log.warn("Skipped quiz.set.created event – createdBy is empty");
                 return;
             }
-            if (!teacherProfileRepository.existsByUserId(event.getCreatedBy())) {
-                log.warn("Skipped quiz.set.created – no TeacherProfile for userId={}", event.getCreatedBy());
-                return;
-            }
+            ensureTeacherProfileExists(event.getCreatedBy());
             teacherProfileRepository.incrementQuizCreated(event.getCreatedBy());
-            log.info("Incremented totalQuizCreated for teacherId={}", event.getCreatedBy());
+            addTeacherExp(event.getCreatedBy(), 50L);
+            log.info("Incremented totalQuizCreated and awarded 50 EXP for teacherId={}", event.getCreatedBy());
         } catch (JsonProcessingException e) {
             log.error("Failed to deserialize quiz.set.created message. payload={}", rawMessage, e);
         } catch (Exception e) {
@@ -52,12 +54,10 @@ public class TeacherStatsConsumer {
                 log.warn("Skipped flashcard.set.created event – createdBy is empty");
                 return;
             }
-            if (!teacherProfileRepository.existsByUserId(event.getCreatedBy())) {
-                log.warn("Skipped flashcard.set.created – no TeacherProfile for userId={}", event.getCreatedBy());
-                return;
-            }
+            ensureTeacherProfileExists(event.getCreatedBy());
             teacherProfileRepository.incrementFlashcardsCreated(event.getCreatedBy());
-            log.info("Incremented totalFlashcardsCreated for teacherId={}", event.getCreatedBy());
+            addTeacherExp(event.getCreatedBy(), 50L);
+            log.info("Incremented totalFlashcardsCreated and awarded 50 EXP for teacherId={}", event.getCreatedBy());
         } catch (JsonProcessingException e) {
             log.error("Failed to deserialize flashcard.set.created message. payload={}", rawMessage, e);
         } catch (Exception e) {
@@ -74,18 +74,51 @@ public class TeacherStatsConsumer {
                 log.warn("Skipped content.purchased event – teacherUserId is empty");
                 return;
             }
-            if (!teacherProfileRepository.existsByUserId(event.getTeacherUserId())) {
-                log.warn("Skipped content.purchased – no TeacherProfile for userId={}", event.getTeacherUserId());
-                return;
-            }
+            ensureTeacherProfileExists(event.getTeacherUserId());
             teacherProfileRepository.incrementStudentsReached(event.getTeacherUserId());
-            log.info("Incremented totalStudentsReached for teacherId={} (purchasedBy={})",
+            addTeacherExp(event.getTeacherUserId(), 50L);
+            log.info("Incremented totalStudentsReached and awarded 50 EXP for teacherId={} (purchasedBy={})",
                     event.getTeacherUserId(), event.getBuyerUserId());
         } catch (JsonProcessingException e) {
             log.error("Failed to deserialize content.purchased message. payload={}", rawMessage, e);
         } catch (Exception e) {
             log.error("Failed to process content.purchased message. payload={}", rawMessage, e);
         }
+    }
+
+    private void ensureTeacherProfileExists(String userId) {
+        if (!teacherProfileRepository.existsByUserId(userId)) {
+            TeacherProfile newProfile = TeacherProfile.builder()
+                    .userId(userId)
+                    .totalQuizCreated(0)
+                    .totalFlashcardsCreated(0)
+                    .totalStudentsReached(0)
+                    .build();
+            teacherProfileRepository.save(newProfile);
+            log.info("Lazy-created TeacherProfile for userId={}", userId);
+        }
+    }
+
+    private void addTeacherExp(String userId, long expAmount) {
+        GameProfile gameProfile = gameProfileRepository.findByUserId(userId)
+                .orElseGet(() -> GameProfile.builder()
+                        .userId(userId)
+                        .exp(0)
+                        .level(1)
+                        .build());
+
+        long oldExp = gameProfile.getExp();
+        long newExp = oldExp + expAmount;
+        gameProfile.setExp(newExp);
+
+        int oldLevel = gameProfile.getLevel();
+        int newLevel = (int) (newExp / 100) + 1;
+        if (newLevel > oldLevel) {
+            gameProfile.setLevel(newLevel);
+            log.info("Teacher userId={} leveled up! {} -> {}", userId, oldLevel, newLevel);
+        }
+
+        gameProfileRepository.save(gameProfile);
     }
 }
 

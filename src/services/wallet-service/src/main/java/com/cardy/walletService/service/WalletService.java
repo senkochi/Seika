@@ -28,7 +28,7 @@ public class WalletService {
     private void updateBalance(UUID userId, BigDecimal amount, TransactionType type, String description) {
         Wallet wallet = walletRepository.findByUserId(userId)
                 .orElseGet(() -> walletRepository.save(
-                        Wallet.builder().userId(userId).balance(BigDecimal.ZERO).build()
+                        Wallet.builder().userId(userId).balance(new BigDecimal("500")).build()
                 ));
 
         BigDecimal newBalance = wallet.getBalance().add(amount);
@@ -53,7 +53,7 @@ public class WalletService {
     public void createWallet(UUID userId) {
         walletRepository.findByUserId(userId)
                 .orElseGet(() -> walletRepository.save(
-                        Wallet.builder().userId(userId).balance(BigDecimal.ZERO).build()
+                        Wallet.builder().userId(userId).balance(new BigDecimal("500")).build()
                 ));
     }
 

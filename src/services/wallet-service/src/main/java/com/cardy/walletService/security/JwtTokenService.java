@@ -35,7 +35,10 @@ public class JwtTokenService {
     }
 
     public Jwt decodeToJwt(String token) {
-        return NimbusJwtDecoder.withSecretKey(secretKey).build().decode(token);
+        return NimbusJwtDecoder.withSecretKey(secretKey)
+                .macAlgorithm(org.springframework.security.oauth2.jose.jws.MacAlgorithm.HS512)
+                .build()
+                .decode(token);
     }
 
     public boolean isValidToken(String token) {

@@ -51,6 +51,9 @@ public class Product {
 
     @Column(nullable = false)
     private boolean active = true;
+
+    @Column(name = "seller_user_id", nullable = false)
+    private String sellerUserId;
     
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)

@@ -41,4 +41,12 @@ export const userProfilesService = {
     );
     return response.data;
   },
+
+  update: async (userId: string, payload: UserProfileRequest) => {
+    const response = await apiClient.put<UserProfileResponse>(
+      `/profiles/${encodeURIComponent(userId)}`,
+      payload,
+    );
+    return response.data;
+  },
 };

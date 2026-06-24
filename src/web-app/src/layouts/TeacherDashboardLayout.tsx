@@ -15,7 +15,10 @@ import GridBackground from "./GridBackground";
 import { Logo } from "../components/logo/Logo";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { logout } from "../store/authSlice";
-import { clearUserProfile } from "../store/userProfileSlice";
+import {
+  clearUserProfile,
+  fetchCurrentUserProfile,
+} from "../store/userProfileSlice";
 
 function TeacherDashboardLayout() {
   const navigate = useNavigate();
@@ -24,9 +27,15 @@ function TeacherDashboardLayout() {
   const avatarMenuRef = useRef<HTMLDivElement | null>(null);
 
   const dispatch = useAppDispatch();
-  const { fullName, username, profilePictureUrl } = useAppSelector(
+  const { fullName, username, profilePictureUrl, status } = useAppSelector(
     (state) => state.userProfile,
   );
+
+  useEffect(() => {
+    if (status === "idle") {
+      dispatch(fetchCurrentUserProfile());
+    }
+  }, [dispatch, status]);
   const authUsername = useAppSelector((state) => state.auth.username);
   const roles = useAppSelector((state) => state.auth.roles);
 

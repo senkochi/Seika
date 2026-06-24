@@ -18,5 +18,8 @@ public class FlashcardSetCreatedEvent {
     String eventId;
     String cardSetId;
     String createdBy;   // userId of the teacher who created the flashcard set
+    String title;
+    String description;
+    java.math.BigDecimal price;
 }
 

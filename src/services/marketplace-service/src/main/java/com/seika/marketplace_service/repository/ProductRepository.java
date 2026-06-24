@@ -14,4 +14,6 @@ public interface ProductRepository extends JpaRepository<Product, String> {
     List<Product> findByActiveTrueAndTypeOrderByCreatedAtDesc(ProductType type);
 
     Optional<Product> findByIdAndActiveTrue(String id);
+
+    boolean existsByReferenceIdAndType(String referenceId, ProductType type);
 }

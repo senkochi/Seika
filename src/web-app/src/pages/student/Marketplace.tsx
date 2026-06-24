@@ -1,146 +1,60 @@
 import { Clock, Flame, Store } from "lucide-react";
 import MarketplaceOfferCard from "@/components/student/MarketplaceOfferCard";
 import MarketplaceItemCard from "@/components/student/MarketplaceItemCard";
-
-type MarketplaceOffer = {
-  id: number;
-  title: string;
-  description: string;
-  price: number;
-  originalPrice: number;
-  icon: string;
-  color: string;
-  badge: "Limited" | "Hot";
-  timeLeft: string;
-};
-
-type MarketplaceItem = {
-  id: number;
-  category: string;
-  title: string;
-  description: string;
-  price: number;
-  icon: string;
-  color?: string;
-  badge: "New" | "Hot" | null;
-};
+import { useEffect, useState } from "react";
+import { marketplaceApi, Product } from "@/api";
+import { useAppSelector } from "@/store/hooks";
+import { toast } from "sonner";
 
 function Marketplace() {
-  const limitedOffers: MarketplaceOffer[] = [
-    {
-      id: 1,
-      title: "Legendary Math Bundle",
-      description: "Complete algebra mastery pack",
-      price: 999,
-      originalPrice: 1499,
-      icon: "👑",
-      color: "from-amber-400 to-yellow-500",
-      badge: "Limited",
-      timeLeft: "2:34:12",
-    },
-    {
-      id: 2,
-      title: "Double XP Boost",
-      description: "24 hours of 2x XP",
-      price: 500,
-      originalPrice: 750,
-      icon: "⚡",
-      color: "from-purple-500 to-violet-600",
-      badge: "Hot",
-      timeLeft: "5:12:45",
-    },
-  ];
+  const userId = useAppSelector((state) => state.userProfile.userId);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const items: MarketplaceItem[] = [
-    {
-      id: 1,
-      category: "Quiz Packs",
-      title: "Science Explorer Pack",
-      description: "50 physics & chemistry quizzes",
-      price: 450,
-      icon: "🔬",
-      badge: "New",
-    },
-    {
-      id: 2,
-      category: "Flashcard Decks",
-      title: "History Heroes",
-      description: "100 world history cards",
-      price: 350,
-      icon: "🏛️",
-      badge: null,
-    },
-    {
-      id: 3,
-      category: "Power-ups",
-      title: "Streak Freeze",
-      description: "Protect your streak for 1 day",
-      price: 150,
-      icon: "🛡️",
-      color: "from-cyan-400 to-blue-500",
-      badge: "Hot",
-    },
-    {
-      id: 4,
-      category: "Cosmetics",
-      title: "Golden Avatar Frame",
-      description: "Shine like a champion",
-      price: 800,
-      icon: "✨",
-      color: "from-amber-400 to-yellow-500",
-      badge: null,
-    },
-    {
-      id: 5,
-      category: "Quiz Packs",
-      title: "Grammar Guru Pack",
-      description: "75 advanced English quizzes",
-      price: 400,
-      icon: "📖",
-      color: "from-violet-500 to-purple-600",
-      badge: "New",
-    },
-    {
-      id: 6,
-      category: "Power-ups",
-      title: "XP Multiplier x3",
-      description: "1 hour of triple XP",
-      price: 600,
-      icon: "🚀",
-      color: "from-red-500 to-orange-600",
-      badge: "Hot",
-    },
-    {
-      id: 7,
-      category: "Flashcard Decks",
-      title: "Vocabulary Vault",
-      description: "200 SAT words",
-      price: 500,
-      icon: "💎",
-      color: "from-indigo-500 to-purple-600",
-      badge: null,
-    },
-    {
-      id: 8,
-      category: "Cosmetics",
-      title: "Rainbow Name Tag",
-      description: "Animated username effect",
-      price: 650,
-      icon: "🌈",
-      color: "from-pink-500 to-violet-600",
-      badge: null,
-    },
-    {
-      id: 9,
-      category: "Quiz Packs",
-      title: "Mystery Box",
-      description: "Random quiz pack - any subject!",
-      price: 300,
-      icon: "🎁",
-      color: "from-purple-600 to-pink-600",
-      badge: null,
-    },
-  ];
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const res = await marketplaceApi.getProducts();
+        setProducts(res.data);
+      } catch (error) {
+        console.error("Failed to fetch products", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProducts();
+  }, []);
+
+  const handleBuy = async (product: Product) => {
+    try {
+      if (!userId) {
+        toast.error("Vui lòng đăng nhập để mua hàng");
+        return;
+      }
+
+      toast.loading("Đang xử lý yêu cầu...", { id: "buy-product" });
+      await marketplaceApi.createOrder(userId, [
+        {
+          productId: product.id,
+          productType: product.type,
+          referenceId: product.referenceId,
+          productName: product.name,
+          unitPrice: product.price,
+          quantity: 1,
+          sellerUserId: product.sellerUserId,
+        },
+      ]);
+
+      toast.success("Đã mua hàng thành công!", { id: "buy-product" });
+    } catch (error: any) {
+      console.error(error);
+      const errorMessage =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        "Mua hàng thất bại";
+      toast.error(errorMessage, { id: "buy-product" });
+    }
+  };
 
   return (
     <div className="p-8">
@@ -154,23 +68,6 @@ function Marketplace() {
         </p>
       </div>
 
-      {/* Limited Time Offers */}
-      <div className="mb-12">
-        <div className="flex items-center gap-3 mb-6">
-          <Flame className="w-6 h-6 text-[var(--accent)]" />
-          <h2 className="text-xl font-bold text-[var(--foreground)]">
-            Limited Time Offers
-          </h2>
-          <Clock className="w-5 h-5 text-[var(--accent)]" />
-        </div>
-
-        <div className="grid md:grid-cols-2 gap-6">
-          {limitedOffers.map((offer) => (
-            <MarketplaceOfferCard key={offer.id} {...offer} />
-          ))}
-        </div>
-      </div>
-
       {/* All Items */}
       <div>
         <div className="flex items-center gap-3 mb-6">
@@ -180,11 +77,56 @@ function Marketplace() {
           </h2>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {items.map((item) => (
-            <MarketplaceItemCard key={item.id} {...item} />
-          ))}
-        </div>
+        {loading ? (
+          <p>Loading items...</p>
+        ) : products.length === 0 ? (
+          <p className="text-[var(--muted-foreground)]">
+            Chưa có sản phẩm nào trên chợ.
+          </p>
+        ) : (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {products.map((item) => (
+              <div
+                key={item.id}
+                className="group relative bg-[var(--card)] border border-[var(--border)] rounded-2xl p-6 hover:border-[var(--primary)] transition-all overflow-hidden"
+              >
+                <div className="flex justify-between items-start mb-4">
+                  <div className="px-3 py-1 bg-[var(--primary)]/10 text-[var(--primary)] rounded-full text-xs font-bold uppercase tracking-wider">
+                    {item.type === "FLASHCARD" ? "Flashcards" : "Quiz"}
+                  </div>
+                </div>
+
+                <div className="text-5xl mb-4 text-center">
+                  {item.type === "FLASHCARD" ? "📚" : "❓"}
+                </div>
+
+                <h3 className="text-xl font-bold text-white mb-2 text-center">
+                  {item.name}
+                </h3>
+                <p className="text-sm text-[var(--muted-foreground)] text-center mb-6 line-clamp-2">
+                  {item.description || "Chưa có mô tả"}
+                </p>
+
+                <div className="flex justify-between items-center mt-auto">
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl font-black text-amber-400">
+                      {item.price}
+                    </span>
+                    <span className="text-sm text-amber-500 font-bold uppercase">
+                      Coins
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => handleBuy(item)}
+                    className="px-6 py-2 bg-[var(--primary)] hover:bg-[var(--primary)]/90 text-white rounded-xl font-bold transition-colors"
+                  >
+                    Buy
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

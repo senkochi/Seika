@@ -25,6 +25,11 @@ public class RabbitMQConfig {
     public static final String CONTENT_PURCHASED_ROUTING_KEY = "content.purchased";
     public static final String PROFILE_CONTENT_PURCHASED_QUEUE = "profile.content-purchased";
 
+    // ── Identity events exchange ──
+    public static final String IDENTITY_EVENTS_EXCHANGE = "identity.events";
+    public static final String USER_REGISTERED_ROUTING_KEY = "user.registered";
+    public static final String PROFILE_USER_REGISTERED_QUEUE = "profile.user-registered";
+
     @Bean
     public TopicExchange contentEventsExchange() {
         return new TopicExchange(CONTENT_EVENTS_EXCHANGE, true, false);
@@ -33,6 +38,11 @@ public class RabbitMQConfig {
     @Bean
     public TopicExchange marketplaceEventsExchange() {
         return new TopicExchange(MARKETPLACE_EVENTS_EXCHANGE, true, false);
+    }
+
+    @Bean
+    public TopicExchange identityEventsExchange() {
+        return new TopicExchange(IDENTITY_EVENTS_EXCHANGE, true, false);
     }
 
     @Bean
@@ -48,6 +58,11 @@ public class RabbitMQConfig {
     @Bean
     public Queue profileContentPurchasedQueue() {
         return new Queue(PROFILE_CONTENT_PURCHASED_QUEUE, true);
+    }
+
+    @Bean
+    public Queue profileUserRegisteredQueue() {
+        return new Queue(PROFILE_USER_REGISTERED_QUEUE, true);
     }
 
     @Bean
@@ -69,6 +84,13 @@ public class RabbitMQConfig {
         return BindingBuilder.bind(profileContentPurchasedQueue)
                 .to(marketplaceEventsExchange)
                 .with(CONTENT_PURCHASED_ROUTING_KEY);
+    }
+
+    @Bean
+    public Binding profileUserRegisteredBinding(Queue profileUserRegisteredQueue, TopicExchange identityEventsExchange) {
+        return BindingBuilder.bind(profileUserRegisteredQueue)
+                .to(identityEventsExchange)
+                .with(USER_REGISTERED_ROUTING_KEY);
     }
 
     @Bean

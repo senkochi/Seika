@@ -1,89 +1,72 @@
+import { useEffect, useState } from "react";
 import { Sparkles, TrendingUp, TrendingDown, Zap, Coins } from "lucide-react";
 import StudentActionButton from "@/components/student/StudentActionButton";
 import StudentBadge from "@/components/student/StudentBadge";
+import { walletService } from "@/api";
+import { useAppSelector } from "@/store/hooks";
+
+interface Transaction {
+  id: string;
+  amount: number;
+  type: string;
+  description: string;
+  createdAt: string;
+}
 
 function Wallet() {
-  const walletStats = {
-    totalCoin: 2847,
-    earnedToday: 350,
-    spentThisWeek: 1200,
-    rank: "Gold Collector",
+  const { currentStreak } = useAppSelector((state) => state.userProfile);
+  const [balance, setBalance] = useState<number>(0);
+  const [history, setHistory] = useState<Transaction[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const fetchWalletData = async () => {
+    setLoading(true);
+    try {
+      const balanceRes = await walletService.getBalance();
+      setBalance(balanceRes.balance || 0);
+
+      const historyRes = await walletService.getHistory();
+      if (Array.isArray(historyRes)) {
+        setHistory(historyRes);
+      } else if (historyRes && Array.isArray(historyRes.data)) {
+        setHistory(historyRes.data);
+      }
+    } catch (err) {
+      console.error(err);
+      // fallback handled if error
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const treasureLog = [
-    {
-      id: 1,
-      type: "earn",
-      title: "Quiz Victory",
-      description: 'Completed "Algebra Adventure"',
-      amount: 150,
-      icon: "🏆",
-      color: "from-green-500 to-emerald-600",
-      time: "2 hours ago",
-      category: "Quest Reward",
-    },
-    {
-      id: 2,
-      type: "earn",
-      title: "7-Day Streak Bonus",
-      description: "Maintained your learning streak",
-      amount: 200,
-      icon: "🔥",
-      color: "from-orange-500 to-red-600",
-      time: "5 hours ago",
-      category: "Achievement",
-    },
-    {
-      id: 3,
-      type: "spend",
-      title: "Streak Freeze",
-      description: "Purchased from Marketplace",
-      amount: -150,
-      icon: "🛡️",
-      color: "from-cyan-400 to-blue-500",
-      time: "1 day ago",
-      category: "Power-up",
-    },
-    {
-      id: 4,
-      type: "earn",
-      title: "Flashcard Master",
-      description: 'Mastered 50 cards in "English Vocabulary"',
-      amount: 100,
-      icon: "⭐",
-      color: "from-purple-500 to-violet-600",
-      time: "1 day ago",
-      category: "Learning Milestone",
-    },
-    {
-      id: 5,
-      type: "spend",
-      title: "Golden Avatar Frame",
-      description: "Purchased from Marketplace",
-      amount: -800,
-      icon: "✨",
-      color: "from-amber-400 to-yellow-500",
-      time: "2 days ago",
-      category: "Cosmetic",
-    },
-  ];
+  useEffect(() => {
+    fetchWalletData();
+  }, []);
+
+  const totalEarned = history
+    .filter((t) => t.type === "EARN" || t.type === "REWARD" || t.amount > 0)
+    .reduce((sum, t) => sum + Math.abs(t.amount), 0);
+
+  const totalSpent = history
+    .filter((t) => t.type === "WITHDRAW" || t.type === "SPEND" || t.amount < 0)
+    .reduce((sum, t) => sum + Math.abs(t.amount), 0);
 
   const quickStats = [
     {
       label: "Total Earned",
-      value: "12,450",
+      value: `+${totalEarned.toLocaleString()}`,
       icon: TrendingUp,
       color: "text-green-400",
     },
     {
       label: "Total Spent",
-      value: "9,603",
+      value: `-${totalSpent.toLocaleString()}`,
       icon: TrendingDown,
       color: "text-orange-400",
     },
     {
       label: "Active Streak",
-      value: "7 Days",
+      value: `${currentStreak ?? 0} Days`,
       icon: Zap,
       color: "text-amber-400",
     },
@@ -115,26 +98,10 @@ function Wallet() {
                       Your Balance
                     </p>
                     <p className="text-purple-950 text-4xl font-black">
-                      {walletStats.totalCoin.toLocaleString()}
+                      {loading ? "..." : balance.toLocaleString()}
                     </p>
                     <p className="text-purple-900/90 text-sm font-semibold">
                       Coin
-                    </p>
-                  </div>
-                </div>
-                <div className="mt-4 pt-4 border-t border-white/40 flex items-center justify-between">
-                  <div>
-                    <p className="text-white/85 text-xs font-semibold">Rank</p>
-                    <p className="text-purple-950 font-black">
-                      {walletStats.rank}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-white/85 text-xs font-semibold">
-                      Earned Today
-                    </p>
-                    <p className="text-purple-950 font-black">
-                      +{walletStats.earnedToday}
                     </p>
                   </div>
                 </div>
@@ -176,75 +143,78 @@ function Wallet() {
         <div className="flex items-center gap-3 mb-6">
           <Coins className="w-8 h-8 text-[var(--primary)]" />
           <h2 className="text-3xl font-black text-[var(--foreground)]">
-            Treasure Log
+            Transaction History
           </h2>
         </div>
 
         <div className="max-h-[28rem] lg:max-h-[34rem] overflow-y-auto pr-2 space-y-4">
-          {treasureLog.map((entry) => (
-            <div
-              key={entry.id}
-              className="group relative bg-[var(--card)] backdrop-blur-xl border border-[var(--border)] rounded-3xl p-6 shadow-[0_20px_60px_rgba(10,10,20,0.18)] hover:border-[var(--ring)] transition-all"
-            >
-              <div className="flex items-center gap-6">
-                {/* Icon */}
-                <div
-                  className={`w-16 h-16 bg-gradient-to-br ${entry.color} rounded-2xl flex items-center justify-center text-3xl shadow-lg transition-transform`}
-                >
-                  {entry.icon}
-                </div>
-
-                {/* Content */}
-                <div className="flex-1">
-                  <div className="flex items-start justify-between mb-2">
-                    <div>
-                      <h3 className="text-xl font-black text-[var(--foreground)] mb-1">
-                        {entry.title}
-                      </h3>
-                      <p className="text-[var(--muted-foreground)] text-sm">
-                        {entry.description}
-                      </p>
-                    </div>
-                    <div className={`text-right`}>
-                      <p
-                        className={`text-3xl font-black ${entry.type === "earn" ? "text-green-400" : "text-orange-400"}`}
-                      >
-                        {entry.type === "earn" ? "+" : ""}
-                        {entry.amount}
-                      </p>
-                      <p className="text-[var(--muted-foreground)] text-xs">
-                        Coin
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-4">
-                    <StudentBadge variant="glass" uppercase={false}>
-                      {entry.category}
-                    </StudentBadge>
-                    <span className="text-[var(--muted-foreground)] text-xs">
-                      {entry.time}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Indicator icon */}
-                <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                    entry.type === "earn"
-                      ? "bg-green-500/20 border-2 border-green-500/50"
-                      : "bg-orange-500/20 border-2 border-orange-500/50"
-                  }`}
-                >
-                  {entry.type === "earn" ? (
-                    <TrendingUp className="w-5 h-5 text-green-400" />
-                  ) : (
-                    <TrendingDown className="w-5 h-5 text-orange-400" />
-                  )}
-                </div>
-              </div>
+          {history.length === 0 ? (
+            <div className="text-[var(--muted-foreground)]">
+              No transactions recorded yet.
             </div>
-          ))}
+          ) : (
+            history.map((entry) => {
+              const isEarn =
+                entry.type === "EARN" ||
+                entry.type === "REWARD" ||
+                entry.amount > 0;
+              return (
+                <div
+                  key={entry.id}
+                  className="group relative bg-[var(--card)] backdrop-blur-xl border border-[var(--border)] rounded-3xl p-6 shadow-[0_20px_60px_rgba(10,10,20,0.18)] hover:border-[var(--ring)] transition-all"
+                >
+                  <div className="flex items-center gap-6">
+                    {/* Icon */}
+                    <div
+                      className={`w-16 h-16 bg-gradient-to-br ${isEarn ? "from-green-500 to-emerald-600" : "from-orange-500 to-red-600"} rounded-2xl flex items-center justify-center text-3xl shadow-lg transition-transform`}
+                    >
+                      {isEarn ? "💎" : "🛡️"}
+                    </div>
+
+                    {/* Content */}
+                    <div className="flex-1">
+                      <div className="flex items-start justify-between mb-2">
+                        <div>
+                          <h3 className="text-xl font-black text-[var(--foreground)] mb-1">
+                            {entry.description}
+                          </h3>
+                          <p className="text-[var(--muted-foreground)] text-sm">
+                            {new Date(entry.createdAt).toLocaleString()}
+                          </p>
+                        </div>
+                        <div className={`text-right`}>
+                          <p
+                            className={`text-3xl font-black ${isEarn ? "text-green-400" : "text-orange-400"}`}
+                          >
+                            {isEarn ? "+" : "-"}
+                            {Math.abs(entry.amount)}
+                          </p>
+                          <p className="text-[var(--muted-foreground)] text-xs">
+                            Coin
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Indicator icon */}
+                    <div
+                      className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                        isEarn
+                          ? "bg-green-500/20 border-2 border-green-500/50"
+                          : "bg-orange-500/20 border-2 border-orange-500/50"
+                      }`}
+                    >
+                      {isEarn ? (
+                        <TrendingUp className="w-5 h-5 text-green-400" />
+                      ) : (
+                        <TrendingDown className="w-5 h-5 text-orange-400" />
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })
+          )}
         </div>
       </div>
 
@@ -255,7 +225,7 @@ function Wallet() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-[var(--muted-foreground)] mb-2">
-                Keep learning to earn more Xu!
+                Keep learning to earn more Coins!
               </p>
               <p className="text-[var(--foreground)] text-lg font-black">
                 Complete quizzes, maintain streaks, and master new skills.
