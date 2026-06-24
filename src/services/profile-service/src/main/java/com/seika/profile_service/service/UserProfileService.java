@@ -51,6 +51,7 @@ public class UserProfileService {
             .level(1) 
             .currentStreak(0)
             .longestStreak(0)
+            .quizzesCompleted(0)
             .lastActiveDate(null)
             .build();
 

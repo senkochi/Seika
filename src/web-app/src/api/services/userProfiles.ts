@@ -49,4 +49,11 @@ export const userProfilesService = {
     );
     return response.data;
   },
+
+  getTeacherProfile: async () => {
+    const response = await apiClient.get<
+      import("../types").TeacherProfileResponse
+    >("/profiles/teacher/me");
+    return response.data;
+  },
 };

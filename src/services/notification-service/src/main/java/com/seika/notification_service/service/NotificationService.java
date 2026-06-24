@@ -28,6 +28,7 @@ public class NotificationService {
 
     private final NotificationRepository notificationRepository;
     private final NotificationMapper notificationMapper;
+    private final SseService sseService;
 
     // @Transactional (MongoDB đang ở chế độ standalone - do đang local, không hỗ trợ transaction, khi nào deploy lên cluster thì sẽ bật lại)
     public NotificationResponse createNotification(CreateNotificationRequest request) {
@@ -59,7 +60,12 @@ public class NotificationService {
         notification.setCreatedAt(Instant.now());
 
         Notification saved = notificationRepository.save(notification);
-        return notificationMapper.toResponse(saved);
+        NotificationResponse response = notificationMapper.toResponse(saved);
+        
+        // Push SSE event
+        sseService.sendNotification(saved.getUserId(), response);
+        
+        return response;
     }
 
     public Page<NotificationResponse> getNotificationsByUser(String userId, int page, int size) {

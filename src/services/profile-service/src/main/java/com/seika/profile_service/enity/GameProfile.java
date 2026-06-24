@@ -33,4 +33,7 @@ public class GameProfile {
 
     @Column(name = "last_active_date")
     LocalDate lastActiveDate;
+
+    @Column(name = "quizzes_completed")
+    Integer quizzesCompleted;
 }

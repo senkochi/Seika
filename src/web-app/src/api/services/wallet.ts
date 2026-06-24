@@ -30,9 +30,10 @@ export const walletService = {
     return { balance: Number(data) || 0 };
   },
 
-  getHistory: async () => {
+  getHistory: async (): Promise<TransactionResponse[]> => {
     // API POST /api/wallet/history (Theo định nghĩa Swagger ở wallet.json là POST)
-    const response = await apiClient.post<any>("/wallet/history");
+    const response =
+      await apiClient.post<TransactionResponse[]>("/wallet/history");
     return response.data;
   },
 

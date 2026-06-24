@@ -82,6 +82,7 @@ public class WalletService {
     private TransactionDTO toDto(Transaction transaction){
         return TransactionDTO.builder()
                 .id(transaction.getId().toString())
+                .type(transaction.getType().toString())
                 .amount(transaction.getAmount())
                 .description(transaction.getDescription())
                 .createdAt(transaction.getCreatedAt())

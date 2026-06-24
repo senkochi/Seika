@@ -78,6 +78,10 @@ spring:
               uri: lb://MARKETPLACE-SERVICE
               predicates:
                 - Path=/api/marketplace/**,/api/marketplace
+            - id: notification-route
+              uri: lb://NOTIFICATION-SERVICE
+              predicates:
+                - Path=/api/notifications/**,/api/notifications
           discovery:
             locator:
               enabled: false

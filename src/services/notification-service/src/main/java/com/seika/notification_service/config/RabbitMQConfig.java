@@ -12,6 +12,10 @@ public class RabbitMQConfig {
     public static final String USER_REGISTERED_QUEUE = "notification.user-events";
     public static final String USER_REGISTERED_ROUTING_KEY = "user.registered";
 
+    public static final String MARKETPLACE_EXCHANGE = "marketplace.events";
+    public static final String MARKETPLACE_QUEUE = "notification.marketplace-events";
+    public static final String CONTENT_PURCHASED_ROUTING_KEY = "content.purchased";
+
     @Bean
     public TopicExchange userRegisteredExchange() {
         return new TopicExchange(USER_REGISTERED_EXCHANGE);
@@ -28,6 +32,24 @@ public class RabbitMQConfig {
           .bind(userRegisteredQueue)
           .to(userRegisteredExchange)
           .with(USER_REGISTERED_ROUTING_KEY);
+    }
+
+    @Bean
+    public TopicExchange marketplaceExchange() {
+        return new TopicExchange(MARKETPLACE_EXCHANGE);
+    }
+
+    @Bean
+    public Queue marketplaceQueue() {
+        return new Queue(MARKETPLACE_QUEUE, true);
+    }
+
+    @Bean
+    public Binding marketplaceBinding(Queue marketplaceQueue, TopicExchange marketplaceExchange) {
+      return BindingBuilder
+          .bind(marketplaceQueue)
+          .to(marketplaceExchange)
+          .with(CONTENT_PURCHASED_ROUTING_KEY);
     }
     
     // Vì mặc định RabbitMQ sử dụng dữ liệu nhị phân, nên chúng ta cần một MessageConverter để chuyển đổi giữa JSON và đối tượng Java

@@ -1,4 +1,4 @@
-import { BookOpen, Target, Lock } from "lucide-react";
+import { BookOpen, Target } from "lucide-react";
 import StudentActionButton from "@/components/student/StudentActionButton";
 import StudentBadge from "@/components/student/StudentBadge";
 import { useEffect, useState } from "react";
