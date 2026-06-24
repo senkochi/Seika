@@ -21,6 +21,10 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+import org.springframework.http.MediaType;
+
+import com.seika.notification_service.service.SseService;
 
 @RestController
 @RequestMapping("/api/notifications")
@@ -28,6 +32,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class NotificationController {
 
     private final NotificationService notificationService;
+    private final SseService sseService;
+
+    @GetMapping(path = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public SseEmitter subscribe(@RequestHeader("X-User-Id") String userId) {
+        return sseService.subscribe(userId);
+    }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)

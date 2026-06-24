@@ -19,6 +19,13 @@ import {
   clearUserProfile,
   fetchCurrentUserProfile,
 } from "../store/userProfileSlice";
+import { useNotificationSSE } from "../hooks/useNotificationSSE";
+import {
+  fetchNotifications,
+  markAsRead,
+  markAllAsRead,
+} from "../store/notificationSlice";
+import { formatDistanceToNow } from "date-fns";
 
 function StudentDashboardLayout() {
   const navigate = useNavigate();
@@ -37,40 +44,25 @@ function StudentDashboardLayout() {
       dispatch(fetchCurrentUserProfile());
     }
   }, [dispatch, status]);
-  const authUsername = useAppSelector((state) => state.auth.username);
 
+  const authUsername = useAppSelector((state) => state.auth.username);
   const displayName = fullName ?? username ?? authUsername ?? "Learner";
+
+  // Use real notifications
+  useNotificationSSE();
+  const { items: notifications, unreadCount } = useAppSelector(
+    (state) => state.notifications,
+  );
+
+  useEffect(() => {
+    dispatch(fetchNotifications());
+  }, [dispatch]);
 
   const handleLogout = () => {
     dispatch(logout());
     dispatch(clearUserProfile());
     navigate("/auth/login");
   };
-
-  const mockNotifications = [
-    {
-      id: 1,
-      title: "New Assignment",
-      message: "React Basics assignment is due tomorrow.",
-      time: "2 hours ago",
-      isRead: false,
-    },
-    {
-      id: 2,
-      title: "Grade Posted",
-      message: "Your Midterm grade has been updated.",
-      time: "5 hours ago",
-      isRead: true,
-    },
-    {
-      id: 3,
-      title: "Course Announcement",
-      message: "Tomorrow's live session will start 15 minutes late.",
-      time: "1 day ago",
-      isRead: true,
-    },
-  ];
-
   const navItems = [
     { id: "home", label: "Dashboard", icon: Home, path: "/student/dashboard" },
     {
@@ -218,7 +210,9 @@ function StudentDashboardLayout() {
                   className="relative p-3 bg-[rgba(255,255,255,0.06)] border border-[var(--border)] rounded-xl hover:bg-[rgba(255,255,255,0.1)] transition-colors"
                 >
                   <Bell className="w-5 h-5 text-[var(--muted-foreground)]" />
-                  <div className="absolute top-2 right-2 w-2 h-2 bg-[var(--primary)] rounded-full"></div>
+                  {unreadCount > 0 && (
+                    <div className="absolute top-2 right-2 w-2 h-2 bg-[var(--primary)] rounded-full"></div>
+                  )}
                 </button>
 
                 {notificationsOpen && (
@@ -227,36 +221,58 @@ function StudentDashboardLayout() {
                       <h3 className="font-bold text-[var(--foreground)]">
                         Notifications
                       </h3>
-                      <button className="text-xs text-[var(--primary)] hover:underline">
-                        Mark all as read
-                      </button>
+                      {unreadCount > 0 && (
+                        <button
+                          onClick={() => dispatch(markAllAsRead())}
+                          className="text-xs text-[var(--primary)] hover:underline"
+                        >
+                          Mark all as read
+                        </button>
+                      )}
                     </div>
                     <div className="max-h-80 overflow-y-auto custom-scrollbar">
-                      {mockNotifications.map((notif) => (
-                        <div
-                          key={notif.id}
-                          className={`p-4 border-b border-[var(--border)] hover:bg-[rgba(255,255,255,0.06)] transition-colors cursor-pointer ${
-                            !notif.isRead ? "bg-[rgba(255,255,255,0.02)]" : ""
-                          }`}
-                        >
-                          <div className="flex justify-between items-start mb-1">
-                            <h4
-                              className={`text-sm font-bold ${!notif.isRead ? "text-[var(--foreground)]" : "text-[var(--muted-foreground)]"}`}
-                            >
-                              {notif.title}
-                            </h4>
-                            {!notif.isRead && (
-                              <span className="w-2 h-2 rounded-full bg-[var(--primary)] mt-1.5 flex-shrink-0"></span>
-                            )}
-                          </div>
-                          <p className="text-xs text-[var(--muted-foreground)] line-clamp-2">
-                            {notif.message}
-                          </p>
-                          <span className="text-[10px] text-[var(--muted-foreground)] mt-2 block">
-                            {notif.time}
-                          </span>
+                      {notifications.length === 0 ? (
+                        <div className="p-4 text-center text-sm text-[var(--muted-foreground)]">
+                          No notifications yet.
                         </div>
-                      ))}
+                      ) : (
+                        notifications.map((notif) => {
+                          const isUnread = notif.status === "UNREAD";
+                          return (
+                            <div
+                              key={notif.id}
+                              onClick={() => {
+                                if (isUnread) dispatch(markAsRead(notif.id));
+                              }}
+                              className={`p-4 border-b border-[var(--border)] hover:bg-[rgba(255,255,255,0.06)] transition-colors cursor-pointer ${
+                                isUnread ? "bg-[rgba(255,255,255,0.02)]" : ""
+                              }`}
+                            >
+                              <div className="flex justify-between items-start mb-1">
+                                <h4
+                                  className={`text-sm font-bold ${isUnread ? "text-[var(--foreground)]" : "text-[var(--muted-foreground)]"}`}
+                                >
+                                  {notif.title}
+                                </h4>
+                                {isUnread && (
+                                  <span className="w-2 h-2 rounded-full bg-[var(--primary)] mt-1.5 flex-shrink-0"></span>
+                                )}
+                              </div>
+                              <p className="text-xs text-[var(--muted-foreground)] line-clamp-2">
+                                {notif.content}
+                              </p>
+                              <span className="text-[10px] text-[var(--muted-foreground)] mt-2 block">
+                                {formatDistanceToNow(
+                                  new Date(notif.createdAt),
+                                  {
+                                    addSuffix: true,
+                                  },
+                                )}
+                              </span>
+                            </div>
+                          );
+                        })
+                      )}
                     </div>
                     <div className="p-3 border-t border-[var(--border)] text-center bg-[rgba(255,255,255,0.02)]">
                       <button className="text-sm font-bold text-[var(--primary)] hover:underline">

@@ -1,6 +1,4 @@
-import { Clock, Flame, Store } from "lucide-react";
-import MarketplaceOfferCard from "@/components/student/MarketplaceOfferCard";
-import MarketplaceItemCard from "@/components/student/MarketplaceItemCard";
+import { Store } from "lucide-react";
 import { useEffect, useState } from "react";
 import { marketplaceApi, Product } from "@/api";
 import { useAppSelector } from "@/store/hooks";

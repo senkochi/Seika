@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
-import { Sparkles, TrendingUp, TrendingDown, Zap, Coins } from "lucide-react";
+import { TrendingUp, TrendingDown, Zap, Coins } from "lucide-react";
 import StudentActionButton from "@/components/student/StudentActionButton";
-import StudentBadge from "@/components/student/StudentBadge";
 import { walletService } from "@/api";
 import { useAppSelector } from "@/store/hooks";
 
@@ -28,8 +27,8 @@ function Wallet() {
       const historyRes = await walletService.getHistory();
       if (Array.isArray(historyRes)) {
         setHistory(historyRes);
-      } else if (historyRes && Array.isArray(historyRes.data)) {
-        setHistory(historyRes.data);
+      } else if (historyRes && Array.isArray((historyRes as any).data)) {
+        setHistory((historyRes as any).data);
       }
     } catch (err) {
       console.error(err);

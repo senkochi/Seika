@@ -62,6 +62,7 @@ export type UserProfileResponse = {
   level?: number;
   currentStreak?: number;
   longestStreak?: number;
+  quizzesCompleted?: number;
 };
 
 // Flashcard types
@@ -152,4 +153,36 @@ export interface TeacherProfileResponse {
   totalQuizCreated: number;
   totalFlashcardsCreated: number;
   totalStudentsReached: number;
+}
+
+// Notification types
+export type NotificationType =
+  | "SYSTEM"
+  | "QUIZ_COMPLETED"
+  | "ORDER_COMPLETED"
+  | "WALLET_UPDATED";
+export type NotificationStatus = "UNREAD" | "READ" | "SENT";
+export type NotificationChannel = "IN_APP" | "EMAIL" | "SMS";
+
+export interface NotificationResponse {
+  id: string;
+  userId: string;
+  type: NotificationType;
+  channel: NotificationChannel;
+  status: NotificationStatus;
+  title: string;
+  content: string;
+  eventId?: string;
+  createdAt: string;
+  readAt?: string;
+}
+
+export interface MarkAllAsReadResponse {
+  userId: string;
+  updatedCount: number;
+}
+
+export interface UnreadCountResponse {
+  userId: string;
+  unreadCount: number;
 }

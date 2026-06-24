@@ -1,15 +1,13 @@
 import { useEffect, useState } from "react";
 import {
-  Coins,
   TrendingUp,
   TrendingDown,
-  ArrowUpRight,
   Loader2,
   DollarSign,
   Zap,
 } from "lucide-react";
 import { walletService } from "../../api";
-import { showSuccess, showError } from "../../components/toast/toastUtils";
+import { showError } from "../../components/toast/toastUtils";
 import { useAppSelector } from "../../store/hooks";
 
 interface Transaction {
@@ -37,8 +35,8 @@ function TeacherWallet() {
       // Xử lý dữ liệu history trả về từ API
       if (Array.isArray(historyRes)) {
         setHistory(historyRes);
-      } else if (historyRes && Array.isArray(historyRes.data)) {
-        setHistory(historyRes.data);
+      } else if (historyRes && Array.isArray((historyRes as any).data)) {
+        setHistory((historyRes as any).data);
       } else {
         setHistory([]);
       }
