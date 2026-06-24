@@ -25,6 +25,8 @@ function TeacherDashboardLayout() {
   const location = useLocation();
   const [avatarMenuOpen, setAvatarMenuOpen] = useState(false);
   const avatarMenuRef = useRef<HTMLDivElement | null>(null);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const notificationsRef = useRef<HTMLDivElement | null>(null);
 
   const dispatch = useAppDispatch();
   const { fullName, username, profilePictureUrl, status } = useAppSelector(
@@ -59,6 +61,30 @@ function TeacherDashboardLayout() {
     navigate("/auth/login");
   };
 
+  const mockNotifications = [
+    {
+      id: 1,
+      title: "New Course Assignment",
+      message: "You have been assigned to teach React Advanced.",
+      time: "2 hours ago",
+      isRead: false,
+    },
+    {
+      id: 2,
+      title: "System Update",
+      message: "Scheduled maintenance at midnight. Please save your work.",
+      time: "5 hours ago",
+      isRead: true,
+    },
+    {
+      id: 3,
+      title: "New Student Enrollment",
+      message: "John Doe has enrolled in your Math 101 course.",
+      time: "1 day ago",
+      isRead: true,
+    },
+  ];
+
   const navItems = [
     { id: "home", label: "Dashboard", icon: Home, path: "/teacher/dashboard" },
     {
@@ -89,11 +115,18 @@ function TeacherDashboardLayout() {
       ) {
         setAvatarMenuOpen(false);
       }
+      if (
+        notificationsRef.current &&
+        !notificationsRef.current.contains(event.target as Node)
+      ) {
+        setNotificationsOpen(false);
+      }
     };
 
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         setAvatarMenuOpen(false);
+        setNotificationsOpen(false);
       }
     };
 
@@ -173,7 +206,7 @@ function TeacherDashboardLayout() {
       {/* Main Content */}
       <div className="ml-64 flex min-h-[100dvh] min-w-0 flex-col overflow-hidden">
         {/* Top Header */}
-        <header className="bg-[rgba(24,18,45,0.9)] border-b border-[var(--border)] px-8 py-4 shadow-[0_12px_40px_rgba(10,10,20,0.18)] backdrop-blur-xl">
+        <header className="relative z-50 bg-[rgba(24,18,45,0.9)] border-b border-[var(--border)] px-8 py-4 shadow-[0_12px_40px_rgba(10,10,20,0.18)] backdrop-blur-xl">
           <div className="flex items-center justify-between">
             {/* Search */}
             <div className="flex-1 max-w-xl">
@@ -189,10 +222,61 @@ function TeacherDashboardLayout() {
 
             {/* Right Actions */}
             <div className="flex items-center gap-4">
-              <button className="relative p-3 bg-[rgba(255,255,255,0.06)] border border-[var(--border)] rounded-xl hover:bg-[rgba(255,255,255,0.1)] transition-colors">
-                <Bell className="w-5 h-5 text-[var(--muted-foreground)]" />
-                <div className="absolute top-2 right-2 w-2 h-2 bg-[var(--primary)] rounded-full"></div>
-              </button>
+              <div ref={notificationsRef} className="relative">
+                <button
+                  type="button"
+                  onClick={() => setNotificationsOpen((prev) => !prev)}
+                  className="relative p-3 bg-[rgba(255,255,255,0.06)] border border-[var(--border)] rounded-xl hover:bg-[rgba(255,255,255,0.1)] transition-colors"
+                >
+                  <Bell className="w-5 h-5 text-[var(--muted-foreground)]" />
+                  <div className="absolute top-2 right-2 w-2 h-2 bg-[var(--primary)] rounded-full"></div>
+                </button>
+
+                {notificationsOpen && (
+                  <div className="absolute right-0 top-[calc(100%+0.75rem)] z-30 w-80 overflow-hidden rounded-2xl border border-[var(--border)] bg-[rgba(24,18,45,0.98)] shadow-[0_24px_80px_rgba(10,10,20,0.35)] backdrop-blur-xl">
+                    <div className="p-4 border-b border-[var(--border)] flex justify-between items-center">
+                      <h3 className="font-bold text-[var(--foreground)]">
+                        Notifications
+                      </h3>
+                      <button className="text-xs text-[var(--primary)] hover:underline">
+                        Mark all as read
+                      </button>
+                    </div>
+                    <div className="max-h-80 overflow-y-auto custom-scrollbar">
+                      {mockNotifications.map((notif) => (
+                        <div
+                          key={notif.id}
+                          className={`p-4 border-b border-[var(--border)] hover:bg-[rgba(255,255,255,0.06)] transition-colors cursor-pointer ${
+                            !notif.isRead ? "bg-[rgba(255,255,255,0.02)]" : ""
+                          }`}
+                        >
+                          <div className="flex justify-between items-start mb-1">
+                            <h4
+                              className={`text-sm font-bold ${!notif.isRead ? "text-[var(--foreground)]" : "text-[var(--muted-foreground)]"}`}
+                            >
+                              {notif.title}
+                            </h4>
+                            {!notif.isRead && (
+                              <span className="w-2 h-2 rounded-full bg-[var(--primary)] mt-1.5 flex-shrink-0"></span>
+                            )}
+                          </div>
+                          <p className="text-xs text-[var(--muted-foreground)] line-clamp-2">
+                            {notif.message}
+                          </p>
+                          <span className="text-[10px] text-[var(--muted-foreground)] mt-2 block">
+                            {notif.time}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="p-3 border-t border-[var(--border)] text-center bg-[rgba(255,255,255,0.02)]">
+                      <button className="text-sm font-bold text-[var(--primary)] hover:underline">
+                        View all notifications
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
 
               {/* User Avatar */}
               <div
