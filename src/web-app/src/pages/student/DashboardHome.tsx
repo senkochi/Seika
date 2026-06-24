@@ -1,19 +1,20 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
-  Sparkles,
   TrendingUp,
   TrendingDown,
   Zap,
   Target,
-  Trophy,
   ArrowRight,
   Sword,
   Swords,
   Loader2,
+  Clock,
 } from "lucide-react";
 
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { fetchCurrentUserProfile } from "../../store/userProfileSlice";
+import { walletService } from "../../api";
+import type { TransactionResponse } from "../../api";
 
 // Hằng số XP cần để lên level (có thể mở rộng thành công thức sau)
 const XP_PER_LEVEL = 1000;
@@ -29,7 +30,12 @@ function DashboardHome() {
     exp,
     currentStreak,
     longestStreak,
+    quizzesCompleted,
   } = useAppSelector((state) => state.userProfile);
+
+  const [recentTransactions, setRecentTransactions] = useState<
+    TransactionResponse[]
+  >([]);
 
   // Lấy username từ auth state để dùng khi profile chưa load xong
   const authUsername = useAppSelector((state) => state.auth.username);
@@ -39,6 +45,25 @@ function DashboardHome() {
     if (status === "idle") {
       dispatch(fetchCurrentUserProfile());
     }
+
+    // Fetch wallet history
+    const fetchHistory = async () => {
+      try {
+        const history = await walletService.getHistory();
+        // Lọc các giao dịch tiêu tiền (mua bài học/quiz)
+        const spendings = history
+          .filter((tx) => tx.type === "WITHDRAW" || tx.type === "SPEND")
+          .sort(
+            (a, b) =>
+              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+          )
+          .slice(0, 5);
+        setRecentTransactions(spendings);
+      } catch (err) {
+        console.error("Failed to fetch wallet history", err);
+      }
+    };
+    fetchHistory();
   }, [dispatch, status]);
 
   // Tính toán XP progress trong level hiện tại
@@ -58,45 +83,11 @@ function DashboardHome() {
     },
     {
       label: "Quizzes Completed",
-      value: "0",
-      trend: "+0%",
+      value: quizzesCompleted.toString(),
+      trend: "+1",
       trendUp: true,
       icon: Target,
       color: "from-purple-500 to-violet-600",
-    },
-  ];
-
-  const activityData = [
-    { day: "Mon", value: 5 },
-    { day: "Tue", value: 8 },
-    { day: "Wed", value: 3 },
-    { day: "Thu", value: 10 },
-    { day: "Fri", value: 7 },
-    { day: "Sat", value: 12 },
-    { day: "Sun", value: 6 },
-  ];
-
-  const maxValue = Math.max(...activityData.map((d) => d.value));
-
-  const recentActivities = [
-    {
-      icon: "🏆",
-      title: 'Completed "Algebra Adventure"',
-      time: "2 hours ago",
-      xp: 150,
-    },
-    {
-      icon: "📚",
-      title: "Mastered 20 flashcards",
-      time: "5 hours ago",
-      xp: 100,
-    },
-    { icon: "⭐", title: "Achieved 7-day streak", time: "1 day ago", xp: 200 },
-    {
-      icon: "🎯",
-      title: "Perfect score on Grammar Quiz",
-      time: "1 day ago",
-      xp: 250,
     },
   ];
 
@@ -112,12 +103,6 @@ function DashboardHome() {
       value: longestStreak.toString(),
       icon: Swords,
       color: "text-green-400",
-    },
-    {
-      label: "Achievements",
-      value: "0",
-      icon: Trophy,
-      color: "text-amber-400",
     },
   ];
 
@@ -207,51 +192,9 @@ function DashboardHome() {
         })}
       </div>
 
-      {/* Main Content Grid */}
-      <div className="grid lg:grid-cols-3 gap-6 mb-8">
-        {/* Activity Chart */}
-        <div className="lg:col-span-2 bg-[var(--card)] backdrop-blur-xl border border-[var(--border)] shadow-[0_20px_60px_rgba(10,10,20,0.28)] hover:border-[var(--primary)] rounded-2xl p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-bold text-[var(--foreground)]">
-              Weekly Activity
-            </h2>
-            <button className="text-sm text-[var(--muted-foreground)] hover:text-[var(--primary)] transition-colors">
-              View Details
-            </button>
-          </div>
-
-          {/* Bar Chart */}
-          <div className="flex items-end justify-between gap-4 h-48">
-            {activityData.map((item, index) => (
-              <div
-                key={index}
-                className="flex-1 flex flex-col items-center gap-2"
-              >
-                <div
-                  className="w-full bg-[var(--card)] rounded-t-xl relative overflow-hidden"
-                  style={{ height: `${(item.value / maxValue) * 100}%` }}
-                >
-                  <div className="absolute inset-0 bg-purple-600 rounded-t-xl"></div>
-                </div>
-                <span className="text-xs text-[var(--muted-foreground)] font-medium">
-                  {item.day}
-                </span>
-              </div>
-            ))}
-          </div>
-
-          {/* Legend */}
-          <div className="mt-6 flex items-center justify-center gap-6">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-purple-600 rounded-full"></div>
-              <span className="text-xs text-[var(--muted-foreground)]">
-                Quizzes Completed
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Progress Circle */}
+      {/* Progress & Quick Stats Grid */}
+      <div className="grid md:grid-cols-2 gap-6 mb-8">
+        {/* Level Progress */}
         <div className="bg-[var(--card)] backdrop-blur-xl border border-[var(--border)] shadow-[0_20px_60px_rgba(10,10,20,0.28)] hover:border-[var(--primary)] rounded-2xl p-6 flex flex-col items-center justify-center">
           <h3 className="text-lg font-bold text-[var(--foreground)] mb-6">
             Level Progress
@@ -306,56 +249,15 @@ function DashboardHome() {
             </p>
           </div>
         </div>
-      </div>
-
-      {/* Bottom Grid */}
-      <div className="grid lg:grid-cols-3 gap-6">
-        {/* Recent Activity */}
-        <div className="lg:col-span-2 bg-[var(--card)] backdrop-blur-xl border border-[var(--border)] shadow-[0_20px_60px_rgba(10,10,20,0.28)] hover:border-[var(--primary)] rounded-2xl p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-bold text-[var(--foreground)]">
-              Recent Activity
-            </h2>
-            <button className="text-sm text-[var(--muted-foreground)] hover:text-[var(--light-primary)] transition-colors flex items-center gap-1">
-              See All
-              <ArrowRight className="w-4 h-4" />
-            </button>
-          </div>
-
-          <div className="space-y-3">
-            {recentActivities.map((activity, index) => (
-              <div
-                key={index}
-                className="flex items-center gap-4 p-4 bg-[var(--second-card)] backdrop-blur-md rounded-xl hover:bg-[var(--second-muted)] transition-colors"
-              >
-                <div className="text-2xl">{activity.icon}</div>
-                <div className="flex-1">
-                  <p className="text-[var(--foreground)] font-semibold text-sm">
-                    {activity.title}
-                  </p>
-                  <p className="text-[var(--muted-foreground)] text-xs">
-                    {activity.time}
-                  </p>
-                </div>
-                <div className="flex items-center gap-1 px-3 py-1 bg-[var(--primary)]/10 rounded-full">
-                  <Sparkles className="w-3 h-3 text-[var(--primary)]" />
-                  <span className="text-[var(--primary)] text-sm font-semibold">
-                    +{activity.xp}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
 
         {/* Quick Stats */}
-        <div className="space-y-4">
+        <div className="flex flex-col gap-6 h-full">
           {quickStats.map((stat, index) => {
             const Icon = stat.icon;
             return (
               <div
                 key={index}
-                className="bg-[var(--card)] backdrop-blur-xl border border-[var(--border)] shadow-[0_20px_60px_rgba(10,10,20,0.28)] rounded-2xl p-6 hover:border-[var(--primary)] transition-all"
+                className="flex-1 bg-[var(--card)] backdrop-blur-xl border border-[var(--border)] shadow-[0_20px_60px_rgba(10,10,20,0.28)] rounded-2xl p-6 flex items-center hover:border-[var(--primary)] transition-all"
               >
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 bg-[var(--card)] rounded-xl flex items-center justify-center">
@@ -373,6 +275,51 @@ function DashboardHome() {
               </div>
             );
           })}
+        </div>
+      </div>
+
+      {/* Recent Transactions */}
+      <div className="bg-[var(--card)] backdrop-blur-xl border border-[var(--border)] shadow-[0_20px_60px_rgba(10,10,20,0.28)] hover:border-[var(--primary)] rounded-2xl p-6">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-lg font-bold text-[var(--foreground)]">
+            Recent Transactions
+          </h2>
+          <button className="text-sm text-[var(--muted-foreground)] hover:text-[var(--light-primary)] transition-colors flex items-center gap-1">
+            See All
+            <ArrowRight className="w-4 h-4" />
+          </button>
+        </div>
+
+        <div className="space-y-3">
+          {recentTransactions.length === 0 ? (
+            <p className="text-[var(--muted-foreground)] text-sm">
+              No recent transactions.
+            </p>
+          ) : (
+            recentTransactions.map((tx) => (
+              <div
+                key={tx.id}
+                className="flex items-center gap-4 p-4 bg-[var(--second-card)] backdrop-blur-md rounded-xl hover:bg-[var(--second-muted)] transition-colors"
+              >
+                <div className="text-2xl">
+                  <Clock className="w-6 h-6 text-blue-400" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-[var(--foreground)] font-semibold text-sm">
+                    {tx.description}
+                  </p>
+                  <p className="text-[var(--muted-foreground)] text-xs">
+                    {new Date(tx.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+                <div className="flex items-center gap-1 px-3 py-1 bg-red-500/10 rounded-full">
+                  <span className="text-red-400 text-sm font-semibold">
+                    -{tx.amount} Coins
+                  </span>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
     </div>

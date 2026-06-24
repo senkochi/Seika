@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   TrendingUp,
   BookOpen,
@@ -6,100 +6,120 @@ import {
   Users,
   ArrowRight,
   PlusCircle,
-  Zap,
-  Sparkles,
   Loader2,
+  Clock,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { fetchCurrentUserProfile } from "../../store/userProfileSlice";
+import { walletService, userProfilesService } from "../../api";
+import type { TransactionResponse, TeacherProfileResponse } from "../../api";
+
+const XP_PER_LEVEL = 1000;
 
 function TeacherDashboardHome() {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
-  const { status, error, fullName, username } = useAppSelector(
+  const { status, error, fullName, username, exp, level } = useAppSelector(
     (state) => state.userProfile,
   );
   const authUsername = useAppSelector((state) => state.auth.username);
+
+  const [teacherProfile, setTeacherProfile] =
+    useState<TeacherProfileResponse | null>(null);
+  const [balance, setBalance] = useState<number>(0);
+  const [recentEvents, setRecentEvents] = useState<TransactionResponse[]>([]);
+  const [weeklyRevenue, setWeeklyRevenue] = useState<
+    { day: string; value: number }[]
+  >([]);
 
   useEffect(() => {
     if (status === "idle") {
       dispatch(fetchCurrentUserProfile());
     }
+
+    const fetchDashboardData = async () => {
+      try {
+        const profile = await userProfilesService.getTeacherProfile();
+        setTeacherProfile(profile);
+
+        const balRes = await walletService.getBalance();
+        setBalance(balRes.balance);
+
+        const history = await walletService.getHistory();
+
+        // Hoạt động gần nhất (thưởng hoặc nạp)
+        const incomeEvents = history
+          .filter((tx) => tx.type === "REWARD" || tx.type === "DEPOSIT")
+          .sort(
+            (a, b) =>
+              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+          );
+
+        setRecentEvents(incomeEvents.slice(0, 5));
+
+        // Gom nhóm doanh thu theo ngày trong tuần hiện tại (Đơn giản hóa: gom theo ngày trong tuần của dữ liệu)
+        const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+        const weeklyMap = new Map<string, number>();
+        days.forEach((d) => weeklyMap.set(d, 0));
+
+        incomeEvents.forEach((tx) => {
+          const d = new Date(tx.createdAt);
+          const dayName = days[d.getDay()];
+          weeklyMap.set(dayName, (weeklyMap.get(dayName) || 0) + tx.amount);
+        });
+
+        // Xoay mảng để bắt đầu từ thứ 2 (hoặc tùy theo ý muốn, ở đây xếp theo thứ tự chuẩn)
+        const aggregatedWeekly = days.map((d) => ({
+          day: d,
+          value: weeklyMap.get(d) || 0,
+        }));
+        setWeeklyRevenue(aggregatedWeekly);
+      } catch (err) {
+        console.error("Failed to fetch dashboard data", err);
+      }
+    };
+    fetchDashboardData();
   }, [dispatch, status]);
 
   const displayName = fullName ?? username ?? authUsername ?? "Teacher";
 
+  const totalQuizCreated = teacherProfile?.totalQuizCreated ?? 0;
+  const totalFlashcardsCreated = teacherProfile?.totalFlashcardsCreated ?? 0;
+  const contentPublished = totalQuizCreated + totalFlashcardsCreated;
+
   const stats = [
     {
-      label: "Total Revenue",
-      value: "5,450 Coins",
-      trend: "+18%",
+      label: "Total Balance",
+      value: `${balance.toLocaleString()} Coins`,
+      trend: "Current",
       trendUp: true,
       icon: DollarSign,
       color: "from-amber-400 to-yellow-500",
     },
     {
-      label: "Total Students Purchased",
-      value: "148 Students",
-      trend: "+12%",
+      label: "Total Students Reached",
+      value: `${teacherProfile?.totalStudentsReached ?? 0} Students`,
+      trend: "Overall",
       trendUp: true,
       icon: Users,
       color: "from-purple-500 to-violet-600",
     },
     {
       label: "Content Published",
-      value: "12 Items",
-      trend: "+2 new",
+      value: `${contentPublished} Items`,
+      trend: "Overall",
       trendUp: true,
       icon: BookOpen,
       color: "from-blue-500 to-cyan-600",
     },
   ];
 
-  const weeklyRevenue = [
-    { day: "Mon", value: 350 },
-    { day: "Tue", value: 600 },
-    { day: "Wed", value: 450 },
-    { day: "Thu", value: 900 },
-    { day: "Fri", value: 1200 },
-    { day: "Sat", value: 800 },
-    { day: "Sun", value: 1150 },
-  ];
+  const maxVal = Math.max(...weeklyRevenue.map((d) => d.value), 100);
 
-  const maxVal = Math.max(...weeklyRevenue.map((d) => d.value));
-
-  const recentEvents = [
-    {
-      icon: "🛒",
-      title: 'Student "lucas_dev" bought "Basic React Native"',
-      time: "2 hours ago",
-      reward: "+150 Coins",
-      type: "purchase",
-    },
-    {
-      icon: "🛒",
-      title: 'Student "jane_doe" bought "English IELTS Vocabulary"',
-      time: "5 hours ago",
-      reward: "+250 Coins",
-      type: "purchase",
-    },
-    {
-      icon: "💸",
-      title: "Requested cash out of 2,000 Coins",
-      time: "1 day ago",
-      reward: "-2,000 Coins",
-      type: "withdraw",
-    },
-    {
-      icon: "📚",
-      title: 'Created new Flashcard set "Database Normalization"',
-      time: "2 days ago",
-      reward: "Published",
-      type: "publish",
-    },
-  ];
+  const currentLevelXP = exp % XP_PER_LEVEL;
+  const nextLevelXP = XP_PER_LEVEL;
 
   if (status === "loading") {
     return (
@@ -169,7 +189,7 @@ function TeacherDashboardHome() {
                 <div
                   className={`w-12 h-12 bg-gradient-to-br ${stat.color} rounded-xl flex items-center justify-center`}
                 >
-                  <Icon className="w-6 h-6 text-purple-950" />
+                  <Icon className="w-6 h-6 text-[var(--foreground)]" />
                 </div>
                 <div className="flex items-center gap-1 px-3 py-1 rounded-full bg-green-500/10 text-green-400">
                   <TrendingUp className="w-3 h-3" />
@@ -196,7 +216,7 @@ function TeacherDashboardHome() {
               Weekly Marketplace Earnings
             </h2>
             <span className="text-xs text-[var(--muted-foreground)]">
-              Updated just now
+              Real-time data
             </span>
           </div>
 
@@ -224,54 +244,61 @@ function TeacherDashboardHome() {
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full"></div>
               <span className="text-xs text-[var(--muted-foreground)]">
-                Coins earned via flashcard purchases
+                Coins earned via flashcard/quiz purchases
               </span>
             </div>
           </div>
         </div>
 
-        {/* Quick Tips or Profile Summary */}
-        <div className="bg-[var(--card)] backdrop-blur-xl border border-[var(--border)] shadow-[0_20px_60px_rgba(10,10,20,0.28)] hover:border-[var(--primary)] rounded-2xl p-6 flex flex-col justify-between">
-          <div>
-            <h3 className="text-lg font-bold text-[var(--foreground)] mb-4">
-              Creator Guidelines
-            </h3>
-            <ul className="space-y-3 text-sm text-[var(--muted-foreground)]">
-              <li className="flex items-start gap-2">
-                <Zap className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-                <span>
-                  Publish high-quality decks to gain Verified Creator status.
-                </span>
-              </li>
-              <li className="flex items-start gap-2">
-                <Zap className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-                <span>
-                  Keep your deck prices reasonable (50 to 500 Coins) for maximum
-                  sales.
-                </span>
-              </li>
-              <li className="flex items-start gap-2">
-                <Zap className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-                <span>
-                  Ensure to verify all card answers before listing on the
-                  Marketplace.
-                </span>
-              </li>
-            </ul>
+        {/* Level Progress Box */}
+        <div className="bg-[var(--card)] backdrop-blur-xl border border-[var(--border)] shadow-[0_20px_60px_rgba(10,10,20,0.28)] hover:border-[var(--primary)] rounded-2xl p-6 flex flex-col items-center justify-center">
+          <h3 className="text-lg font-bold text-[var(--foreground)] mb-6">
+            Level Progress
+          </h3>
+
+          <div className="relative w-40 h-40 mb-6">
+            <svg className="w-full h-full transform -rotate-90">
+              <circle
+                cx="80"
+                cy="80"
+                r="70"
+                stroke="#10111a"
+                strokeWidth="12"
+                fill="none"
+              />
+              <circle
+                cx="80"
+                cy="80"
+                r="70"
+                stroke="#9333ea"
+                strokeWidth="12"
+                fill="none"
+                strokeDasharray={`${2 * Math.PI * 70}`}
+                strokeDashoffset={`${2 * Math.PI * 70 * (1 - currentLevelXP / nextLevelXP)}`}
+                strokeLinecap="round"
+                className="transition-all duration-500"
+              />
+            </svg>
+
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <p className="text-4xl font-bold text-[var(--foreground)]">
+                {Math.round((currentLevelXP / nextLevelXP) * 100)}%
+              </p>
+              <p className="text-[var(--muted-foreground)] text-sm">Complete</p>
+            </div>
           </div>
 
-          <div className="mt-6 p-4 bg-purple-950/40 rounded-xl border border-purple-800/40">
-            <div className="flex items-center gap-3">
-              <Sparkles className="w-5 h-5 text-yellow-400" />
-              <div>
-                <p className="text-xs text-purple-300 font-bold">
-                  Verified Account
-                </p>
-                <p className="text-[var(--foreground)] text-xs">
-                  All your earnings are eligible for Cash Out.
-                </p>
-              </div>
-            </div>
+          <div className="text-center">
+            <p className="text-[var(--muted-foreground)] text-sm mb-1">
+              Current Level
+            </p>
+            <p className="text-2xl font-bold text-[var(--foreground)] mb-4">
+              Level {level}
+            </p>
+            <p className="text-xs text-[var(--muted-foreground)]">
+              {currentLevelXP.toLocaleString()} / {nextLevelXP.toLocaleString()}{" "}
+              XP
+            </p>
           </div>
         </div>
       </div>
@@ -280,7 +307,7 @@ function TeacherDashboardHome() {
       <div className="bg-[var(--card)] backdrop-blur-xl border border-[var(--border)] shadow-[0_20px_60px_rgba(10,10,20,0.28)] hover:border-[var(--primary)] rounded-2xl p-6">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-lg font-bold text-[var(--foreground)]">
-            Recent Sales & Activities
+            Recent Incomes
           </h2>
           <button
             onClick={() => navigate("/teacher/dashboard/wallet")}
@@ -292,35 +319,33 @@ function TeacherDashboardHome() {
         </div>
 
         <div className="space-y-3">
-          {recentEvents.map((event, index) => (
-            <div
-              key={index}
-              className="flex items-center gap-4 p-4 bg-[var(--second-card)] backdrop-blur-md rounded-xl hover:bg-[var(--second-muted)] transition-colors"
-            >
-              <div className="text-2xl w-10 h-10 bg-[var(--card)] border border-[var(--border)] rounded-lg flex items-center justify-center">
-                {event.icon}
-              </div>
-              <div className="flex-1">
-                <p className="text-[var(--foreground)] font-semibold text-sm">
-                  {event.title}
-                </p>
-                <p className="text-[var(--muted-foreground)] text-xs">
-                  {event.time}
-                </p>
-              </div>
+          {recentEvents.length === 0 ? (
+            <p className="text-[var(--muted-foreground)] text-sm">
+              No recent incomes.
+            </p>
+          ) : (
+            recentEvents.map((event) => (
               <div
-                className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                  event.type === "purchase"
-                    ? "bg-green-500/10 text-green-400"
-                    : event.type === "withdraw"
-                      ? "bg-red-500/10 text-red-400"
-                      : "bg-blue-500/10 text-blue-400"
-                }`}
+                key={event.id}
+                className="flex items-center gap-4 p-4 bg-[var(--second-card)] backdrop-blur-md rounded-xl hover:bg-[var(--second-muted)] transition-colors"
               >
-                {event.reward}
+                <div className="text-2xl w-10 h-10 bg-[var(--card)] border border-[var(--border)] rounded-lg flex items-center justify-center">
+                  <Clock className="w-5 h-5 text-green-400" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-[var(--foreground)] font-semibold text-sm">
+                    {event.description}
+                  </p>
+                  <p className="text-[var(--muted-foreground)] text-xs">
+                    {new Date(event.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+                <div className="px-3 py-1 rounded-full text-xs font-semibold bg-green-500/10 text-green-400">
+                  +{event.amount} Coins
+                </div>
               </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </div>
     </div>

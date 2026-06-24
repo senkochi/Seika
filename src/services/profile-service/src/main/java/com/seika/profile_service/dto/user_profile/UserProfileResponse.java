@@ -23,4 +23,5 @@ public class UserProfileResponse {
 	int level;
 	int currentStreak;
 	int longestStreak;
+	Integer quizzesCompleted;
 }

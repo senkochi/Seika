@@ -25,6 +25,7 @@ export type UserProfileState = {
   level: number;
   currentStreak: number;
   longestStreak: number;
+  quizzesCompleted: number;
 
   // UI state
   status: "idle" | "loading" | "succeeded" | "failed";
@@ -44,6 +45,7 @@ const initialState: UserProfileState = {
   level: 1,
   currentStreak: 0,
   longestStreak: 0,
+  quizzesCompleted: 0,
   status: "idle",
   error: null,
 };
@@ -102,6 +104,7 @@ const userProfileSlice = createSlice({
         state.level = profile.level ?? 1;
         state.currentStreak = profile.currentStreak ?? 0;
         state.longestStreak = profile.longestStreak ?? 0;
+        state.quizzesCompleted = profile.quizzesCompleted ?? 0;
 
         state.status = "succeeded";
       })
