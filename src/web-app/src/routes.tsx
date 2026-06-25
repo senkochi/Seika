@@ -27,6 +27,8 @@ const TeacherDashboardHome = lazy(
 const ContentManager = lazy(() => import("./pages/teacher/ContentManager"));
 const TeacherWallet = lazy(() => import("./pages/teacher/TeacherWallet"));
 const TeacherProfile = lazy(() => import("./pages/teacher/TeacherProfile"));
+const FlashcardDetail = lazy(() => import("./pages/student/FlashcardDetail"));
+const QuizDetail = lazy(() => import("./pages/student/QuizDetail"));
 
 const withLoader = (content: ReactNode) => (
   <Suspense fallback={<PageLoader />}>{content}</Suspense>
@@ -57,6 +59,14 @@ const router = createBrowserRouter([
   {
     path: "/dashboard",
     element: <Navigate to="/student/dashboard" replace />,
+  },
+  {
+    path: "/flashcard/:id",
+    element: withLoader(<FlashcardDetail />),
+  },
+  {
+    path: "/quiz/:id",
+    element: withLoader(<QuizDetail />),
   },
   {
     path: "/student/dashboard",
