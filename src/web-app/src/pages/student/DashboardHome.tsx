@@ -45,26 +45,31 @@ function DashboardHome() {
     if (status === "idle") {
       dispatch(fetchCurrentUserProfile());
     }
-
-    // Fetch wallet history
-    const fetchHistory = async () => {
-      try {
-        const history = await walletService.getHistory();
-        // Lọc các giao dịch tiêu tiền (mua bài học/quiz)
-        const spendings = history
-          .filter((tx) => tx.type === "WITHDRAW" || tx.type === "SPEND")
-          .sort(
-            (a, b) =>
-              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-          )
-          .slice(0, 5);
-        setRecentTransactions(spendings);
-      } catch (err) {
-        console.error("Failed to fetch wallet history", err);
-      }
-    };
-    fetchHistory();
   }, [dispatch, status]);
+
+  useEffect(() => {
+    // Chỉ fetch wallet history khi profile đã được load thành công
+    if (status === "succeeded") {
+      const fetchHistory = async () => {
+        try {
+          const history = await walletService.getHistory();
+          // Lọc các giao dịch tiêu tiền (mua bài học/quiz)
+          const spendings = history
+            .filter((tx) => tx.type === "WITHDRAW" || tx.type === "SPEND")
+            .sort(
+              (a, b) =>
+                new Date(b.createdAt).getTime() -
+                new Date(a.createdAt).getTime(),
+            )
+            .slice(0, 5);
+          setRecentTransactions(spendings);
+        } catch (err) {
+          console.error("Failed to fetch wallet history", err);
+        }
+      };
+      fetchHistory();
+    }
+  }, [status]);
 
   // Tính toán XP progress trong level hiện tại
   const currentLevelXP = exp % XP_PER_LEVEL;

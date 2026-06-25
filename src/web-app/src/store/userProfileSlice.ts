@@ -111,6 +111,15 @@ const userProfileSlice = createSlice({
       .addCase(fetchCurrentUserProfile.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.payload ?? "Failed to fetch user profile.";
+      })
+      .addCase("auth/login/fulfilled", () => {
+        return initialState;
+      })
+      .addCase("auth/register/fulfilled", () => {
+        return initialState;
+      })
+      .addCase("auth/setCredentials", () => {
+        return initialState;
       });
   },
 });

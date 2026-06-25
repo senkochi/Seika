@@ -38,50 +38,55 @@ function TeacherDashboardHome() {
     if (status === "idle") {
       dispatch(fetchCurrentUserProfile());
     }
-
-    const fetchDashboardData = async () => {
-      try {
-        const profile = await userProfilesService.getTeacherProfile();
-        setTeacherProfile(profile);
-
-        const balRes = await walletService.getBalance();
-        setBalance(balRes.balance);
-
-        const history = await walletService.getHistory();
-
-        // Hoạt động gần nhất (thưởng hoặc nạp)
-        const incomeEvents = history
-          .filter((tx) => tx.type === "REWARD" || tx.type === "DEPOSIT")
-          .sort(
-            (a, b) =>
-              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-          );
-
-        setRecentEvents(incomeEvents.slice(0, 5));
-
-        // Gom nhóm doanh thu theo ngày trong tuần hiện tại (Đơn giản hóa: gom theo ngày trong tuần của dữ liệu)
-        const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-        const weeklyMap = new Map<string, number>();
-        days.forEach((d) => weeklyMap.set(d, 0));
-
-        incomeEvents.forEach((tx) => {
-          const d = new Date(tx.createdAt);
-          const dayName = days[d.getDay()];
-          weeklyMap.set(dayName, (weeklyMap.get(dayName) || 0) + tx.amount);
-        });
-
-        // Xoay mảng để bắt đầu từ thứ 2 (hoặc tùy theo ý muốn, ở đây xếp theo thứ tự chuẩn)
-        const aggregatedWeekly = days.map((d) => ({
-          day: d,
-          value: weeklyMap.get(d) || 0,
-        }));
-        setWeeklyRevenue(aggregatedWeekly);
-      } catch (err) {
-        console.error("Failed to fetch dashboard data", err);
-      }
-    };
-    fetchDashboardData();
   }, [dispatch, status]);
+
+  useEffect(() => {
+    if (status === "succeeded") {
+      const fetchDashboardData = async () => {
+        try {
+          const profile = await userProfilesService.getTeacherProfile();
+          setTeacherProfile(profile);
+
+          const balRes = await walletService.getBalance();
+          setBalance(balRes.balance);
+
+          const history = await walletService.getHistory();
+
+          // Hoạt động gần nhất (thưởng hoặc nạp)
+          const incomeEvents = history
+            .filter((tx) => tx.type === "REWARD" || tx.type === "DEPOSIT")
+            .sort(
+              (a, b) =>
+                new Date(b.createdAt).getTime() -
+                new Date(a.createdAt).getTime(),
+            );
+
+          setRecentEvents(incomeEvents.slice(0, 5));
+
+          // Gom nhóm doanh thu theo ngày trong tuần hiện tại (Đơn giản hóa: gom theo ngày trong tuần của dữ liệu)
+          const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+          const weeklyMap = new Map<string, number>();
+          days.forEach((d) => weeklyMap.set(d, 0));
+
+          incomeEvents.forEach((tx) => {
+            const d = new Date(tx.createdAt);
+            const dayName = days[d.getDay()];
+            weeklyMap.set(dayName, (weeklyMap.get(dayName) || 0) + tx.amount);
+          });
+
+          // Xoay mảng để bắt đầu từ thứ 2 (hoặc tùy theo ý muốn, ở đây xếp theo thứ tự chuẩn)
+          const aggregatedWeekly = days.map((d) => ({
+            day: d,
+            value: weeklyMap.get(d) || 0,
+          }));
+          setWeeklyRevenue(aggregatedWeekly);
+        } catch (err) {
+          console.error("Failed to fetch dashboard data", err);
+        }
+      };
+      fetchDashboardData();
+    }
+  }, [status]);
 
   const displayName = fullName ?? username ?? authUsername ?? "Teacher";
 
