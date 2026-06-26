@@ -25,6 +25,25 @@ public class RabbitMQConfig {
         return BindingBuilder.bind(walletQueue).to(learnFanoutExchange);
     }
 
+    public static final String LEARNING_EVENTS_EXCHANGE = "learning.events";
+    public static final String WALLET_REWARD_QUEUE = "wallet.reward-events";
+    public static final String REWARD_GRANTED_ROUTING_KEY = "reward.granted";
+
+    @Bean
+    public TopicExchange learningEventsExchange() {
+        return new TopicExchange(LEARNING_EVENTS_EXCHANGE, true, false);
+    }
+
+    @Bean
+    public Queue walletRewardQueue() {
+        return new Queue(WALLET_REWARD_QUEUE, true);
+    }
+
+    @Bean
+    public Binding walletRewardBinding(Queue walletRewardQueue, TopicExchange learningEventsExchange) {
+        return BindingBuilder.bind(walletRewardQueue).to(learningEventsExchange).with(REWARD_GRANTED_ROUTING_KEY);
+    }
+
     @Bean
     public TopicExchange identityEventsExchange() {
         return new TopicExchange(IDENTITY_EVENTS_EXCHANGE);

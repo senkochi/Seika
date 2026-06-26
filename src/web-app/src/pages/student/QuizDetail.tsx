@@ -12,7 +12,10 @@ import StudentBadge from "@/components/student/StudentBadge";
 import StudentActionButton from "@/components/student/StudentActionButton";
 import GridBackground from "@/layouts/GridBackground";
 import { quizzesService } from "@/api/services/quizzes";
-import type { QuizSetResponse } from "@/api/types";
+import { rewardsService } from "@/api/services/rewards";
+import type { QuizSetResponse, RewardStatusResponse } from "@/api/types";
+import { useAppDispatch } from "@/store/hooks";
+import { fetchCurrentUserProfile } from "@/store/userProfileSlice";
 
 // Import custom quiz components
 import MultipleChoiceQuiz from "@/components/student/quiz/MultipleChoiceQuiz";
@@ -23,9 +26,13 @@ import FillInBlankQuiz from "@/components/student/quiz/FillInBlankQuiz";
 export default function QuizDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
 
   const [quizSet, setQuizSet] = useState<QuizSetResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const [rewardStatus, setRewardStatus] = useState<RewardStatusResponse | null>(
+    null,
+  );
 
   useEffect(() => {
     if (!id) return;
@@ -33,6 +40,13 @@ export default function QuizDetail() {
       try {
         const res = await quizzesService.getQuizSetById(id);
         setQuizSet(res.data);
+
+        try {
+          const status = await rewardsService.getRewardStatus("QUIZ", id);
+          setRewardStatus(status);
+        } catch (statusErr) {
+          console.error("Failed to fetch reward status:", statusErr);
+        }
       } catch (err) {
         console.error("Failed to fetch quiz set", err);
       } finally {
@@ -139,13 +153,43 @@ export default function QuizDetail() {
   };
 
   const correctCount = scoreHistory.filter((val) => val === true).length;
-  const accuracyPercentage = Math.round(
-    (correctCount / questions.length) * 100,
-  );
+  const accuracyPercentage =
+    questions.length > 0
+      ? Math.round((correctCount / questions.length) * 100)
+      : 0;
+
+  const eligiblePassed = !!(rewardStatus?.eligible && accuracyPercentage >= 70);
+
+  useEffect(() => {
+    if (isCompleted && id && questions.length > 0) {
+      const submitQuizScores = async () => {
+        if (eligiblePassed) {
+          try {
+            await quizzesService.submitQuiz(id, accuracyPercentage);
+            dispatch(fetchCurrentUserProfile());
+          } catch (err) {
+            console.error("Failed to submit quiz score reward:", err);
+          }
+        }
+      };
+      submitQuizScores();
+    }
+  }, [
+    isCompleted,
+    id,
+    eligiblePassed,
+    accuracyPercentage,
+    questions.length,
+    dispatch,
+  ]);
 
   // Compute proportional XP and Coin gains
-  const gainedXp = Math.round(100 * (correctCount / questions.length));
-  const gainedCoins = Math.round(50 * (correctCount / questions.length));
+  const gainedXp = eligiblePassed
+    ? Math.round(100 * (correctCount / questions.length))
+    : 0;
+  const gainedCoins = eligiblePassed
+    ? Math.round(50 * (correctCount / questions.length))
+    : 0;
 
   if (loading) {
     return (
@@ -328,6 +372,20 @@ export default function QuizDetail() {
                   <span className="text-3xl font-black">+{gainedCoins}</span>
                 </div>
               </div>
+
+              {rewardStatus && !rewardStatus.eligible && (
+                <div className="col-span-2 mt-2 px-4 py-3 bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 rounded-xl text-xs font-bold text-center">
+                  ⏱️ Chỉ nhận thưởng Quiz trong lần hoàn thành đầu tiên. Bạn đã
+                  làm bài này rồi.
+                </div>
+              )}
+
+              {rewardStatus?.eligible && accuracyPercentage < 70 && (
+                <div className="col-span-2 mt-2 px-4 py-3 bg-red-500/10 border border-red-500/30 text-red-400 rounded-xl text-xs font-bold text-center">
+                  ⚠️ Bạn cần đạt tối thiểu 70% độ chính xác để nhận Coin & EXP
+                  (hiện tại: {accuracyPercentage}%).
+                </div>
+              )}
 
               <div className="col-span-2 pt-4 border-t border-[var(--border)]">
                 <p className="text-xs text-[var(--muted-foreground)] font-bold uppercase tracking-wider mb-1">

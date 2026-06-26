@@ -80,7 +80,9 @@ function LearningHub() {
                       <StudentActionButton
                         className="py-2 font-bold w-full"
                         onClick={() =>
-                          navigate(`/flashcard/${deck.referenceId}`)
+                          navigate(
+                            `/student/dashboard/flashcard/${deck.referenceId}`,
+                          )
                         }
                       >
                         Study Now
@@ -126,7 +128,11 @@ function LearningHub() {
 
                       <StudentActionButton
                         className="py-2 font-bold w-full !bg-purple-600 hover:!bg-purple-500"
-                        onClick={() => navigate(`/quiz/${quiz.referenceId}`)}
+                        onClick={() =>
+                          navigate(
+                            `/student/dashboard/quiz/${quiz.referenceId}`,
+                          )
+                        }
                       >
                         Take Quiz
                       </StudentActionButton>

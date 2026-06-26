@@ -40,6 +40,7 @@
     <module>src/services/notification-service</module>
     <module>src/services/flashcard-service</module>
     <module>src/services/quiz-service</module>
+    <module>src/services/reward-service</module>
   </modules>
 
   <dependencyManagement>

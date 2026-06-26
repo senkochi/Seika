@@ -6,3 +6,4 @@ export * from "./wallet";
 export * from "./teacherProfile";
 export * from "./marketplace";
 export * from "./notifications";
+export * from "./rewards";

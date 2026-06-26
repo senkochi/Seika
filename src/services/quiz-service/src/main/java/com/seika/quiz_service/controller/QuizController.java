@@ -72,6 +72,17 @@ public class QuizController {
     }
 
     /**
+     * POST /api/quiz/{id}/submit – học sinh nộp bài
+     */
+    @PostMapping("/{id}/submit")
+    public ResponseEntity<ApiResponse<Void>> submitQuiz(@PathVariable String id, @RequestBody java.util.Map<String, Object> payload) {
+        String userId = extractUserId();
+        Double score = Double.valueOf(payload.getOrDefault("score", 0).toString());
+        quizService.submitQuiz(id, userId, score);
+        return ResponseEntity.ok(ApiResponse.success(null));
+    }
+
+    /**
      * Lấy userId từ SecurityContext (được inject bởi JwtAuthenticationFilter)
      */
     private String extractUserId() {

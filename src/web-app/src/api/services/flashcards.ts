@@ -47,6 +47,20 @@ export const flashcardsService = {
   },
 
   /**
+   * Đánh dấu hoàn thành một bộ flashcard để nhận phần thưởng
+   */
+  complete: async (deckId: string) => {
+    const response = await apiClient.post<string>(
+      "/flashcards/complete",
+      null,
+      {
+        params: { deckId },
+      },
+    );
+    return response.data;
+  },
+
+  /**
    * Xóa flashcard set (giáo viên – chỉ xóa được của mình)
    */
   deleteSet: async (id: string) => {

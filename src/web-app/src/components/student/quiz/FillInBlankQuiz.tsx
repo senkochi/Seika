@@ -23,13 +23,21 @@ export default function FillInBlankQuiz({
       accepted.trim().toLowerCase() === userAnswer.trim().toLowerCase(),
   );
 
-  // Normalize consecutive/spaced underscores to a single underscore.
-  // If no underscore exists in the text, append one at the end to ensure the input box renders.
-  const normalizedQuestion = questionText.replace(/_[\s_]*/g, "_");
-  const finalQuestionText = normalizedQuestion.includes("_")
-    ? normalizedQuestion
-    : normalizedQuestion + " _";
-  const parts = finalQuestionText.split("_");
+  // Find the first sequence of underscores (with optional spaces) and mark it with ||INPUT||.
+  // Replace all other underscores with a static line placeholder (______).
+  let processedText = questionText;
+  const match = /_[\s_]*/.exec(processedText);
+  if (match) {
+    const firstIndex = match.index;
+    const matchLength = match[0].length;
+    const before = processedText.substring(0, firstIndex);
+    const after = processedText.substring(firstIndex + matchLength);
+    const cleanedAfter = after.replace(/_[\s_]*/g, "______");
+    processedText = before + "||INPUT||" + cleanedAfter;
+  } else {
+    processedText = processedText + " ||INPUT||";
+  }
+  const parts = processedText.split("||INPUT||");
 
   return (
     <div className="w-full flex flex-col gap-6 animate-[fadeIn_0.3s_ease-out]">

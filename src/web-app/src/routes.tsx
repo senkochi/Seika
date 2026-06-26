@@ -61,14 +61,6 @@ const router = createBrowserRouter([
     element: <Navigate to="/student/dashboard" replace />,
   },
   {
-    path: "/flashcard/:id",
-    element: withLoader(<FlashcardDetail />),
-  },
-  {
-    path: "/quiz/:id",
-    element: withLoader(<QuizDetail />),
-  },
-  {
     path: "/student/dashboard",
     element: withLoader(<StudentDashboardLayout />),
     children: [
@@ -79,6 +71,14 @@ const router = createBrowserRouter([
       {
         path: "learning",
         element: withLoader(<LearningHub />),
+      },
+      {
+        path: "flashcard/:id",
+        element: withLoader(<FlashcardDetail />),
+      },
+      {
+        path: "quiz/:id",
+        element: withLoader(<QuizDetail />),
       },
       {
         path: "marketplace",

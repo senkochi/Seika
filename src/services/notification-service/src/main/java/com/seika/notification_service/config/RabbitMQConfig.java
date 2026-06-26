@@ -51,6 +51,28 @@ public class RabbitMQConfig {
           .to(marketplaceExchange)
           .with(CONTENT_PURCHASED_ROUTING_KEY);
     }
+
+    public static final String LEARNING_EVENTS_EXCHANGE = "learning.events";
+    public static final String NOTIFICATION_REWARD_QUEUE = "notification.reward-events";
+    public static final String REWARD_GRANTED_ROUTING_KEY = "reward.granted";
+
+    @Bean
+    public TopicExchange learningEventsExchange() {
+        return new TopicExchange(LEARNING_EVENTS_EXCHANGE);
+    }
+
+    @Bean
+    public Queue notificationRewardQueue() {
+        return new Queue(NOTIFICATION_REWARD_QUEUE, true);
+    }
+
+    @Bean
+    public Binding notificationRewardBinding(Queue notificationRewardQueue, TopicExchange learningEventsExchange) {
+        return BindingBuilder
+            .bind(notificationRewardQueue)
+            .to(learningEventsExchange)
+            .with(REWARD_GRANTED_ROUTING_KEY);
+    }
     
     // Vì mặc định RabbitMQ sử dụng dữ liệu nhị phân, nên chúng ta cần một MessageConverter để chuyển đổi giữa JSON và đối tượng Java
     @Bean

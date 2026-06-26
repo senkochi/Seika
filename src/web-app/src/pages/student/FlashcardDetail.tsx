@@ -19,14 +19,21 @@ import StudentBadge from "@/components/student/StudentBadge";
 import StudentActionButton from "@/components/student/StudentActionButton";
 import GridBackground from "@/layouts/GridBackground";
 import { flashcardsService } from "@/api/services/flashcards";
-import type { CardSetResponse } from "@/api/types";
+import { rewardsService } from "@/api/services/rewards";
+import type { CardSetResponse, RewardStatusResponse } from "@/api/types";
+import { useAppDispatch } from "@/store/hooks";
+import { fetchCurrentUserProfile } from "@/store/userProfileSlice";
 
 function FlashcardDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
 
   const [deck, setDeck] = useState<CardSetResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const [rewardStatus, setRewardStatus] = useState<RewardStatusResponse | null>(
+    null,
+  );
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
@@ -43,6 +50,13 @@ function FlashcardDetail() {
         const data = await flashcardsService.getById(id);
         setDeck(data);
         setAnswers(new Array(data.cards.length).fill(null));
+
+        try {
+          const status = await rewardsService.getRewardStatus("FLASHCARD", id);
+          setRewardStatus(status);
+        } catch (statusErr) {
+          console.error("Failed to fetch reward status:", statusErr);
+        }
       } catch (err) {
         console.error("Failed to fetch flashcard deck:", err);
       } finally {
@@ -51,6 +65,22 @@ function FlashcardDetail() {
     };
     fetchDeck();
   }, [id]);
+
+  useEffect(() => {
+    if (isCompleted && id) {
+      const submitCompletion = async () => {
+        if (rewardStatus?.eligible) {
+          try {
+            await flashcardsService.complete(id);
+            dispatch(fetchCurrentUserProfile());
+          } catch (err) {
+            console.error("Failed to submit flashcard completion reward:", err);
+          }
+        }
+      };
+      submitCompletion();
+    }
+  }, [isCompleted, id, rewardStatus, dispatch]);
 
   const cards = deck?.cards || [];
 
@@ -216,7 +246,7 @@ function FlashcardDetail() {
               >
                 {/* FRONT FACE */}
                 <div
-                  className="absolute inset-0 w-full h-full flex flex-col justify-between p-8 rounded-3xl border border-purple-500/30 bg-[rgba(24,18,45,0.85)] backdrop-blur-md shadow-2xl transition-all hover:border-purple-500/50 hover:shadow-[0_20px_50px_rgba(168,85,247,0.15)]"
+                  className="absolute inset-0 w-full h-full flex flex-col justify-between p-8 rounded-3xl border border-purple-500/30 bg-[#18122d] shadow-2xl transition-all hover:border-purple-500/50 hover:shadow-[0_20px_50px_rgba(168,85,247,0.15)]"
                   style={cardFaceStyle}
                 >
                   <div className="flex justify-between items-center text-xs text-[var(--muted-foreground)] font-bold tracking-wider uppercase">
@@ -247,7 +277,7 @@ function FlashcardDetail() {
 
                 {/* BACK FACE */}
                 <div
-                  className="absolute inset-0 w-full h-full flex flex-col justify-between p-8 rounded-3xl border border-amber-500/30 bg-[rgba(24,18,45,0.9)] backdrop-blur-md shadow-2xl transition-all hover:border-amber-500/50 hover:shadow-[0_20px_50px_rgba(245,158,11,0.15)]"
+                  className="absolute inset-0 w-full h-full flex flex-col justify-between p-8 rounded-3xl border border-amber-500/30 bg-[#1c163a] shadow-2xl transition-all hover:border-amber-500/50 hover:shadow-[0_20px_50px_rgba(245,158,11,0.15)]"
                   style={cardBackStyle}
                 >
                   <div className="flex justify-between items-center text-xs text-[var(--muted-foreground)] font-bold tracking-wider uppercase">
@@ -348,7 +378,9 @@ function FlashcardDetail() {
                 </p>
                 <div className="flex items-center justify-center gap-1 text-[var(--primary-light)]">
                   <Zap className="w-5 h-5 fill-current" />
-                  <span className="text-3xl font-black">+100</span>
+                  <span className="text-3xl font-black">
+                    {rewardStatus?.eligible ? "+100" : "+0"}
+                  </span>
                 </div>
               </div>
               <div className="text-center">
@@ -357,9 +389,23 @@ function FlashcardDetail() {
                 </p>
                 <div className="flex items-center justify-center gap-1 text-amber-400">
                   <Sparkles className="w-5 h-5" />
-                  <span className="text-3xl font-black">+50</span>
+                  <span className="text-3xl font-black">
+                    {rewardStatus?.eligible ? "+50" : "+0"}
+                  </span>
                 </div>
               </div>
+
+              {rewardStatus && !rewardStatus.eligible && (
+                <div className="col-span-2 mt-2 px-4 py-3 bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 rounded-xl text-xs font-bold text-center">
+                  ⏱️ Đang trong thời gian chờ (cooldown 3 ngày). Bạn sẽ đủ điều
+                  kiện nhận XP/Coin tiếp theo sau:{" "}
+                  {rewardStatus.nextEligibleAt
+                    ? new Date(rewardStatus.nextEligibleAt).toLocaleString(
+                        "vi-VN",
+                      )
+                    : "3 ngày"}
+                </div>
+              )}
 
               <div className="col-span-2 pt-4 border-t border-[var(--border)]">
                 <p className="text-xs text-[var(--muted-foreground)] font-bold uppercase tracking-wider mb-1">

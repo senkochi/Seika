@@ -101,4 +101,15 @@ export const quizzesService = {
     );
     return response.data;
   },
+
+  /**
+   * Nộp điểm bài quiz
+   */
+  submitQuiz: async (id: string, score: number) => {
+    const response = await apiClient.post<ApiResponse<void>>(
+      `/quiz/${encodeURIComponent(id)}/submit`,
+      { score },
+    );
+    return response.data;
+  },
 };
