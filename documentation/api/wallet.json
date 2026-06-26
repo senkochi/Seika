@@ -11,6 +11,34 @@
     }
   ],
   "paths": {
+    "/api/wallet/cash-out": {
+      "post": {
+        "tags": ["wallet-controller"],
+        "operationId": "cashOut",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TransactionReqDTO"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/wallet/withdraw": {
       "post": {
         "tags": ["wallet-controller"],

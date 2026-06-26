@@ -50,10 +50,11 @@ public class WalletService {
     }
 
     @Transactional
-    public void createWallet(UUID userId) {
+    public void createWallet(UUID userId, boolean isTeacher) {
+        BigDecimal defaultBalance = isTeacher ? BigDecimal.ZERO : new BigDecimal("500");
         walletRepository.findByUserId(userId)
                 .orElseGet(() -> walletRepository.save(
-                        Wallet.builder().userId(userId).balance(new BigDecimal("500")).build()
+                        Wallet.builder().userId(userId).balance(defaultBalance).build()
                 ));
     }
 
@@ -70,6 +71,19 @@ public class WalletService {
     @Transactional
     public void spend(UUID userId, TransactionReqDTO req) {
         updateBalance(userId, req.getAmount().negate(), TransactionType.WITHDRAW, req.getDescription());
+    }
+
+    @Transactional
+    public void cashOut(UUID userId, BigDecimal amount, String customDescription) {
+        if (amount == null || amount.compareTo(new BigDecimal("10")) < 0 || amount.remainder(new BigDecimal("10")).compareTo(BigDecimal.ZERO) != 0) {
+            throw new IllegalArgumentException("Số tiền rút phải lớn hơn hoặc bằng 10 và là bội số của 10");
+        }
+        BigDecimal vnd = amount.multiply(new BigDecimal("100"));
+        String description = "Quy đổi: " + amount.toPlainString() + " Coins = " + vnd.toPlainString() + " VNĐ";
+        if (customDescription != null && !customDescription.trim().isEmpty()) {
+            description += " (" + customDescription + ")";
+        }
+        updateBalance(userId, amount.negate(), TransactionType.CASH_OUT, description);
     }
 
     @Transactional

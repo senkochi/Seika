@@ -36,9 +36,17 @@ public class WalletController {
     @PostMapping("/withdraw")
     public ResponseEntity<?> withdraw(@AuthenticationPrincipal Jwt jwt,
                                       @RequestBody TransactionReqDTO req){
-        UUID userId = UUID.fromString(jwt.getClaimAsString("userId"));
+        UUID userId = UUID.fromString(jwt.getClaim("userId"));
         walletService.spend(userId, req);
         return ResponseEntity.ok(Map.of("message", "Trừ tiền thành công"));
+    }
+
+    @PostMapping("/cash-out")
+    public ResponseEntity<?> cashOut(@AuthenticationPrincipal Jwt jwt,
+                                     @RequestBody TransactionReqDTO req){
+        UUID userId = UUID.fromString(jwt.getClaim("userId"));
+        walletService.cashOut(userId, req.getAmount(), req.getDescription());
+        return ResponseEntity.ok(Map.of("message", "Rút tiền thành công"));
     }
 
     @PostMapping("/deposit")

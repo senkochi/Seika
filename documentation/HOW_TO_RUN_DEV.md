@@ -9,6 +9,8 @@ Our system infrastructure, databases, and core services are fully containerized 
 To build and start all microservices (including Service Discovery, Identity, Profile, Wallet, and Marketplace services) for the first time, run the following command in the root directory:
 
 ```bash
+mvn clean package -DskipTests
+
 docker compose up -d --build
 
 ```
