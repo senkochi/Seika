@@ -30,6 +30,11 @@ public class RabbitMQConfig {
     public static final String USER_REGISTERED_ROUTING_KEY = "user.registered";
     public static final String PROFILE_USER_REGISTERED_QUEUE = "profile.user-registered";
 
+    // ── Learning events exchange ──
+    public static final String LEARNING_EVENTS_EXCHANGE = "learning.events";
+    public static final String REWARD_GRANTED_ROUTING_KEY = "reward.granted";
+    public static final String PROFILE_REWARD_QUEUE = "profile.reward-events";
+
     @Bean
     public TopicExchange contentEventsExchange() {
         return new TopicExchange(CONTENT_EVENTS_EXCHANGE, true, false);
@@ -43,6 +48,11 @@ public class RabbitMQConfig {
     @Bean
     public TopicExchange identityEventsExchange() {
         return new TopicExchange(IDENTITY_EVENTS_EXCHANGE, true, false);
+    }
+
+    @Bean
+    public TopicExchange learningEventsExchange() {
+        return new TopicExchange(LEARNING_EVENTS_EXCHANGE, true, false);
     }
 
     @Bean
@@ -91,6 +101,18 @@ public class RabbitMQConfig {
         return BindingBuilder.bind(profileUserRegisteredQueue)
                 .to(identityEventsExchange)
                 .with(USER_REGISTERED_ROUTING_KEY);
+    }
+
+    @Bean
+    public Queue profileRewardQueue() {
+        return new Queue(PROFILE_REWARD_QUEUE, true);
+    }
+
+    @Bean
+    public Binding profileRewardBinding(Queue profileRewardQueue, TopicExchange learningEventsExchange) {
+        return BindingBuilder.bind(profileRewardQueue)
+                .to(learningEventsExchange)
+                .with(REWARD_GRANTED_ROUTING_KEY);
     }
 
     @Bean

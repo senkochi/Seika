@@ -47,6 +47,12 @@ spring:
                 - Path=/v3/api-docs/notification-service/**,/v3/api-docs/notification-service
               filters:
                 - RewritePath=/v3/api-docs/notification-service(?:/.*)?,/v3/api-docs
+            - id: reward-openapi
+              uri: lb://REWARD-SERVICE
+              predicates:
+                - Path=/v3/api-docs/reward-service/**,/v3/api-docs/reward-service
+              filters:
+                - RewritePath=/v3/api-docs/reward-service(?:/.*)?,/v3/api-docs
             # API routes
             - id: identity-auth-route
               uri: lb://IDENTITY-SERVICE
@@ -82,6 +88,10 @@ spring:
               uri: lb://NOTIFICATION-SERVICE
               predicates:
                 - Path=/api/notifications/**,/api/notifications
+            - id: reward-route
+              uri: lb://REWARD-SERVICE
+              predicates:
+                - Path=/api/rewards/**,/api/rewards
           discovery:
             locator:
               enabled: false

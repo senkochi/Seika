@@ -11,6 +11,11 @@ import {
 import StudentBadge from "@/components/student/StudentBadge";
 import StudentActionButton from "@/components/student/StudentActionButton";
 import GridBackground from "@/layouts/GridBackground";
+import { quizzesService } from "@/api/services/quizzes";
+import { rewardsService } from "@/api/services/rewards";
+import type { QuizSetResponse, RewardStatusResponse } from "@/api/types";
+import { useAppDispatch } from "@/store/hooks";
+import { fetchCurrentUserProfile } from "@/store/userProfileSlice";
 
 // Import custom quiz components
 import MultipleChoiceQuiz from "@/components/student/quiz/MultipleChoiceQuiz";
@@ -18,214 +23,49 @@ import MatchingQuiz from "@/components/student/quiz/MatchingQuiz";
 import ReorderQuiz from "@/components/student/quiz/ReorderQuiz";
 import FillInBlankQuiz from "@/components/student/quiz/FillInBlankQuiz";
 
-interface QuizQuestion {
-  id: string;
-  questionText: string;
-  type: "MULTIPLE_CHOICE" | "REORDER" | "MATCHING" | "FILL_IN_THE_BLANK";
-  options?: string[];
-  correctOptionIndex?: number;
-  matchingPairs?: Record<string, string>;
-  correctOrder?: string[];
-  acceptedAnswers?: string[];
-}
-
-interface QuizSet {
-  id: number;
-  name: string;
-  description: string;
-  rarity: "Common" | "Rare" | "Epic" | "Legendary";
-  color: string;
-  icon: string;
-  xpReward: number;
-  coinReward: number;
-  questions: QuizQuestion[];
-}
-
-const mockQuizSetsData: Record<number, QuizSet> = {
-  1: {
-    id: 1,
-    name: "Math Quiz",
-    description: "Test your math skills",
-    rarity: "Common",
-    color: "from-blue-500 to-cyan-600",
-    icon: "🔢",
-    xpReward: 100,
-    coinReward: 50,
-    questions: [
-      {
-        id: "m1",
-        questionText: "What is 12 x 11?",
-        type: "MULTIPLE_CHOICE",
-        options: ["121", "132", "144", "156"],
-        correctOptionIndex: 1,
-      },
-      {
-        id: "m2",
-        questionText: "Complete the equation: 5 + 3 * 2 = _",
-        type: "FILL_IN_THE_BLANK",
-        acceptedAnswers: ["11"],
-      },
-      {
-        id: "m3",
-        questionText: "Order these numbers from smallest to largest:",
-        type: "REORDER",
-        correctOrder: ["-5", "0.5", "2", "10"],
-      },
-      {
-        id: "m4",
-        questionText: "Match the math terms to their symbols:",
-        type: "MATCHING",
-        matchingPairs: {
-          "Addition": "+",
-          "Subtraction": "-",
-          "Multiplication": "*",
-          "Division": "/",
-        },
-      },
-    ],
-  },
-  2: {
-    id: 2,
-    name: "English Quiz",
-    description: "Test your English skills",
-    rarity: "Rare",
-    color: "from-purple-500 to-violet-600",
-    icon: "📚",
-    xpReward: 150,
-    coinReward: 75,
-    questions: [
-      {
-        id: "e1",
-        questionText: "Which of the following is a synonym of 'Ephemeral'?",
-        type: "MULTIPLE_CHOICE",
-        options: ["Eternal", "Transient", "Permanent", "Slow"],
-        correctOptionIndex: 1,
-      },
-      {
-        id: "e2",
-        questionText: "The past tense of the verb 'go' is _.",
-        type: "FILL_IN_THE_BLANK",
-        acceptedAnswers: ["went"],
-      },
-      {
-        id: "e3",
-        questionText: "Arrange these words to make a correct sentence:",
-        type: "REORDER",
-        correctOrder: ["The", "quick", "brown", "fox", "jumps"],
-      },
-      {
-        id: "e4",
-        questionText: "Match the words with their antonyms:",
-        type: "MATCHING",
-        matchingPairs: {
-          "Hot": "Cold",
-          "Happy": "Sad",
-          "Fast": "Slow",
-          "High": "Low",
-        },
-      },
-    ],
-  },
-  3: {
-    id: 3,
-    name: "Science Quiz",
-    description: "Test your science skills",
-    rarity: "Epic",
-    color: "from-green-500 to-emerald-600",
-    icon: "🔬",
-    xpReward: 200,
-    coinReward: 100,
-    questions: [
-      {
-        id: "s1",
-        questionText: "What is the primary gas found in Earth's atmosphere?",
-        type: "MULTIPLE_CHOICE",
-        options: ["Oxygen", "Nitrogen", "Carbon Dioxide", "Hydrogen"],
-        correctOptionIndex: 1,
-      },
-      {
-        id: "s2",
-        questionText: "Water boils at _ degrees Celsius at sea level.",
-        type: "FILL_IN_THE_BLANK",
-        acceptedAnswers: ["100", "100C", "100 degrees"],
-      },
-      {
-        id: "s3",
-        questionText: "Order the planets starting closest to the Sun:",
-        type: "REORDER",
-        correctOrder: ["Mercury", "Venus", "Earth", "Mars"],
-      },
-      {
-        id: "s4",
-        questionText: "Match the organ with its body system:",
-        type: "MATCHING",
-        matchingPairs: {
-          "Heart": "Circulatory",
-          "Brain": "Nervous",
-          "Lungs": "Respiratory",
-          "Stomach": "Digestive",
-        },
-      },
-    ],
-  },
-  4: {
-    id: 4,
-    name: "History Quiz",
-    description: "Test your history skills",
-    rarity: "Legendary",
-    color: "from-amber-400 to-yellow-500",
-    icon: "👑",
-    xpReward: 300,
-    coinReward: 150,
-    questions: [
-      {
-        id: "h1",
-        questionText: "Who was the first person to step on the Moon?",
-        type: "MULTIPLE_CHOICE",
-        options: ["Yuri Gagarin", "Neil Armstrong", "Buzz Aldrin", "Michael Collins"],
-        correctOptionIndex: 1,
-      },
-      {
-        id: "h2",
-        questionText: "World War II ended in the year _.",
-        type: "FILL_IN_THE_BLANK",
-        acceptedAnswers: ["1945"],
-      },
-      {
-        id: "h3",
-        questionText: "Order these historical periods chronologically (earliest first):",
-        type: "REORDER",
-        correctOrder: ["Ancient Egypt", "Roman Empire", "Middle Ages", "Renaissance"],
-      },
-      {
-        id: "h4",
-        questionText: "Match the historical figure to their achievement:",
-        type: "MATCHING",
-        matchingPairs: {
-          "Albert Einstein": "Theory of Relativity",
-          "Isaac Newton": "Laws of Motion",
-          "Marie Curie": "Discovery of Radium",
-          "Charles Darwin": "Theory of Evolution",
-        },
-      },
-    ],
-  },
-};
-
 export default function QuizDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
 
-  const quizId = Number(id) || 1;
-  const quizSet = mockQuizSetsData[quizId] || mockQuizSetsData[1];
-  const { questions } = quizSet;
+  const [quizSet, setQuizSet] = useState<QuizSetResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [rewardStatus, setRewardStatus] = useState<RewardStatusResponse | null>(
+    null,
+  );
+
+  useEffect(() => {
+    if (!id) return;
+    const fetchQuiz = async () => {
+      try {
+        const res = await quizzesService.getQuizSetById(id);
+        setQuizSet(res.data);
+
+        try {
+          const status = await rewardsService.getRewardStatus("QUIZ", id);
+          setRewardStatus(status);
+        } catch (statusErr) {
+          console.error("Failed to fetch reward status:", statusErr);
+        }
+      } catch (err) {
+        console.error("Failed to fetch quiz set", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchQuiz();
+  }, [id]);
+
+  const questions = quizSet?.quizzes || [];
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
 
   // States for user answers in the current question
-  const [selectedOptionIndex, setSelectedOptionIndex] = useState<number | null>(null);
+  const [selectedOptionIndex, setSelectedOptionIndex] = useState<number | null>(
+    null,
+  );
   const [userAnswer, setUserAnswer] = useState("");
   const [userOrder, setUserOrder] = useState<string[]>([]);
   const [userMatches, setUserMatches] = useState<Record<string, string>>({});
@@ -242,7 +82,7 @@ export default function QuizDetail() {
     setUserOrder([]);
     setUserMatches({});
     setIsSubmitted(false);
-  }, [currentIndex, quizId]);
+  }, [currentIndex, id]);
 
   const hasProvidedInput = () => {
     if (!currentQuestion) return false;
@@ -273,15 +113,18 @@ export default function QuizDetail() {
         break;
       case "FILL_IN_THE_BLANK":
         correct = (currentQuestion.acceptedAnswers || []).some(
-          (ans) => ans.trim().toLowerCase() === userAnswer.trim().toLowerCase()
+          (ans) => ans.trim().toLowerCase() === userAnswer.trim().toLowerCase(),
         );
         break;
       case "REORDER":
-        correct = JSON.stringify(userOrder) === JSON.stringify(currentQuestion.correctOrder);
+        correct =
+          JSON.stringify(userOrder) ===
+          JSON.stringify(currentQuestion.correctOrder);
         break;
       case "MATCHING":
         correct = Object.keys(currentQuestion.matchingPairs || {}).every(
-          (key) => (currentQuestion.matchingPairs || {})[key] === userMatches[key]
+          (key) =>
+            (currentQuestion.matchingPairs || {})[key] === userMatches[key],
         );
         break;
     }
@@ -310,11 +153,59 @@ export default function QuizDetail() {
   };
 
   const correctCount = scoreHistory.filter((val) => val === true).length;
-  const accuracyPercentage = Math.round((correctCount / questions.length) * 100);
+  const accuracyPercentage =
+    questions.length > 0
+      ? Math.round((correctCount / questions.length) * 100)
+      : 0;
+
+  const eligiblePassed = !!(rewardStatus?.eligible && accuracyPercentage >= 70);
+
+  useEffect(() => {
+    if (isCompleted && id && questions.length > 0) {
+      const submitQuizScores = async () => {
+        if (eligiblePassed) {
+          try {
+            await quizzesService.submitQuiz(id, accuracyPercentage);
+            dispatch(fetchCurrentUserProfile());
+          } catch (err) {
+            console.error("Failed to submit quiz score reward:", err);
+          }
+        }
+      };
+      submitQuizScores();
+    }
+  }, [
+    isCompleted,
+    id,
+    eligiblePassed,
+    accuracyPercentage,
+    questions.length,
+    dispatch,
+  ]);
 
   // Compute proportional XP and Coin gains
-  const gainedXp = Math.round(quizSet.xpReward * (correctCount / questions.length));
-  const gainedCoins = Math.round(quizSet.coinReward * (correctCount / questions.length));
+  const gainedXp = eligiblePassed
+    ? Math.round(100 * (correctCount / questions.length))
+    : 0;
+  const gainedCoins = eligiblePassed
+    ? Math.round(50 * (correctCount / questions.length))
+    : 0;
+
+  if (loading) {
+    return (
+      <div className="relative isolate min-h-[100dvh] w-full flex items-center justify-center bg-[var(--background)]">
+        <p className="text-white">Loading quiz...</p>
+      </div>
+    );
+  }
+
+  if (!quizSet || questions.length === 0) {
+    return (
+      <div className="relative isolate min-h-[100dvh] w-full flex items-center justify-center bg-[var(--background)]">
+        <p className="text-white">No quiz found.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="relative isolate min-h-[100dvh] w-full overflow-hidden bg-[var(--background)] flex flex-col font-sans">
@@ -335,24 +226,17 @@ export default function QuizDetail() {
         </button>
 
         <div className="text-center hidden md:block">
-          <p className="text-xs text-[var(--muted-foreground)] font-semibold uppercase tracking-wider">Quiz Session</p>
+          <p className="text-xs text-[var(--muted-foreground)] font-semibold uppercase tracking-wider">
+            Quiz Session
+          </p>
           <h1 className="text-xl font-black text-white flex items-center gap-2 justify-center">
-            <span>{quizSet.icon}</span>
-            <span>{quizSet.name}</span>
+            <span>❓</span>
+            <span>{quizSet.title}</span>
           </h1>
         </div>
 
-        <StudentBadge
-          variant={
-            quizSet.rarity === "Rare"
-              ? "info"
-              : quizSet.rarity === "Epic" || quizSet.rarity === "Legendary"
-                ? "purple"
-                : "glass"
-          }
-          className="px-4 py-1.5"
-        >
-          {quizSet.rarity}
+        <StudentBadge variant="purple" className="px-4 py-1.5">
+          Epic
         </StudentBadge>
       </header>
 
@@ -368,13 +252,16 @@ export default function QuizDetail() {
                   Question {currentIndex + 1} of {questions.length}
                 </span>
                 <span className="text-[var(--primary-light)]">
-                  {Math.round((currentIndex / questions.length) * 100)}% Complete
+                  {Math.round((currentIndex / questions.length) * 100)}%
+                  Complete
                 </span>
               </div>
               <div className="w-full h-3 bg-[var(--muted)] border border-[var(--border)] rounded-full overflow-hidden">
                 <div
                   className="h-full bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full transition-all duration-300"
-                  style={{ width: `${(currentIndex / questions.length) * 100}%` }}
+                  style={{
+                    width: `${(currentIndex / questions.length) * 100}%`,
+                  }}
                 />
               </div>
             </div>
@@ -440,7 +327,9 @@ export default function QuizDetail() {
                   onClick={handleNextQuestion}
                   className="w-full md:w-auto px-12 !bg-purple-600 hover:!bg-purple-500 text-white"
                 >
-                  {currentIndex + 1 < questions.length ? "Next Question" : "Finish Quiz"}
+                  {currentIndex + 1 < questions.length
+                    ? "Next Question"
+                    : "Finish Quiz"}
                 </StudentActionButton>
               )}
             </div>
@@ -455,32 +344,59 @@ export default function QuizDetail() {
               <Trophy className="w-12 h-12 text-purple-950" />
             </div>
 
-            <h2 className="text-3xl font-black mb-2 text-white">Quiz Completed!</h2>
+            <h2 className="text-3xl font-black mb-2 text-white">
+              Quiz Completed!
+            </h2>
             <p className="text-[var(--muted-foreground)] mb-8">
-              Outstanding effort! You've successfully finished the {quizSet.name} session.
+              Outstanding effort! You've successfully finished the{" "}
+              {quizSet.title} session.
             </p>
 
             {/* Stats Summary Card */}
             <div className="bg-[var(--second-card)] border border-[var(--border)] rounded-2xl p-6 mb-8 grid grid-cols-2 gap-4">
               <div className="text-center border-r border-[var(--border)]">
-                <p className="text-xs text-[var(--muted-foreground)] font-bold uppercase tracking-wider mb-1">XP Gained</p>
+                <p className="text-xs text-[var(--muted-foreground)] font-bold uppercase tracking-wider mb-1">
+                  XP Gained
+                </p>
                 <div className="flex items-center justify-center gap-1 text-[var(--primary-light)]">
                   <Zap className="w-5 h-5 fill-current" />
                   <span className="text-3xl font-black">+{gainedXp}</span>
                 </div>
               </div>
               <div className="text-center">
-                <p className="text-xs text-[var(--muted-foreground)] font-bold uppercase tracking-wider mb-1">Coins Earned</p>
+                <p className="text-xs text-[var(--muted-foreground)] font-bold uppercase tracking-wider mb-1">
+                  Coins Earned
+                </p>
                 <div className="flex items-center justify-center gap-1 text-amber-400">
                   <Sparkles className="w-5 h-5" />
                   <span className="text-3xl font-black">+{gainedCoins}</span>
                 </div>
               </div>
 
+              {rewardStatus && !rewardStatus.eligible && (
+                <div className="col-span-2 mt-2 px-4 py-3 bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 rounded-xl text-xs font-bold text-center">
+                  ⏱️ Chỉ nhận thưởng Quiz trong lần hoàn thành đầu tiên. Bạn đã
+                  làm bài này rồi.
+                </div>
+              )}
+
+              {rewardStatus?.eligible && accuracyPercentage < 70 && (
+                <div className="col-span-2 mt-2 px-4 py-3 bg-red-500/10 border border-red-500/30 text-red-400 rounded-xl text-xs font-bold text-center">
+                  ⚠️ Bạn cần đạt tối thiểu 70% độ chính xác để nhận Coin & EXP
+                  (hiện tại: {accuracyPercentage}%).
+                </div>
+              )}
+
               <div className="col-span-2 pt-4 border-t border-[var(--border)]">
-                <p className="text-xs text-[var(--muted-foreground)] font-bold uppercase tracking-wider mb-1">Accuracy Score</p>
-                <p className="text-2xl font-black text-white">{correctCount} / {questions.length} Correct</p>
-                <p className="text-sm text-[var(--muted-foreground)] mt-1">({accuracyPercentage}% accuracy)</p>
+                <p className="text-xs text-[var(--muted-foreground)] font-bold uppercase tracking-wider mb-1">
+                  Accuracy Score
+                </p>
+                <p className="text-2xl font-black text-white">
+                  {correctCount} / {questions.length} Correct
+                </p>
+                <p className="text-sm text-[var(--muted-foreground)] mt-1">
+                  ({accuracyPercentage}% accuracy)
+                </p>
               </div>
             </div>
 

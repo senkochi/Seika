@@ -22,9 +22,18 @@ public class RabbitMQConfig {
     public static final String CONTENT_EVENTS_EXCHANGE = "content.events";
     public static final String FLASHCARD_SET_CREATED_ROUTING_KEY = "flashcard.set.created";
 
+    // Learning events (for rewards)
+    public static final String LEARNING_EVENTS_EXCHANGE = "learning.events";
+    public static final String DECK_COMPLETED_ROUTING_KEY = "deck.completed";
+
     @Bean
     public TopicExchange contentEventsExchange() {
         return new TopicExchange(CONTENT_EVENTS_EXCHANGE, true, false);
+    }
+
+    @Bean
+    public TopicExchange learningEventsExchange() {
+        return new TopicExchange(LEARNING_EVENTS_EXCHANGE, true, false);
     }
 
     @Bean

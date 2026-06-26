@@ -10,6 +10,7 @@ import com.seika.quiz_service.dto.quiz.request_sub_types.ReorderRequest;
 import com.seika.quiz_service.exception.ForbiddenException;
 import com.seika.quiz_service.exception.ResourceNotFoundException;
 import com.seika.quiz_service.repository.QuizRepository;
+import com.seika.quiz_service.repository.QuizSetRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -23,6 +24,8 @@ import java.util.stream.Collectors;
 public class QuizService {
     
     private final QuizRepository quizRepository;
+    private final QuizSetRepository quizSetRepository;
+    private final org.springframework.amqp.rabbit.core.RabbitTemplate rabbitTemplate;
     
     /**
      * Get all quizzes
@@ -168,5 +171,37 @@ public class QuizService {
         }
 
         return builder.build();
+    }
+
+    /**
+     * Submit a quiz attempt and publish completion event
+     */
+    public void submitQuiz(String id, String userId, Double score) {
+        log.info("Submitting quiz id: {} for user: {} with score: {}", id, userId, score);
+        
+        // Ensure quiz or quiz set exists
+        if (!quizRepository.existsById(id) && !quizSetRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Quiz or QuizSet", id);
+        }
+
+        // Logic for pass/fail (e.g. >= 70% passed)
+        boolean passed = score >= 70.0;
+
+        com.seika.quiz_service.dto.QuizCompletedEvent event = com.seika.quiz_service.dto.QuizCompletedEvent.builder()
+                .eventId(java.util.UUID.randomUUID().toString())
+                .correlationId("quiz-" + id + "-user-" + userId)
+                .userId(userId)
+                .quizId(id)
+                .score(score)
+                .passed(passed)
+                .completedAt(java.time.LocalDateTime.now().toString())
+                .build();
+                
+        rabbitTemplate.convertAndSend(
+                com.seika.quiz_service.config.RabbitMQConfig.LEARNING_EVENTS_EXCHANGE,
+                com.seika.quiz_service.config.RabbitMQConfig.QUIZ_COMPLETED_ROUTING_KEY,
+                event
+        );
+        log.info("Published QuizCompletedEvent for quiz {} and user {}", id, userId);
     }
 }

@@ -118,4 +118,30 @@ public class UserProfileService {
         log.info("Updated profile for userId={}", userId);
         return userProfileMapper.toUserProfileResponse(savedUserProfile, gameProfile);
     }
+
+    @Transactional
+    public void addExp(String userId, Integer exp) {
+        GameProfile gameProfile = gameProfileRepository.findByUserId(userId)
+                .orElseGet(() -> {
+                    log.info("GameProfile not found for userId {}, creating a new one", userId);
+                    return GameProfile.builder()
+                            .userId(userId)
+                            .exp(0)
+                            .level(1)
+                            .currentStreak(0)
+                            .longestStreak(0)
+                            .quizzesCompleted(0)
+                            .build();
+                });
+
+        gameProfile.setExp(gameProfile.getExp() + exp);
+        // Simple leveling logic: level = (exp / 100) + 1
+        int newLevel = (int) (gameProfile.getExp() / 100) + 1;
+        if (newLevel > gameProfile.getLevel()) {
+            gameProfile.setLevel(newLevel);
+            log.info("User {} leveled up to {}", userId, newLevel);
+        }
+        
+        gameProfileRepository.save(gameProfile);
+    }
 }

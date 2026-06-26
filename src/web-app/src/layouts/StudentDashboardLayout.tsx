@@ -123,6 +123,22 @@ function StudentDashboardLayout() {
     };
   }, []);
 
+  const isFullscreen =
+    location.pathname.includes("/flashcard/") ||
+    location.pathname.includes("/quiz/");
+
+  if (isFullscreen) {
+    return (
+      <div className="relative isolate min-h-[100dvh] w-full overflow-hidden bg-[var(--background)] flex flex-col">
+        {/*Grid Background*/}
+        <GridBackground />
+        <main className="flex-1 overflow-auto flex flex-col">
+          <Outlet />
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="relative isolate min-h-[100dvh] w-full overflow-hidden bg-[var(--background)]">
       {/*Grid Background*/}

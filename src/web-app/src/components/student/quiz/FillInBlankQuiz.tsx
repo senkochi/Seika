@@ -19,11 +19,25 @@ export default function FillInBlankQuiz({
 }: FillInBlankQuizProps) {
   // Check if answer is correct (trimmed, case-insensitive match with any accepted answers)
   const isCorrect = acceptedAnswers.some(
-    (accepted) => accepted.trim().toLowerCase() === userAnswer.trim().toLowerCase()
+    (accepted) =>
+      accepted.trim().toLowerCase() === userAnswer.trim().toLowerCase(),
   );
 
-  // Split question text by '_' to insert the input inline
-  const parts = questionText.split("_");
+  // Find the first sequence of underscores (with optional spaces) and mark it with ||INPUT||.
+  // Replace all other underscores with a static line placeholder (______).
+  let processedText = questionText;
+  const match = /_[\s_]*/.exec(processedText);
+  if (match) {
+    const firstIndex = match.index;
+    const matchLength = match[0].length;
+    const before = processedText.substring(0, firstIndex);
+    const after = processedText.substring(firstIndex + matchLength);
+    const cleanedAfter = after.replace(/_[\s_]*/g, "______");
+    processedText = before + "||INPUT||" + cleanedAfter;
+  } else {
+    processedText = processedText + " ||INPUT||";
+  }
+  const parts = processedText.split("||INPUT||");
 
   return (
     <div className="w-full flex flex-col gap-6 animate-[fadeIn_0.3s_ease-out]">
@@ -47,7 +61,7 @@ export default function FillInBlankQuiz({
                         ? isCorrect
                           ? "border-green-500 bg-green-500/10 text-green-200"
                           : "border-red-500 bg-red-500/10 text-red-200"
-                        : "border-[var(--border)] focus:border-[var(--accent)] focus:shadow-[0_0_12px_rgba(250,204,21,0.25)] focus:scale-[1.02]"
+                        : "border-[var(--border)] focus:border-[var(--accent)] focus:shadow-[0_0_12px_rgba(250,204,21,0.25)] focus:scale-[1.02]",
                     )}
                   />
                   {isSubmitted && (

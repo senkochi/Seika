@@ -186,3 +186,9 @@ export interface UnreadCountResponse {
   userId: string;
   unreadCount: number;
 }
+
+export interface RewardStatusResponse {
+  eligible: boolean;
+  nextEligibleAt: string | null;
+  rewardCount: number;
+}
