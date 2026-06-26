@@ -33,8 +33,17 @@ public class UserRegisteredConsumer {
             }
 
             UUID userId = UUID.fromString(event.getUserId());
-            walletService.createWallet(userId);
-            log.info("Created wallet for new userId={}", userId);
+            
+            boolean isTeacher = false;
+            if (event.getPayload() != null && event.getPayload().containsKey("roles")) {
+                Object rolesObj = event.getPayload().get("roles");
+                if (rolesObj instanceof java.util.List) {
+                    isTeacher = ((java.util.List<?>) rolesObj).contains("TEACHER");
+                }
+            }
+            
+            walletService.createWallet(userId, isTeacher);
+            log.info("Created wallet for new userId={}, isTeacher={}", userId, isTeacher);
         } catch (JsonProcessingException exception) {
             log.error("Failed to deserialize user.registered message. payload={}", rawMessage, exception);
         } catch (Exception exception) {

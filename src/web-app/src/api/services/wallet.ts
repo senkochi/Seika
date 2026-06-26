@@ -9,7 +9,7 @@ export interface TransactionResponse {
   id: string;
   userId: string;
   amount: number;
-  type: "DEPOSIT" | "WITHDRAW" | "REWARD" | "SPEND" | "EARN";
+  type: "DEPOSIT" | "WITHDRAW" | "REWARD" | "SPEND" | "EARN" | "CASH_OUT";
   description: string;
   createdAt: string;
 }
@@ -46,6 +46,12 @@ export const walletService = {
   deposit: async (payload: TransactionReqDTO) => {
     // API POST /api/wallet/deposit
     const response = await apiClient.post<any>("/wallet/deposit", payload);
+    return response.data;
+  },
+
+  cashOut: async (payload: TransactionReqDTO) => {
+    // API POST /api/wallet/cash-out
+    const response = await apiClient.post<any>("/wallet/cash-out", payload);
     return response.data;
   },
 };

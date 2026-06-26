@@ -1,6 +1,6 @@
 import { Store } from "lucide-react";
 import { useEffect, useState } from "react";
-import { marketplaceApi, Product } from "@/api";
+import { marketplaceApi, Product, walletService } from "@/api";
 import { useAppSelector } from "@/store/hooks";
 import { toast } from "sonner";
 
@@ -27,6 +27,18 @@ function Marketplace() {
     try {
       if (!userId) {
         toast.error("Vui lòng đăng nhập để mua hàng");
+        return;
+      }
+
+      toast.loading("Đang kiểm tra số dư...", { id: "buy-product" });
+      const balanceRes = await walletService.getBalance();
+      const currentBalance = balanceRes.balance || 0;
+
+      if (currentBalance < product.price) {
+        toast.error(
+          `Số dư không đủ! Bạn cần ${product.price} Coins nhưng hiện tại chỉ có ${currentBalance} Coins.`,
+          { id: "buy-product" },
+        );
         return;
       }
 
