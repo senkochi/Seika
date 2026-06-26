@@ -57,4 +57,16 @@ All API endpoints exposed through the API Gateway are documented dynamically. Us
 
 - **API Docs URL:** [http://localhost:8080/swagger-ui/index.html](https://www.google.com/search?q=http://localhost:8080/swagger-ui/index.html)
 
+### 3. Observability Stack (Metrics, Logs, Tracing)
+
+We provide an optional, pre-configured Grafana stack (Prometheus, Loki, Tempo, Promtail).
+
+To run the whole system along with the observability stack:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.observability.yml up -d --build
+```
+
+For more details on dashboards and how to view traces/logs, see: [OBSERVABILITY_SETUP.md](OBSERVABILITY_SETUP.md)
+
 ---

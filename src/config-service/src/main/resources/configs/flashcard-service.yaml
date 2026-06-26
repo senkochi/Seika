@@ -31,3 +31,19 @@ logging:
     org.springframework.web: DEBUG
     org.springframework.security: DEBUG
     com.cardy.flashcardServer: TRACE
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "health,info,prometheus"
+  endpoint:
+    health:
+      show-details: always
+
+  otlp:
+    tracing:
+      endpoint: "http://tempo:4317"
+  tracing:
+    sampling:
+      probability: 1.0

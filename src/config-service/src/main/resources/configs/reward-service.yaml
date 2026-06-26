@@ -57,7 +57,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: "health,info"
+        include: "health,info,prometheus"
   endpoint:
     health:
       show-details: always
@@ -77,3 +77,16 @@ reward:
     hard:
       coins: 120
       exp: 60
+
+management:
+
+  otlp:
+    tracing:
+      endpoint: "http://tempo:4317"
+  tracing:
+    sampling:
+      probability: 1.0
+
+logging:
+  pattern:
+    level: '%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]'

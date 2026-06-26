@@ -138,9 +138,20 @@ management:
   endpoints:
     web:
       exposure:
-        include: "health,info,gateway,env,configprops"
+        include: "health,info,gateway,env,configprops,prometheus"
   endpoint:
     health:
       show-details: always
     gateway:
       enabled: true
+
+  otlp:
+    tracing:
+      endpoint: "http://tempo:4317"
+  tracing:
+    sampling:
+      probability: 1.0
+
+logging:
+  pattern:
+    level: '%5p [`${spring.application.name:},%X{traceId:-},%X{spanId:-}]'
