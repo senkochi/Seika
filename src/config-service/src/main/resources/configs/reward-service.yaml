@@ -66,7 +66,7 @@ reward:
   flashcard:
     coins: 20
     exp: 10
-    cooldown-days: 3
+    cooldown-days: 1
   quiz:
     easy:
       coins: 50

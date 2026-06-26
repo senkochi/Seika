@@ -61,17 +61,20 @@ public class RewardProcessor {
     public void processDeckCompleted(DeckCompletedEvent event) {
         log.info("Processing DeckCompletedEvent for user: {} and deck: {}", event.getUserId(), event.getDeckId());
 
+        LocalDateTime now = LocalDateTime.now();
+
         Optional<LearningRewardLog> logOptional = learningRewardLogRepository
                 .findByUserIdAndRewardTypeAndItemId(event.getUserId(), RewardType.FLASHCARD, event.getDeckId());
 
-        LocalDateTime now = LocalDateTime.now();
-
         if (logOptional.isPresent()) {
             LearningRewardLog rewardLog = logOptional.get();
-            if (rewardLog.getLastRewardAt().plusDays(flashcardCooldownDays).isAfter(now)) {
-                log.info("User {} is in cooldown for deck {}", event.getUserId(), event.getDeckId());
+            LocalDateTime nextRewardTime = rewardLog.getLastRewardAt().plusDays(flashcardCooldownDays);
+
+            if (now.isBefore(nextRewardTime)) {
+                log.info("Cooldown active for user {} on deck {}. Next reward available at {}", event.getUserId(), event.getDeckId(), nextRewardTime);
                 return;
             }
+
             rewardLog.setRewardCount(rewardLog.getRewardCount() + 1);
             rewardLog.setLastRewardAt(now);
             learningRewardLogRepository.save(rewardLog);
@@ -86,6 +89,7 @@ public class RewardProcessor {
             learningRewardLogRepository.save(rewardLog);
         }
 
+        log.info("Granting flashcard reward to user {} for deck {}", event.getUserId(), event.getDeckId());
         grantReward(event.getUserId(), flashcardCoins, flashcardExp, "FLASHCARD", event.getDeckId(), event.getCorrelationId());
     }
 

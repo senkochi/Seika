@@ -397,13 +397,13 @@ function FlashcardDetail() {
 
               {rewardStatus && !rewardStatus.eligible && (
                 <div className="col-span-2 mt-2 px-4 py-3 bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 rounded-xl text-xs font-bold text-center">
-                  ⏱️ Đang trong thời gian chờ (cooldown 3 ngày). Bạn sẽ đủ điều
+                  ⏱️ Đang trong thời gian chờ (cooldown 1 ngày). Bạn sẽ đủ điều
                   kiện nhận XP/Coin tiếp theo sau:{" "}
                   {rewardStatus.nextEligibleAt
                     ? new Date(rewardStatus.nextEligibleAt).toLocaleString(
                         "vi-VN",
                       )
-                    : "3 ngày"}
+                    : "1 ngày"}
                 </div>
               )}
 

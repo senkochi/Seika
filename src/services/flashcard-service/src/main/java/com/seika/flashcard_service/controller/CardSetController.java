@@ -81,7 +81,10 @@ public class CardSetController {
     public ResponseEntity<?> completeDeck(
             @RequestParam String deckId,
             @AuthenticationPrincipal Jwt jwt) {
-        String userId = jwt.getSubject();
+        String userId = jwt.getClaimAsString("userId");
+        if (userId == null) {
+            userId = jwt.getSubject(); // Fallback just in case
+        }
         
         com.seika.flashcard_service.dto.DeckCompletedEvent event = com.seika.flashcard_service.dto.DeckCompletedEvent.builder()
                 .eventId(java.util.UUID.randomUUID().toString())
@@ -91,7 +94,9 @@ public class CardSetController {
                 .completedAt(LocalDateTime.now().toString())
                 .build();
                 
+        System.out.println("Publishing DeckCompletedEvent for user: " + userId + " and deck: " + deckId);
         rabbitTemplate.convertAndSend(RabbitMQConfig.LEARNING_EVENTS_EXCHANGE, RabbitMQConfig.DECK_COMPLETED_ROUTING_KEY, event);
+        System.out.println("Successfully published DeckCompletedEvent");
         return ResponseEntity.ok("Deck completed event published");
     }
 
@@ -99,7 +104,10 @@ public class CardSetController {
     public ResponseEntity<?> delete(
             @PathVariable String id,
             @AuthenticationPrincipal Jwt jwt) {
-        String requesterId = jwt.getSubject();
+        String requesterId = jwt.getClaimAsString("userId");
+        if (requesterId == null) {
+            requesterId = jwt.getSubject();
+        }
         cardSetService.delete(id, requesterId);
         return ResponseEntity.ok("X\u00f3a b\u1ed9 th\u1ebb th\u00e0nh c\u00f4ng");
     }
