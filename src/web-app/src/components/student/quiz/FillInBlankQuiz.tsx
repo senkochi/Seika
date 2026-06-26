@@ -19,11 +19,17 @@ export default function FillInBlankQuiz({
 }: FillInBlankQuizProps) {
   // Check if answer is correct (trimmed, case-insensitive match with any accepted answers)
   const isCorrect = acceptedAnswers.some(
-    (accepted) => accepted.trim().toLowerCase() === userAnswer.trim().toLowerCase()
+    (accepted) =>
+      accepted.trim().toLowerCase() === userAnswer.trim().toLowerCase(),
   );
 
-  // Split question text by '_' to insert the input inline
-  const parts = questionText.split("_");
+  // Normalize consecutive/spaced underscores to a single underscore.
+  // If no underscore exists in the text, append one at the end to ensure the input box renders.
+  const normalizedQuestion = questionText.replace(/_[\s_]*/g, "_");
+  const finalQuestionText = normalizedQuestion.includes("_")
+    ? normalizedQuestion
+    : normalizedQuestion + " _";
+  const parts = finalQuestionText.split("_");
 
   return (
     <div className="w-full flex flex-col gap-6 animate-[fadeIn_0.3s_ease-out]">
@@ -47,7 +53,7 @@ export default function FillInBlankQuiz({
                         ? isCorrect
                           ? "border-green-500 bg-green-500/10 text-green-200"
                           : "border-red-500 bg-red-500/10 text-red-200"
-                        : "border-[var(--border)] focus:border-[var(--accent)] focus:shadow-[0_0_12px_rgba(250,204,21,0.25)] focus:scale-[1.02]"
+                        : "border-[var(--border)] focus:border-[var(--accent)] focus:shadow-[0_0_12px_rgba(250,204,21,0.25)] focus:scale-[1.02]",
                     )}
                   />
                   {isSubmitted && (

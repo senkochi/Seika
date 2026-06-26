@@ -112,6 +112,34 @@
         }
       }
     },
+    "/api/notifications/stream": {
+      "get": {
+        "tags": ["notification-controller"],
+        "operationId": "subscribe",
+        "parameters": [
+          {
+            "name": "X-User-Id",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "$ref": "#/components/schemas/SseEmitter"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/notifications/me": {
       "get": {
         "tags": ["notification-controller"],
@@ -306,6 +334,15 @@
             "type": "string"
           },
           "updatedCount": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "SseEmitter": {
+        "type": "object",
+        "properties": {
+          "timeout": {
             "type": "integer",
             "format": "int64"
           }

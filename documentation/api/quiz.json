@@ -77,6 +77,34 @@
         }
       }
     },
+    "/api/quiz-sets": {
+      "post": {
+        "tags": ["quiz-set-controller"],
+        "operationId": "createQuizSet",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QuizSetCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseQuizSetResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/dev/mock/reorder": {
       "get": {
         "tags": ["mock-data-controller"],
@@ -249,6 +277,122 @@
             }
           }
         }
+      },
+      "delete": {
+        "tags": ["quiz-controller"],
+        "operationId": "deleteQuiz",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseVoid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/quiz/my": {
+      "get": {
+        "tags": ["quiz-controller"],
+        "operationId": "getMyQuizzes",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseListQuizResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/quiz-sets/{id}": {
+      "get": {
+        "tags": ["quiz-set-controller"],
+        "operationId": "getQuizSet",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseQuizSetResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["quiz-set-controller"],
+        "operationId": "deleteQuizSet",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseVoid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/quiz-sets/my": {
+      "get": {
+        "tags": ["quiz-set-controller"],
+        "operationId": "getMyQuizSets",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseListQuizSetResponse"
+                }
+              }
+            }
+          }
+        }
       }
     }
   },
@@ -397,6 +541,120 @@
               "MATCHING",
               "FILL_IN_THE_BLANK"
             ]
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "correctOptionIndex": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "matchingPairs": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "correctOrder": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "acceptedAnswers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "QuizSetCreateRequest": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "price": {
+            "type": "number"
+          },
+          "questions": {
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/FillInBlankRequest"
+                },
+                {
+                  "$ref": "#/components/schemas/MatchingRequest"
+                },
+                {
+                  "$ref": "#/components/schemas/McqRequest"
+                },
+                {
+                  "$ref": "#/components/schemas/ReorderRequest"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "ApiResponseQuizSetResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/QuizSetResponse"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "QuizSetResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "price": {
+            "type": "number"
+          },
+          "quizzes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QuizResponse"
+            }
+          },
+          "createdBy": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
           }
         }
       },
@@ -578,6 +836,45 @@
               "$ref": "#/components/schemas/QuizResponse"
             }
           },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ApiResponseListQuizSetResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QuizSetResponse"
+            }
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ApiResponseVoid": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {},
           "timestamp": {
             "type": "string",
             "format": "date-time"

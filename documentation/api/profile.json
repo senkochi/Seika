@@ -20,6 +20,70 @@
     }
   ],
   "paths": {
+    "/api/profiles/{userId}": {
+      "get": {
+        "tags": ["user-profile-controller"],
+        "operationId": "getUserProfile",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfileResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": ["user-profile-controller"],
+        "operationId": "updateUserProfile",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserProfileRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfileResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/profiles": {
       "get": {
         "tags": ["user-profile-controller"],
@@ -67,10 +131,10 @@
         }
       }
     },
-    "/api/profiles/{userId}": {
+    "/api/profiles/teacher/{userId}": {
       "get": {
-        "tags": ["user-profile-controller"],
-        "operationId": "getUserProfile",
+        "tags": ["teacher-profile-controller"],
+        "operationId": "getTeacherProfile",
         "parameters": [
           {
             "name": "userId",
@@ -87,7 +151,25 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserProfileResponse"
+                  "$ref": "#/components/schemas/TeacherProfileResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/profiles/teacher/me": {
+      "get": {
+        "tags": ["teacher-profile-controller"],
+        "operationId": "getMyTeacherProfile",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/TeacherProfileResponse"
                 }
               }
             }
@@ -118,6 +200,9 @@
             "minLength": 1
           },
           "profilePictureUrl": {
+            "type": "string"
+          },
+          "role": {
             "type": "string"
           }
         },
@@ -158,6 +243,54 @@
             "format": "int32"
           },
           "longestStreak": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "quizzesCompleted": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "TeacherProfileResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "userId": {
+            "type": "string"
+          },
+          "fullName": {
+            "type": "string"
+          },
+          "dateOfBirth": {
+            "type": "string",
+            "format": "date"
+          },
+          "gender": {
+            "type": "string"
+          },
+          "profilePictureUrl": {
+            "type": "string"
+          },
+          "exp": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "level": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalQuizCreated": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalFlashcardsCreated": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalStudentsReached": {
             "type": "integer",
             "format": "int32"
           }

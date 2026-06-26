@@ -47,6 +47,48 @@
           }
         }
       }
+    },
+    "/api/marketplace/products": {
+      "get": {
+        "tags": ["product-controller"],
+        "operationId": "getProducts",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Product"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/marketplace/inventory/my-items": {
+      "get": {
+        "tags": ["inventory-controller"],
+        "operationId": "getMyInventory",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Product"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -72,6 +114,9 @@
           "quantity": {
             "type": "integer",
             "format": "int32"
+          },
+          "sellerUserId": {
+            "type": "string"
           }
         }
       },
@@ -112,6 +157,40 @@
             "format": "date-time"
           },
           "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Product": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "price": {
+            "type": "number"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["FLASHCARD", "QUIZ"]
+          },
+          "referenceId": {
+            "type": "string"
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "sellerUserId": {
+            "type": "string"
+          },
+          "createdAt": {
             "type": "string",
             "format": "date-time"
           }
