@@ -24,14 +24,6 @@ spring:
     username: ${RABBITMQ_USERNAME:guest}
     password: ${RABBITMQ_PASSWORD:guest}
 
-logging:
-  level:
-    org.springframework.data.mongodb: DEBUG
-    org.mongodb.driver: DEBUG
-    org.springframework.web: DEBUG
-    org.springframework.security: DEBUG
-    com.cardy.flashcardServer: TRACE
-
 management:
   metrics:
     tags:
@@ -40,14 +32,18 @@ management:
   endpoints:
     web:
       exposure:
-        include: "health,info,prometheus"
+        include: "health,info,prometheus,trace"
   endpoint:
     health:
       show-details: always
-
   otlp:
     tracing:
       endpoint: "http://tempo:4317"
+      transport: grpc
   tracing:
+    enabled: true
     sampling:
       probability: 1.0
+logging:
+  pattern:
+    level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"

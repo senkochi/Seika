@@ -1,4 +1,6 @@
 spring:
+  application:
+    name: profile-service
   datasource:
     url: ${PROFILE_DB_URL}
     username: ${PROFILE_DB_USERNAME}
@@ -41,18 +43,18 @@ management:
   endpoints:
     web:
       exposure:
-        include: "health,info,prometheus"
+        include: "health,info,prometheus,trace"
   endpoint:
     health:
       show-details: always
-
   otlp:
     tracing:
       endpoint: "http://tempo:4317"
+      transport: grpc
   tracing:
+    enabled: true
     sampling:
       probability: 1.0
-
 logging:
   pattern:
-    level: '%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]'
+    level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"

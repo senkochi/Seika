@@ -40,13 +40,6 @@ jwt:
   access-token-expiration-minutes: ${JWT_ACCESS_TOKEN_EXPIRATION_MINUTES}
   refresh-token-expiration-days: ${JWT_REFRESH_TOKEN_EXPIRATION_DAYS}
 
-logging:
-  pattern:
-    level: '%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]'
-  level:
-    org.springframework.security: ${SECURITY_LOG_LEVEL:trace}
-    org.springframework.jdbc: ${JDBC_LOG_LEVEL:debug}
-
 eureka:
   client:
     enabled: true
@@ -54,19 +47,6 @@ eureka:
       defaultZone: ${EUREKA_SERVER_URL}
     register-with-eureka: true
     fetch-registry: true
-
-management:
-  metrics:
-    tags:
-      application: ${spring.application.name}
-      namespace: default
-  endpoints:
-    web:
-      exposure:
-        include: "health,info,prometheus"
-  endpoint:
-    health:
-      show-details: always
 
 reward:
   flashcard:
@@ -84,9 +64,26 @@ reward:
       coins: 120
       exp: 60
 
+management:
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      namespace: default
+  endpoints:
+    web:
+      exposure:
+        include: "health,info,prometheus,trace"
+  endpoint:
+    health:
+      show-details: always
   otlp:
     tracing:
       endpoint: "http://tempo:4317"
+      transport: grpc
   tracing:
+    enabled: true
     sampling:
       probability: 1.0
+logging:
+  pattern:
+    level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"

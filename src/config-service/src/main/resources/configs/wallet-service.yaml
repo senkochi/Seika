@@ -40,13 +40,6 @@ jwt:
   access-token-expiration-minutes: ${JWT_ACCESS_TOKEN_EXPIRATION_MINUTES}
   refresh-token-expiration-days: ${JWT_REFRESH_TOKEN_EXPIRATION_DAYS}
 
-logging:
-  pattern:
-    level: '%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]'
-  level:
-    org.springframework.security: ${SECURITY_LOG_LEVEL:trace}
-    org.springframework.jdbc: ${JDBC_LOG_LEVEL:debug}
-
 eureka:
   client:
     enabled: true
@@ -63,14 +56,18 @@ management:
   endpoints:
     web:
       exposure:
-        include: "health,info,prometheus"
+        include: "health,info,prometheus,trace"
   endpoint:
     health:
       show-details: always
-
   otlp:
     tracing:
       endpoint: "http://tempo:4317"
+      transport: grpc
   tracing:
+    enabled: true
     sampling:
       probability: 1.0
+logging:
+  pattern:
+    level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
