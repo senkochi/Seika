@@ -26,7 +26,6 @@ services:
     environment:
       - GF_AUTH_ANONYMOUS_ENABLED=true
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
-      - GF_AUTH_DISABLE_LOGIN_FORM=true
   loki:
     image: grafana/loki:2.9.1
     container_name: loki
@@ -44,7 +43,7 @@ services:
       - ./observability/promtail-config.yaml:/etc/promtail/config.yaml
     command: -config.file=/etc/promtail/config.yaml
   tempo:
-    image: grafana/tempo:latest
+    image: grafana/tempo:2.4.1
     container_name: tempo
     command: [ "-config.file=/etc/tempo.yaml" ]
     ports:

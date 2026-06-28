@@ -41,6 +41,8 @@ jwt:
   refresh-token-expiration-days: ${JWT_REFRESH_TOKEN_EXPIRATION_DAYS}
 
 logging:
+  pattern:
+    level: '%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]'
   level:
     org.springframework.security: ${SECURITY_LOG_LEVEL:trace}
     org.springframework.jdbc: ${JDBC_LOG_LEVEL:debug}
@@ -54,6 +56,10 @@ eureka:
     fetch-registry: true
 
 management:
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      namespace: default
   endpoints:
     web:
       exposure:
@@ -62,15 +68,9 @@ management:
     health:
       show-details: always
 
-management:
-
   otlp:
     tracing:
       endpoint: "http://tempo:4317"
   tracing:
     sampling:
       probability: 1.0
-
-logging:
-  pattern:
-    level: '%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]'

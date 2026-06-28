@@ -19,7 +19,7 @@ _Đợi khoảng 1-2 phút để tất cả các service (đặc biệt là Eure
 Tất cả thao tác theo dõi (Metrics, Logs, Traces) đều được thực hiện trên một màn hình duy nhất là Grafana. Bạn không cần phải mở giao diện của Prometheus, Loki hay Tempo.
 
 1. Mở trình duyệt và truy cập: **[http://localhost:3000](http://localhost:3000)**
-2. Hệ thống đã được cấu hình tự động đăng nhập (bạn sẽ vào thẳng giao diện chính với quyền Admin mà không cần gõ mật khẩu).
+2. Hệ thống đã được cấu hình tự động đăng nhập (Username và Password đều là admin).
 
 ---
 

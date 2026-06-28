@@ -34,6 +34,10 @@ eureka:
     fetch-registry: true
 
 management:
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      namespace: default
   endpoints:
     web:
       exposure:
@@ -41,8 +45,6 @@ management:
   endpoint:
     health:
       show-details: always
-
-management:
 
   otlp:
     tracing:

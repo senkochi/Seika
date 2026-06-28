@@ -48,6 +48,10 @@ messaging:
     user-registered-routing-key: ${USER_REGISTERED_ROUTING_KEY:user.registered}
 
 management:
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      namespace: default
   endpoints:
     web:
       exposure:
@@ -55,8 +59,6 @@ management:
   endpoint:
     health:
       show-details: always
-
-management:
 
   otlp:
     tracing:

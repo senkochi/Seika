@@ -33,6 +33,10 @@ logging:
     com.cardy.flashcardServer: TRACE
 
 management:
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      namespace: default
   endpoints:
     web:
       exposure:

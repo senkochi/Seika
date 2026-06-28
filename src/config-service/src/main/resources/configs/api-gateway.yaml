@@ -127,6 +127,8 @@ app:
       - /*/v3/api-docs/**
 
 logging:
+  pattern:
+    level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
   level:
     root: INFO
     com.seika.api_gateway: DEBUG
@@ -135,6 +137,10 @@ logging:
     org.springframework.web.server: DEBUG
 
 management:
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      namespace: default
   endpoints:
     web:
       exposure:
@@ -151,7 +157,3 @@ management:
   tracing:
     sampling:
       probability: 1.0
-
-logging:
-  pattern:
-    level: '%5p [`${spring.application.name:},%X{traceId:-},%X{spanId:-}]'

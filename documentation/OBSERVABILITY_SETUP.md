@@ -17,7 +17,7 @@ docker compose -f docker-compose.yml -f docker-compose.observability.yml up -d -
 
 ## Endpoints & URLs
 
-- **Grafana UI**: [http://localhost:3000](http://localhost:3000) (Logs in automatically as Admin)
+- **Grafana UI**: [http://localhost:3000](http://localhost:3000) (Username: admin; Password: admin)
 - **Prometheus UI**: [http://localhost:9090](http://localhost:9090)
 - **Tempo**: Exposed at port 3200 (internal for Grafana) and 4317 for OTLP ingest.
 

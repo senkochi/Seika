@@ -8,6 +8,7 @@ datasources:
     isDefault: true
     version: 1
     editable: false
+    uid: prometheus
   
   - name: Loki
     type: loki
