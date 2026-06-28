@@ -43,7 +43,7 @@ public class QuizController {
     }
 
     /**
-     * GET /api/quiz/{id}
+     * GET  /api/quiz/{id}
      */
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<QuizResponse>> getQuiz(@PathVariable String id) {

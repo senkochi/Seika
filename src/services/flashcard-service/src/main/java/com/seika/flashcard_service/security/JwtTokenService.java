@@ -37,7 +37,7 @@ public class JwtTokenService {
 
     public Jwt decodeToJwt(String token) {
         return NimbusJwtDecoder.withSecretKey(secretKey)
-                .macAlgorithm(MacAlgorithm.HS512)
+                .macAlgorithm(MacAlgorithm.HS256)
                 .build()
                 .decode(token);
     }

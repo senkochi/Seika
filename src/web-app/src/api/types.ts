@@ -127,6 +127,7 @@ export interface QuizResponse {
 export interface QuizSetCreateRequest {
   title: string;
   description: string;
+  price: number;
   questions: QuizCreateRequest[];
 }
 
