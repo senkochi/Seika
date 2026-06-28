@@ -141,19 +141,25 @@ services:
   eureka:
     build:
       context: .
-      dockerfile: src/eureka/Dockerfile
+      dockerfile: Dockerfile.dev
       args:
         MODULE_DIR: src/eureka
     ports:
       - "8761:8761"
     environment:
       EUREKA_PORT: 8761
+    develop:
+      watch:
+        - action: rebuild
+          path: ./src/eureka/src
+        - action: rebuild
+          path: ./src/eureka/pom.xml
     restart: unless-stopped
 
   config-service:
     build:
       context: .
-      dockerfile: src/config-service/Dockerfile
+      dockerfile: Dockerfile.dev
       args:
         MODULE_DIR: src/config-service
     ports:
@@ -217,12 +223,18 @@ services:
     depends_on:
       eureka:
         condition: service_started
+    develop:
+      watch:
+        - action: rebuild
+          path: ./src/config-service/src
+        - action: rebuild
+          path: ./src/config-service/pom.xml
     restart: unless-stopped
 
   identity-service:
     build:
       context: .
-      dockerfile: src/services/identity-service/Dockerfile
+      dockerfile: Dockerfile.dev
       args:
         MODULE_DIR: src/services/identity-service
     ports:
@@ -237,12 +249,18 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+    develop:
+      watch:
+        - action: rebuild
+          path: ./src/services/identity-service/src
+        - action: rebuild
+          path: ./src/services/identity-service/pom.xml
     restart: unless-stopped
 
   profile-service:
     build:
       context: .
-      dockerfile: src/services/profile-service/Dockerfile
+      dockerfile: Dockerfile.dev
       args:
         MODULE_DIR: src/services/profile-service
     ports:
@@ -257,12 +275,18 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+    develop:
+      watch:
+        - action: rebuild
+          path: ./src/services/profile-service/src
+        - action: rebuild
+          path: ./src/services/profile-service/pom.xml
     restart: unless-stopped
 
   wallet-service:
     build:
       context: .
-      dockerfile: src/services/wallet-service/Dockerfile
+      dockerfile: Dockerfile.dev
       args:
         MODULE_DIR: src/services/wallet-service
     ports:
@@ -277,12 +301,18 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+    develop:
+      watch:
+        - action: rebuild
+          path: ./src/services/wallet-service/src
+        - action: rebuild
+          path: ./src/services/wallet-service/pom.xml
     restart: unless-stopped
 
   marketplace-service:
     build:
       context: .
-      dockerfile: src/services/marketplace-service/Dockerfile
+      dockerfile: Dockerfile.dev
       args:
         MODULE_DIR: src/services/marketplace-service
     ports:
@@ -297,12 +327,18 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+    develop:
+      watch:
+        - action: rebuild
+          path: ./src/services/marketplace-service/src
+        - action: rebuild
+          path: ./src/services/marketplace-service/pom.xml
     restart: unless-stopped
 
   notification-service:
     build:
       context: .
-      dockerfile: src/services/notification-service/Dockerfile
+      dockerfile: Dockerfile.dev
       args:
         MODULE_DIR: src/services/notification-service
     ports:
@@ -321,12 +357,18 @@ services:
         condition: service_healthy
       mongo-init:
         condition: service_started
+    develop:
+      watch:
+        - action: rebuild
+          path: ./src/services/notification-service/src
+        - action: rebuild
+          path: ./src/services/notification-service/pom.xml
     restart: unless-stopped
 
   flashcard-service:
     build:
       context: .
-      dockerfile: src/services/flashcard-service/Dockerfile
+      dockerfile: Dockerfile.dev
       args:
         MODULE_DIR: src/services/flashcard-service
     ports:
@@ -343,12 +385,18 @@ services:
         condition: service_healthy
       mongo-init:
         condition: service_started
+    develop:
+      watch:
+        - action: rebuild
+          path: ./src/services/flashcard-service/src
+        - action: rebuild
+          path: ./src/services/flashcard-service/pom.xml
     restart: unless-stopped
 
   quiz-service:
     build:
       context: .
-      dockerfile: src/services/quiz-service/Dockerfile
+      dockerfile: Dockerfile.dev
       args:
         MODULE_DIR: src/services/quiz-service
     ports:
@@ -365,12 +413,18 @@ services:
         condition: service_healthy
       mongo-init:
         condition: service_started
+    develop:
+      watch:
+        - action: rebuild
+          path: ./src/services/quiz-service/src
+        - action: rebuild
+          path: ./src/services/quiz-service/pom.xml
     restart: unless-stopped
 
   reward-service:
     build:
       context: .
-      dockerfile: src/services/reward-service/Dockerfile
+      dockerfile: Dockerfile.dev
       args:
         MODULE_DIR: src/services/reward-service
     ports:
@@ -385,12 +439,18 @@ services:
         condition: service_healthy
       reward-db:
         condition: service_healthy
+    develop:
+      watch:
+        - action: rebuild
+          path: ./src/services/reward-service/src
+        - action: rebuild
+          path: ./src/services/reward-service/pom.xml
     restart: unless-stopped
 
   api-gateway:
     build:
       context: .
-      dockerfile: src/api-gateway/Dockerfile
+      dockerfile: Dockerfile.dev
       args:
         MODULE_DIR: src/api-gateway
     ports:
@@ -403,6 +463,12 @@ services:
         condition: service_healthy
       eureka:
         condition: service_started
+    develop:
+      watch:
+        - action: rebuild
+          path: ./src/api-gateway/src
+        - action: rebuild
+          path: ./src/api-gateway/pom.xml
     restart: unless-stopped
 
 volumes:

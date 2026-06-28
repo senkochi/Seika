@@ -120,6 +120,7 @@ function ContentManager() {
   // Dữ liệu Form Quiz Set
   const [quizSetTitle, setQuizSetTitle] = useState("");
   const [quizSetDescription, setQuizSetDescription] = useState("");
+  const [quizSetPrice, setQuizSetPrice] = useState<number>(0);
   const [quizSetQuestions, setQuizSetQuestions] = useState<any[]>([]);
 
   // Dữ liệu Form cho câu hỏi đang tạo
@@ -282,11 +283,13 @@ function ContentManager() {
       await quizzesService.createQuizSet({
         title: quizSetTitle,
         description: quizSetDescription,
+        price: Number(quizSetPrice),
         questions: quizSetQuestions,
       });
       showSuccess("Bộ đề Quiz đã được tạo thành công!");
       setQuizSetTitle("");
       setQuizSetDescription("");
+      setQuizSetPrice(0);
       setQuizSetQuestions([]);
       setIsCreatingQuizSet(false);
       loadData();
@@ -738,6 +741,22 @@ function ContentManager() {
                 onChange={(e) => setQuizSetDescription(e.target.value)}
                 rows={2}
                 className="w-full px-4 py-3 bg-[rgba(255,255,255,0.06)] border border-[var(--border)] rounded-xl text-[var(--foreground)] focus:outline-none resize-none"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-bold text-[var(--foreground)] mb-2 flex items-center gap-2">
+                <DollarSign className="w-4 h-4 text-amber-400" />
+                Giá (coin)
+              </label>
+              <input
+                id="quiz-set-price"
+                type="number"
+                min={0}
+                step={1}
+                placeholder="0 = Miễn phí"
+                value={quizSetPrice}
+                onChange={(e) => setQuizSetPrice(Number(e.target.value))}
+                className="w-full px-4 py-3 bg-[rgba(255,255,255,0.06)] border border-[var(--border)] rounded-xl text-[var(--foreground)] focus:outline-none"
               />
             </div>
           </div>

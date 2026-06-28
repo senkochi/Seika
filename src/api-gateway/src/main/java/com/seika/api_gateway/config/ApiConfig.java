@@ -12,3 +12,4 @@ import java.util.List;
 public class ApiConfig {
     private List<String> publicEndpoints;
 }
+

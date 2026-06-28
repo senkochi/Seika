@@ -1,7 +1,8 @@
 package com.seika.marketplace_service.controller;
 
 import com.seika.marketplace_service.entity.Product;
-import com.seika.marketplace_service.repository.ProductRepository;
+import com.seika.marketplace_service.service.ProductService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,10 +16,15 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ProductController {
 
-    private final ProductRepository productRepository;
+    private final ProductService productService;
 
     @GetMapping
-    public ResponseEntity<List<Product>> getProducts() {
-        return ResponseEntity.ok(productRepository.findByActiveTrueOrderByCreatedAtDesc());
+    public ResponseEntity<List<Product>> getProducts(HttpServletRequest request) {
+        String userId = request.getHeader("X-User-Id");
+        if (userId == null) {
+            userId = request.getHeader("X-Auth-User-Id"); // Fallback
+        }
+
+        return ResponseEntity.ok(productService.getActiveProducts(userId));
     }
 }
