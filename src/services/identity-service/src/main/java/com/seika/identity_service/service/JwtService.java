@@ -69,7 +69,7 @@ public class JwtService {
                 .claim("roles", roles) // Thêm roles vào claims
                 .claim("userId", userId) // Thêm userId vào claims
                 .claim("tokenVersion", 1) // Hỗ trợ revoke khi đổi quyền
-                .signWith(secretKey)
+                .signWith(secretKey, Jwts.SIG.HS256)
                 .compact();
     }
 
