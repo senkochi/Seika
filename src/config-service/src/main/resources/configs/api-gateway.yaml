@@ -1,4 +1,8 @@
 spring:
+  application:
+    name: api-gateway
+  reactor:
+    context-propagation: auto
   cloud:
     gateway:
       server:
@@ -126,21 +130,26 @@ app:
       - /v3/api-docs/**
       - /*/v3/api-docs/**
 
-logging:
-  level:
-    root: INFO
-    com.seika.api_gateway: DEBUG
-    org.springframework.cloud.gateway: DEBUG
-    org.springframework.security: DEBUG
-    org.springframework.web.server: DEBUG
-
 management:
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      namespace: default
   endpoints:
     web:
       exposure:
-        include: "health,info,gateway,env,configprops"
+        include: "health,info,prometheus,trace"
   endpoint:
     health:
       show-details: always
-    gateway:
-      enabled: true
+  otlp:
+    tracing:
+      endpoint: "http://tempo:4317"
+      transport: grpc
+  tracing:
+    enabled: true
+    sampling:
+      probability: 1.0
+logging:
+  pattern:
+    level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
