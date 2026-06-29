@@ -32,6 +32,7 @@ public class ApiExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGeneric(Exception exception) {
+        exception.printStackTrace();
         return buildError(HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected error");
     }
 

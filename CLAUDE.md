@@ -90,9 +90,12 @@ Spring profiles are set by `SPRING_PROFILE` in `.env` (default `dev`). The actua
     │   ├── wallet-service/        # port 8084  | Postgres  | RabbitMQ consumer
     │   ├── marketplace-service/   # port 8085  | Postgres  |
     │   ├── flashcard-service/     # port 8086  | MongoDB   |
-    │   └── quiz-service/          # port 8087  | MongoDB   |
+    │   ├── quiz-service/          # port 8087  | MongoDB   |
+    │   └── reward-service/        # port 8088  | Postgres  |
     └── web-app/                # React 19 + Vite + Redux Toolkit
 ```
+
+`reward-service` is registered in `pom.xml` and `docker-compose.yml` but not in the gateway routes yet — treat it as a backend-only service until a route is added.
 
 ## Backend Architecture
 
@@ -118,6 +121,11 @@ Spring profiles are set by `SPRING_PROFILE` in `.env` (default `dev`). The actua
 - Postgres 16: identity, profile, wallet, marketplace — separate DBs, separate ports `5432/5433/5434/5435`.
 - MongoDB 7 (single-node replica set `rs0`): notification, flashcard, quiz — each its own database.
 - RabbitMQ 4.3 (management UI on 15672): shared broker for all async events.
+
+**Observability** (parent POM includes Spring Boot Actuator + Micrometer Prometheus + Micrometer Tracing OpenTelemetry + OTLP exporter on every service). Stack in `observability/`:
+- Prometheus (`:9090`), Grafana (`:3000`), Loki (`:3100`), Promtail, Tempo (`:3200`, OTLP gRPC `:4317`).
+- Bring up separately: `docker compose -f docker-compose.observability.yml up -d` (independent of the main stack).
+- Toggle Prometheus + tracing endpoints in service configs: `update-configs.ps1` (Windows) or `scripts/enable_tracing.ps1` — patches `application.yaml` under `src/config-service/src/main/resources/configs/` to add `management.tracing.sampling.probability: 1.0` and a traceId/spanId log pattern. Run these once after fresh-cloning before you expect metrics/traces to flow.
 
 ### Java conventions (apply to every service)
 
@@ -163,6 +171,8 @@ Stack: Vite 6 + React 19 + TypeScript 5.9 + React Router 7 + Redux Toolkit 2 + M
 - `documentation/CODING_STANDARDS.md` — required Java conventions (package layout, response wrapper, exception hierarchy, REST conventions, logging, transactions).
 - `documentation/SWAGGER_SETUP.md` & `DOCKER_SWAGGER_SETUP.md` — per-service vs aggregated Swagger.
 - `documentation/api/*.json` — exported OpenAPI specs (Postman-style).
+- `documentation/OBSERVABILITY_LGTM_GUIDE.md`, `OBSERVABILITY_SETUP.md`, `OBSERVABILITY_THEORY.md`, `OBSERVABILITY_USAGE_GUIDE.md` — Prometheus/Loki/Grafana/Tempo stack.
+- `documentation/DOCKER_DATABASES_VISUALIZATION.md` — Postgres container layout across services.
 - `documentation/STYLE_GUIDE.md`, `KARPATHY_GUIDELINES.md` — design / authoring notes.
 - `src/services/quiz-service/RESPONSE_WRAPPER_USAGE.md` — concrete examples of `ApiResponse`/`PagedResponse`/exceptions.
 - `src/services/quiz-service/MOCK_DATA_GUIDE.md` — how mock data is wired into the quiz service.

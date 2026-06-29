@@ -1,0 +1,17 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'spring-boot-actuator'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets:
+          - 'identity-service:8081'
+          - 'profile-service:8082'
+          - 'notification-service:8083'
+          - 'wallet-service:8084'
+          - 'marketplace-service:8085'
+          - 'flashcard-service:8086'
+          - 'quiz-service:8087'
+          - 'reward-service:8088'
+          - 'api-gateway:8080'
