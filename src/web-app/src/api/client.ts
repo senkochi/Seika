@@ -3,7 +3,7 @@
  */
 import axios, { type AxiosInstance } from "axios";
 
-const baseURL =
+export const baseURL =
   import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8080/api";
 
 // Tạo một instance của Axios với cấu hình cơ bản: baseURL và timeout.

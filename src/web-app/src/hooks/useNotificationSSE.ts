@@ -1,93 +1,132 @@
 import { useEffect, useRef } from "react";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { addNotification } from "../store/notificationSlice";
+import { baseURL } from "../api/client";
+
+const INITIAL_RETRY_DELAY_MS = 1_000;
+const MAX_RETRY_DELAY_MS = 30_000;
 
 export function useNotificationSSE() {
   const dispatch = useAppDispatch();
   const token = useAppSelector((state) => state.auth.accessToken);
-  const eventSourceRef = useRef<EventSource | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     if (!token) {
-      if (eventSourceRef.current) {
-        eventSourceRef.current.close();
-        eventSourceRef.current = null;
-      }
+      // If there's no token, abort any existing connection and stop.
+      abortControllerRef.current?.abort();
+      abortControllerRef.current = null;
       return;
     }
 
-    // Connect to SSE using EventSource
-    // Note: Standard EventSource doesn't support custom headers like Authorization.
-    // However, if we use a polyfill or fetch-based approach, we can.
-    // For standard EventSource, we might need to pass the token as a query parameter or use a polyfill like @microsoft/fetch-event-source.
-    // Here we use standard EventSource assuming API gateway or backend handles cookie or we pass token in URL.
-    // Since we only have token in header, a common workaround is passing it via query param if the backend supports it.
-    // Let's assume the backend will read token from query parameter `?token=...` if Authorization header is missing.
-    // Or, we use standard EventSource and rely on cookies. Wait, our API uses JWT in headers.
-    // To keep it simple and dependency-free, let's use a manual fetch-based stream reader, OR just pass the token.
-    // Actually, passing token in query string is the standard workaround for EventSource.
-    // Our backend expects `X-User-Id` header. Oh! The backend expects `X-User-Id` header which is injected by API Gateway from the JWT.
-    // But API Gateway needs the JWT to validate and extract `X-User-Id`.
-    // We must pass the token as a query parameter `?access_token=${token}` and API Gateway should handle it,
-    // OR we can fetch it. Let's use the standard `EventSource` with query parameter:
-
-    // Better yet, we can use standard fetch API to consume SSE to keep headers.
+    // Create a single AbortController for the lifetime of this effect.
     const abortController = new AbortController();
+    abortControllerRef.current = abortController;
 
-    const connectSSE = async () => {
-      try {
-        const response = await fetch(
-          `${import.meta.env.VITE_API_BASE_URL}/notifications/stream`,
-          {
+    const connectWithRetry = async () => {
+      let retryDelay = INITIAL_RETRY_DELAY_MS;
+
+      while (!abortController.signal.aborted) {
+        try {
+          const response = await fetch(`${baseURL}/notifications/stream`, {
             headers: {
               Authorization: `Bearer ${token}`,
+              // Tell the server we accept an SSE stream
+              Accept: "text/event-stream",
             },
             signal: abortController.signal,
-          },
-        );
+          });
 
-        if (!response.body) return;
+          if (!response.ok || !response.body) {
+            console.warn(
+              `[SSE] Connection failed (status ${response.status}), retrying in ${retryDelay}ms…`,
+            );
+            await sleep(retryDelay, abortController.signal);
+            retryDelay = Math.min(retryDelay * 2, MAX_RETRY_DELAY_MS);
+            continue;
+          }
 
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        let buffer = "";
+          // Connection established — reset backoff
+          retryDelay = INITIAL_RETRY_DELAY_MS;
+          console.log("[SSE] Connected to notification stream.");
 
-        while (true) {
-          const { value, done } = await reader.read();
-          if (done) break;
+          // Read the SSE stream line-by-line
+          const reader = response.body.getReader();
+          const decoder = new TextDecoder();
+          let buffer = "";
 
-          buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split("\n\n");
+          // eslint-disable-next-line no-constant-condition
+          while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
 
-          buffer = lines.pop() || "";
+            buffer += decoder.decode(value, { stream: true });
+            // SSE events are separated by double newlines
+            const parts = buffer.split("\n\n");
+            buffer = parts.pop() ?? "";
 
-          for (const line of lines) {
-            if (line.startsWith("data:")) {
-              const dataStr = line.replace("data:", "").trim();
-              if (dataStr) {
+            for (const part of parts) {
+              // Skip heartbeat comments (": ping" or empty)
+              if (part.startsWith(":")) continue;
+
+              // Parse data lines within the event block
+              for (const line of part.split("\n")) {
+                if (!line.startsWith("data:")) continue;
+
+                const dataStr = line.slice("data:".length).trim();
+                if (!dataStr) continue;
+
                 try {
                   const data = JSON.parse(dataStr);
                   if (data && data.id) {
                     dispatch(addNotification(data));
                   }
-                } catch (e) {
-                  console.log("SSE Message:", dataStr);
+                } catch {
+                  // Non-JSON data (e.g. CONNECTED message) — safe to ignore
+                  console.debug("[SSE] Non-JSON data:", dataStr);
                 }
               }
             }
           }
-        }
-      } catch (err: any) {
-        if (err.name !== "AbortError") {
-          console.error("SSE fetch error:", err);
+
+          // Stream ended normally — reconnect immediately (server may have
+          // closed the connection due to its own timeout).
+          console.log("[SSE] Stream ended, reconnecting…");
+        } catch (err: unknown) {
+          if (
+            err instanceof Error &&
+            (err.name === "AbortError" || abortController.signal.aborted)
+          ) {
+            // Intentional abort (e.g. component unmount / logout) — stop.
+            return;
+          }
+          console.warn(`[SSE] Error, retrying in ${retryDelay}ms…`, err);
+          await sleep(retryDelay, abortController.signal);
+          retryDelay = Math.min(retryDelay * 2, MAX_RETRY_DELAY_MS);
         }
       }
     };
 
-    connectSSE();
+    connectWithRetry();
 
     return () => {
+      console.log("[SSE] Disconnecting notification stream.");
       abortController.abort();
     };
   }, [token, dispatch]);
+}
+
+/** Await a delay that is cancellable via an AbortSignal. */
+function sleep(ms: number, signal: AbortSignal): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(resolve, ms);
+    signal.addEventListener(
+      "abort",
+      () => {
+        clearTimeout(timer);
+        reject(new DOMException("Aborted", "AbortError"));
+      },
+      { once: true },
+    );
+  });
 }
