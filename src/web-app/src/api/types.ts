@@ -193,3 +193,68 @@ export interface RewardStatusResponse {
   nextEligibleAt: string | null;
   rewardCount: number;
 }
+
+// ---------------------------------------------------------------------------
+// Teacher Statistics types (mirror the backend DTOs)
+// ---------------------------------------------------------------------------
+
+export interface QuizStatisticsOverview {
+  totalQuizSets: number;
+  totalAttempts: number;
+  totalPassed: number;
+  passRate: number;
+  totalRevenue: number;
+  totalStudents: number;
+}
+
+export interface FlashcardStatisticsOverview {
+  totalCardSets: number;
+  totalPurchases: number;
+  totalStudents: number;
+  totalRevenue: number;
+}
+
+export interface RevenuePoint {
+  /** Period label e.g. "2026-07" (monthly) or "2026-07-01" (daily). */
+  period: string;
+  totalRevenue: number;
+  orderCount: number;
+}
+
+export interface TopProduct {
+  productId: string;
+  productType: string;
+  productName: string;
+  unitPrice: number;
+  totalSold: number;
+  totalRevenue: number;
+}
+
+export interface StudentPurchase {
+  userId: string;
+  productId: string;
+  productType: string;
+  productName: string;
+  unitPrice: number;
+  purchasedAt: string;
+}
+
+export interface QuizAttempt {
+  id: string;
+  userId: string;
+  quizSetId: string | null;
+  quizId: string | null;
+  score: number;
+  passed: boolean;
+  attemptAt: string;
+}
+
+export interface FlashcardStudentActivity {
+  userId: string;
+  cardSetId: string;
+  purchasePrice: number;
+  purchasedAt: string;
+  lastProgress: number | null;
+  completed: boolean;
+  lastStudiedAt: string | null;
+}

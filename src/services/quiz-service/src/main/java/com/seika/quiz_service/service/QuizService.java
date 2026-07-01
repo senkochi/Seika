@@ -9,22 +9,34 @@ import com.seika.quiz_service.dto.quiz.request_sub_types.McqRequest;
 import com.seika.quiz_service.dto.quiz.request_sub_types.ReorderRequest;
 import com.seika.quiz_service.exception.ForbiddenException;
 import com.seika.quiz_service.exception.ResourceNotFoundException;
+import com.seika.quiz_service.domain.QuizAttempt;
+import com.seika.quiz_service.repository.QuizAttemptRepository;
 import com.seika.quiz_service.repository.QuizRepository;
 import com.seika.quiz_service.repository.QuizSetRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class QuizService {
-    
+
+    /**
+     * Minimum percentage (0-100) required for a quiz attempt to be considered
+     * passed. Aligned with the documented business rule "hoàn thành 80% quiz
+     * được tính thưởng".
+     */
+    public static final double PASS_THRESHOLD = 80.0;
+
     private final QuizRepository quizRepository;
     private final QuizSetRepository quizSetRepository;
+    private final QuizAttemptRepository quizAttemptRepository;
     private final org.springframework.amqp.rabbit.core.RabbitTemplate rabbitTemplate;
     
     /**
@@ -174,19 +186,41 @@ public class QuizService {
     }
 
     /**
-     * Submit a quiz attempt and publish completion event
+     * Submit a quiz attempt and publish completion event.
+     *
+     * <p>Persists a {@link QuizAttempt} document so teacher Statistics endpoints
+     * can compute pass-rate and per-quiz-set drill-downs without going through
+     * the asynchronous event stream. The {@code QuizCompletedEvent} is still
+     * emitted so downstream consumers (reward-service, profile-service) keep
+     * working unchanged.
      */
     public void submitQuiz(String id, String userId, Double score) {
         log.info("Submitting quiz id: {} for user: {} with score: {}", id, userId, score);
-        
+
         // Ensure quiz or quiz set exists
         if (!quizRepository.existsById(id) && !quizSetRepository.existsById(id)) {
             throw new ResourceNotFoundException("Quiz or QuizSet", id);
         }
 
-        // Logic for pass/fail (e.g. >= 70% passed)
-        boolean passed = score >= 70.0;
+        boolean passed = score >= PASS_THRESHOLD;
 
+        // 1) Persist attempt (used by teacher Statistics page)
+        String resolvedQuizSetId = quizSetRepository.existsById(id)
+                ? id
+                : resolveOwningQuizSetId(id);
+
+        QuizAttempt attempt = QuizAttempt.builder()
+                .id(UUID.randomUUID().toString())
+                .userId(userId)
+                .quizSetId(resolvedQuizSetId)
+                .quizId(quizSetRepository.existsById(id) ? null : id)
+                .score(score)
+                .passed(passed)
+                .attemptAt(Instant.now())
+                .build();
+        quizAttemptRepository.save(attempt);
+
+        // 2) Publish event for downstream consumers (rewards, profile, ...)
         com.seika.quiz_service.dto.QuizCompletedEvent event = com.seika.quiz_service.dto.QuizCompletedEvent.builder()
                 .eventId(java.util.UUID.randomUUID().toString())
                 .correlationId("quiz-" + id + "-user-" + userId)
@@ -196,12 +230,25 @@ public class QuizService {
                 .passed(passed)
                 .completedAt(java.time.LocalDateTime.now().toString())
                 .build();
-                
+
         rabbitTemplate.convertAndSend(
                 com.seika.quiz_service.config.RabbitMQConfig.LEARNING_EVENTS_EXCHANGE,
                 com.seika.quiz_service.config.RabbitMQConfig.QUIZ_COMPLETED_ROUTING_KEY,
                 event
         );
-        log.info("Published QuizCompletedEvent for quiz {} and user {}", id, userId);
+        log.info("Published QuizCompletedEvent for quiz {} and user {} (passed={})", id, userId, passed);
+    }
+
+    /**
+     * Locate the QuizSet that owns the supplied quiz id. Returns {@code null}
+     * if the quiz is not nested in any QuizSet (a standalone quiz). Uses
+     * MongoTemplate to avoid pulling extra repository dependencies.
+     */
+    private String resolveOwningQuizSetId(String quizId) {
+        return quizSetRepository.findAll().stream()
+                .filter(qs -> qs.getQuizIds() != null && qs.getQuizIds().contains(quizId))
+                .map(com.seika.quiz_service.domain.QuizSet::getId)
+                .findFirst()
+                .orElse(null);
     }
 }

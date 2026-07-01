@@ -11,12 +11,33 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
+import {
+  CartesianGrid,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { fetchCurrentUserProfile } from "../../store/userProfileSlice";
+import { fetchRevenue } from "../../store/statisticsSlice";
 import { walletService, userProfilesService } from "../../api";
 import type { TransactionResponse, TeacherProfileResponse } from "../../api";
+import type { RevenuePoint } from "../../api/types";
 
 const XP_PER_LEVEL = 1000;
+
+const currencyFormatter = new Intl.NumberFormat("vi-VN", {
+  style: "currency",
+  currency: "VND",
+  maximumFractionDigits: 0,
+});
+
+const formatCurrency = (value: number | undefined | null) =>
+  currencyFormatter.format(value ?? 0);
 
 function TeacherDashboardHome() {
   const navigate = useNavigate();
@@ -24,15 +45,14 @@ function TeacherDashboardHome() {
   const { status, error, fullName, username, exp, level } = useAppSelector(
     (state) => state.userProfile,
   );
+  const { revenue } = useAppSelector((state) => state.statistics);
   const authUsername = useAppSelector((state) => state.auth.username);
 
   const [teacherProfile, setTeacherProfile] =
     useState<TeacherProfileResponse | null>(null);
   const [balance, setBalance] = useState<number>(0);
   const [recentEvents, setRecentEvents] = useState<TransactionResponse[]>([]);
-  const [weeklyRevenue, setWeeklyRevenue] = useState<
-    { day: string; value: number }[]
-  >([]);
+  const [period, setPeriod] = useState<"month" | "day">("month");
 
   useEffect(() => {
     if (status === "idle") {
@@ -62,24 +82,6 @@ function TeacherDashboardHome() {
             );
 
           setRecentEvents(incomeEvents.slice(0, 5));
-
-          // Gom nhóm doanh thu theo ngày trong tuần hiện tại (Đơn giản hóa: gom theo ngày trong tuần của dữ liệu)
-          const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-          const weeklyMap = new Map<string, number>();
-          days.forEach((d) => weeklyMap.set(d, 0));
-
-          incomeEvents.forEach((tx) => {
-            const d = new Date(tx.createdAt);
-            const dayName = days[d.getDay()];
-            weeklyMap.set(dayName, (weeklyMap.get(dayName) || 0) + tx.amount);
-          });
-
-          // Xoay mảng để bắt đầu từ thứ 2 (hoặc tùy theo ý muốn, ở đây xếp theo thứ tự chuẩn)
-          const aggregatedWeekly = days.map((d) => ({
-            day: d,
-            value: weeklyMap.get(d) || 0,
-          }));
-          setWeeklyRevenue(aggregatedWeekly);
         } catch (err) {
           console.error("Failed to fetch dashboard data", err);
         }
@@ -87,6 +89,12 @@ function TeacherDashboardHome() {
       fetchDashboardData();
     }
   }, [status]);
+
+  useEffect(() => {
+    void dispatch(fetchRevenue(period));
+  }, [dispatch, period]);
+
+  const chartData: RevenuePoint[] = revenue ?? [];
 
   const displayName = fullName ?? username ?? authUsername ?? "Teacher";
 
@@ -120,8 +128,6 @@ function TeacherDashboardHome() {
       color: "from-blue-500 to-cyan-600",
     },
   ];
-
-  const maxVal = Math.max(...weeklyRevenue.map((d) => d.value), 100);
 
   const currentLevelXP = exp % XP_PER_LEVEL;
   const nextLevelXP = XP_PER_LEVEL;
@@ -216,43 +222,78 @@ function TeacherDashboardHome() {
       <div className="grid lg:grid-cols-3 gap-6 mb-8">
         {/* Revenue Chart */}
         <div className="lg:col-span-2 bg-[var(--card)] backdrop-blur-xl border border-[var(--border)] shadow-[0_20px_60px_rgba(10,10,20,0.28)] hover:border-[var(--primary)] rounded-2xl p-6">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
             <h2 className="text-lg font-bold text-[var(--foreground)]">
-              Weekly Marketplace Earnings
+              Doanh thu ({period === "month" ? "theo tháng" : "theo ngày"})
             </h2>
-            <span className="text-xs text-[var(--muted-foreground)]">
-              Real-time data
-            </span>
-          </div>
-
-          {/* Bar Chart */}
-          <div className="flex items-end justify-between gap-4 h-48">
-            {weeklyRevenue.map((item, index) => (
-              <div
-                key={index}
-                className="flex-1 flex flex-col items-center gap-2"
-              >
-                <div
-                  className="w-full bg-purple-900/30 rounded-t-xl relative overflow-hidden"
-                  style={{ height: `${(item.value / maxVal) * 100}%` }}
+            <div className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--background)] p-1 text-xs font-medium">
+              {(["month", "day"] as const).map((value) => (
+                <button
+                  key={value}
+                  onClick={() => setPeriod(value)}
+                  className={`rounded-lg px-3 py-1 transition-colors ${
+                    period === value
+                      ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
+                      : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                  }`}
                 >
-                  <div className="absolute inset-0 bg-gradient-to-t from-purple-600 to-pink-500 rounded-t-xl"></div>
-                </div>
-                <span className="text-xs text-[var(--muted-foreground)] font-medium">
-                  {item.day}
-                </span>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-6 flex items-center justify-center gap-6">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full"></div>
-              <span className="text-xs text-[var(--muted-foreground)]">
-                Coins earned via flashcard/quiz purchases
-              </span>
+                  {value === "month" ? "Theo tháng" : "Theo ngày"}
+                </button>
+              ))}
             </div>
           </div>
+
+          {chartData.length === 0 ? (
+            <div className="flex h-[280px] w-full items-center justify-center text-sm text-[var(--muted-foreground)]">
+              Chưa có dữ liệu doanh thu trong khoảng thời gian này.
+            </div>
+          ) : (
+            <div className="h-[280px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart
+                  data={chartData}
+                  margin={{ top: 10, right: 16, left: 0, bottom: 0 }}
+                >
+                  <CartesianGrid stroke="var(--border)" strokeDasharray="3 3" />
+                  <XAxis
+                    dataKey="period"
+                    stroke="var(--muted-foreground)"
+                    fontSize={12}
+                  />
+                  <YAxis
+                    stroke="var(--muted-foreground)"
+                    fontSize={12}
+                    tickFormatter={(value) =>
+                      value >= 1000
+                        ? `${Math.round(value / 1000)}k`
+                        : `${value}`
+                    }
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      background: "var(--card)",
+                      border: "1px solid var(--border)",
+                      color: "var(--foreground)",
+                      borderRadius: "0.75rem",
+                    }}
+                    labelStyle={{ color: "var(--muted-foreground)" }}
+                    formatter={(value: number) => [
+                      formatCurrency(value),
+                      "Doanh thu",
+                    ]}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="totalRevenue"
+                    stroke="var(--primary)"
+                    strokeWidth={2}
+                    dot={{ stroke: "var(--primary)", fill: "var(--primary)" }}
+                    activeDot={{ r: 6, fill: "var(--primary)" }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          )}
         </div>
 
         {/* Level Progress Box */}

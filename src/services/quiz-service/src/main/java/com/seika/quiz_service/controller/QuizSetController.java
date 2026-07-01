@@ -2,6 +2,9 @@ package com.seika.quiz_service.controller;
 
 import com.seika.quiz_service.dto.quizset.QuizSetCreateRequest;
 import com.seika.quiz_service.dto.quizset.QuizSetResponse;
+import com.seika.quiz_service.dto.statistics.QuizAttemptResponse;
+import com.seika.quiz_service.dto.statistics.QuizStatisticsOverview;
+import com.seika.quiz_service.dto.statistics.TopQuizSetResponse;
 import com.seika.quiz_service.service.QuizSetService;
 import com.seika.quiz_service.shared.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -49,6 +52,32 @@ public class QuizSetController {
         String userId = extractUserId();
         quizSetService.deleteByOwner(id, userId);
         return ResponseEntity.ok(ApiResponse.success(null));
+    }
+
+    // -------------------------------------------------------------------------
+    // Teacher statistics endpoints
+    // -------------------------------------------------------------------------
+
+    @GetMapping("/my/statistics")
+    public ResponseEntity<ApiResponse<QuizStatisticsOverview>> getMyStatistics() {
+        String userId = extractUserId();
+        QuizStatisticsOverview overview = quizSetService.getStatisticsForAuthor(userId);
+        return ResponseEntity.ok(ApiResponse.success(overview));
+    }
+
+    @GetMapping("/{id}/attempts")
+    public ResponseEntity<ApiResponse<List<QuizAttemptResponse>>> getAttemptsForQuizSet(@PathVariable String id) {
+        String userId = extractUserId();
+        List<QuizAttemptResponse> attempts = quizSetService.getAttemptsForQuizSet(id, userId);
+        return ResponseEntity.ok(ApiResponse.success(attempts));
+    }
+
+    @GetMapping("/my/top-selling")
+    public ResponseEntity<ApiResponse<List<TopQuizSetResponse>>> getTopSellingQuizSets(
+            @RequestParam(defaultValue = "5") int limit) {
+        String userId = extractUserId();
+        List<TopQuizSetResponse> top = quizSetService.getTopSellingQuizSets(userId, limit);
+        return ResponseEntity.ok(ApiResponse.success(top));
     }
 
     private String extractUserId() {

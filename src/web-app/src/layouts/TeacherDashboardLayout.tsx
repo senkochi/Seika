@@ -10,6 +10,7 @@ import {
   Settings,
   LogOut,
   GraduationCap,
+  BarChart3,
 } from "lucide-react";
 import GridBackground from "./GridBackground";
 import { Logo } from "../components/logo/Logo";
@@ -91,6 +92,12 @@ function TeacherDashboardLayout() {
       label: "Wallet",
       icon: Wallet,
       path: "/teacher/dashboard/wallet",
+    },
+    {
+      id: "statistics",
+      label: "Statistics",
+      icon: BarChart3,
+      path: "/teacher/dashboard/statistics",
     },
     {
       id: "profile",

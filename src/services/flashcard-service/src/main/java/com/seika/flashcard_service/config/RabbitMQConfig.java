@@ -26,6 +26,10 @@ public class RabbitMQConfig {
     public static final String LEARNING_EVENTS_EXCHANGE = "learning.events";
     public static final String DECK_COMPLETED_ROUTING_KEY = "deck.completed";
 
+    // Marketplace events (consumed by ContentPurchasedConsumer for teacher statistics)
+    public static final String MARKETPLACE_EVENTS_EXCHANGE = "marketplace.events";
+    public static final String CONTENT_PURCHASED_ROUTING_KEY = "content.purchased";
+
     @Bean
     public TopicExchange contentEventsExchange() {
         return new TopicExchange(CONTENT_EVENTS_EXCHANGE, true, false);
