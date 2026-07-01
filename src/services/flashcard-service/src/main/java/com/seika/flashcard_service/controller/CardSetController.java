@@ -73,8 +73,45 @@ public class CardSetController {
         }
 
         req.setCreatedAt(LocalDateTime.now());
-        rabbitTemplate.convertAndSend(RabbitMQConfig.LEARN_FANOUT_EXCHANGE, req);
+        // Persist a StudySession for teacher statistics before forwarding the event
+        cardSetService.recordLearnProgress(req);
         return ResponseEntity.ok("\u0110\u00e3 ghi nh\u1eadn, ti\u1ebfn \u0111\u1ed9 \u0111ang \u0111\u01b0\u1ee3c x\u1eed l\u00ed");
+    }
+
+    // -------------------------------------------------------------------------
+    // Teacher statistics endpoints
+    // -------------------------------------------------------------------------
+
+    @GetMapping("/my/statistics")
+    public ResponseEntity<com.seika.flashcard_service.dto.statistics.FlashcardStatisticsOverview> getMyStatistics(
+            @AuthenticationPrincipal Jwt jwt) {
+        String teacherId = jwt.getClaimAsString("userId");
+        if (teacherId == null) {
+            teacherId = jwt.getSubject();
+        }
+        return ResponseEntity.ok(cardSetService.getStatisticsForAuthor(teacherId));
+    }
+
+    @GetMapping("/{id}/students")
+    public ResponseEntity<List<com.seika.flashcard_service.dto.statistics.StudentActivityResponse>> getStudents(
+            @PathVariable String id,
+            @AuthenticationPrincipal Jwt jwt) {
+        String teacherId = jwt.getClaimAsString("userId");
+        if (teacherId == null) {
+            teacherId = jwt.getSubject();
+        }
+        return ResponseEntity.ok(cardSetService.getStudentsForCardSet(id, teacherId));
+    }
+
+    @GetMapping("/my/top-selling")
+    public ResponseEntity<List<com.seika.flashcard_service.dto.statistics.TopCardSetResponse>> getTopSelling(
+            @RequestParam(defaultValue = "5") int limit,
+            @AuthenticationPrincipal Jwt jwt) {
+        String teacherId = jwt.getClaimAsString("userId");
+        if (teacherId == null) {
+            teacherId = jwt.getSubject();
+        }
+        return ResponseEntity.ok(cardSetService.getTopSellingCardSets(teacherId, limit));
     }
 
     @PostMapping("/complete")

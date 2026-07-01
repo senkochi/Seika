@@ -9,4 +9,6 @@ public interface PurchaseRepository extends MongoRepository<Purchase, String> {
     boolean existsByUserIdAndCardSetId(String userId, String cardSetId);
 
     List<Purchase> findByUserId(String userId);
+
+    List<Purchase> findByCardSetId(String cardSetId);
 }

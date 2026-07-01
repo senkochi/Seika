@@ -3,6 +3,7 @@ package com.seika.marketplace_service.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -11,6 +12,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
+import com.seika.marketplace_service.dto.statistics.RevenuePointResponse;
+import com.seika.marketplace_service.dto.statistics.StudentPurchaseResponse;
+import com.seika.marketplace_service.dto.statistics.TopProductResponse;
 import com.seika.marketplace_service.entity.Order;
 import com.seika.marketplace_service.entity.OrderItem;
 import com.seika.marketplace_service.entity.OutboxEvent;
@@ -120,5 +124,61 @@ public class OrderService {
         } catch (JsonProcessingException exception) {
             throw new IllegalStateException("Failed to serialize outbox payload", exception);
         }
+    }
+
+    // -------------------------------------------------------------------------
+    // Teacher statistics
+    // -------------------------------------------------------------------------
+
+    /**
+     * Aggregated revenue for a seller grouped by period. The {@code period}
+     * argument accepts {@code "day"} (last 30 days) or {@code "month"} (last
+     * 12 months — capped by the JPQL query's groupby year-month).
+     */
+    @Transactional(readOnly = true)
+    public List<RevenuePointResponse> getRevenueBySeller(String sellerUserId, String period) {
+        List<OrderItemRepository.RevenuePointProjection> rows = "day".equalsIgnoreCase(period)
+                ? orderItemRepository.findDailyRevenueBySeller(sellerUserId, 30)
+                : orderItemRepository.findMonthlyRevenueBySeller(sellerUserId);
+
+        return rows.stream()
+                .map(r -> RevenuePointResponse.builder()
+                        .period(r.getPeriod())
+                        .totalRevenue(r.getTotalRevenue() == null ? BigDecimal.ZERO : r.getTotalRevenue())
+                        .orderCount(r.getOrderCount() == null ? 0L : r.getOrderCount())
+                        .build())
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<TopProductResponse> getTopProductsBySeller(String sellerUserId, String productType, int limit) {
+        return orderItemRepository
+                .findTopProductsBySeller(sellerUserId, productType, PageRequest.of(0, limit))
+                .stream()
+                .map(p -> TopProductResponse.builder()
+                        .productId(p.getProductId())
+                        .productType(p.getProductType() == null ? null : p.getProductType().name())
+                        .productName(p.getProductName())
+                        .unitPrice(p.getUnitPrice())
+                        .totalSold(p.getTotalSold() == null ? 0L : p.getTotalSold())
+                        .totalRevenue(p.getTotalRevenue() == null ? BigDecimal.ZERO : p.getTotalRevenue())
+                        .build())
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<StudentPurchaseResponse> getStudentsBySeller(String sellerUserId, int limit) {
+        return orderItemRepository
+                .findStudentsBySeller(sellerUserId, PageRequest.of(0, limit))
+                .stream()
+                .map(p -> StudentPurchaseResponse.builder()
+                        .userId(p.getUserId())
+                        .productId(p.getProductId())
+                        .productType(p.getProductType() == null ? null : p.getProductType().name())
+                        .productName(p.getProductName())
+                        .unitPrice(p.getUnitPrice())
+                        .purchasedAt(p.getPurchasedAt())
+                        .build())
+                .toList();
     }
 }

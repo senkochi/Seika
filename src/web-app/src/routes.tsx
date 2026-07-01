@@ -27,6 +27,9 @@ const TeacherDashboardHome = lazy(
 const ContentManager = lazy(() => import("./pages/teacher/ContentManager"));
 const TeacherWallet = lazy(() => import("./pages/teacher/TeacherWallet"));
 const TeacherProfile = lazy(() => import("./pages/teacher/TeacherProfile"));
+const TeacherStatistics = lazy(
+  () => import("./pages/teacher/TeacherStatistics"),
+);
 const FlashcardDetail = lazy(() => import("./pages/student/FlashcardDetail"));
 const QuizDetail = lazy(() => import("./pages/student/QuizDetail"));
 
@@ -109,6 +112,10 @@ const router = createBrowserRouter([
       {
         path: "wallet",
         element: withLoader(<TeacherWallet />),
+      },
+      {
+        path: "statistics",
+        element: withLoader(<TeacherStatistics />),
       },
       {
         path: "profile",
