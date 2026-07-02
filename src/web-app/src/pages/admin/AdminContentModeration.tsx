@@ -47,7 +47,13 @@ interface RejectModalProps {
   isLoading: boolean;
 }
 
-function RejectModal({ open, product, onClose, onConfirm, isLoading }: RejectModalProps) {
+function RejectModal({
+  open,
+  product,
+  onClose,
+  onConfirm,
+  isLoading,
+}: RejectModalProps) {
   const [reason, setReason] = useState("");
 
   useEffect(() => {
@@ -74,7 +80,11 @@ function RejectModal({ open, product, onClose, onConfirm, isLoading }: RejectMod
         </div>
         <div className="space-y-3 p-4">
           <p className="text-sm text-[var(--muted-foreground)]">
-            Từ chối <span className="font-semibold text-[var(--foreground)]">{product.name}</span>?
+            Từ chối{" "}
+            <span className="font-semibold text-[var(--foreground)]">
+              {product.name}
+            </span>
+            ?
           </p>
           <textarea
             value={reason}
@@ -84,7 +94,9 @@ function RejectModal({ open, product, onClose, onConfirm, isLoading }: RejectMod
             maxLength={500}
             className="w-full resize-none px-4 py-3 bg-[rgba(255,255,255,0.06)] border border-[var(--border)] rounded-xl text-[var(--foreground)] placeholder-[var(--muted-foreground)] focus:outline-none focus:border-[var(--ring)]"
           />
-          <p className="text-xs text-[var(--muted-foreground)]">{reason.length}/500</p>
+          <p className="text-xs text-[var(--muted-foreground)]">
+            {reason.length}/500
+          </p>
         </div>
         <div className="flex justify-end gap-2 border-t border-[var(--border)] bg-[rgba(0,0,0,0.15)] p-4">
           <button
@@ -145,7 +157,10 @@ function AdminContentModeration() {
     if (products.status === "loading" && products.content.length === 0) {
       return (
         <tr>
-          <td colSpan={6} className="py-12 text-center text-[var(--muted-foreground)]">
+          <td
+            colSpan={6}
+            className="py-12 text-center text-[var(--muted-foreground)]"
+          >
             <Loader2 className="mx-auto h-6 w-6 animate-spin" />
           </td>
         </tr>
@@ -163,13 +178,20 @@ function AdminContentModeration() {
     if (products.content.length === 0) {
       return (
         <tr>
-          <td colSpan={6} className="py-12 text-center text-[var(--muted-foreground)]">
+          <td
+            colSpan={6}
+            className="py-12 text-center text-[var(--muted-foreground)]"
+          >
             Không có sản phẩm nào đang chờ duyệt.
           </td>
         </tr>
       );
     }
-    return products.content.map((p) => (
+    const sortedContent = [...products.content].sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    );
+    return sortedContent.map((p) => (
       <tr key={p.id} className="hover:bg-[var(--background)] transition-colors">
         <td className="py-3">
           <div className="font-medium text-[var(--foreground)]">{p.name}</div>
@@ -181,7 +203,9 @@ function AdminContentModeration() {
         </td>
         <td className="py-3">{typeBadge(p.type)}</td>
         <td className="py-3 font-mono text-xs text-[var(--muted-foreground)]">
-          {p.sellerUserId.length > 14 ? `${p.sellerUserId.slice(0, 8)}…${p.sellerUserId.slice(-4)}` : p.sellerUserId}
+          {p.sellerUserId.length > 14
+            ? `${p.sellerUserId.slice(0, 8)}…${p.sellerUserId.slice(-4)}`
+            : p.sellerUserId}
         </td>
         <td className="py-3 text-[var(--foreground)]">
           {currencyFormatter.format(p.price)} coin
@@ -222,7 +246,8 @@ function AdminContentModeration() {
             Duyệt nội dung
           </h1>
           <p className="mt-1 text-sm text-[var(--muted-foreground)]">
-            Tổng: {currencyFormatter.format(products.totalElements)} sản phẩm đang chờ duyệt
+            Tổng: {currencyFormatter.format(products.totalElements)} sản phẩm
+            đang chờ duyệt
           </p>
         </div>
         <button
@@ -247,7 +272,9 @@ function AdminContentModeration() {
                 <th className="pb-3 font-medium text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[var(--border)]">{tableBody}</tbody>
+            <tbody className="divide-y divide-[var(--border)]">
+              {tableBody}
+            </tbody>
           </table>
         </div>
       </div>

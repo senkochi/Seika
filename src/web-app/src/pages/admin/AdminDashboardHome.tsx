@@ -51,8 +51,12 @@ function StatCard({
     <div className="bg-[var(--card)] backdrop-blur-xl border border-[var(--border)] rounded-2xl p-6 shadow-[0_20px_60px_rgba(10,10,20,0.28)] hover:border-[var(--primary)] transition-colors">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <p className="text-[var(--muted-foreground)] text-sm font-medium">{label}</p>
-          <p className="mt-3 text-2xl font-bold text-[var(--foreground)] truncate">{value}</p>
+          <p className="text-[var(--muted-foreground)] text-sm font-medium">
+            {label}
+          </p>
+          <p className="mt-3 text-2xl font-bold text-[var(--foreground)] truncate">
+            {value}
+          </p>
         </div>
         <div
           className={`flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br ${accent}`}
@@ -94,8 +98,12 @@ function AdminDashboardHome() {
       <div className="p-8 flex items-center justify-center min-h-[60vh]">
         <div className="flex flex-col items-center gap-4 text-center">
           <div className="text-4xl">⚠️</div>
-          <p className="text-[var(--foreground)] font-bold">Không thể tải dashboard</p>
-          <p className="text-[var(--muted-foreground)] text-sm">{dashboardError}</p>
+          <p className="text-[var(--foreground)] font-bold">
+            Không thể tải dashboard
+          </p>
+          <p className="text-[var(--muted-foreground)] text-sm">
+            {dashboardError}
+          </p>
           <button
             onClick={() => dispatch(fetchAdminDashboard())}
             className="inline-flex items-center gap-2 rounded-xl bg-[var(--primary)] px-4 py-2 text-sm font-medium text-[var(--primary-foreground)] hover:opacity-90"
@@ -116,9 +124,7 @@ function AdminDashboardHome() {
     : "N/A";
 
   const pendingDisplay =
-    d?.pendingProducts === -1
-      ? "N/A"
-      : formatNumber(d?.pendingProducts ?? 0);
+    d?.pendingProducts === -1 ? "N/A" : formatNumber(d?.pendingProducts ?? 0);
 
   const chartData = [
     { name: "Teacher", value: d?.totalTeachers ?? 0 },
@@ -179,19 +185,38 @@ function AdminDashboardHome() {
         </h2>
         <div className="h-[300px] w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={chartData} margin={{ top: 10, right: 16, left: 0, bottom: 0 }}>
+            <BarChart
+              data={chartData}
+              margin={{ top: 10, right: 16, left: 0, bottom: 0 }}
+            >
               <CartesianGrid stroke="var(--border)" strokeDasharray="3 3" />
-              <XAxis dataKey="name" stroke="var(--muted-foreground)" fontSize={12} />
+              <XAxis
+                dataKey="name"
+                stroke="var(--muted-foreground)"
+                fontSize={12}
+              />
               <YAxis stroke="var(--muted-foreground)" fontSize={12} />
               <Tooltip
+                cursor={false}
+                shared={false}
+                isAnimationActive={false}
                 contentStyle={{
                   background: "var(--card)",
                   border: "1px solid var(--border)",
                   color: "var(--foreground)",
+                  borderRadius: "8px",
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.25)",
                 }}
-                labelStyle={{ color: "var(--muted-foreground)" }}
+                labelStyle={{
+                  color: "var(--muted-foreground)",
+                  fontWeight: "bold",
+                }}
               />
-              <Bar dataKey="value" fill="var(--primary)" radius={[8, 8, 0, 0]} />
+              <Bar
+                dataKey="value"
+                fill="var(--primary)"
+                radius={[8, 8, 0, 0]}
+              />
             </BarChart>
           </ResponsiveContainer>
         </div>

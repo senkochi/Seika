@@ -2,10 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Settings, Loader2, Save, Check, RefreshCw } from "lucide-react";
 
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
-import {
-  fetchAdminConfigs,
-  updateAdminConfig,
-} from "../../store/adminSlice";
+import { fetchAdminConfigs, updateAdminConfig } from "../../store/adminSlice";
 import { showError, showSuccess } from "../../components/toast/toastUtils";
 import type { SystemConfigEntry } from "../../api/types";
 
@@ -43,7 +40,9 @@ function ConfigRow({
             {entry.key}
           </label>
           {entry.description && (
-            <p className="mt-1 text-xs text-[var(--muted-foreground)]">{entry.description}</p>
+            <p className="mt-1 text-xs text-[var(--muted-foreground)]">
+              {entry.description}
+            </p>
           )}
           <input
             type="text"
@@ -56,7 +55,7 @@ function ConfigRow({
             {entry.updatedAt && (
               <span>
                 Cập nhật: {new Date(entry.updatedAt).toLocaleString("vi-VN")}
-                {entry.updatedBy && ` • bởi ${entry.updatedBy}`}
+                {/* {entry.updatedBy && ` • bởi ${entry.updatedBy}`} */}
               </span>
             )}
           </div>
@@ -66,7 +65,13 @@ function ConfigRow({
           disabled={!isDirty || isSaving}
           className="inline-flex items-center gap-2 rounded-xl bg-[var(--primary)] px-4 py-2.5 text-sm font-medium text-[var(--primary-foreground)] hover:opacity-90 disabled:opacity-50 shrink-0"
         >
-          {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : isDirty ? <Save className="h-4 w-4" /> : <Check className="h-4 w-4" />}
+          {isSaving ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : isDirty ? (
+            <Save className="h-4 w-4" />
+          ) : (
+            <Check className="h-4 w-4" />
+          )}
           Lưu
         </button>
       </div>
@@ -76,9 +81,8 @@ function ConfigRow({
 
 function AdminSystemConfig() {
   const dispatch = useAppDispatch();
-  const { configs, configsStatus, configsError, mutationStatus } = useAppSelector(
-    (state) => state.admin,
-  );
+  const { configs, configsStatus, configsError, mutationStatus } =
+    useAppSelector((state) => state.admin);
   const [savingKey, setSavingKey] = useState<string | null>(null);
 
   useEffect(() => {
@@ -117,8 +121,12 @@ function AdminSystemConfig() {
       <div className="p-8 flex items-center justify-center min-h-[60vh]">
         <div className="flex flex-col items-center gap-4 text-center">
           <div className="text-4xl">⚠️</div>
-          <p className="text-[var(--foreground)] font-bold">Không thể tải cấu hình</p>
-          <p className="text-[var(--muted-foreground)] text-sm">{configsError}</p>
+          <p className="text-[var(--foreground)] font-bold">
+            Không thể tải cấu hình
+          </p>
+          <p className="text-[var(--muted-foreground)] text-sm">
+            {configsError}
+          </p>
           <button
             onClick={() => dispatch(fetchAdminConfigs())}
             className="inline-flex items-center gap-2 rounded-xl bg-[var(--primary)] px-4 py-2 text-sm font-medium text-[var(--primary-foreground)] hover:opacity-90"
@@ -139,7 +147,8 @@ function AdminSystemConfig() {
             System Config
           </h1>
           <p className="mt-1 text-sm text-[var(--muted-foreground)]">
-            Cấu hình tham số hệ thống — thay đổi có hiệu lực sau khi lưu (cache 60s).
+            Cấu hình tham số hệ thống — thay đổi có hiệu lực sau khi lưu (cache
+            60s).
           </p>
         </div>
         <button
