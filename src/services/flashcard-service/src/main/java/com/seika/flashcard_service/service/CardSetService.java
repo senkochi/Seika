@@ -9,6 +9,7 @@ import com.seika.flashcard_service.domain.StudySession;
 import com.seika.flashcard_service.dto.CardSetCreateDTO;
 import com.seika.flashcard_service.dto.CardSetDTO;
 import com.seika.flashcard_service.dto.LearnProgressDTO;
+import com.seika.flashcard_service.dto.SystemConfigDTO;
 import com.seika.flashcard_service.dto.WalletDTO;
 import com.seika.flashcard_service.dto.statistics.FlashcardStatisticsOverview;
 import com.seika.flashcard_service.dto.statistics.StudentActivityResponse;
@@ -48,6 +49,31 @@ public class CardSetService {
     private final RabbitTemplate rabbitTemplate;
 
     public CardSetDTO create(CardSetCreateDTO req, String authorId){
+        if (req.getPrice() != null && req.getPrice() < 0) {
+            throw new IllegalArgumentException("Giá sản phẩm không được nhỏ hơn 0!");
+        }
+        if (req.getPrice() != null && req.getPrice() > 0) {
+            BigDecimal minPrice = new BigDecimal("10");
+            BigDecimal maxPrice = new BigDecimal("100000");
+            try {
+                List<SystemConfigDTO> configs = walletClient.getConfigs();
+                if (configs != null) {
+                    for (SystemConfigDTO cfg : configs) {
+                        if ("MIN_PRODUCT_PRICE".equals(cfg.getKey()) && cfg.getValue() != null) {
+                            minPrice = new BigDecimal(cfg.getValue());
+                        } else if ("MAX_PRODUCT_PRICE".equals(cfg.getKey()) && cfg.getValue() != null) {
+                            maxPrice = new BigDecimal(cfg.getValue());
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("Không thể lấy config từ wallet-service, dùng giá trị mặc định: {}", e.getMessage());
+            }
+            BigDecimal reqPrice = BigDecimal.valueOf(req.getPrice());
+            if (reqPrice.compareTo(minPrice) < 0 || reqPrice.compareTo(maxPrice) > 0) {
+                throw new IllegalArgumentException("Giá sản phẩm phải nằm trong khoảng từ " + minPrice + " đến " + maxPrice + " coin!");
+            }
+        }
         CardSet cardSet = mapper.toEntity(req);
         cardSet.setAuthorId(authorId);
         CardSet res = cardSetRepository.save(cardSet);

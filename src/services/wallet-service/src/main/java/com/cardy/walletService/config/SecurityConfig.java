@@ -43,6 +43,7 @@ public class SecurityConfig {
                         .requestMatchers("/swagger-ui/**").permitAll()
                         .requestMatchers("/v3/api-docs").permitAll()
                         .requestMatchers("/v3/api-docs/**").permitAll()
+                        .requestMatchers("/api/wallet/configs").permitAll()
                         // All other endpoints require JWT token
                         .anyRequest().authenticated()
                 )

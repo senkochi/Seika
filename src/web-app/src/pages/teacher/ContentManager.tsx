@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { useAppSelector, useAppDispatch } from "../../store/hooks";
 import { fetchCurrentUserProfile } from "../../store/userProfileSlice";
-import { flashcardsService, quizzesService } from "../../api";
+import { flashcardsService, quizzesService, walletService } from "../../api";
 import type {
   CardSetResponse,
   QuizSetResponse,
@@ -135,6 +135,26 @@ function ContentManager() {
   const [reorderItems, setReorderItems] = useState<string[]>(["", ""]);
   const [blankAnswers, setBlankAnswers] = useState<string[]>([""]);
 
+  const [minPrice, setMinPrice] = useState<number>(10);
+  const [maxPrice, setMaxPrice] = useState<number>(100000);
+
+  useEffect(() => {
+    walletService
+      .getConfigs()
+      .then((configs) => {
+        if (configs && Array.isArray(configs)) {
+          configs.forEach((cfg) => {
+            if (cfg.key === "MIN_PRODUCT_PRICE" && cfg.value) {
+              setMinPrice(Number(cfg.value));
+            } else if (cfg.key === "MAX_PRODUCT_PRICE" && cfg.value) {
+              setMaxPrice(Number(cfg.value));
+            }
+          });
+        }
+      })
+      .catch((err) => console.error("Could not fetch system configs:", err));
+  }, []);
+
   // ──────────────────────────────────────────
   // Data fetching
   // ──────────────────────────────────────────
@@ -188,6 +208,14 @@ function ContentManager() {
     if (!setTitle.trim()) return showError("Tiêu đề là bắt buộc.");
     if (cards.some((c) => !c.frontSide.trim() || !c.backSide.trim())) {
       return showError("Mỗi thẻ phải có nội dung mặt trước và mặt sau.");
+    }
+    if (setPrice < 0) {
+      return showError("Giá sản phẩm không được nhỏ hơn 0.");
+    }
+    if (setPrice > 0 && (setPrice < minPrice || setPrice > maxPrice)) {
+      return showError(
+        `Giá sản phẩm phải nằm trong khoảng từ ${minPrice} đến ${maxPrice} coin!`,
+      );
     }
 
     setLoadingSubmit(true);
@@ -276,6 +304,17 @@ function ContentManager() {
     if (!quizSetTitle.trim()) return showError("Tiêu đề bộ đề là bắt buộc.");
     if (quizSetQuestions.length === 0) {
       return showError("Bộ đề phải có ít nhất một câu hỏi.");
+    }
+    if (quizSetPrice < 0) {
+      return showError("Giá sản phẩm không được nhỏ hơn 0.");
+    }
+    if (
+      quizSetPrice > 0 &&
+      (quizSetPrice < minPrice || quizSetPrice > maxPrice)
+    ) {
+      return showError(
+        `Giá sản phẩm phải nằm trong khoảng từ ${minPrice} đến ${maxPrice} coin!`,
+      );
     }
 
     setLoadingSubmit(true);
@@ -566,7 +605,6 @@ function ContentManager() {
           onSubmit={handleSubmitFlashcardSet}
           className="bg-[var(--card)] border border-[var(--border)] rounded-3xl p-8 max-w-4xl mx-auto shadow-2xl space-y-6"
         >
-          {/* Form details (same as before) */}
           <div className="border-b border-[var(--border)] pb-4 flex justify-between items-center">
             <h2 className="text-xl font-bold text-[var(--foreground)]">
               Tạo Bộ Flashcard Mới
@@ -620,6 +658,13 @@ function ContentManager() {
                   className="w-full pl-10 pr-4 py-3 bg-[rgba(255,255,255,0.06)] border border-[var(--border)] rounded-xl text-[var(--foreground)] focus:outline-none focus:border-[var(--ring)]"
                 />
               </div>
+              <p className="mt-1.5 text-xs text-[var(--muted-foreground)]">
+                Để 0 nếu miễn phí. Khi bán trên Marketplace, giá phải từ{" "}
+                <span className="font-semibold text-amber-400">{minPrice}</span>{" "}
+                đến{" "}
+                <span className="font-semibold text-amber-400">{maxPrice}</span>{" "}
+                coin.
+              </p>
             </div>
           </div>
 
@@ -758,6 +803,13 @@ function ContentManager() {
                 onChange={(e) => setQuizSetPrice(Number(e.target.value))}
                 className="w-full px-4 py-3 bg-[rgba(255,255,255,0.06)] border border-[var(--border)] rounded-xl text-[var(--foreground)] focus:outline-none"
               />
+              <p className="mt-1.5 text-xs text-[var(--muted-foreground)]">
+                Để 0 nếu miễn phí. Khi bán trên Marketplace, giá phải từ{" "}
+                <span className="font-semibold text-amber-400">{minPrice}</span>{" "}
+                đến{" "}
+                <span className="font-semibold text-amber-400">{maxPrice}</span>{" "}
+                coin.
+              </p>
             </div>
           </div>
 
