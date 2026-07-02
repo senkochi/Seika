@@ -52,13 +52,21 @@ interface ChangeRoleModalProps {
   isLoading: boolean;
 }
 
-function ChangeRoleModal({ open, user, onClose, onConfirm, isLoading }: ChangeRoleModalProps) {
+function ChangeRoleModal({
+  open,
+  user,
+  onClose,
+  onConfirm,
+  isLoading,
+}: ChangeRoleModalProps) {
   const [role, setRole] = useState<"STUDENT" | "TEACHER">("STUDENT");
 
   useEffect(() => {
     if (open && user) {
       const nonAdminRole = user.roles.find((r) => r.toUpperCase() !== "ADMIN");
-      setRole((nonAdminRole?.toUpperCase() === "TEACHER" ? "TEACHER" : "STUDENT"));
+      setRole(
+        nonAdminRole?.toUpperCase() === "TEACHER" ? "TEACHER" : "STUDENT",
+      );
     }
   }, [open, user]);
 
@@ -68,7 +76,9 @@ function ChangeRoleModal({ open, user, onClose, onConfirm, isLoading }: ChangeRo
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
       <div className="w-full max-w-md rounded-2xl bg-[var(--card)] border border-[var(--border)] shadow-2xl overflow-hidden">
         <div className="flex items-center justify-between border-b border-[var(--border)] p-4">
-          <h3 className="text-lg font-semibold text-[var(--foreground)]">Đổi role</h3>
+          <h3 className="text-lg font-semibold text-[var(--foreground)]">
+            Đổi role
+          </h3>
           <button
             aria-label="Đóng"
             onClick={onClose}
@@ -79,8 +89,11 @@ function ChangeRoleModal({ open, user, onClose, onConfirm, isLoading }: ChangeRo
         </div>
         <div className="space-y-3 p-4">
           <p className="text-sm text-[var(--muted-foreground)]">
-            Đổi role cho <span className="font-semibold text-[var(--foreground)]">{user.username}</span>. Hiện tại:{" "}
-            {user.roles.map((r) => roleBadge(r))}
+            Đổi role cho{" "}
+            <span className="font-semibold text-[var(--foreground)]">
+              {user.username}
+            </span>
+            . Hiện tại: {user.roles.map((r) => roleBadge(r))}
           </p>
           <select
             value={role}
@@ -120,7 +133,13 @@ interface ResetPasswordModalProps {
   isLoading: boolean;
 }
 
-function ResetPasswordModal({ open, user, onClose, onConfirm, isLoading }: ResetPasswordModalProps) {
+function ResetPasswordModal({
+  open,
+  user,
+  onClose,
+  onConfirm,
+  isLoading,
+}: ResetPasswordModalProps) {
   if (!open || !user) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
@@ -140,11 +159,17 @@ function ResetPasswordModal({ open, user, onClose, onConfirm, isLoading }: Reset
         </div>
         <div className="space-y-3 p-4 text-sm text-[var(--muted-foreground)]">
           <p>
-            Reset mật khẩu cho <span className="font-semibold text-[var(--foreground)]">{user.username}</span>.
+            Reset mật khẩu cho{" "}
+            <span className="font-semibold text-[var(--foreground)]">
+              {user.username}
+            </span>
+            .
           </p>
           <p>
-            Mật khẩu mới sẽ được random và <span className="font-bold text-rose-400">không khả dụng</span> trên hệ thống.
-            User cần liên hệ admin qua kênh khác (email/điện thoại) để nhận lại mật khẩu.
+            Mật khẩu mới sẽ được random và{" "}
+            <span className="font-bold text-rose-400">không khả dụng</span> trên
+            hệ thống. User cần liên hệ admin qua kênh khác (email/điện thoại) để
+            nhận lại mật khẩu.
           </p>
         </div>
         <div className="flex justify-end gap-2 border-t border-[var(--border)] bg-[rgba(0,0,0,0.15)] p-4">
@@ -170,7 +195,9 @@ function ResetPasswordModal({ open, user, onClose, onConfirm, isLoading }: Reset
 
 function AdminUsers() {
   const dispatch = useAppDispatch();
-  const { users, mutationStatus, mutationError } = useAppSelector((state) => state.admin);
+  const { users, mutationStatus, mutationError } = useAppSelector(
+    (state) => state.admin,
+  );
 
   const [modalRole, setModalRole] = useState<UserAdminResponse | null>(null);
   const [modalReset, setModalReset] = useState<UserAdminResponse | null>(null);
@@ -185,18 +212,24 @@ function AdminUsers() {
   }, [users.filterRole]);
 
   const handleLockToggle = async (user: UserAdminResponse) => {
-    const action = user.enabled ? unlockAdminUser : lockAdminUser;
+    const action = user.enabled ? lockAdminUser : unlockAdminUser;
     const result = await dispatch(action(user.id));
     if (action.rejected.match(result)) {
       showError((result.payload as string) ?? "Thao tác thất bại");
     } else {
-      showSuccess(user.enabled ? `Đã mở khóa ${user.username}` : `Đã khóa ${user.username}`);
+      showSuccess(
+        user.enabled
+          ? `Đã khóa ${user.username}`
+          : `Đã mở khóa ${user.username}`,
+      );
     }
   };
 
   const handleChangeRole = async (role: "STUDENT" | "TEACHER") => {
     if (!modalRole) return;
-    const result = await dispatch(changeAdminUserRole({ userId: modalRole.id, role }));
+    const result = await dispatch(
+      changeAdminUserRole({ userId: modalRole.id, role }),
+    );
     if (changeAdminUserRole.rejected.match(result)) {
       showError((result.payload as string) ?? "Đổi role thất bại");
     } else {
@@ -222,7 +255,10 @@ function AdminUsers() {
     if (users.status === "loading" && users.content.length === 0) {
       return (
         <tr>
-          <td colSpan={5} className="py-12 text-center text-[var(--muted-foreground)]">
+          <td
+            colSpan={5}
+            className="py-12 text-center text-[var(--muted-foreground)]"
+          >
             <Loader2 className="mx-auto h-6 w-6 animate-spin" />
           </td>
         </tr>
@@ -240,7 +276,10 @@ function AdminUsers() {
     if (users.content.length === 0) {
       return (
         <tr>
-          <td colSpan={5} className="py-12 text-center text-[var(--muted-foreground)]">
+          <td
+            colSpan={5}
+            className="py-12 text-center text-[var(--muted-foreground)]"
+          >
             Không có user nào.
           </td>
         </tr>
@@ -249,10 +288,17 @@ function AdminUsers() {
     return users.content.map((u) => {
       const isAdmin = u.roles.some((r) => r.toUpperCase() === "ADMIN");
       return (
-        <tr key={u.id} className="hover:bg-[var(--background)] transition-colors">
-          <td className="py-3 font-medium text-[var(--foreground)]">{u.username}</td>
+        <tr
+          key={u.id}
+          className="hover:bg-[var(--background)] transition-colors"
+        >
+          <td className="py-3 font-medium text-[var(--foreground)]">
+            {u.username}
+          </td>
           <td className="py-3">
-            <div className="flex flex-wrap gap-1">{u.roles.map((r) => roleBadge(r))}</div>
+            <div className="flex flex-wrap gap-1">
+              {u.roles.map((r) => roleBadge(r))}
+            </div>
           </td>
           <td className="py-3">
             {u.enabled ? (
@@ -275,9 +321,17 @@ function AdminUsers() {
                   <button
                     onClick={() => handleLockToggle(u)}
                     disabled={isMutating}
-                    className="inline-flex items-center gap-1 rounded-lg border border-[var(--border)] px-3 py-1.5 text-xs font-medium text-[var(--foreground)] hover:border-[var(--primary)] disabled:opacity-50"
+                    className={`inline-flex items-center gap-1 rounded-lg border px-3 py-1.5 text-xs font-medium disabled:opacity-50 ${
+                      u.enabled
+                        ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20"
+                        : "border-rose-500/30 bg-rose-500/10 text-rose-300 hover:bg-rose-500/20"
+                    }`}
                   >
-                    {u.enabled ? <Lock className="h-3.5 w-3.5" /> : <Unlock className="h-3.5 w-3.5" />}
+                    {u.enabled ? (
+                      <Lock className="h-3.5 w-3.5" />
+                    ) : (
+                      <Unlock className="h-3.5 w-3.5" />
+                    )}
                     {u.enabled ? "Khóa" : "Mở"}
                   </button>
                   <button
@@ -298,7 +352,9 @@ function AdminUsers() {
                 </>
               )}
               {isAdmin && (
-                <span className="text-xs text-[var(--muted-foreground)] italic">Protected</span>
+                <span className="text-xs text-[var(--muted-foreground)] italic">
+                  Protected
+                </span>
               )}
             </div>
           </td>
@@ -331,7 +387,9 @@ function AdminUsers() {
             <option value="ADMIN">Admin</option>
           </select>
           <button
-            onClick={() => dispatch(fetchAdminUsers({ role: users.filterRole || undefined }))}
+            onClick={() =>
+              dispatch(fetchAdminUsers({ role: users.filterRole || undefined }))
+            }
             className="inline-flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-sm font-medium text-[var(--foreground)] hover:border-[var(--primary)]"
           >
             <RefreshCw className="h-4 w-4" />
@@ -352,7 +410,9 @@ function AdminUsers() {
                 <th className="pb-3 font-medium text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[var(--border)]">{tableBody}</tbody>
+            <tbody className="divide-y divide-[var(--border)]">
+              {tableBody}
+            </tbody>
           </table>
         </div>
       </div>
