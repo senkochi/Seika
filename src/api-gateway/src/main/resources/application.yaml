@@ -19,6 +19,10 @@ spring:
                 - Path=/identity/**
               filters:
                 - StripPrefix=1
+            - id: admin-route
+              uri: lb://IDENTITY-SERVICE
+              predicates:
+                - Path=/api/admin/**,/api/admin
             - id: flashcard-service
               uri: lb://FLASHCARD-SERVICE
               predicates:

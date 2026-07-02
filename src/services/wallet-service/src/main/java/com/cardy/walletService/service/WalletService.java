@@ -19,16 +19,25 @@ import java.util.stream.Collectors;
 public class WalletService {
     private final WalletRepository walletRepository;
     private final TransactionRepository transactionRepository;
+    private final SystemConfigService systemConfigService;
 
-    public WalletService(WalletRepository walletRepository, TransactionRepository transactionRepository){
+    public WalletService(WalletRepository walletRepository,
+                         TransactionRepository transactionRepository,
+                         SystemConfigService systemConfigService){
         this.walletRepository = walletRepository;
         this.transactionRepository = transactionRepository;
+        this.systemConfigService = systemConfigService;
     }
 
     private void updateBalance(UUID userId, BigDecimal amount, TransactionType type, String description) {
         Wallet wallet = walletRepository.findByUserId(userId)
                 .orElseGet(() -> walletRepository.save(
-                        Wallet.builder().userId(userId).balance(new BigDecimal("500")).build()
+                        Wallet.builder()
+                                .userId(userId)
+                                .balance(systemConfigService.getBigDecimal(
+                                        SystemConfigService.KEY_STUDENT_INITIAL_COIN,
+                                        new BigDecimal("500")))
+                                .build()
                 ));
 
         BigDecimal newBalance = wallet.getBalance().add(amount);
@@ -51,7 +60,11 @@ public class WalletService {
 
     @Transactional
     public void createWallet(UUID userId, boolean isTeacher) {
-        BigDecimal defaultBalance = isTeacher ? BigDecimal.ZERO : new BigDecimal("500");
+        BigDecimal teacherInitial = systemConfigService.getBigDecimal(
+                SystemConfigService.KEY_TEACHER_INITIAL_COIN, BigDecimal.ZERO);
+        BigDecimal studentInitial = systemConfigService.getBigDecimal(
+                SystemConfigService.KEY_STUDENT_INITIAL_COIN, new BigDecimal("500"));
+        BigDecimal defaultBalance = isTeacher ? teacherInitial : studentInitial;
         walletRepository.findByUserId(userId)
                 .orElseGet(() -> walletRepository.save(
                         Wallet.builder().userId(userId).balance(defaultBalance).build()
@@ -78,7 +91,9 @@ public class WalletService {
         if (amount == null || amount.compareTo(new BigDecimal("10")) < 0 || amount.remainder(new BigDecimal("10")).compareTo(BigDecimal.ZERO) != 0) {
             throw new IllegalArgumentException("Số tiền rút phải lớn hơn hoặc bằng 10 và là bội số của 10");
         }
-        BigDecimal vnd = amount.multiply(new BigDecimal("100"));
+        BigDecimal coinToVnd = systemConfigService.getBigDecimal(
+                SystemConfigService.KEY_COIN_TO_VND_RATE, new BigDecimal("100"));
+        BigDecimal vnd = amount.multiply(coinToVnd);
         String description = "Quy đổi: " + amount.toPlainString() + " Coins = " + vnd.toPlainString() + " VNĐ";
         if (customDescription != null && !customDescription.trim().isEmpty()) {
             description += " (" + customDescription + ")";

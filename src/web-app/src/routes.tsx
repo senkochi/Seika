@@ -32,6 +32,19 @@ const TeacherStatistics = lazy(
 );
 const FlashcardDetail = lazy(() => import("./pages/student/FlashcardDetail"));
 const QuizDetail = lazy(() => import("./pages/student/QuizDetail"));
+const AdminDashboardLayout = lazy(
+  () => import("./layouts/AdminDashboardLayout"),
+);
+const AdminDashboardHome = lazy(
+  () => import("./pages/admin/AdminDashboardHome"),
+);
+const AdminUsers = lazy(() => import("./pages/admin/AdminUsers"));
+const AdminContentModeration = lazy(
+  () => import("./pages/admin/AdminContentModeration"),
+);
+const AdminSystemConfig = lazy(
+  () => import("./pages/admin/AdminSystemConfig"),
+);
 
 const withLoader = (content: ReactNode) => (
   <Suspense fallback={<PageLoader />}>{content}</Suspense>
@@ -120,6 +133,28 @@ const router = createBrowserRouter([
       {
         path: "profile",
         element: withLoader(<TeacherProfile />),
+      },
+    ],
+  },
+  {
+    path: "/admin/dashboard",
+    element: withLoader(<AdminDashboardLayout />),
+    children: [
+      {
+        index: true,
+        element: withLoader(<AdminDashboardHome />),
+      },
+      {
+        path: "users",
+        element: withLoader(<AdminUsers />),
+      },
+      {
+        path: "moderation",
+        element: withLoader(<AdminContentModeration />),
+      },
+      {
+        path: "config",
+        element: withLoader(<AdminSystemConfig />),
       },
     ],
   },

@@ -3,6 +3,7 @@ import authReducer from "./authSlice";
 import userProfileReducer from "./userProfileSlice";
 import notificationReducer from "./notificationSlice";
 import statisticsReducer from "./statisticsSlice";
+import adminReducer from "./adminSlice";
 
 export const store = configureStore({
   reducer: {
@@ -10,6 +11,7 @@ export const store = configureStore({
     userProfile: userProfileReducer,
     notifications: notificationReducer,
     statistics: statisticsReducer,
+    admin: adminReducer,
   },
 });
 

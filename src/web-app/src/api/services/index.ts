@@ -8,3 +8,4 @@ export * from "./marketplace";
 export * from "./notifications";
 export * from "./rewards";
 export * from "./statistics";
+export * from "./admin";

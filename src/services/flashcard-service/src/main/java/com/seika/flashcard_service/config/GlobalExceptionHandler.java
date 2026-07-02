@@ -23,6 +23,11 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(errors);
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Map<String, String>> handleIllegalArgumentException(IllegalArgumentException ex){
+        return ResponseEntity.badRequest().body(Map.of("message", ex.getMessage()));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<?> handleGeneralExceptions(Exception ex){
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();

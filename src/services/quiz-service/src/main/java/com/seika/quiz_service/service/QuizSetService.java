@@ -1,9 +1,11 @@
 package com.seika.quiz_service.service;
 
+import com.seika.quiz_service.client.WalletClient;
 import com.seika.quiz_service.domain.BaseQuiz;
 import com.seika.quiz_service.domain.ProductSales;
 import com.seika.quiz_service.domain.QuizAttempt;
 import com.seika.quiz_service.domain.QuizSet;
+import com.seika.quiz_service.dto.SystemConfigDTO;
 import com.seika.quiz_service.dto.quiz.QuizResponse;
 import com.seika.quiz_service.dto.quizset.QuizSetCreateRequest;
 import com.seika.quiz_service.dto.quizset.QuizSetResponse;
@@ -41,10 +43,35 @@ public class QuizSetService {
     private final ContentEventPublisher contentEventPublisher;
     private final QuizAttemptRepository quizAttemptRepository;
     private final ProductSalesRepository productSalesRepository;
+    private final WalletClient walletClient;
 
     @Transactional
     public QuizSetResponse create(QuizSetCreateRequest request, String createdBy) {
         log.info("Creating new QuizSet: {} by user: {}", request.getTitle(), createdBy);
+        if (request.getPrice() != null && request.getPrice().compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("Giá sản phẩm không được nhỏ hơn 0!");
+        }
+        if (request.getPrice() != null && request.getPrice().compareTo(BigDecimal.ZERO) > 0) {
+            BigDecimal minPrice = new BigDecimal("10");
+            BigDecimal maxPrice = new BigDecimal("100000");
+            try {
+                List<SystemConfigDTO> configs = walletClient.getConfigs();
+                if (configs != null) {
+                    for (SystemConfigDTO cfg : configs) {
+                        if ("MIN_PRODUCT_PRICE".equals(cfg.getKey()) && cfg.getValue() != null) {
+                            minPrice = new BigDecimal(cfg.getValue());
+                        } else if ("MAX_PRODUCT_PRICE".equals(cfg.getKey()) && cfg.getValue() != null) {
+                            maxPrice = new BigDecimal(cfg.getValue());
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("Không thể lấy config từ wallet-service, dùng giá trị mặc định: {}", e.getMessage());
+            }
+            if (request.getPrice().compareTo(minPrice) < 0 || request.getPrice().compareTo(maxPrice) > 0) {
+                throw new IllegalArgumentException("Giá sản phẩm phải nằm trong khoảng từ " + minPrice + " đến " + maxPrice + " coin!");
+            }
+        }
 
         // Create individual quizzes and collect their IDs
         List<QuizResponse> createdQuizzes = request.getQuestions().stream()

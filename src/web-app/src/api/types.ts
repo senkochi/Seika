@@ -258,3 +258,70 @@ export interface FlashcardStudentActivity {
   completed: boolean;
   lastStudiedAt: string | null;
 }
+
+// ---------------------------------------------------------------------------
+// Admin
+// ---------------------------------------------------------------------------
+
+export interface UserAdminResponse {
+  id: string;
+  username: string;
+  roles: string[];
+  enabled: boolean;
+}
+
+export interface AdminDashboardStats {
+  totalTeachers: number;
+  totalStudents: number;
+  totalUsers: number;
+  totalEnabledUsers: number;
+  totalDisabledUsers: number;
+  pendingProducts: number;
+  totalCoinCirculation: string;
+}
+
+export interface PendingProduct {
+  id: string;
+  name: string;
+  description: string | null;
+  price: number;
+  type: "QUIZ" | "FLASHCARD" | string;
+  referenceId: string;
+  sellerUserId: string;
+  status: "PENDING_REVIEW" | "PUBLISHED" | "REJECTED" | "HIDDEN" | string;
+  rejectionReason: string | null;
+  active: boolean;
+  createdAt: string;
+}
+
+export interface SystemConfigEntry {
+  key: string;
+  value: string;
+  description: string | null;
+  updatedAt: string | null;
+  updatedBy: string | null;
+}
+
+export interface UpdateConfigRequest {
+  value: string;
+}
+
+export interface RejectProductRequest {
+  reason: string;
+}
+
+export interface AdminUsersPage {
+  content: UserAdminResponse[];
+  totalElements: number;
+  totalPages: number;
+  number: number;
+  size: number;
+}
+
+export interface AdminProductsPage {
+  content: PendingProduct[];
+  totalElements: number;
+  totalPages: number;
+  number: number;
+  size: number;
+}

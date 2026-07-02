@@ -54,4 +54,13 @@ export const walletService = {
     const response = await apiClient.post<any>("/wallet/cash-out", payload);
     return response.data;
   },
+
+  getConfigs: async () => {
+    // API GET /api/wallet/configs
+    const response =
+      await apiClient.get<
+        Array<{ key: string; value: string; description?: string }>
+      >("/wallet/configs");
+    return response.data;
+  },
 };

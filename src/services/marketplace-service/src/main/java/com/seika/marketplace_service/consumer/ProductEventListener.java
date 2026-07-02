@@ -3,6 +3,7 @@ package com.seika.marketplace_service.consumer;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.seika.marketplace_service.entity.Product;
+import com.seika.marketplace_service.enums.ProductStatus;
 import com.seika.marketplace_service.enums.ProductType;
 import com.seika.marketplace_service.event.FlashcardSetCreatedEvent;
 import com.seika.marketplace_service.event.QuizSetCreatedEvent;
@@ -55,7 +56,8 @@ public class ProductEventListener {
                 .description(description)
                 .price(price == null ? BigDecimal.ZERO : price)
                 .sellerUserId(sellerId)
-                .active(true)
+                .active(false)                                     // chỉ active=true khi admin duyệt
+                .status(ProductStatus.PENDING_REVIEW)             // cần admin duyệt
                 .build();
         productRepository.save(product);
         log.info("Saved new product to marketplace: type={}, referenceId={}, price={}", type, referenceId, product.getPrice());

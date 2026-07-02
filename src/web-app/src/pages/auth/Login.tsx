@@ -61,12 +61,22 @@ export default function Login() {
 
         showSuccess("Logged in successfully.");
 
+        const isAdmin = authState.roles.some(
+          (role) =>
+            role.toUpperCase() === "ROLE_ADMIN" || role.toUpperCase() === "ADMIN",
+        );
         const isTeacher = authState.roles.some(
           (role) =>
             role.toUpperCase() === "ROLE_TEACHER" ||
             role.toUpperCase() === "TEACHER",
         );
-        navigate(isTeacher ? "/teacher/dashboard" : "/student/dashboard");
+        navigate(
+          isAdmin
+            ? "/admin/dashboard"
+            : isTeacher
+              ? "/teacher/dashboard"
+              : "/student/dashboard",
+        );
       } catch (error) {
         showError(
           typeof error === "string" ? error : "Login failed. Please try again.",
