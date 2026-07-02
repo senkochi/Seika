@@ -43,6 +43,8 @@ jwt:
 app:
   services:
     profile: ${PROFILE_SERVER_URL}
+    wallet: ${WALLET_SERVER_URL}
+    marketplace: ${MARKETPLACE_SERVER_URL}
 
 messaging:
   events:

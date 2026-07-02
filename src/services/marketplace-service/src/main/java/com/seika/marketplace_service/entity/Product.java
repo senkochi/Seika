@@ -4,10 +4,12 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 
+import com.seika.marketplace_service.enums.ProductStatus;
 import com.seika.marketplace_service.enums.ProductType;
 
 @Entity
@@ -21,7 +23,8 @@ import com.seika.marketplace_service.enums.ProductType;
     },
     indexes = {
         @Index(name = "idx_products_active", columnList = "active"),
-        @Index(name = "idx_products_type", columnList = "type")
+        @Index(name = "idx_products_type", columnList = "type"),
+        @Index(name = "idx_products_status", columnList = "status")
     }
 )
 @Getter
@@ -33,7 +36,7 @@ import com.seika.marketplace_service.enums.ProductType;
 public class Product {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    String id;  
+    String id;
 
     @Column(nullable = false)
     private String name;
@@ -44,18 +47,31 @@ public class Product {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 32)
-    private ProductType type; 
+    private ProductType type;
 
     @Column(name = "reference_id", nullable = false)
-    private String referenceId; 
+    private String referenceId;
 
     @Column(nullable = false)
+    @Builder.Default
     private boolean active = true;
 
     @Column(name = "seller_user_id", nullable = false)
     private String sellerUserId;
-    
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 32, columnDefinition = "varchar(32) default 'PENDING_REVIEW'")
+    @Builder.Default
+    private ProductStatus status = ProductStatus.PENDING_REVIEW;
+
+    @Column(name = "rejection_reason", length = 500)
+    private String rejectionReason;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
+
+    @UpdateTimestamp
+    @Column(name = "updated_at")
+    private Instant updatedAt;
 }
