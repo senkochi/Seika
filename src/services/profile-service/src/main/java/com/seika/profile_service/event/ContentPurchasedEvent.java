@@ -21,6 +21,7 @@ public class ContentPurchasedEvent {
     String teacherUserId;  // teacher who created the content (for incrementing totalStudentsReached)
     String productId;
     String productType;    // FLASHCARD_SET, QUIZ_SET
+    String productName;
     java.math.BigDecimal price;
 }
 

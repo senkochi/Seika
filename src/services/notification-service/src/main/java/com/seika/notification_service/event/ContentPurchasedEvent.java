@@ -16,5 +16,6 @@ public class ContentPurchasedEvent {
     String teacherUserId;
     String productId;
     String productType;
+    String productName;
     java.math.BigDecimal price;
 }

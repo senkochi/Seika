@@ -13,4 +13,5 @@ public class WalletDebitRequestedEvent {
     private String orderId;
     private String userId;
     private BigDecimal amount;
+    private String description;
 }

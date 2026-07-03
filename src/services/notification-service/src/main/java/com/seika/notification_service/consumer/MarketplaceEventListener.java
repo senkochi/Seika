@@ -31,8 +31,13 @@ public class MarketplaceEventListener {
             // 1. Notify Buyer (Student)
             if (event.getBuyerUserId() != null) {
                 String studentTitle = "Purchase Successful 🎉";
-                String studentMessage = String.format("Bạn đã mua %s thành công với giá %s Coins.", 
-                    event.getProductType() != null ? event.getProductType() : "sản phẩm", 
+                String prodNameStr = (event.getProductName() != null && !event.getProductName().isBlank())
+                    ? " '" + event.getProductName() + "'" : "";
+                String typeStr = (event.getProductType() != null) ? 
+                    ("FLASHCARD".equalsIgnoreCase(event.getProductType()) ? "Flashcard" : 
+                    "QUIZ".equalsIgnoreCase(event.getProductType()) ? "Quiz" : event.getProductType()) : "sản phẩm";
+                String studentMessage = String.format("Bạn đã mua %s%s thành công với giá %s Coins.", 
+                    typeStr, prodNameStr,
                     event.getPrice() != null ? event.getPrice().toString() : "0");
 
                 CreateNotificationRequest studentReq = CreateNotificationRequest.builder()
@@ -52,8 +57,13 @@ public class MarketplaceEventListener {
             // 2. Notify Seller (Teacher)
             if (event.getTeacherUserId() != null) {
                 String teacherTitle = "New Sale! 💰";
-                String teacherMessage = String.format("Học sinh vừa mua %s của bạn. Bạn nhận được %s Coins.", 
-                    event.getProductType() != null ? event.getProductType() : "sản phẩm", 
+                String prodNameStr = (event.getProductName() != null && !event.getProductName().isBlank())
+                    ? " '" + event.getProductName() + "'" : "";
+                String typeStr = (event.getProductType() != null) ? 
+                    ("FLASHCARD".equalsIgnoreCase(event.getProductType()) ? "Flashcard" : 
+                    "QUIZ".equalsIgnoreCase(event.getProductType()) ? "Quiz" : event.getProductType()) : "sản phẩm";
+                String teacherMessage = String.format("Học sinh vừa mua %s%s của bạn. Bạn nhận được %s Coins.", 
+                    typeStr, prodNameStr,
                     event.getPrice() != null ? event.getPrice().toString() : "0");
 
                 CreateNotificationRequest teacherReq = CreateNotificationRequest.builder()

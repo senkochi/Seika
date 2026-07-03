@@ -21,7 +21,7 @@ public class ContentPurchasedEventPublisher {
     private final ObjectMapper objectMapper;
 
     public void publishContentPurchased(String orderId, String buyerUserId, String teacherUserId,
-                                        String productId, String productType, java.math.BigDecimal price) {
+                                        String productId, String productType, String productName, java.math.BigDecimal price) {
         Map<String, Object> event = new HashMap<>();
         event.put("eventId", UUID.randomUUID().toString());
         event.put("orderId", orderId);
@@ -29,6 +29,7 @@ public class ContentPurchasedEventPublisher {
         event.put("teacherUserId", teacherUserId);
         event.put("productId", productId);
         event.put("productType", productType);
+        event.put("productName", productName != null ? productName : "");
         event.put("price", price == null ? java.math.BigDecimal.ZERO : price);
 
         try {
