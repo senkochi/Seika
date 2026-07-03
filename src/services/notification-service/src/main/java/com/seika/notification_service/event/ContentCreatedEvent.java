@@ -11,13 +11,10 @@ import lombok.experimental.FieldDefaults;
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class ContentPurchasedEvent {
+public class ContentCreatedEvent {
     String eventId;
-    String orderId;
-    String buyerUserId;
-    String teacherUserId;
     String productId;
     String productType;
     String productName;
-    java.math.BigDecimal price;
+    String teacherUserId;
 }

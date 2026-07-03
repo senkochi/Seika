@@ -142,6 +142,12 @@ public class AuthService {
         return authMapper.toUserInfoResponse(user);
     }
 
+    public List<String> getAdminUserIds() {
+        return userRepository.findByRoles_Name("ADMIN").stream()
+                .map(User::getId)
+                .collect(Collectors.toList());
+    }
+
     private Role resolveSelfSelectableRole(String rawRole) {
         String normalizedRole = rawRole == null ? "" : rawRole.trim().toUpperCase(Locale.ROOT);
         if (!SELF_SELECTABLE_ROLES.contains(normalizedRole)) {

@@ -61,4 +61,9 @@ public class AuthController {
                 .userId(jwtService.extractUserId(token))
                 .build());
     }
+
+    @GetMapping("/admin-ids")
+    public ResponseEntity<java.util.List<String>> getAdminIds() {
+        return ResponseEntity.ok(authService.getAdminUserIds());
+    }
 }

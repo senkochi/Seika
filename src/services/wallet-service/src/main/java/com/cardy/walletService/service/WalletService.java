@@ -23,13 +23,16 @@ public class WalletService {
     private final WalletRepository walletRepository;
     private final TransactionRepository transactionRepository;
     private final SystemConfigService systemConfigService;
+    private final WalletNotificationPublisher walletNotificationPublisher;
 
     public WalletService(WalletRepository walletRepository,
                          TransactionRepository transactionRepository,
-                         SystemConfigService systemConfigService){
+                         SystemConfigService systemConfigService,
+                         WalletNotificationPublisher walletNotificationPublisher){
         this.walletRepository = walletRepository;
         this.transactionRepository = transactionRepository;
         this.systemConfigService = systemConfigService;
+        this.walletNotificationPublisher = walletNotificationPublisher;
     }
 
     private void updateBalance(UUID userId, BigDecimal amount, TransactionType type, String description) {
@@ -59,6 +62,8 @@ public class WalletService {
                 .description(description)
                 .build();
         transactionRepository.save(tx);
+
+        walletNotificationPublisher.publishWalletUpdated(userId, amount, type.name(), description);
     }
 
     @Transactional
