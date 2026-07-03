@@ -8,6 +8,7 @@ import com.seika.marketplace_service.enums.ProductType;
 import com.seika.marketplace_service.event.FlashcardSetCreatedEvent;
 import com.seika.marketplace_service.event.QuizSetCreatedEvent;
 import com.seika.marketplace_service.repository.ProductRepository;
+import com.seika.marketplace_service.service.MarketplaceNotificationPublisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -24,6 +25,7 @@ public class ProductEventListener {
 
     private final ObjectMapper objectMapper;
     private final ProductRepository productRepository;
+    private final MarketplaceNotificationPublisher notificationPublisher;
 
     @RabbitListener(queues = "${messaging.events.marketplace-content-queue:marketplace.content-events}")
     public void handleContentCreatedEvent(String rawMessage, @Header(AmqpHeaders.RECEIVED_ROUTING_KEY) String routingKey) {
@@ -59,7 +61,8 @@ public class ProductEventListener {
                 .active(false)                                     // chỉ active=true khi admin duyệt
                 .status(ProductStatus.PENDING_REVIEW)             // cần admin duyệt
                 .build();
-        productRepository.save(product);
-        log.info("Saved new product to marketplace: type={}, referenceId={}, price={}", type, referenceId, product.getPrice());
+        Product saved = productRepository.save(product);
+        log.info("Saved new product to marketplace: type={}, referenceId={}, price={}", type, referenceId, saved.getPrice());
+        notificationPublisher.publishContentCreated(saved.getId(), saved.getName(), saved.getType().name(), saved.getSellerUserId());
     }
 }

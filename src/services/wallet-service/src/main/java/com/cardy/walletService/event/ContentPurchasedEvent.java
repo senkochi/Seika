@@ -14,5 +14,6 @@ public class ContentPurchasedEvent {
     private String teacherUserId;
     private String productId;
     private String productType;
+    private String productName;
     private BigDecimal price;
 }

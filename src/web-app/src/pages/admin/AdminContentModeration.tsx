@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   ShieldCheck,
   Check,
@@ -8,6 +9,7 @@ import {
   AlertTriangle,
   BookOpen,
   Layers,
+  Eye,
 } from "lucide-react";
 
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
@@ -15,7 +17,10 @@ import {
   fetchPendingProducts,
   approveAdminProduct,
   rejectAdminProduct,
+  setProductsPage,
+  setProductsSize,
 } from "../../store/adminSlice";
+import { Pagination } from "../../components/ui/Pagination";
 import { showError, showSuccess } from "../../components/toast/toastUtils";
 import type { PendingProduct } from "../../api/types";
 
@@ -121,15 +126,28 @@ function RejectModal({
 
 function AdminContentModeration() {
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const { products, mutationStatus } = useAppSelector((state) => state.admin);
 
   const [modalReject, setModalReject] = useState<PendingProduct | null>(null);
 
   useEffect(() => {
-    void dispatch(fetchPendingProducts({ page: 0, size: 20 }));
-  }, [dispatch]);
+    void dispatch(
+      fetchPendingProducts({ page: products.page, size: products.size }),
+    );
+  }, [dispatch, products.page, products.size]);
 
   const isMutating = mutationStatus === "loading";
+
+  const handlePreview = (product: PendingProduct) => {
+    const isFlashcard =
+      product.type === "FLASHCARD" ||
+      product.type.toUpperCase().includes("FLASHCARD");
+    const path = isFlashcard
+      ? `/admin/dashboard/flashcard/${product.referenceId}`
+      : `/admin/dashboard/quiz/${product.referenceId}`;
+    navigate(path, { state: { pendingProduct: product } });
+  };
 
   const handleApprove = async (product: PendingProduct) => {
     const result = await dispatch(approveAdminProduct(product.id));
@@ -194,7 +212,14 @@ function AdminContentModeration() {
     return sortedContent.map((p) => (
       <tr key={p.id} className="hover:bg-[var(--background)] transition-colors">
         <td className="py-3">
-          <div className="font-medium text-[var(--foreground)]">{p.name}</div>
+          <button
+            onClick={() => handlePreview(p)}
+            className="font-medium text-[var(--foreground)] hover:text-[var(--primary)] transition-colors text-left flex items-center gap-1.5 group cursor-pointer"
+            title="Nhấp để xem trước"
+          >
+            <span>{p.name}</span>
+            <Eye className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity text-[var(--primary)] flex-shrink-0" />
+          </button>
           {p.description && (
             <div className="mt-1 text-xs text-[var(--muted-foreground)] line-clamp-2 max-w-md">
               {p.description}
@@ -215,6 +240,14 @@ function AdminContentModeration() {
         </td>
         <td className="py-3">
           <div className="flex justify-end gap-2">
+            <button
+              onClick={() => handlePreview(p)}
+              className="inline-flex items-center gap-1 rounded-lg border border-sky-500/30 bg-sky-500/10 px-3 py-1.5 text-xs font-medium text-sky-300 hover:bg-sky-500/20 transition-colors"
+              title="Xem trước nội dung"
+            >
+              <Eye className="h-3.5 w-3.5" />
+              Xem trước
+            </button>
             <button
               onClick={() => handleApprove(p)}
               disabled={isMutating}
@@ -251,7 +284,14 @@ function AdminContentModeration() {
           </p>
         </div>
         <button
-          onClick={() => dispatch(fetchPendingProducts({ page: 0, size: 20 }))}
+          onClick={() =>
+            dispatch(
+              fetchPendingProducts({
+                page: products.page,
+                size: products.size,
+              }),
+            )
+          }
           className="inline-flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-sm font-medium text-[var(--foreground)] hover:border-[var(--primary)]"
         >
           <RefreshCw className="h-4 w-4" />
@@ -277,6 +317,14 @@ function AdminContentModeration() {
             </tbody>
           </table>
         </div>
+        <Pagination
+          currentPage={products.page}
+          totalPages={products.totalPages}
+          totalElements={products.totalElements}
+          pageSize={products.size}
+          onPageChange={(page) => dispatch(setProductsPage(page))}
+          onPageSizeChange={(size) => dispatch(setProductsSize(size))}
+        />
       </div>
 
       <RejectModal

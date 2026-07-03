@@ -52,6 +52,22 @@ public class RabbitMQConfig {
           .with(CONTENT_PURCHASED_ROUTING_KEY);
     }
 
+    @Bean
+    public Binding marketplaceReviewedBinding(Queue marketplaceQueue, TopicExchange marketplaceExchange) {
+      return BindingBuilder
+          .bind(marketplaceQueue)
+          .to(marketplaceExchange)
+          .with("content.reviewed.#");
+    }
+
+    @Bean
+    public Binding marketplaceCreatedBinding(Queue marketplaceQueue, TopicExchange marketplaceExchange) {
+      return BindingBuilder
+          .bind(marketplaceQueue)
+          .to(marketplaceExchange)
+          .with("content.created.#");
+    }
+
     public static final String LEARNING_EVENTS_EXCHANGE = "learning.events";
     public static final String NOTIFICATION_REWARD_QUEUE = "notification.reward-events";
     public static final String REWARD_GRANTED_ROUTING_KEY = "reward.granted";
@@ -72,6 +88,28 @@ public class RabbitMQConfig {
             .bind(notificationRewardQueue)
             .to(learningEventsExchange)
             .with(REWARD_GRANTED_ROUTING_KEY);
+    }
+
+    public static final String WALLET_EVENTS_EXCHANGE = "wallet.events";
+    public static final String NOTIFICATION_WALLET_QUEUE = "notification.wallet-events";
+    public static final String WALLET_UPDATED_ROUTING_KEY = "wallet.updated.#";
+
+    @Bean
+    public TopicExchange walletEventsExchange() {
+        return new TopicExchange(WALLET_EVENTS_EXCHANGE);
+    }
+
+    @Bean
+    public Queue notificationWalletQueue() {
+        return new Queue(NOTIFICATION_WALLET_QUEUE, true);
+    }
+
+    @Bean
+    public Binding notificationWalletBinding(Queue notificationWalletQueue, TopicExchange walletEventsExchange) {
+        return BindingBuilder
+            .bind(notificationWalletQueue)
+            .to(walletEventsExchange)
+            .with(WALLET_UPDATED_ROUTING_KEY);
     }
     
     // Vì mặc định RabbitMQ sử dụng dữ liệu nhị phân, nên chúng ta cần một MessageConverter để chuyển đổi giữa JSON và đối tượng Java

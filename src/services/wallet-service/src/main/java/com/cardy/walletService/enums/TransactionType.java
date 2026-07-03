@@ -4,5 +4,6 @@ public enum TransactionType{
     DEPOSIT,
     WITHDRAW,
     REWARD,
-    CASH_OUT
-}
+    CASH_OUT,
+    TOP_UP
+}

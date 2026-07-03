@@ -82,6 +82,18 @@ public class OrderService {
         }
         orderItemRepository.saveAll(items);
 
+        String description = items.stream()
+            .map(item -> {
+                String typeStr = item.getProductType() != null ? 
+                    (item.getProductType().name().equalsIgnoreCase("FLASHCARD") ? "Flashcard" : 
+                    item.getProductType().name().equalsIgnoreCase("QUIZ") ? "Quiz" : item.getProductType().name()) : "Sản phẩm";
+                return typeStr + ": " + item.getProductName();
+            })
+            .collect(java.util.stream.Collectors.joining(", "));
+        if (description.length() > 255) {
+            description = description.substring(0, 252) + "...";
+        }
+
         // Tạo wallet.debit.requested event và lưu vào outbox table để chờ được publish ra message broker
         WalletDebitRequestedEvent event = WalletDebitRequestedEvent.builder()
             .eventId(UUID.randomUUID().toString())
@@ -89,6 +101,7 @@ public class OrderService {
             .orderId(order.getId())
             .userId(order.getUserId())
             .amount(order.getTotalAmount())
+            .description(description)
             .build();
         OutboxEvent outboxEvent = OutboxEvent.builder()
             .aggregateType("Order")

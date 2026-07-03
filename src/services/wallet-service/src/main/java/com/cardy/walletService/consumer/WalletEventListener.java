@@ -34,7 +34,10 @@ public class WalletEventListener {
             
             TransactionReqDTO req = new TransactionReqDTO();
             req.setAmount(event.getAmount());
-            req.setDescription("Thanh toán đơn hàng " + event.getOrderId());
+            String desc = (event.getDescription() != null && !event.getDescription().isBlank())
+                    ? "Mua " + event.getDescription()
+                    : "Thanh toán đơn hàng " + event.getOrderId();
+            req.setDescription(desc);
             
             walletService.spend(UUID.fromString(event.getUserId()), req);
             log.info("Debit successful for orderId={}", event.getOrderId());
@@ -60,7 +63,13 @@ public class WalletEventListener {
             if (event.getPrice() != null && event.getPrice().compareTo(java.math.BigDecimal.ZERO) > 0) {
                 TransactionReqDTO req = new TransactionReqDTO();
                 req.setAmount(event.getPrice());
-                req.setDescription("Bán sản phẩm " + event.getProductType() + " " + event.getProductId());
+                String prodName = (event.getProductName() != null && !event.getProductName().isBlank())
+                        ? event.getProductName()
+                        : event.getProductId();
+                String typeStr = (event.getProductType() != null) ? 
+                        ("FLASHCARD".equalsIgnoreCase(event.getProductType()) ? "Flashcard" : 
+                        "QUIZ".equalsIgnoreCase(event.getProductType()) ? "Quiz" : event.getProductType()) : "Sản phẩm";
+                req.setDescription("Bán " + typeStr + ": " + prodName);
                 
                 walletService.reward(UUID.fromString(event.getTeacherUserId()), req);
                 log.info("Deposit successful for teacherUserId={}", event.getTeacherUserId());

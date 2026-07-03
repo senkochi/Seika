@@ -13,7 +13,8 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 @RestController
 @RequestMapping("/api/marketplace/inventory")
@@ -24,14 +25,12 @@ public class InventoryController {
     private final ProductRepository productRepository;
 
     @GetMapping("/my-items")
-    public ResponseEntity<List<Product>> getMyInventory(HttpServletRequest request) {
-        String userId = request.getHeader("X-User-Id");
-        if (userId == null) {
-            userId = request.getHeader("X-Auth-User-Id"); // Fallback
-        }
-        if (userId == null) {
+    public ResponseEntity<List<Product>> getMyInventory() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || auth.getPrincipal() == null || "anonymousUser".equals(auth.getPrincipal().toString())) {
             return ResponseEntity.status(401).build();
         }
+        String userId = auth.getPrincipal().toString();
 
         List<UserInventory> inventories = userInventoryRepository.findByUserIdAndActiveTrue(userId);
         List<String> productIds = inventories.stream()

@@ -185,6 +185,59 @@ public class QuizService {
         return builder.build();
     }
 
+    public Double calculateScoreFromAnswers(String id, List<java.util.Map<String, Object>> answers) {
+        if (answers == null || answers.isEmpty()) {
+            throw new IllegalArgumentException("Danh sách câu trả lời (answers) không được để trống!");
+        }
+        int totalQuestions = 0;
+        int correctCount = 0;
+
+        if (quizSetRepository.existsById(id)) {
+            com.seika.quiz_service.domain.QuizSet quizSet = quizSetRepository.findById(id).orElse(null);
+            if (quizSet != null && quizSet.getQuizIds() != null) {
+                totalQuestions = quizSet.getQuizIds().size();
+            } else {
+                totalQuestions = answers.size();
+            }
+        } else if (quizRepository.existsById(id)) {
+            totalQuestions = 1;
+        } else {
+            throw new ResourceNotFoundException("Quiz or QuizSet", id);
+        }
+
+        for (java.util.Map<String, Object> ansMap : answers) {
+            String qId = (String) ansMap.get("questionId");
+            Object ansVal = ansMap.get("answer");
+            if (qId == null || ansVal == null) continue;
+
+            BaseQuiz quiz = quizRepository.findById(qId).orElse(null);
+            if (quiz == null) continue;
+
+            boolean isCorrect = false;
+            if (quiz instanceof com.seika.quiz_service.domain.MultipleChoiceQuiz mcq) {
+                try {
+                    int submittedIdx = Integer.parseInt(ansVal.toString());
+                    isCorrect = (submittedIdx == mcq.getCorrectOptionIndex());
+                } catch (NumberFormatException ignored) {}
+            } else if (quiz instanceof com.seika.quiz_service.domain.FillInBlankQuiz fib) {
+                String submittedAns = ansVal.toString().trim().toLowerCase();
+                isCorrect = fib.getAcceptedAnswers() != null && fib.getAcceptedAnswers().stream()
+                        .anyMatch(a -> a != null && a.trim().toLowerCase().equals(submittedAns));
+            } else if (quiz instanceof com.seika.quiz_service.domain.ReorderQuiz rq) {
+                isCorrect = rq.getCorrectOrder() != null && rq.getCorrectOrder().equals(ansVal);
+            } else if (quiz instanceof com.seika.quiz_service.domain.MatchingQuiz mq) {
+                isCorrect = mq.getMatchingPairs() != null && mq.getMatchingPairs().equals(ansVal);
+            }
+
+            if (isCorrect) {
+                correctCount++;
+            }
+        }
+
+        if (totalQuestions == 0) return 0.0;
+        return Math.round(((double) correctCount / totalQuestions) * 100.0) * 1.0;
+    }
+
     /**
      * Submit a quiz attempt and publish completion event.
      *

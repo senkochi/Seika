@@ -9,6 +9,7 @@ import {
   Swords,
   Loader2,
   Clock,
+  RefreshCcw,
 } from "lucide-react";
 
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
@@ -47,27 +48,31 @@ function DashboardHome() {
     }
   }, [dispatch, status]);
 
+  const fetchRecentTransactions = async () => {
+    try {
+      const history = await walletService.getHistory();
+      const spendings = history
+        .filter((tx) => tx.type === "WITHDRAW" || tx.type === "SPEND")
+        .sort(
+          (a, b) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+        )
+        .slice(0, 5);
+      setRecentTransactions(spendings);
+    } catch (err) {
+      console.error("Failed to fetch wallet history", err);
+    }
+  };
+
+  const handleRefresh = async () => {
+    await dispatch(fetchCurrentUserProfile());
+    await fetchRecentTransactions();
+  };
+
   useEffect(() => {
     // Chỉ fetch wallet history khi profile đã được load thành công
     if (status === "succeeded") {
-      const fetchHistory = async () => {
-        try {
-          const history = await walletService.getHistory();
-          // Lọc các giao dịch tiêu tiền (mua bài học/quiz)
-          const spendings = history
-            .filter((tx) => tx.type === "WITHDRAW" || tx.type === "SPEND")
-            .sort(
-              (a, b) =>
-                new Date(b.createdAt).getTime() -
-                new Date(a.createdAt).getTime(),
-            )
-            .slice(0, 5);
-          setRecentTransactions(spendings);
-        } catch (err) {
-          console.error("Failed to fetch wallet history", err);
-        }
-      };
-      fetchHistory();
+      fetchRecentTransactions();
     }
   }, [status]);
 
@@ -145,13 +150,21 @@ function DashboardHome() {
   return (
     <div className="p-8">
       {/* Welcome Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-[var(--foreground)] mb-2">
-          Welcome back, {displayName}!
-        </h1>
-        <p className="text-[var(--muted-foreground)]">
-          Here's what's happening with your learning today.
-        </p>
+      <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-[var(--foreground)] mb-2">
+            Welcome back, {displayName}!
+          </h1>
+          <p className="text-[var(--muted-foreground)]">
+            Here's what's happening with your learning today.
+          </p>
+        </div>
+        <button
+          onClick={handleRefresh}
+          className="inline-flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-sm font-medium text-[var(--foreground)] hover:border-[var(--primary)] transition-all"
+        >
+          <RefreshCcw className="h-4 w-4" /> Làm mới
+        </button>
       </div>
 
       {/* Top Stats Grid */}

@@ -8,6 +8,7 @@ import {
   PlusCircle,
   Loader2,
   Clock,
+  RefreshCcw,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -60,32 +61,38 @@ function TeacherDashboardHome() {
     }
   }, [dispatch, status]);
 
+  const fetchDashboardData = async () => {
+    try {
+      const profile = await userProfilesService.getTeacherProfile();
+      setTeacherProfile(profile);
+
+      const balRes = await walletService.getBalance();
+      setBalance(balRes.balance);
+
+      const history = await walletService.getHistory();
+
+      // Hoạt động gần nhất (thưởng hoặc nạp)
+      const incomeEvents = history
+        .filter((tx) => tx.type === "REWARD" || tx.type === "DEPOSIT")
+        .sort(
+          (a, b) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+        );
+
+      setRecentEvents(incomeEvents.slice(0, 5));
+    } catch (err) {
+      console.error("Failed to fetch dashboard data", err);
+    }
+  };
+
+  const handleRefresh = async () => {
+    dispatch(fetchCurrentUserProfile());
+    dispatch(fetchRevenue(period));
+    await fetchDashboardData();
+  };
+
   useEffect(() => {
     if (status === "succeeded") {
-      const fetchDashboardData = async () => {
-        try {
-          const profile = await userProfilesService.getTeacherProfile();
-          setTeacherProfile(profile);
-
-          const balRes = await walletService.getBalance();
-          setBalance(balRes.balance);
-
-          const history = await walletService.getHistory();
-
-          // Hoạt động gần nhất (thưởng hoặc nạp)
-          const incomeEvents = history
-            .filter((tx) => tx.type === "REWARD" || tx.type === "DEPOSIT")
-            .sort(
-              (a, b) =>
-                new Date(b.createdAt).getTime() -
-                new Date(a.createdAt).getTime(),
-            );
-
-          setRecentEvents(incomeEvents.slice(0, 5));
-        } catch (err) {
-          console.error("Failed to fetch dashboard data", err);
-        }
-      };
       fetchDashboardData();
     }
   }, [status]);
@@ -177,6 +184,13 @@ function TeacherDashboardHome() {
           </p>
         </div>
         <div className="flex gap-3">
+          <button
+            onClick={handleRefresh}
+            className="flex items-center gap-2 px-4 py-3 border border-[var(--border)] bg-[var(--card)] text-[var(--foreground)] font-bold text-sm rounded-xl hover:border-[var(--primary)] transition-colors"
+          >
+            <RefreshCcw className="w-4 h-4" />
+            Làm mới
+          </button>
           <button
             onClick={() => navigate("/teacher/dashboard/content")}
             className="flex items-center gap-2 px-5 py-3 bg-[var(--primary)] text-white font-bold text-sm rounded-xl hover:opacity-90 transition-opacity shadow-lg shadow-purple-600/20"

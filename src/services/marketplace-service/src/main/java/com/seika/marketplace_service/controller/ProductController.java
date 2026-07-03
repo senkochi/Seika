@@ -27,4 +27,13 @@ public class ProductController {
 
         return ResponseEntity.ok(productService.getActiveProducts(userId));
     }
+
+    @GetMapping("/my-products")
+    public ResponseEntity<List<Product>> getMyProducts(HttpServletRequest request) {
+        String userId = request.getHeader("X-User-Id");
+        if (userId == null) {
+            userId = request.getHeader("X-Auth-User-Id"); // Fallback
+        }
+        return ResponseEntity.ok(productService.getMyProducts(userId));
+    }
 }

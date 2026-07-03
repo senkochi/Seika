@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class AdminProductService {
 
     private final ProductRepository productRepository;
+    private final MarketplaceNotificationPublisher notificationPublisher;
 
     @Transactional(readOnly = true)
     public Page<Product> listByStatus(ProductStatus status, int page, int size) {
@@ -38,6 +39,8 @@ public class AdminProductService {
         product.setRejectionReason(null);
         Product saved = productRepository.save(product);
         log.info("Admin approved product {} ({})", productId, product.getName());
+        notificationPublisher.publishContentReviewed(
+                saved.getId(), saved.getName(), saved.getType().name(), saved.getSellerUserId(), "PUBLISHED", null);
         return saved;
     }
 
@@ -49,6 +52,8 @@ public class AdminProductService {
         product.setRejectionReason(reason);
         Product saved = productRepository.save(product);
         log.info("Admin rejected product {} ({}) — reason: {}", productId, product.getName(), reason);
+        notificationPublisher.publishContentReviewed(
+                saved.getId(), saved.getName(), saved.getType().name(), saved.getSellerUserId(), "REJECTED", reason);
         return saved;
     }
 

@@ -40,4 +40,11 @@ public class ProductService {
     public Optional<Product> getActiveProductById(String id) {
         return productRepository.findByIdAndActiveTrueAndStatus(id, ProductStatus.PUBLISHED);
     }
+
+    public List<Product> getMyProducts(String sellerUserId) {
+        if (sellerUserId == null || sellerUserId.isBlank()) {
+            return List.of();
+        }
+        return productRepository.findBySellerUserIdOrderByCreatedAtDesc(sellerUserId);
+    }
 }

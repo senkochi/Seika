@@ -17,7 +17,10 @@ import {
   changeAdminUserRole,
   resetAdminUserPassword,
   setUsersRoleFilter,
+  setUsersPage,
+  setUsersSize,
 } from "../../store/adminSlice";
+import { Pagination } from "../../components/ui/Pagination";
 import { showError, showSuccess } from "../../components/toast/toastUtils";
 import type { UserAdminResponse } from "../../api/types";
 
@@ -207,9 +210,15 @@ function AdminUsers() {
   };
 
   useEffect(() => {
-    void dispatch(fetchAdminUsers({ role: users.filterRole || undefined }));
+    void dispatch(
+      fetchAdminUsers({
+        role: users.filterRole || undefined,
+        page: users.page,
+        size: users.size,
+      }),
+    );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [users.filterRole]);
+  }, [users.filterRole, users.page, users.size]);
 
   const handleLockToggle = async (user: UserAdminResponse) => {
     const action = user.enabled ? lockAdminUser : unlockAdminUser;
@@ -388,7 +397,13 @@ function AdminUsers() {
           </select>
           <button
             onClick={() =>
-              dispatch(fetchAdminUsers({ role: users.filterRole || undefined }))
+              dispatch(
+                fetchAdminUsers({
+                  role: users.filterRole || undefined,
+                  page: users.page,
+                  size: users.size,
+                }),
+              )
             }
             className="inline-flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-sm font-medium text-[var(--foreground)] hover:border-[var(--primary)]"
           >
@@ -415,6 +430,14 @@ function AdminUsers() {
             </tbody>
           </table>
         </div>
+        <Pagination
+          currentPage={users.page}
+          totalPages={users.totalPages}
+          totalElements={users.totalElements}
+          pageSize={users.size}
+          onPageChange={(page) => dispatch(setUsersPage(page))}
+          onPageSizeChange={(size) => dispatch(setUsersSize(size))}
+        />
       </div>
 
       <ChangeRoleModal

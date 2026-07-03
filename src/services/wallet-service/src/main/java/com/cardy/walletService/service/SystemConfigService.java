@@ -17,7 +17,8 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 public class SystemConfigService {
 
-    public static final String KEY_COIN_TO_VND_RATE = "COIN_TO_VND_RATE";
+    public static final String KEY_TOPUP_VND_PER_COIN = "TOPUP_VND_PER_COIN";
+    public static final String KEY_WITHDRAWAL_VND_PER_COIN = "WITHDRAWAL_VND_PER_COIN";
     public static final String KEY_STUDENT_INITIAL_COIN = "STUDENT_INITIAL_COIN";
     public static final String KEY_TEACHER_INITIAL_COIN = "TEACHER_INITIAL_COIN";
     public static final String KEY_MIN_PRODUCT_PRICE = "MIN_PRODUCT_PRICE";
@@ -30,7 +31,8 @@ public class SystemConfigService {
     private record DefaultEntry(String key, String value, String description) {}
 
     private static final List<DefaultEntry> DEFAULTS = List.of(
-            new DefaultEntry(KEY_COIN_TO_VND_RATE, "100", "Số VNĐ quy đổi cho 1 coin (cashOut)"),
+            new DefaultEntry(KEY_TOPUP_VND_PER_COIN, "100", "Số VNĐ Student trả cho 1 Coin (topUp)"),
+            new DefaultEntry(KEY_WITHDRAWAL_VND_PER_COIN, "90", "Số VNĐ Teacher nhận cho 1 Coin rút (cashOut)"),
             new DefaultEntry(KEY_STUDENT_INITIAL_COIN, "500", "Số coin khởi đầu khi Student đăng ký"),
             new DefaultEntry(KEY_TEACHER_INITIAL_COIN, "0", "Số coin khởi đầu khi Teacher đăng ký"),
             new DefaultEntry(KEY_MIN_PRODUCT_PRICE, "10", "Giá tối thiểu của sản phẩm trên marketplace (coin)"),
@@ -40,6 +42,11 @@ public class SystemConfigService {
 
     @PostConstruct
     public void seedDefaults() {
+        repository.findByKey("COIN_TO_VND_RATE").ifPresent(old -> {
+            repository.delete(old);
+            cache.remove("COIN_TO_VND_RATE");
+            log.info("Removed deprecated SystemConfig COIN_TO_VND_RATE");
+        });
         for (DefaultEntry def : DEFAULTS) {
             repository.findByKey(def.key()).ifPresentOrElse(
                     existing -> log.debug("SystemConfig {} đã tồn tại với value={}", def.key(), existing.getValue()),
@@ -56,6 +63,7 @@ public class SystemConfigService {
         // Warm cache
         repository.findAll().forEach(c -> cache.put(c.getKey(), c.getValue()));
         log.info("SystemConfig cache warmed với {} entries", cache.size());
+
     }
 
     public String getString(String key, String defaultValue) {

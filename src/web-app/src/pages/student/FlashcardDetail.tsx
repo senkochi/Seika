@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import {
   ArrowLeft,
   Check,
@@ -10,6 +10,7 @@ import {
   Zap,
   Keyboard,
   Volume2,
+  ShieldCheck,
 } from "lucide-react";
 import StudentBadge from "@/components/student/StudentBadge";
 import StudentActionButton from "@/components/student/StudentActionButton";
@@ -23,7 +24,13 @@ import { fetchCurrentUserProfile } from "@/store/userProfileSlice";
 function FlashcardDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useAppDispatch();
+
+  const isAdmin = location.pathname.startsWith("/admin");
+  const backPath = isAdmin
+    ? "/admin/dashboard/moderation"
+    : "/student/dashboard/learning";
 
   const [deck, setDeck] = useState<CardSetResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -46,11 +53,16 @@ function FlashcardDetail() {
         setDeck(data);
         setAnswers(new Array(data.cards.length).fill(null));
 
-        try {
-          const status = await rewardsService.getRewardStatus("FLASHCARD", id);
-          setRewardStatus(status);
-        } catch (statusErr) {
-          console.error("Failed to fetch reward status:", statusErr);
+        if (!isAdmin) {
+          try {
+            const status = await rewardsService.getRewardStatus(
+              "FLASHCARD",
+              id,
+            );
+            setRewardStatus(status);
+          } catch (statusErr) {
+            console.error("Failed to fetch reward status:", statusErr);
+          }
         }
       } catch (err) {
         console.error("Failed to fetch flashcard deck:", err);
@@ -64,7 +76,7 @@ function FlashcardDetail() {
   useEffect(() => {
     if (isCompleted && id) {
       const submitCompletion = async () => {
-        if (rewardStatus?.eligible) {
+        if (!isAdmin && rewardStatus?.eligible) {
           try {
             await flashcardsService.complete(id);
             dispatch(fetchCurrentUserProfile());
@@ -75,7 +87,7 @@ function FlashcardDetail() {
       };
       submitCompletion();
     }
-  }, [isCompleted, id, rewardStatus, dispatch]);
+  }, [isCompleted, id, rewardStatus, dispatch, isAdmin]);
 
   const cards = deck?.cards || [];
 
@@ -183,11 +195,11 @@ function FlashcardDetail() {
       {/* Header Bar */}
       <header className="relative z-10 bg-[rgba(24,18,45,0.9)] border-b border-[var(--border)] px-8 py-4 shadow-[0_12px_40px_rgba(10,10,20,0.18)] backdrop-blur-xl flex items-center justify-between">
         <button
-          onClick={() => navigate("/student/dashboard/learning")}
+          onClick={() => navigate(backPath)}
           className="flex items-center gap-2 text-[var(--muted-foreground)] hover:text-white transition-colors bg-[rgba(255,255,255,0.04)] hover:bg-[rgba(255,255,255,0.08)] border border-[var(--border)] px-4 py-2.5 rounded-xl text-sm font-bold"
         >
           <ArrowLeft className="w-4 h-4" />
-          <span>Exit Session</span>
+          <span>{isAdmin ? "Quay lại trang duyệt" : "Exit Session"}</span>
         </button>
 
         <div className="text-center hidden md:block">
@@ -204,6 +216,21 @@ function FlashcardDetail() {
           Epic
         </StudentBadge>
       </header>
+
+      {isAdmin && (
+        <div className="relative z-10 bg-sky-500/10 border-b border-sky-500/30 px-8 py-3 flex items-center justify-between text-sky-200">
+          <div className="flex items-center gap-2 text-sm font-semibold">
+            <ShieldCheck className="w-4 h-4 text-sky-400" />
+            <span>Chế độ xem trước dành cho Admin (Admin Preview Mode)</span>
+          </div>
+          <button
+            onClick={() => navigate("/admin/dashboard/moderation")}
+            className="rounded-lg bg-sky-500/20 px-3 py-1.5 text-xs font-medium text-sky-200 hover:bg-sky-500/30 transition-colors"
+          >
+            Quay lại trang duyệt
+          </button>
+        </div>
+      )}
 
       {/* Page Content */}
       <main className="relative z-10 flex-1 flex flex-col justify-center items-center p-6 md:p-8">
@@ -415,11 +442,8 @@ function FlashcardDetail() {
 
             {/* Call to Actions */}
             <div className="flex flex-col gap-3">
-              <StudentActionButton
-                size="lg"
-                onClick={() => navigate("/student/dashboard/learning")}
-              >
-                Return to Learning Hub
+              <StudentActionButton size="lg" onClick={() => navigate(backPath)}>
+                {isAdmin ? "Quay lại trang duyệt" : "Return to Learning Hub"}
               </StudentActionButton>
 
               <button

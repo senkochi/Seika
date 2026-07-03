@@ -148,6 +148,7 @@ public class WalletEventHandler {
                         item.getSellerUserId(),
                         item.getProductId(),
                         item.getProductType() != null ? item.getProductType().name() : "UNKNOWN",
+                        item.getProductName(),
                         item.getTotalPrice()
                 );
             }

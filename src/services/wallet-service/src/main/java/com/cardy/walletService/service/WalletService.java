@@ -1,7 +1,10 @@
 package com.cardy.walletService.service;
 
+import com.cardy.walletService.dto.TopUpDTO;
+import com.cardy.walletService.dto.TopUpReqDTO;
 import com.cardy.walletService.dto.TransactionDTO;
 import com.cardy.walletService.dto.TransactionReqDTO;
+
 import com.cardy.walletService.domain.Transaction;
 import com.cardy.walletService.domain.Wallet;
 import com.cardy.walletService.enums.TransactionType;
@@ -20,13 +23,16 @@ public class WalletService {
     private final WalletRepository walletRepository;
     private final TransactionRepository transactionRepository;
     private final SystemConfigService systemConfigService;
+    private final WalletNotificationPublisher walletNotificationPublisher;
 
     public WalletService(WalletRepository walletRepository,
                          TransactionRepository transactionRepository,
-                         SystemConfigService systemConfigService){
+                         SystemConfigService systemConfigService,
+                         WalletNotificationPublisher walletNotificationPublisher){
         this.walletRepository = walletRepository;
         this.transactionRepository = transactionRepository;
         this.systemConfigService = systemConfigService;
+        this.walletNotificationPublisher = walletNotificationPublisher;
     }
 
     private void updateBalance(UUID userId, BigDecimal amount, TransactionType type, String description) {
@@ -56,6 +62,8 @@ public class WalletService {
                 .description(description)
                 .build();
         transactionRepository.save(tx);
+
+        walletNotificationPublisher.publishWalletUpdated(userId, amount, type.name(), description);
     }
 
     @Transactional
@@ -77,6 +85,31 @@ public class WalletService {
     }
 
     @Transactional
+    public TopUpDTO topUp(UUID userId, TopUpReqDTO req) {
+        if (req.getAmountVnd() == null || req.getAmountVnd().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Số tiền nạp phải lớn hơn 0");
+        }
+        BigDecimal rate = systemConfigService.getBigDecimal(
+                SystemConfigService.KEY_TOPUP_VND_PER_COIN, new BigDecimal("100"));
+        if (rate == null || rate.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalStateException("Tỷ giá nạp tiền không hợp lệ (phải lớn hơn 0). Vui lòng liên hệ Quản trị viên.");
+        }
+        BigDecimal coins = req.getAmountVnd().divide(rate, 0, java.math.RoundingMode.FLOOR);
+        if (coins.compareTo(BigDecimal.ONE) < 0) {
+            throw new IllegalArgumentException("Số tiền nạp không đủ để quy đổi tối thiểu 1 Coin (tỷ giá hiện tại: " + rate.toPlainString() + " VNĐ/Coin)");
+        }
+        String description = "Nạp tiền: " + req.getAmountVnd().toPlainString() + " VNĐ = " + coins.toPlainString() + " Coin";
+        updateBalance(userId, coins, TransactionType.TOP_UP, description);
+
+        return TopUpDTO.builder()
+                .coinsReceived(coins)
+                .amountVnd(req.getAmountVnd())
+                .rate(rate)
+                .message("Nạp tiền thành công! Bạn nhận được " + coins.toPlainString() + " Coin.")
+                .build();
+    }
+
+    @Transactional
     public void reward(UUID userId, TransactionReqDTO req) {
         updateBalance(userId, req.getAmount(), TransactionType.REWARD, req.getDescription());
     }
@@ -92,7 +125,7 @@ public class WalletService {
             throw new IllegalArgumentException("Số tiền rút phải lớn hơn hoặc bằng 10 và là bội số của 10");
         }
         BigDecimal coinToVnd = systemConfigService.getBigDecimal(
-                SystemConfigService.KEY_COIN_TO_VND_RATE, new BigDecimal("100"));
+                SystemConfigService.KEY_WITHDRAWAL_VND_PER_COIN, new BigDecimal("90"));
         BigDecimal vnd = amount.multiply(coinToVnd);
         String description = "Quy đổi: " + amount.toPlainString() + " Coins = " + vnd.toPlainString() + " VNĐ";
         if (customDescription != null && !customDescription.trim().isEmpty()) {
@@ -122,7 +155,7 @@ public class WalletService {
     public List<TransactionDTO> getHistory(UUID userId){
         Wallet wallet = walletRepository.findByUserId(userId).orElseThrow(() -> new RuntimeException("Ví không tồn tại"));
 
-        List<Transaction> transactions = transactionRepository.findByWalletId(wallet.getId());
+        List<Transaction> transactions = transactionRepository.findByWalletIdOrderByCreatedAtDesc(wallet.getId());
 
         return transactions.stream()
                 .map(this::toDto)

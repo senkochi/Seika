@@ -1,4 +1,4 @@
-import { Store } from "lucide-react";
+import { Store, RefreshCcw } from "lucide-react";
 import { useEffect, useState } from "react";
 import { marketplaceApi, Product, walletService } from "@/api";
 import { useAppSelector } from "@/store/hooks";
@@ -9,17 +9,19 @@ function Marketplace() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const fetchProducts = async () => {
+    setLoading(true);
+    try {
+      const res = await marketplaceApi.getProducts();
+      setProducts(res.data);
+    } catch (error) {
+      console.error("Failed to fetch products", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const res = await marketplaceApi.getProducts();
-        setProducts(res.data);
-      } catch (error) {
-        console.error("Failed to fetch products", error);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchProducts();
   }, []);
 
@@ -69,13 +71,21 @@ function Marketplace() {
   return (
     <div className="p-8">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-[var(--foreground)] mb-2">
-          Marketplace
-        </h1>
-        <p className="text-[var(--muted-foreground)]">
-          Power up your learning with exclusive items!
-        </p>
+      <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-[var(--foreground)] mb-2">
+            Marketplace
+          </h1>
+          <p className="text-[var(--muted-foreground)]">
+            Power up your learning with exclusive items!
+          </p>
+        </div>
+        <button
+          onClick={fetchProducts}
+          className="inline-flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-sm font-medium text-[var(--foreground)] hover:border-[var(--primary)] transition-all"
+        >
+          <RefreshCcw className="h-4 w-4" /> Làm mới
+        </button>
       </div>
 
       {/* All Items */}

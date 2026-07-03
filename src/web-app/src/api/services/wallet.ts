@@ -5,11 +5,29 @@ export interface TransactionReqDTO {
   description: string;
 }
 
+export interface TopUpReqDTO {
+  amountVnd: number;
+}
+
+export interface TopUpResponse {
+  coinsReceived: number;
+  amountVnd: number;
+  rate: number;
+  message: string;
+}
+
 export interface TransactionResponse {
   id: string;
   userId: string;
   amount: number;
-  type: "DEPOSIT" | "WITHDRAW" | "REWARD" | "SPEND" | "EARN" | "CASH_OUT";
+  type:
+    | "DEPOSIT"
+    | "WITHDRAW"
+    | "REWARD"
+    | "SPEND"
+    | "EARN"
+    | "CASH_OUT"
+    | "TOP_UP";
   description: string;
   createdAt: string;
 }
@@ -52,6 +70,15 @@ export const walletService = {
   cashOut: async (payload: TransactionReqDTO) => {
     // API POST /api/wallet/cash-out
     const response = await apiClient.post<any>("/wallet/cash-out", payload);
+    return response.data;
+  },
+
+  topUp: async (payload: TopUpReqDTO) => {
+    // API POST /api/wallet/top-up
+    const response = await apiClient.post<TopUpResponse>(
+      "/wallet/top-up",
+      payload,
+    );
     return response.data;
   },
 
