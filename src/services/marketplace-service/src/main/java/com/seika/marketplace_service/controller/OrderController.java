@@ -48,7 +48,8 @@ public class OrderController {
                 .build())
             .toList();
 
-        Order order = orderService.createOrder(request.getUserId(), items);
+        String buyerId = resolveUserId();
+        Order order = orderService.createOrder(buyerId, items);
 
         OrderResponse response = OrderResponse.builder()
             .id(order.getId())

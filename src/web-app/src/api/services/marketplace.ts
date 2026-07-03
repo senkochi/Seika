@@ -8,6 +8,8 @@ export interface Product {
   type: "FLASHCARD" | "QUIZ";
   referenceId: string;
   sellerUserId: string;
+  status?: string;
+  rejectionReason?: string | null;
   createdAt: string;
 }
 
@@ -24,6 +26,8 @@ export interface OrderItemRequest {
 export const marketplaceApi = {
   // Products
   getProducts: () => apiClient.get<Product[]>("/marketplace/products"),
+  getMyProducts: () =>
+    apiClient.get<Product[]>("/marketplace/products/my-products"),
 
   // Inventory
   getMyInventory: () =>

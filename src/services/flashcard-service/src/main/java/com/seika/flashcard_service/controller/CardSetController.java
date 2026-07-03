@@ -66,12 +66,15 @@ public class CardSetController {
     }
 
     @PostMapping("/learn")
-    public ResponseEntity<?> sendProgress(@RequestBody LearnProgressDTO req){
+    public ResponseEntity<?> sendProgress(@RequestBody LearnProgressDTO req, @AuthenticationPrincipal Jwt jwt){
         boolean exists = cardSetService.isCardSetExists(req.getCardSetId());
         if(!exists){
             return ResponseEntity.badRequest().body("Cardset ID kh\u00f4ng t\u1ed3n t\u1ea1i");
         }
 
+        if (jwt != null && jwt.getClaimAsString("userId") != null) {
+            req.setUserId(jwt.getClaimAsString("userId"));
+        }
         req.setCreatedAt(LocalDateTime.now());
         // Persist a StudySession for teacher statistics before forwarding the event
         cardSetService.recordLearnProgress(req);

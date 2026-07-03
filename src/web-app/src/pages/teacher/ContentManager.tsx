@@ -14,6 +14,7 @@ import {
 import { useAppSelector, useAppDispatch } from "../../store/hooks";
 import { fetchCurrentUserProfile } from "../../store/userProfileSlice";
 import { flashcardsService, quizzesService, walletService } from "../../api";
+import { marketplaceApi } from "../../api/services/marketplace";
 import type {
   CardSetResponse,
   QuizSetResponse,
@@ -97,7 +98,50 @@ function ContentManager() {
   // State danh sách
   const [flashcardSets, setFlashcardSets] = useState<CardSetResponse[]>([]);
   const [quizSets, setQuizSets] = useState<QuizSetResponse[]>([]);
+  const [products, setProducts] = useState<any[]>([]);
   const [loadingList, setLoadingList] = useState(false);
+
+  const renderStatusBadge = (referenceId: string) => {
+    const product = products.find((p) => p.referenceId === referenceId);
+    const status = product?.status || "PENDING_REVIEW";
+    const reason = product?.rejectionReason;
+
+    switch (status) {
+      case "PUBLISHED":
+        return (
+          <span className="px-3 py-1 bg-emerald-500/10 text-emerald-400 text-xs font-semibold rounded-full border border-emerald-500/20">
+            Đã duyệt
+          </span>
+        );
+      case "REJECTED":
+        return (
+          <span
+            className="px-3 py-1 bg-rose-500/10 text-rose-400 text-xs font-semibold rounded-full border border-rose-500/20 cursor-help relative group/tooltip"
+            title={reason ? `Lý do từ chối: ${reason}` : "Bị từ chối"}
+          >
+            Từ chối
+            {reason && (
+              <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 hidden group-hover/tooltip:block bg-slate-900 border border-red-500/30 text-red-200 text-xs rounded-lg p-2.5 shadow-xl z-20 whitespace-normal text-center">
+                {reason}
+              </span>
+            )}
+          </span>
+        );
+      case "HIDDEN":
+        return (
+          <span className="px-3 py-1 bg-slate-500/10 text-slate-400 text-xs font-semibold rounded-full border border-slate-500/20">
+            Đã ẩn
+          </span>
+        );
+      case "PENDING_REVIEW":
+      default:
+        return (
+          <span className="px-3 py-1 bg-amber-500/10 text-amber-400 text-xs font-semibold rounded-full border border-amber-500/20">
+            Chờ duyệt
+          </span>
+        );
+    }
+  };
 
   // Trạng thái Form
   const [isCreatingSet, setIsCreatingSet] = useState(false);
@@ -163,6 +207,13 @@ function ContentManager() {
     if (!userId) return;
     setLoadingList(true);
     try {
+      try {
+        const prodRes = await marketplaceApi.getMyProducts();
+        setProducts(prodRes.data || []);
+      } catch (err) {
+        console.warn("Could not fetch marketplace products:", err);
+      }
+
       if (activeTab === "flashcards") {
         const sets = await flashcardsService.getByAuthorId(userId);
         setFlashcardSets(sets);
@@ -525,9 +576,12 @@ function ContentManager() {
                   >
                     <div>
                       <div className="flex justify-between items-start mb-4">
-                        <span className="px-3 py-1 bg-purple-500/10 text-purple-400 text-xs font-semibold rounded-full">
-                          {set.cards?.length || 0} thẻ
-                        </span>
+                        <div className="flex flex-wrap gap-2">
+                          <span className="px-3 py-1 bg-purple-500/10 text-purple-400 text-xs font-semibold rounded-full">
+                            {set.cards?.length || 0} thẻ
+                          </span>
+                          {renderStatusBadge(set.id)}
+                        </div>
                         <span className="flex items-center text-yellow-400 font-bold text-sm">
                           <DollarSign className="w-4 h-4" />
                           {set.price > 0 ? `${set.price} Coins` : "Miễn phí"}
@@ -548,7 +602,7 @@ function ContentManager() {
                         onClick={() =>
                           openDeleteDialog("flashcard", set.id, set.title)
                         }
-                        className="p-2 text-[var(--muted-foreground)] hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                        className="p-2 text-[var(--muted-foreground)] hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
                         title="Xóa bộ thẻ"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -581,8 +635,15 @@ function ContentManager() {
                 >
                   <div>
                     <div className="flex justify-between items-start mb-4">
-                      <span className="px-3 py-1 bg-blue-500/10 text-blue-400 text-xs font-semibold rounded-full">
-                        {set.quizzes?.length || 0} câu hỏi
+                      <div className="flex flex-wrap gap-2">
+                        <span className="px-3 py-1 bg-blue-500/10 text-blue-400 text-xs font-semibold rounded-full">
+                          {set.quizzes?.length || 0} câu hỏi
+                        </span>
+                        {renderStatusBadge(set.id)}
+                      </div>
+                      <span className="flex items-center text-yellow-400 font-bold text-sm">
+                        <DollarSign className="w-4 h-4" />
+                        {set.price > 0 ? `${set.price} Coins` : "Miễn phí"}
                       </span>
                     </div>
                     <h3 className="text-lg font-bold text-[var(--foreground)] mb-2">
@@ -600,7 +661,7 @@ function ContentManager() {
                       onClick={() =>
                         openDeleteDialog("quizset", set.id, set.title)
                       }
-                      className="p-2 text-[var(--muted-foreground)] hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                      className="p-2 text-[var(--muted-foreground)] hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
                       title="Xóa bộ đề"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -667,13 +728,14 @@ function ContentManager() {
                 <input
                   type="number"
                   min={0}
-                  value={setPrice}
+                  value={setPrice === 0 ? "" : setPrice}
                   onChange={(e) => setSetPrice(Number(e.target.value))}
                   className="w-full pl-10 pr-4 py-3 bg-[rgba(255,255,255,0.06)] border border-[var(--border)] rounded-xl text-[var(--foreground)] focus:outline-none focus:border-[var(--ring)]"
                 />
               </div>
               <p className="mt-1.5 text-xs text-[var(--muted-foreground)]">
-                Để 0 nếu miễn phí. Khi bán trên Marketplace, giá phải từ{" "}
+                Không nhập gì nếu miễn phí. Khi bán trên Marketplace, giá phải
+                từ{" "}
                 <span className="font-semibold text-amber-400">{minPrice}</span>{" "}
                 đến{" "}
                 <span className="font-semibold text-amber-400">{maxPrice}</span>{" "}

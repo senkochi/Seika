@@ -77,7 +77,16 @@ public class QuizController {
     @PostMapping("/{id}/submit")
     public ResponseEntity<ApiResponse<Void>> submitQuiz(@PathVariable String id, @RequestBody java.util.Map<String, Object> payload) {
         String userId = extractUserId();
-        Double score = Double.valueOf(payload.getOrDefault("score", 0).toString());
+        Double score = 0.0;
+        if (payload.containsKey("answers") && payload.get("answers") instanceof java.util.List<?> list) {
+            @SuppressWarnings("unchecked")
+            java.util.List<java.util.Map<String, Object>> answers = (java.util.List<java.util.Map<String, Object>>) list;
+            score = quizService.calculateScoreFromAnswers(id, answers);
+        } else if (payload.containsKey("score")) {
+            score = Double.valueOf(payload.getOrDefault("score", 0).toString());
+        } else {
+            throw new IllegalArgumentException("Vui lòng cung cấp danh sách câu trả lời (answers) hoặc điểm số (score).");
+        }
         quizService.submitQuiz(id, userId, score);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
