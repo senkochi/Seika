@@ -12,6 +12,7 @@ import {
 } from "@reduxjs/toolkit";
 
 import { authService, getApiErrorMessage, setAuthToken } from "../api";
+import { isTokenExpired } from "../api/tokenUtils";
 import type { AuthResponse, LoginRequest, RegisterRequest } from "../api";
 
 // Định nghĩa kiểu dữ liệu cho Auth State của slice.
@@ -40,7 +41,16 @@ const emptyAuthStorageState: AuthStorageState = {
   roles: [],
 };
 
-// Hàm để lấy thông tin xác thực đã lưu trữ từ localStorage hoặc sessionStorage.
+/**
+ * Hàm để lấy thông tin xác thực đã lưu trữ từ localStorage hoặc sessionStorage.
+ *
+ * Bao gồm kiểm tra expiry của access token:
+ * - Nếu access token đã hết hạn VÀ không có refresh token → xóa storage, trả về state rỗng
+ *   (người dùng sẽ thấy nút Login/Register thay vì "Go to Dashboard").
+ * - Nếu access token đã hết hạn NHƯNG có refresh token → giữ state để interceptor
+ *   tự động refresh token khi có API call đầu tiên.
+ * - Nếu access token còn hiệu lực → giữ state bình thường.
+ */
 const getStoredAuth = (): AuthStorageState => {
   if (typeof window === "undefined") {
     return emptyAuthStorageState;
@@ -55,7 +65,24 @@ const getStoredAuth = (): AuthStorageState => {
   }
 
   try {
-    return { ...emptyAuthStorageState, ...JSON.parse(rawAuth) };
+    const parsed: AuthStorageState = {
+      ...emptyAuthStorageState,
+      ...JSON.parse(rawAuth),
+    };
+
+    // Kiểm tra token expiry khi khởi tạo
+    if (parsed.accessToken && isTokenExpired(parsed.accessToken)) {
+      if (!parsed.refreshToken) {
+        // Access token hết hạn + không có refresh token → xóa hết, quay về trạng thái chưa đăng nhập
+        window.localStorage.removeItem(storageKey);
+        window.sessionStorage.removeItem(storageKey);
+        return emptyAuthStorageState;
+      }
+      // Access token hết hạn + CÓ refresh token → giữ state
+      // Interceptor sẽ tự động gọi refresh khi có API call
+    }
+
+    return parsed;
   } catch {
     window.localStorage.removeItem(storageKey);
     window.sessionStorage.removeItem(storageKey);
