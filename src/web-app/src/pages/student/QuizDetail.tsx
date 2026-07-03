@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import {
   ArrowLeft,
   RotateCcw,
@@ -7,6 +7,7 @@ import {
   Trophy,
   Zap,
   Target,
+  ShieldCheck,
 } from "lucide-react";
 import StudentBadge from "@/components/student/StudentBadge";
 import StudentActionButton from "@/components/student/StudentActionButton";
@@ -26,7 +27,13 @@ import FillInBlankQuiz from "@/components/student/quiz/FillInBlankQuiz";
 export default function QuizDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useAppDispatch();
+
+  const isAdmin = location.pathname.startsWith("/admin");
+  const backPath = isAdmin
+    ? "/admin/dashboard/moderation"
+    : "/student/dashboard/learning";
 
   const [quizSet, setQuizSet] = useState<QuizSetResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -41,11 +48,13 @@ export default function QuizDetail() {
         const res = await quizzesService.getQuizSetById(id);
         setQuizSet(res.data);
 
-        try {
-          const status = await rewardsService.getRewardStatus("QUIZ", id);
-          setRewardStatus(status);
-        } catch (statusErr) {
-          console.error("Failed to fetch reward status:", statusErr);
+        if (!isAdmin) {
+          try {
+            const status = await rewardsService.getRewardStatus("QUIZ", id);
+            setRewardStatus(status);
+          } catch (statusErr) {
+            console.error("Failed to fetch reward status:", statusErr);
+          }
         }
       } catch (err) {
         console.error("Failed to fetch quiz set", err);
@@ -163,7 +172,7 @@ export default function QuizDetail() {
   useEffect(() => {
     if (isCompleted && id && questions.length > 0) {
       const submitQuizScores = async () => {
-        if (eligiblePassed) {
+        if (!isAdmin && eligiblePassed) {
           try {
             await quizzesService.submitQuiz(id, accuracyPercentage);
             dispatch(fetchCurrentUserProfile());
@@ -181,6 +190,7 @@ export default function QuizDetail() {
     accuracyPercentage,
     questions.length,
     dispatch,
+    isAdmin,
   ]);
 
   // Compute proportional XP and Coin gains
@@ -218,11 +228,11 @@ export default function QuizDetail() {
       {/* Header Bar */}
       <header className="relative z-10 bg-[rgba(24,18,45,0.9)] border-b border-[var(--border)] px-8 py-4 shadow-[0_12px_40px_rgba(10,10,20,0.18)] backdrop-blur-xl flex items-center justify-between">
         <button
-          onClick={() => navigate("/student/dashboard/learning")}
+          onClick={() => navigate(backPath)}
           className="flex items-center gap-2 text-[var(--muted-foreground)] hover:text-white transition-colors bg-[rgba(255,255,255,0.04)] hover:bg-[rgba(255,255,255,0.08)] border border-[var(--border)] px-4 py-2.5 rounded-xl text-sm font-bold"
         >
           <ArrowLeft className="w-4 h-4" />
-          <span>Exit Quiz</span>
+          <span>{isAdmin ? "Quay lại trang duyệt" : "Exit Quiz"}</span>
         </button>
 
         <div className="text-center hidden md:block">
@@ -239,6 +249,21 @@ export default function QuizDetail() {
           Epic
         </StudentBadge>
       </header>
+
+      {isAdmin && (
+        <div className="relative z-10 bg-sky-500/10 border-b border-sky-500/30 px-8 py-3 flex items-center justify-between text-sky-200">
+          <div className="flex items-center gap-2 text-sm font-semibold">
+            <ShieldCheck className="w-4 h-4 text-sky-400" />
+            <span>Chế độ xem trước dành cho Admin (Admin Preview Mode)</span>
+          </div>
+          <button
+            onClick={() => navigate("/admin/dashboard/moderation")}
+            className="rounded-lg bg-sky-500/20 px-3 py-1.5 text-xs font-medium text-sky-200 hover:bg-sky-500/30 transition-colors"
+          >
+            Quay lại trang duyệt
+          </button>
+        </div>
+      )}
 
       {/* Page Content */}
       <main className="relative z-10 flex-1 flex flex-col justify-center items-center p-6 md:p-8">
@@ -402,11 +427,8 @@ export default function QuizDetail() {
 
             {/* Call to Actions */}
             <div className="flex flex-col gap-3">
-              <StudentActionButton
-                size="lg"
-                onClick={() => navigate("/student/dashboard/learning")}
-              >
-                Return to Learning Hub
+              <StudentActionButton size="lg" onClick={() => navigate(backPath)}>
+                {isAdmin ? "Quay lại trang duyệt" : "Return to Learning Hub"}
               </StudentActionButton>
 
               <button

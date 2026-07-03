@@ -152,6 +152,14 @@ const router = createBrowserRouter([
         element: withLoader(<AdminContentModeration />),
       },
       {
+        path: "flashcard/:id",
+        element: withLoader(<FlashcardDetail />),
+      },
+      {
+        path: "quiz/:id",
+        element: withLoader(<QuizDetail />),
+      },
+      {
         path: "config",
         element: withLoader(<AdminSystemConfig />),
       },
