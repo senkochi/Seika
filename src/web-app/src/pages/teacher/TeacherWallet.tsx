@@ -11,6 +11,7 @@ import {
 import { walletService } from "../../api";
 import { showError, showSuccess } from "../../components/toast/toastUtils";
 import { useAppSelector } from "../../store/hooks";
+import ConfirmModal from "../../components/ui/ConfirmModal";
 
 interface Transaction {
   id: string;
@@ -25,6 +26,7 @@ function TeacherWallet() {
   const [balance, setBalance] = useState<number>(0);
   const [history, setHistory] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(false);
+  const [withdrawalRate, setWithdrawalRate] = useState<number>(90);
 
   // States for Cash Out form
   const [withdrawAmount, setWithdrawAmount] = useState<string>("");
@@ -33,22 +35,44 @@ function TeacherWallet() {
     "1029312093 - NGUYEN VAN A",
   );
   const [loadingWithdraw, setLoadingWithdraw] = useState<boolean>(false);
+  const [showConfirmModal, setShowConfirmModal] = useState<boolean>(false);
 
   const fetchWalletData = async () => {
     setLoading(true);
     try {
-      // Gọi song song lấy balance và lịch sử giao dịch
-      const balanceRes = await walletService.getBalance();
+      // Gọi song song lấy balance, lịch sử giao dịch và cấu hình tỷ giá
+      const [balanceRes, historyRes, configsRes] = await Promise.all([
+        walletService.getBalance(),
+        walletService.getHistory(),
+        walletService.getConfigs().catch(() => []),
+      ]);
+
       setBalance(balanceRes.balance || 0);
 
-      const historyRes = await walletService.getHistory();
       // Xử lý dữ liệu history trả về từ API
       if (Array.isArray(historyRes)) {
-        setHistory(historyRes);
+        const sorted = [...historyRes].sort(
+          (a, b) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+        );
+        setHistory(sorted);
       } else if (historyRes && Array.isArray((historyRes as any).data)) {
-        setHistory((historyRes as any).data);
+        const sorted = [...(historyRes as any).data].sort(
+          (a, b) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+        );
+        setHistory(sorted);
       } else {
         setHistory([]);
+      }
+
+      if (Array.isArray(configsRes)) {
+        const rateEntry = configsRes.find(
+          (c) => c.key === "WITHDRAWAL_VND_PER_COIN",
+        );
+        if (rateEntry && !isNaN(Number(rateEntry.value))) {
+          setWithdrawalRate(Number(rateEntry.value));
+        }
       }
     } catch (err) {
       console.error(err);
@@ -67,26 +91,27 @@ function TeacherWallet() {
       showError("Số lượng không hợp lệ!");
       return;
     }
-    if (amount % 100 !== 0) {
-      showError("Số coin rút phải là bội số của 100!");
+    if (amount % 10 !== 0) {
+      showError("Số coin rút phải là bội số của 10!");
       return;
     }
     if (amount > balance) {
       showError("Số dư không đủ!");
       return;
     }
-    const vnd = (amount / 100) * 10000;
-    const confirmWithdraw = window.confirm(
-      `Xác nhận rút tiền:\n- Số tiền rút: ${amount} Coin\n- Đơn vị thanh toán: ${bankName}\n- Tài khoản nhận: ${bankAccount}\n- Bạn sẽ nhận được: ${vnd.toLocaleString("vi-VN")} VNĐ`,
-    );
-    if (!confirmWithdraw) return;
+    setShowConfirmModal(true);
+  };
 
+  const executeWithdraw = async () => {
+    const amount = parseInt(withdrawAmount, 10);
+    const vnd = amount * withdrawalRate;
     setLoadingWithdraw(true);
     try {
       const description = `Quy đổi: ${amount} Coins = ${vnd.toLocaleString("vi-VN")} VNĐ (${bankName} - ${bankAccount})`;
       await walletService.cashOut({ amount, description });
       showSuccess("Rút tiền thành công!");
       setWithdrawAmount("");
+      setShowConfirmModal(false);
       fetchWalletData();
     } catch (err: any) {
       showError(err.response?.data?.message || "Lỗi khi rút tiền!");
@@ -344,6 +369,68 @@ function TeacherWallet() {
           </form>
         </div>
       </div>
+
+      {/* Confirmation Modal */}
+      <ConfirmModal
+        open={showConfirmModal}
+        onClose={() => !loadingWithdraw && setShowConfirmModal(false)}
+        onConfirm={executeWithdraw}
+        title="Xác nhận Rút Tiền (Cash Out)"
+        icon={<ArrowUpRight className="w-5 h-5 text-amber-400" />}
+        confirmText="Xác nhận rút"
+        isLoading={loadingWithdraw}
+      >
+        <div className="space-y-3">
+          <p className="text-sm text-[var(--muted-foreground)]">
+            Vui lòng kiểm tra lại thông tin yêu cầu rút Coin bên dưới:
+          </p>
+          <div className="bg-[var(--second-card)] p-4 rounded-2xl space-y-2.5 border border-[var(--border)] text-sm">
+            <div className="flex justify-between">
+              <span className="text-[var(--muted-foreground)]">
+                Số coin rút:
+              </span>
+              <span className="font-bold text-[var(--foreground)]">
+                {(parseInt(withdrawAmount, 10) || 0).toLocaleString()} Coin
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-[var(--muted-foreground)]">
+                Ngân hàng / Đối tác:
+              </span>
+              <span className="font-bold text-[var(--foreground)]">
+                {bankName}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-[var(--muted-foreground)]">
+                Tài khoản nhận:
+              </span>
+              <span className="font-bold text-[var(--foreground)] truncate max-w-[200px]">
+                {bankAccount}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-[var(--muted-foreground)]">
+                Tỷ giá quy đổi:
+              </span>
+              <span className="font-mono text-amber-300 font-semibold">
+                {withdrawalRate.toLocaleString("vi-VN")} VNĐ / Coin
+              </span>
+            </div>
+            <div className="border-t border-[var(--border)] pt-2 flex justify-between items-center">
+              <span className="text-[var(--muted-foreground)] font-semibold">
+                Thực nhận dự kiến:
+              </span>
+              <span className="text-lg font-black text-green-400">
+                {(
+                  (parseInt(withdrawAmount, 10) || 0) * withdrawalRate
+                ).toLocaleString("vi-VN")}{" "}
+                VNĐ
+              </span>
+            </div>
+          </div>
+        </div>
+      </ConfirmModal>
     </div>
   );
 }

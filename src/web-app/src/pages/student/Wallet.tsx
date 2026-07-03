@@ -1,8 +1,19 @@
 import { useEffect, useState } from "react";
-import { TrendingUp, TrendingDown, Zap, Coins } from "lucide-react";
-import StudentActionButton from "@/components/student/StudentActionButton";
-import { walletService } from "@/api";
-import { useAppSelector } from "@/store/hooks";
+import {
+  TrendingUp,
+  TrendingDown,
+  Loader2,
+  DollarSign,
+  Zap,
+  Coins,
+  CreditCard,
+  PlusCircle,
+  Sparkles,
+} from "lucide-react";
+import { walletService } from "../../api";
+import { showError, showSuccess } from "../../components/toast/toastUtils";
+import { useAppSelector } from "../../store/hooks";
+import ConfirmModal from "../../components/ui/ConfirmModal";
 
 interface Transaction {
   id: string;
@@ -17,22 +28,58 @@ function Wallet() {
   const [balance, setBalance] = useState<number>(0);
   const [history, setHistory] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(false);
+  const [topUpRate, setTopUpRate] = useState<number>(100);
+
+  // States for Top-Up form
+  const [topUpAmount, setTopUpAmount] = useState<string>("");
+  const [paymentMethod, setPaymentMethod] = useState<string>("VNPay Simulator");
+  const [loadingTopUp, setLoadingTopUp] = useState<boolean>(false);
+  const [showConfirmModal, setShowConfirmModal] = useState<boolean>(false);
 
   const fetchWalletData = async () => {
     setLoading(true);
     try {
-      const balanceRes = await walletService.getBalance();
+      const [balanceRes, historyRes, configsRes] = await Promise.all([
+        walletService.getBalance(),
+        walletService.getHistory(),
+        walletService.getConfigs().catch(() => []),
+      ]);
+
       setBalance(balanceRes.balance || 0);
 
-      const historyRes = await walletService.getHistory();
       if (Array.isArray(historyRes)) {
-        setHistory(historyRes);
+        const sorted = [...historyRes].sort(
+          (a, b) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+        );
+        setHistory(sorted);
       } else if (historyRes && Array.isArray((historyRes as any).data)) {
-        setHistory((historyRes as any).data);
+        const sorted = [...(historyRes as any).data].sort(
+          (a, b) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+        );
+        setHistory(sorted);
+      } else {
+        setHistory([]);
+      }
+
+      if (Array.isArray(configsRes)) {
+        const rateEntry = configsRes.find(
+          (c) => c.key === "TOPUP_VND_PER_COIN",
+        );
+        if (
+          rateEntry &&
+          !isNaN(Number(rateEntry.value)) &&
+          Number(rateEntry.value) > 0
+        ) {
+          setTopUpRate(Number(rateEntry.value));
+        }
       }
     } catch (err) {
       console.error(err);
-      // fallback handled if error
+      showError("Could not retrieve wallet details.");
+      setBalance(0);
+      setHistory([]);
     } finally {
       setLoading(false);
     }
@@ -42,52 +89,88 @@ function Wallet() {
     fetchWalletData();
   }, []);
 
+  const handleTopUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const amountVnd = parseInt(topUpAmount, 10);
+    if (isNaN(amountVnd) || amountVnd <= 0) {
+      showError("Số tiền nạp không hợp lệ!");
+      return;
+    }
+    if (amountVnd < 1000) {
+      showError("Số tiền nạp tối thiểu là 1,000 VNĐ!");
+      return;
+    }
+
+    const calculatedCoins = Math.floor(amountVnd / topUpRate);
+    if (calculatedCoins <= 0) {
+      showError(
+        `Số tiền nạp không đủ để đổi 1 Coin (Tỷ giá: ${topUpRate.toLocaleString("vi-VN")} VNĐ/Coin)!`,
+      );
+      return;
+    }
+
+    setShowConfirmModal(true);
+  };
+
+  const executeTopUp = async () => {
+    const amountVnd = parseInt(topUpAmount, 10);
+    setLoadingTopUp(true);
+    try {
+      const res = await walletService.topUp({ amountVnd });
+      showSuccess(res.message || `Nạp thành công ${res.coinsReceived} Coin!`);
+      setTopUpAmount("");
+      setShowConfirmModal(false);
+      fetchWalletData();
+    } catch (err: any) {
+      showError(err.response?.data?.message || "Lỗi khi nạp tiền!");
+    } finally {
+      setLoadingTopUp(false);
+    }
+  };
+
+  const quickAmounts = [10000, 20000, 50000, 100000];
+
+  const parsedAmount = parseInt(topUpAmount, 10) || 0;
+  const estimatedCoins =
+    topUpRate > 0 ? Math.floor(parsedAmount / topUpRate) : 0;
+
   const totalEarned = history
-    .filter((t) => t.type === "EARN" || t.type === "REWARD" || t.amount > 0)
+    .filter(
+      (t) =>
+        t.type === "EARN" ||
+        t.type === "REWARD" ||
+        t.type === "TOP_UP" ||
+        (t.amount > 0 && t.type !== "CASH_OUT"),
+    )
     .reduce((sum, t) => sum + Math.abs(t.amount), 0);
 
   const totalSpent = history
-    .filter((t) => t.type === "WITHDRAW" || t.type === "SPEND" || t.amount < 0)
+    .filter(
+      (t) =>
+        t.type === "WITHDRAW" ||
+        t.type === "SPEND" ||
+        (t.amount < 0 && t.type !== "TOP_UP"),
+    )
     .reduce((sum, t) => sum + Math.abs(t.amount), 0);
-
-  const quickStats = [
-    {
-      label: "Total Earned",
-      value: `+${totalEarned.toLocaleString()}`,
-      icon: TrendingUp,
-      color: "text-green-400",
-    },
-    {
-      label: "Total Spent",
-      value: `-${totalSpent.toLocaleString()}`,
-      icon: TrendingDown,
-      color: "text-orange-400",
-    },
-    {
-      label: "Active Streak",
-      value: `${currentStreak ?? 0} Days`,
-      icon: Zap,
-      color: "text-amber-400",
-    },
-  ];
 
   return (
     <div className="p-8">
-      {/* Header with Balance */}
+      {/* Header section */}
       <div className="mb-8">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
-            <h1 className="text-4xl font-black text-[var(--foreground)] mb-2">
-              <span className="bg-gradient-to-r from-amber-300 to-yellow-400 bg-clip-text">
-                Wallet
+            <h1 className="text-3xl font-black text-[var(--foreground)] mb-2">
+              <span className="bg-gradient-to-r from-amber-300 to-yellow-400 bg-clip-text text-transparent">
+                Student Wallet
               </span>
             </h1>
             <p className="text-[var(--muted-foreground)]">
-              Track your Coin and treasure history
+              Manage your Coins, check balance and top up to unlock more courses
+              & quizzes.
             </p>
           </div>
 
-          {/* Balance Card */}
+          {/* Balance card */}
           <div className="relative group w-full md:w-[30rem] lg:w-[34rem] md:ml-auto">
             <div className="relative w-full bg-gradient-to-b from-amber-400 to-yellow-500 rounded-3xl p-1 shadow-2xl">
               <div className="rounded-[22px] px-8 py-6">
@@ -104,143 +187,302 @@ function Wallet() {
                     </p>
                   </div>
                 </div>
+                <div className="text-right w-full mt-4">
+                  <p className="text-white/85 text-xs font-semibold">
+                    Top-Up Rate
+                  </p>
+                  <p className="text-purple-950 font-black">
+                    {topUpRate.toLocaleString("vi-VN")} VNĐ / Coin
+                  </p>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Quick Stats */}
-      <div className="grid md:grid-cols-3 gap-6 mb-12">
-        {quickStats.map((stat, index) => {
-          const Icon = stat.icon;
-          return (
-            <div
-              key={index}
-              className="relative bg-[var(--card)] backdrop-blur-xl border border-[var(--border)] rounded-3xl p-6 shadow-[0_20px_60px_rgba(10,10,20,0.18)] hover:border-[var(--ring)] transition-all"
-            >
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 bg-[var(--second-card)] rounded-2xl flex items-center justify-center border border-[var(--border)]">
-                  <Icon className={`w-7 h-7 ${stat.color}`} />
-                </div>
-                <div>
-                  <p className="text-[var(--muted-foreground)] text-sm">
-                    {stat.label}
-                  </p>
-                  <p className="text-[var(--foreground)] text-2xl font-black">
-                    {stat.value}
-                  </p>
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Treasure Log */}
-      <div>
-        <div className="flex items-center gap-3 mb-6">
-          <Coins className="w-8 h-8 text-[var(--primary)]" />
-          <h2 className="text-3xl font-black text-[var(--foreground)]">
-            Transaction History
-          </h2>
+      {/* Quick stats grid */}
+      <div className="grid md:grid-cols-3 gap-6 mb-8">
+        <div className="bg-[var(--card)] backdrop-blur-xl border border-[var(--border)] rounded-2xl p-6 flex items-center gap-4 hover:border-[var(--primary)] transition-all">
+          <div className="w-12 h-12 bg-green-500/10 rounded-xl flex items-center justify-center border border-green-500/20">
+            <TrendingUp className="w-6 h-6 text-green-400" />
+          </div>
+          <div>
+            <p className="text-[var(--muted-foreground)] text-sm">
+              Total Earned / Top-Up
+            </p>
+            <p className="text-xl font-bold text-[var(--foreground)]">
+              +{totalEarned.toLocaleString()} Coins
+            </p>
+          </div>
         </div>
 
-        <div className="max-h-[28rem] lg:max-h-[34rem] overflow-y-auto pr-2 space-y-4">
-          {history.length === 0 ? (
-            <div className="text-[var(--muted-foreground)]">
+        <div className="bg-[var(--card)] backdrop-blur-xl border border-[var(--border)] rounded-2xl p-6 flex items-center gap-4 hover:border-[var(--primary)] transition-all">
+          <div className="w-12 h-12 bg-red-500/10 rounded-xl flex items-center justify-center border border-red-500/20">
+            <TrendingDown className="w-6 h-6 text-red-400" />
+          </div>
+          <div>
+            <p className="text-[var(--muted-foreground)] text-sm">
+              Total Spent
+            </p>
+            <p className="text-xl font-bold text-[var(--foreground)]">
+              -{totalSpent.toLocaleString()} Coins
+            </p>
+          </div>
+        </div>
+
+        <div className="bg-[var(--card)] backdrop-blur-xl border border-[var(--border)] rounded-2xl p-6 flex items-center gap-4 hover:border-[var(--primary)] transition-all">
+          <div className="w-12 h-12 bg-amber-500/10 rounded-xl flex items-center justify-center border border-amber-500/20">
+            <Zap className="w-6 h-6 text-amber-400" />
+          </div>
+          <div>
+            <p className="text-[var(--muted-foreground)] text-sm">
+              Active Streak
+            </p>
+            <p className="text-xl font-bold text-[var(--foreground)]">
+              {currentStreak ?? 0} Days
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Transaction History & Top-Up Form Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+        {/* Transaction History */}
+        <div className="lg:col-span-3 bg-[var(--card)] backdrop-blur-xl border border-[var(--border)] rounded-3xl p-6 shadow-lg shadow-black/20">
+          <h2 className="text-xl font-bold text-[var(--foreground)] mb-6 flex items-center gap-2">
+            <DollarSign className="w-5 h-5 text-amber-400" />
+            Transaction History
+          </h2>
+
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-20 text-[var(--muted-foreground)] gap-2">
+              <Loader2 className="w-8 h-8 animate-spin text-[var(--primary)]" />
+              <p className="text-sm">Loading transactions...</p>
+            </div>
+          ) : history.length === 0 ? (
+            <div className="text-center py-20 text-[var(--muted-foreground)]">
               No transactions recorded yet.
             </div>
           ) : (
-            history.map((entry) => {
-              const isEarn =
-                entry.type === "EARN" ||
-                entry.type === "REWARD" ||
-                entry.amount > 0;
-              return (
-                <div
-                  key={entry.id}
-                  className="group relative bg-[var(--card)] backdrop-blur-xl border border-[var(--border)] rounded-3xl p-6 shadow-[0_20px_60px_rgba(10,10,20,0.18)] hover:border-[var(--ring)] transition-all"
-                >
-                  <div className="flex items-center gap-6">
-                    {/* Icon */}
-                    <div
-                      className={`w-16 h-16 bg-gradient-to-br ${isEarn ? "from-green-500 to-emerald-600" : "from-orange-500 to-red-600"} rounded-2xl flex items-center justify-center text-3xl shadow-lg transition-transform`}
-                    >
-                      {isEarn ? "💎" : "🛡️"}
-                    </div>
-
-                    {/* Content */}
-                    <div className="flex-1">
-                      <div className="flex items-start justify-between mb-2">
-                        <div>
-                          <h3 className="text-xl font-black text-[var(--foreground)] mb-1">
-                            {entry.description}
-                          </h3>
-                          <p className="text-[var(--muted-foreground)] text-sm">
-                            {new Date(entry.createdAt).toLocaleString()}
-                          </p>
-                        </div>
-                        <div className={`text-right`}>
-                          <p
-                            className={`text-3xl font-black ${isEarn ? "text-green-400" : "text-orange-400"}`}
-                          >
-                            {isEarn ? "+" : "-"}
-                            {Math.abs(entry.amount)}
-                          </p>
-                          <p className="text-[var(--muted-foreground)] text-xs">
-                            Coin
-                          </p>
-                        </div>
+            <div className="space-y-4 max-h-[28rem] overflow-y-auto pr-2">
+              {history.map((tx) => {
+                const isEarn =
+                  tx.type === "EARN" ||
+                  tx.type === "REWARD" ||
+                  tx.type === "TOP_UP" ||
+                  (tx.amount > 0 && tx.type !== "CASH_OUT");
+                return (
+                  <div
+                    key={tx.id}
+                    className="flex items-center justify-between p-4 bg-[var(--second-card)] border border-[var(--border)] rounded-xl hover:bg-[var(--second-muted)] transition-colors"
+                  >
+                    <div className="flex-1 min-w-0 pr-4">
+                      <div className="flex items-center gap-2">
+                        {tx.type === "TOP_UP" && (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                            TOP-UP
+                          </span>
+                        )}
+                        <p className="text-sm font-semibold text-[var(--foreground)] truncate">
+                          {tx.description}
+                        </p>
                       </div>
+                      <p className="text-xs text-[var(--muted-foreground)] mt-1">
+                        {new Date(tx.createdAt).toLocaleString("vi-VN")}
+                      </p>
                     </div>
-
-                    {/* Indicator icon */}
                     <div
-                      className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                        isEarn
-                          ? "bg-green-500/20 border-2 border-green-500/50"
-                          : "bg-orange-500/20 border-2 border-orange-500/50"
+                      className={`text-right font-bold text-base shrink-0 ml-2 ${
+                        isEarn ? "text-green-400" : "text-red-400"
                       }`}
                     >
-                      {isEarn ? (
-                        <TrendingUp className="w-5 h-5 text-green-400" />
-                      ) : (
-                        <TrendingDown className="w-5 h-5 text-orange-400" />
-                      )}
+                      {isEarn ? "+" : "-"}
+                      {Math.abs(tx.amount).toLocaleString()} Coins
                     </div>
                   </div>
-                </div>
-              );
-            })
+                );
+              })}
+            </div>
           )}
+        </div>
+
+        {/* Top-Up Form (Simulator) */}
+        <div className="lg:col-span-2 bg-[var(--card)] backdrop-blur-xl border border-[var(--border)] rounded-3xl p-6 h-fit shadow-lg shadow-black/20">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-bold text-[var(--foreground)] flex items-center gap-2">
+              <PlusCircle className="w-5 h-5 text-amber-400" />
+              Top-Up Coin
+            </h2>
+            <span className="text-xs px-2.5 py-1 bg-purple-500/20 text-purple-300 border border-purple-500/30 rounded-full font-semibold flex items-center gap-1">
+              <Sparkles className="w-3 h-3" /> MVP Demo
+            </span>
+          </div>
+
+          <form onSubmit={handleTopUp} className="space-y-5">
+            <div>
+              <label className="block text-sm text-[var(--muted-foreground)] mb-2">
+                Amount to Top-Up (VNĐ)
+              </label>
+              <div className="relative">
+                <CreditCard className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted-foreground)]" />
+                <input
+                  type="number"
+                  required
+                  min={1000}
+                  step={1000}
+                  placeholder="e.g. 20,000"
+                  value={topUpAmount}
+                  onChange={(e) => setTopUpAmount(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 bg-[rgba(255,255,255,0.06)] border border-[var(--border)] rounded-xl text-[var(--foreground)] font-mono text-base focus:outline-none focus:border-[var(--ring)]"
+                />
+              </div>
+
+              {/* Quick Amount Buttons */}
+              <div className="grid grid-cols-2 gap-2 mt-3">
+                {quickAmounts.map((amt) => (
+                  <button
+                    key={amt}
+                    type="button"
+                    onClick={() => setTopUpAmount(amt.toString())}
+                    className={`py-2 px-3 rounded-xl text-xs font-semibold border transition-all ${
+                      topUpAmount === amt.toString()
+                        ? "bg-amber-400/20 border-amber-400 text-amber-300"
+                        : "bg-[var(--second-card)] border-[var(--border)] text-[var(--muted-foreground)] hover:border-[var(--muted-foreground)]"
+                    }`}
+                  >
+                    {amt.toLocaleString("vi-VN")} đ
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Conversion Display Box */}
+            <div className="p-4 bg-[var(--second-card)] border border-[var(--border)] rounded-2xl flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-400/10 border border-amber-400/20 flex items-center justify-center">
+                  <Coins className="w-5 h-5 text-amber-400" />
+                </div>
+                <div>
+                  <p className="text-xs text-[var(--muted-foreground)]">
+                    You will receive
+                  </p>
+                  <p className="text-lg font-black text-[var(--foreground)]">
+                    {estimatedCoins.toLocaleString()}{" "}
+                    <span className="text-sm font-semibold text-amber-400">
+                      Coin
+                    </span>
+                  </p>
+                </div>
+              </div>
+              <div className="text-right">
+                <p className="text-[11px] text-[var(--muted-foreground)]">
+                  Exchange Rate
+                </p>
+                <p className="text-xs font-mono font-bold text-[var(--foreground)]">
+                  {topUpRate.toLocaleString("vi-VN")} đ/Coin
+                </p>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm text-[var(--muted-foreground)] mb-2">
+                Payment Simulator Partner
+              </label>
+              <select
+                value={paymentMethod}
+                onChange={(e) => setPaymentMethod(e.target.value)}
+                className="w-full px-4 py-3 bg-[rgba(255,255,255,0.06)] border border-[var(--border)] rounded-xl text-[var(--foreground)] focus:outline-none focus:border-[var(--ring)]"
+              >
+                <option
+                  value="VNPay Simulator"
+                  className="bg-[var(--card)] text-[var(--foreground)]"
+                >
+                  VNPay (Demo Instant)
+                </option>
+                <option
+                  value="Momo Simulator"
+                  className="bg-[var(--card)] text-[var(--foreground)]"
+                >
+                  Momo Wallet (Demo Instant)
+                </option>
+                <option
+                  value="Bank Transfer Demo"
+                  className="bg-[var(--card)] text-[var(--foreground)]"
+                >
+                  Bank Transfer (Demo Instant)
+                </option>
+              </select>
+            </div>
+
+            <div className="pt-2">
+              <button
+                type="submit"
+                disabled={loadingTopUp || parsedAmount < 1000}
+                className="w-full py-3.5 bg-gradient-to-r from-amber-400 to-yellow-500 text-purple-950 font-black rounded-xl hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20"
+              >
+                {loadingTopUp ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  <PlusCircle className="w-5 h-5" />
+                )}
+                Confirm Top-Up (Demo)
+              </button>
+            </div>
+          </form>
         </div>
       </div>
 
-      {/* Summary Footer */}
-      <div className="mt-12 relative group">
-        <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-violet-600/20 rounded-3xl blur-2xl"></div>
-        <div className="relative bg-[var(--card)] backdrop-blur-xl border border-[var(--border)] rounded-3xl p-8 shadow-[0_20px_60px_rgba(10,10,20,0.18)]">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[var(--muted-foreground)] mb-2">
-                Keep learning to earn more Coins!
-              </p>
-              <p className="text-[var(--foreground)] text-lg font-black">
-                Complete quizzes, maintain streaks, and master new skills.
-              </p>
+      {/* Confirmation Modal */}
+      <ConfirmModal
+        open={showConfirmModal}
+        onClose={() => !loadingTopUp && setShowConfirmModal(false)}
+        onConfirm={executeTopUp}
+        title="Xác nhận Nạp Tiền (Demo Simulator)"
+        icon={<PlusCircle className="w-5 h-5 text-amber-400" />}
+        confirmText="Xác nhận nạp"
+        isLoading={loadingTopUp}
+      >
+        <div className="space-y-3">
+          <p className="text-sm text-[var(--muted-foreground)]">
+            Vui lòng kiểm tra lại thông tin giao dịch nạp Coin bên dưới:
+          </p>
+          <div className="bg-[var(--second-card)] p-4 rounded-2xl space-y-2.5 border border-[var(--border)] text-sm">
+            <div className="flex justify-between">
+              <span className="text-[var(--muted-foreground)]">
+                Số tiền thanh toán:
+              </span>
+              <span className="font-bold text-[var(--foreground)]">
+                {parsedAmount.toLocaleString("vi-VN")} VNĐ
+              </span>
             </div>
-            <StudentActionButton
-              size="lg"
-              icon={Zap}
-              fullWidth={false}
-              className="px-8"
-            >
-              Start Learning
-            </StudentActionButton>
+            <div className="flex justify-between">
+              <span className="text-[var(--muted-foreground)]">
+                Phương thức:
+              </span>
+              <span className="font-bold text-[var(--foreground)]">
+                {paymentMethod}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-[var(--muted-foreground)]">
+                Tỷ giá quy đổi:
+              </span>
+              <span className="font-mono text-amber-300 font-semibold">
+                {topUpRate.toLocaleString("vi-VN")} VNĐ / Coin
+              </span>
+            </div>
+            <div className="border-t border-[var(--border)] pt-2 flex justify-between items-center">
+              <span className="text-[var(--muted-foreground)] font-semibold">
+                Bạn sẽ nhận ngay:
+              </span>
+              <span className="text-lg font-black text-green-400">
+                +{estimatedCoins.toLocaleString()} Coin
+              </span>
+            </div>
           </div>
         </div>
-      </div>
+      </ConfirmModal>
     </div>
   );
 }
