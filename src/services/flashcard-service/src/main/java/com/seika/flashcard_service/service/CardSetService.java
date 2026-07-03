@@ -154,6 +154,58 @@ public class CardSetService {
         cardSetRepository.deleteById(id);
     }
 
+    public CardSetDTO update(String id, CardSetCreateDTO req, String requesterId){
+        CardSet cardSet = cardSetRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy bộ thẻ: " + id));
+        if (!cardSet.getAuthorId().equals(requesterId)){
+            throw new IllegalStateException("Bạn không có quyền cập nhật bộ thẻ này");
+        }
+
+        if (req.getPrice() != null && req.getPrice() < 0) {
+            throw new IllegalArgumentException("Giá sản phẩm không được nhỏ hơn 0!");
+        }
+        if (req.getPrice() != null && req.getPrice() > 0) {
+            BigDecimal minPrice = new BigDecimal("10");
+            BigDecimal maxPrice = new BigDecimal("100000");
+            try {
+                List<SystemConfigDTO> configs = walletClient.getConfigs();
+                if (configs != null) {
+                    for (SystemConfigDTO cfg : configs) {
+                        if ("MIN_PRODUCT_PRICE".equals(cfg.getKey()) && cfg.getValue() != null) {
+                            minPrice = new BigDecimal(cfg.getValue());
+                        } else if ("MAX_PRODUCT_PRICE".equals(cfg.getKey()) && cfg.getValue() != null) {
+                            maxPrice = new BigDecimal(cfg.getValue());
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("Không thể lấy config từ wallet-service, dùng giá trị mặc định: {}", e.getMessage());
+            }
+            BigDecimal reqPrice = BigDecimal.valueOf(req.getPrice());
+            if (reqPrice.compareTo(minPrice) < 0 || reqPrice.compareTo(maxPrice) > 0) {
+                throw new IllegalArgumentException("Giá sản phẩm phải nằm trong khoảng từ " + minPrice + " đến " + maxPrice + " coin!");
+            }
+        }
+
+        cardSet.setTitle(req.getTitle());
+        cardSet.setDescription(req.getDescription());
+        cardSet.setPrice(req.getPrice() != null ? BigDecimal.valueOf(req.getPrice()) : BigDecimal.ZERO);
+        cardSet.setCards(req.getCards());
+
+        CardSet res = cardSetRepository.save(cardSet);
+
+        // Publish event for updating marketplace product
+        contentEventPublisher.publishFlashcardSetUpdated(
+                res.getId(),
+                requesterId,
+                res.getTitle(),
+                res.getDescription(),
+                res.getPrice()
+        );
+
+        return mapper.toDto(res);
+    }
+
     // -------------------------------------------------------------------------
     // Learn progress + teacher statistics
     // -------------------------------------------------------------------------

@@ -22,17 +22,7 @@ import {
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { fetchAdminDashboard } from "../../store/adminSlice";
 
-const currencyFormatter = new Intl.NumberFormat("vi-VN", {
-  style: "currency",
-  currency: "VND",
-  maximumFractionDigits: 0,
-});
-
 const numberFormatter = new Intl.NumberFormat("vi-VN");
-
-function formatCurrency(value: number | undefined | null) {
-  return currencyFormatter.format(value ?? 0);
-}
 
 function formatNumber(value: number | undefined | null) {
   return numberFormatter.format(value ?? 0);

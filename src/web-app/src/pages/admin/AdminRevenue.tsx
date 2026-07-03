@@ -1,13 +1,10 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import {
   TrendingUp,
-  TrendingDown,
   DollarSign,
-  Wallet,
   ShieldAlert,
   RefreshCcw,
   Loader2,
-  Filter,
   FileText,
   ArrowUpRight,
   ArrowDownRight,

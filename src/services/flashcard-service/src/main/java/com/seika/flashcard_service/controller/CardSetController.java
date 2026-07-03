@@ -140,6 +140,19 @@ public class CardSetController {
         return ResponseEntity.ok("Deck completed event published");
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<CardSetDTO> update(
+            @PathVariable String id,
+            @Valid @RequestBody CardSetCreateDTO req,
+            @AuthenticationPrincipal Jwt jwt) {
+        String requesterId = jwt.getClaimAsString("userId");
+        if (requesterId == null) {
+            requesterId = jwt.getSubject();
+        }
+        CardSetDTO updated = cardSetService.update(id, req, requesterId);
+        return ResponseEntity.ok(updated);
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<?> delete(
             @PathVariable String id,

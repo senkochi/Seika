@@ -10,6 +10,7 @@ import {
   AlertTriangle,
   X,
   RefreshCcw,
+  Edit,
 } from "lucide-react";
 import { useAppSelector, useAppDispatch } from "../../store/hooks";
 import { fetchCurrentUserProfile } from "../../store/userProfileSlice";
@@ -147,6 +148,10 @@ function ContentManager() {
   const [isCreatingSet, setIsCreatingSet] = useState(false);
   const [isCreatingQuizSet, setIsCreatingQuizSet] = useState(false);
   const [loadingSubmit, setLoadingSubmit] = useState(false);
+  const [editingTarget, setEditingTarget] = useState<{
+    type: "flashcard" | "quizset";
+    id: string;
+  } | null>(null);
 
   // Confirm delete dialog
   const [deleteTarget, setDeleteTarget] = useState<{
@@ -155,6 +160,67 @@ function ContentManager() {
     title: string;
   } | null>(null);
   const [loadingDelete, setLoadingDelete] = useState(false);
+
+  // Reset helpers for forms
+  const cancelFlashcardForm = () => {
+    setSetTitle("");
+    setSetDescription("");
+    setSetPrice(0);
+    setCards([{ frontSide: "", backSide: "" }]);
+    setIsCreatingSet(false);
+    setEditingTarget(null);
+  };
+
+  const cancelQuizSetForm = () => {
+    setQuizSetTitle("");
+    setQuizSetDescription("");
+    setQuizSetPrice(0);
+    setQuizSetQuestions([]);
+    setIsCreatingQuizSet(false);
+    setEditingTarget(null);
+  };
+
+  const handleEditFlashcardSet = (set: CardSetResponse) => {
+    setEditingTarget({ type: "flashcard", id: set.id });
+    setSetTitle(set.title);
+    setSetDescription(set.description || "");
+    setSetPrice(set.price);
+    setCards(
+      set.cards && set.cards.length > 0
+        ? set.cards.map((c) => ({ frontSide: c.frontSide, backSide: c.backSide }))
+        : [{ frontSide: "", backSide: "" }],
+    );
+    setIsCreatingSet(true);
+  };
+
+  const handleEditQuizSet = (set: QuizSetResponse) => {
+    setEditingTarget({ type: "quizset", id: set.id });
+    setQuizSetTitle(set.title);
+    setQuizSetDescription(set.description || "");
+    setQuizSetPrice(set.price);
+    setQuizSetQuestions(
+      set.quizzes && set.quizzes.length > 0
+        ? set.quizzes.map((q) => {
+            const mapped: any = {
+              questionText: q.questionText,
+              type: q.type,
+            };
+            if (q.type === "MULTIPLE_CHOICE") {
+              mapped.options = q.options;
+              mapped.correctOptionIndex = q.correctOptionIndex;
+            } else if (q.type === "MATCHING") {
+              mapped.matchingPairs = q.matchingPairs;
+            } else if (q.type === "REORDER") {
+              mapped.correctOrder = q.correctOrder;
+            } else if (q.type === "FILL_IN_THE_BLANK") {
+              mapped.acceptedAnswers = q.acceptedAnswers;
+            }
+            return mapped;
+          })
+        : [],
+    );
+    setIsCreatingQuizSet(true);
+  };
 
   // Dữ liệu Form Flashcard Set
   const [setTitle, setSetTitle] = useState("");
@@ -272,22 +338,33 @@ function ContentManager() {
 
     setLoadingSubmit(true);
     try {
-      await flashcardsService.create({
-        title: setTitle,
-        description: setDescription,
-        price: Number(setPrice),
-        cards: cards,
-      });
-      showSuccess("Flashcard Set đã được tạo thành công!");
+      if (editingTarget && editingTarget.type === "flashcard") {
+        await flashcardsService.update(editingTarget.id, {
+          title: setTitle,
+          description: setDescription,
+          price: Number(setPrice),
+          cards: cards,
+        });
+        showSuccess("Flashcard Set đã được cập nhật thành công!");
+      } else {
+        await flashcardsService.create({
+          title: setTitle,
+          description: setDescription,
+          price: Number(setPrice),
+          cards: cards,
+        });
+        showSuccess("Flashcard Set đã được tạo thành công!");
+      }
       setSetTitle("");
       setSetDescription("");
       setSetPrice(0);
       setCards([{ frontSide: "", backSide: "" }]);
       setIsCreatingSet(false);
+      setEditingTarget(null);
       loadData();
     } catch (err) {
       console.error(err);
-      showError("Không thể tạo Flashcard Set.");
+      showError(editingTarget ? "Không thể cập nhật Flashcard Set." : "Không thể tạo Flashcard Set.");
     } finally {
       setLoadingSubmit(false);
     }
@@ -371,22 +448,33 @@ function ContentManager() {
 
     setLoadingSubmit(true);
     try {
-      await quizzesService.createQuizSet({
-        title: quizSetTitle,
-        description: quizSetDescription,
-        price: Number(quizSetPrice),
-        questions: quizSetQuestions,
-      });
-      showSuccess("Bộ đề Quiz đã được tạo thành công!");
+      if (editingTarget && editingTarget.type === "quizset") {
+        await quizzesService.updateQuizSet(editingTarget.id, {
+          title: quizSetTitle,
+          description: quizSetDescription,
+          price: Number(quizSetPrice),
+          questions: quizSetQuestions,
+        });
+        showSuccess("Bộ đề Quiz đã được cập nhật thành công!");
+      } else {
+        await quizzesService.createQuizSet({
+          title: quizSetTitle,
+          description: quizSetDescription,
+          price: Number(quizSetPrice),
+          questions: quizSetQuestions,
+        });
+        showSuccess("Bộ đề Quiz đã được tạo thành công!");
+      }
       setQuizSetTitle("");
       setQuizSetDescription("");
       setQuizSetPrice(0);
       setQuizSetQuestions([]);
       setIsCreatingQuizSet(false);
+      setEditingTarget(null);
       loadData();
     } catch (err) {
       console.error(err);
-      showError("Không thể tạo Bộ đề Quiz.");
+      showError(editingTarget ? "Không thể cập nhật Bộ đề Quiz." : "Không thể tạo Bộ đề Quiz.");
     } finally {
       setLoadingSubmit(false);
     }
@@ -598,15 +686,24 @@ function ContentManager() {
                       <span className="text-xs text-[var(--muted-foreground)]">
                         Tạo bởi bạn
                       </span>
-                      <button
-                        onClick={() =>
-                          openDeleteDialog("flashcard", set.id, set.title)
-                        }
-                        className="p-2 text-[var(--muted-foreground)] hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
-                        title="Xóa bộ thẻ"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <div className="flex gap-1">
+                        <button
+                          onClick={() => handleEditFlashcardSet(set)}
+                          className="p-2 text-[var(--muted-foreground)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10 rounded-lg transition-all"
+                          title="Sửa bộ thẻ"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() =>
+                            openDeleteDialog("flashcard", set.id, set.title)
+                          }
+                          className="p-2 text-[var(--muted-foreground)] hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
+                          title="Xóa bộ thẻ"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -657,15 +754,24 @@ function ContentManager() {
                     <span className="text-xs text-[var(--muted-foreground)]">
                       {new Date(set.createdAt).toLocaleDateString()}
                     </span>
-                    <button
-                      onClick={() =>
-                        openDeleteDialog("quizset", set.id, set.title)
-                      }
-                      className="p-2 text-[var(--muted-foreground)] hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
-                      title="Xóa bộ đề"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    <div className="flex gap-1">
+                      <button
+                        onClick={() => handleEditQuizSet(set)}
+                        className="p-2 text-[var(--muted-foreground)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10 rounded-lg transition-all"
+                        title="Sửa bộ đề"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() =>
+                          openDeleteDialog("quizset", set.id, set.title)
+                        }
+                        className="p-2 text-[var(--muted-foreground)] hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
+                        title="Xóa bộ đề"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -682,11 +788,11 @@ function ContentManager() {
         >
           <div className="border-b border-[var(--border)] pb-4 flex justify-between items-center">
             <h2 className="text-xl font-bold text-[var(--foreground)]">
-              Tạo Bộ Flashcard Mới
+              {editingTarget ? "Cập nhật Bộ Flashcard" : "Tạo Bộ Flashcard Mới"}
             </h2>
             <button
               type="button"
-              onClick={() => setIsCreatingSet(false)}
+              onClick={cancelFlashcardForm}
               className="p-2 text-[var(--muted-foreground)] hover:text-[var(--foreground)] rounded-lg hover:bg-white/5"
             >
               <X className="w-5 h-5" />
@@ -805,7 +911,7 @@ function ContentManager() {
           <div className="border-t border-[var(--border)] pt-6 flex justify-end gap-3">
             <button
               type="button"
-              onClick={() => setIsCreatingSet(false)}
+              onClick={cancelFlashcardForm}
               className="px-6 py-3 border border-[var(--border)] rounded-xl text-sm font-bold text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
             >
               Hủy
@@ -816,7 +922,7 @@ function ContentManager() {
               className="px-8 py-3 bg-[var(--primary)] text-white rounded-xl text-sm font-bold hover:opacity-90 flex items-center gap-2"
             >
               {loadingSubmit && <Loader2 className="w-4 h-4 animate-spin" />}{" "}
-              Xuất bản Bộ thẻ
+              {editingTarget ? "Lưu thay đổi" : "Xuất bản Bộ thẻ"}
             </button>
           </div>
         </form>
@@ -827,10 +933,10 @@ function ContentManager() {
         <div className="bg-[var(--card)] border border-[var(--border)] rounded-3xl p-8 max-w-4xl mx-auto shadow-2xl space-y-6">
           <div className="border-b border-[var(--border)] pb-4 flex justify-between items-center">
             <h2 className="text-xl font-bold text-[var(--foreground)]">
-              Tạo Bộ Đề Quiz Mới
+              {editingTarget ? "Cập nhật Bộ đề Quiz" : "Tạo Bộ Đề Quiz Mới"}
             </h2>
             <button
-              onClick={() => setIsCreatingQuizSet(false)}
+              onClick={cancelQuizSetForm}
               className="p-2 text-[var(--muted-foreground)] hover:text-[var(--foreground)] rounded-lg hover:bg-white/5"
             >
               <X className="w-5 h-5" />
@@ -1187,7 +1293,7 @@ function ContentManager() {
           <div className="border-t border-[var(--border)] pt-6 flex justify-end gap-3">
             <button
               type="button"
-              onClick={() => setIsCreatingQuizSet(false)}
+              onClick={cancelQuizSetForm}
               className="px-6 py-3 border border-[var(--border)] rounded-xl text-sm font-bold text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
             >
               Hủy
@@ -1198,7 +1304,7 @@ function ContentManager() {
               className="px-8 py-3 bg-[var(--primary)] text-white rounded-xl text-sm font-bold hover:opacity-90 disabled:opacity-50 flex items-center gap-2"
             >
               {loadingSubmit && <Loader2 className="w-4 h-4 animate-spin" />}
-              Xuất bản Bộ đề
+              {editingTarget ? "Lưu thay đổi" : "Xuất bản Bộ đề"}
             </button>
           </div>
         </div>

@@ -63,7 +63,7 @@ type StoreDispatch = (action: unknown) => void;
 
 let dispatchRef: StoreDispatch | null = null;
 let logoutActionCreator: (() => unknown) | null = null;
-let setCredentialsActionCreator: ((payload: unknown) => unknown) | null = null;
+let setCredentialsActionCreator: ((payload: any) => any) | null = null;
 
 /**
  * Inject Redux store dispatch và action creators vào module này.
@@ -72,7 +72,7 @@ let setCredentialsActionCreator: ((payload: unknown) => unknown) | null = null;
 export const setupAuthInterceptor = (injection: {
   dispatch: StoreDispatch;
   logout: () => unknown;
-  setCredentials: (payload: unknown) => unknown;
+  setCredentials: (payload: any) => any;
 }) => {
   dispatchRef = injection.dispatch;
   logoutActionCreator = injection.logout;
