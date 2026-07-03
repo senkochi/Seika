@@ -132,6 +132,96 @@ public class QuizSetService {
         log.info("QuizSet {} deleted successfully", id);
     }
 
+    private void deleteQuizById(String id, String requesterId) {
+        ObjectId objectId;
+        try {
+            objectId = new ObjectId(id);
+        } catch (IllegalArgumentException e) {
+            log.warn("Invalid ObjectId format for deleting quiz: {}", id);
+            return;
+        }
+
+        Query query = Query.query(Criteria.where("_id").is(objectId));
+        BaseQuiz quiz = mongoTemplate.findOne(query, BaseQuiz.class, "quizzes");
+        if (quiz != null) {
+            if (!quiz.getCreatedBy().equals(requesterId)) {
+                throw new ForbiddenException("You are not allowed to delete this quiz");
+            }
+            mongoTemplate.remove(query, BaseQuiz.class, "quizzes");
+            log.info("Deleted quiz {} via MongoTemplate", id);
+        }
+    }
+
+    @Transactional
+    public QuizSetResponse update(String id, QuizSetCreateRequest request, String requesterId) {
+        log.info("Updating QuizSet id: {} by user: {}", id, requesterId);
+        QuizSet quizSet = quizSetRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("QuizSet", id));
+
+        if (!quizSet.getCreatedBy().equals(requesterId)) {
+            throw new ForbiddenException("You are not allowed to update this QuizSet");
+        }
+
+        if (request.getPrice() != null && request.getPrice().compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("Giá sản phẩm không được nhỏ hơn 0!");
+        }
+
+        if (request.getPrice() != null && request.getPrice().compareTo(BigDecimal.ZERO) > 0) {
+            BigDecimal minPrice = new BigDecimal("10");
+            BigDecimal maxPrice = new BigDecimal("100000");
+            try {
+                List<SystemConfigDTO> configs = walletClient.getConfigs();
+                if (configs != null) {
+                    for (SystemConfigDTO cfg : configs) {
+                        if ("MIN_PRODUCT_PRICE".equals(cfg.getKey()) && cfg.getValue() != null) {
+                            minPrice = new BigDecimal(cfg.getValue());
+                        } else if ("MAX_PRODUCT_PRICE".equals(cfg.getKey()) && cfg.getValue() != null) {
+                            maxPrice = new BigDecimal(cfg.getValue());
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("Không thể lấy config từ wallet-service, dùng giá trị mặc định: {}", e.getMessage());
+            }
+            if (request.getPrice().compareTo(minPrice) < 0 || request.getPrice().compareTo(maxPrice) > 0) {
+                throw new IllegalArgumentException("Giá sản phẩm phải nằm trong khoảng từ " + minPrice + " đến " + maxPrice + " coin!");
+            }
+        }
+
+        // Delete old quizzes safely
+        if (quizSet.getQuizIds() != null) {
+            quizSet.getQuizIds().forEach(quizId -> {
+                try {
+                    deleteQuizById(quizId, requesterId);
+                } catch (Exception e) {
+                    log.warn("Could not delete old quiz {} when updating quizSet {}", quizId, id);
+                }
+            });
+        }
+
+        // Create new quizzes
+        List<QuizResponse> createdQuizzes = request.getQuestions().stream()
+                .map(qReq -> quizService.create(qReq, requesterId))
+                .collect(Collectors.toList());
+
+        List<String> quizIds = createdQuizzes.stream()
+                .map(QuizResponse::getId)
+                .collect(Collectors.toList());
+
+        // Update fields
+        quizSet.setTitle(request.getTitle());
+        quizSet.setDescription(request.getDescription());
+        quizSet.setPrice(request.getPrice() != null ? request.getPrice() : BigDecimal.ZERO);
+        quizSet.setQuizIds(quizIds);
+
+        QuizSet saved = quizSetRepository.save(quizSet);
+
+        // Publish update event
+        contentEventPublisher.publishQuizSetUpdated(saved.getId(), requesterId, saved.getTitle(), saved.getDescription(), saved.getPrice());
+
+        return convertToResponse(saved, createdQuizzes);
+    }
+
     private QuizSetResponse convertToResponseWithFetchedQuizzes(QuizSet quizSet) {
         List<QuizResponse> quizzes = quizSet.getQuizIds().stream()
                 .map(id -> {

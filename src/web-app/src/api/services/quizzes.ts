@@ -92,6 +92,14 @@ export const quizzesService = {
     return response.data;
   },
 
+  updateQuizSet: async (id: string, payload: QuizSetCreateRequest) => {
+    const response = await apiClient.put<ApiResponse<QuizSetResponse>>(
+      `/quiz-sets/${encodeURIComponent(id)}`,
+      payload,
+    );
+    return response.data;
+  },
+
   /**
    * Xóa Quiz Set
    */

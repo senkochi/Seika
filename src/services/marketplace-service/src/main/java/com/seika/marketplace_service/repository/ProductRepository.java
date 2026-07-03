@@ -20,6 +20,8 @@ public interface ProductRepository extends JpaRepository<Product, String> {
 
     boolean existsByReferenceIdAndType(String referenceId, ProductType type);
 
+    Optional<Product> findByReferenceIdAndType(String referenceId, ProductType type);
+
     Page<Product> findByStatus(ProductStatus status, Pageable pageable);
 
     long countByStatus(ProductStatus status);

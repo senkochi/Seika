@@ -68,6 +68,14 @@ public class RabbitMQConfig {
     }
 
     @Bean
+    public Binding marketplaceContentEventsUpdateBinding(Queue marketplaceContentEventsQueue, TopicExchange contentEventsExchange) {
+        return BindingBuilder
+                .bind(marketplaceContentEventsQueue)
+                .to(contentEventsExchange)
+                .with("*.*.updated"); // catches flashcard.set.updated and quiz.set.updated
+    }
+
+    @Bean
     public TopicExchange walletCommandsExchange() {
         return new TopicExchange(WALLET_COMMANDS_EXCHANGE);
     }

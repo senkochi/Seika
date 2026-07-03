@@ -60,6 +60,14 @@ export const flashcardsService = {
     return response.data;
   },
 
+  update: async (id: string, payload: CardSetCreateRequest) => {
+    const response = await apiClient.put<CardSetResponse>(
+      `/flashcards/${encodeURIComponent(id)}`,
+      payload,
+    );
+    return response.data;
+  },
+
   /**
    * Xóa flashcard set (giáo viên – chỉ xóa được của mình)
    */

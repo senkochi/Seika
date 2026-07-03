@@ -41,5 +41,28 @@ public class ContentEventPublisher {
             log.error("Failed to publish quiz.set.created event for quizSetId={}", quizSetId, e);
         }
     }
+
+    public void publishQuizSetUpdated(String quizSetId, String createdBy, String title, String description, java.math.BigDecimal price) {
+        QuizSetCreatedEvent event = QuizSetCreatedEvent.builder()
+                .eventId(UUID.randomUUID().toString())
+                .quizSetId(quizSetId)
+                .createdBy(createdBy)
+                .title(title)
+                .description(description == null ? "" : description)
+                .price(price == null ? java.math.BigDecimal.ZERO : price)
+                .build();
+        try {
+            String message = objectMapper.writeValueAsString(event);
+            rabbitTemplate.convertAndSend(
+                    RabbitMQConfig.CONTENT_EVENTS_EXCHANGE,
+                    "quiz.set.updated",
+                    message);
+            log.info("Published quiz.set.updated for quizSetId={} by teacherId={}", quizSetId, createdBy);
+        } catch (JsonProcessingException e) {
+            log.error("Failed to serialize quiz.set.updated event for quizSetId={}", quizSetId, e);
+        } catch (Exception e) {
+            log.error("Failed to publish quiz.set.updated event for quizSetId={}", quizSetId, e);
+        }
+    }
 }
 

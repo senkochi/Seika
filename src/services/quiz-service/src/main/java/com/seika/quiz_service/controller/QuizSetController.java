@@ -47,6 +47,15 @@ public class QuizSetController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<ApiResponse<QuizSetResponse>> updateQuizSet(
+            @PathVariable String id,
+            @RequestBody QuizSetCreateRequest request) {
+        String userId = extractUserId();
+        QuizSetResponse response = quizSetService.update(id, request, userId);
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteQuizSet(@PathVariable String id) {
         String userId = extractUserId();
