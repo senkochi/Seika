@@ -9,6 +9,7 @@ import {
   Bell,
   Search,
   Shield,
+  TrendingUp,
 } from "lucide-react";
 import GridBackground from "./GridBackground";
 import { Logo } from "../components/logo/Logo";
@@ -63,8 +64,7 @@ function AdminDashboardLayout() {
   useEffect(() => {
     const isAdmin = roles.some(
       (role) =>
-        role.toUpperCase() === "ROLE_ADMIN" ||
-        role.toUpperCase() === "ADMIN",
+        role.toUpperCase() === "ROLE_ADMIN" || role.toUpperCase() === "ADMIN",
     );
     if (roles.length > 0 && !isAdmin) {
       navigate("/auth/login", { replace: true });
@@ -78,7 +78,18 @@ function AdminDashboardLayout() {
   };
 
   const navItems = [
-    { id: "home", label: "Dashboard", icon: LayoutDashboard, path: "/admin/dashboard" },
+    {
+      id: "home",
+      label: "Dashboard",
+      icon: LayoutDashboard,
+      path: "/admin/dashboard",
+    },
+    {
+      id: "revenue",
+      label: "Revenue",
+      icon: TrendingUp,
+      path: "/admin/dashboard/revenue",
+    },
     {
       id: "users",
       label: "User Management",
@@ -211,7 +222,9 @@ function AdminDashboardLayout() {
                 {notificationsOpen && (
                   <div className="absolute right-0 top-[calc(100%+0.75rem)] z-30 w-80 overflow-hidden rounded-2xl border border-[var(--border)] bg-[rgba(24,18,45,0.98)] shadow-[0_24px_80px_rgba(10,10,20,0.35)] backdrop-blur-xl">
                     <div className="p-4 border-b border-[var(--border)] flex justify-between items-center">
-                      <h3 className="font-bold text-[var(--foreground)]">Notifications</h3>
+                      <h3 className="font-bold text-[var(--foreground)]">
+                        Notifications
+                      </h3>
                       {unreadCount > 0 && (
                         <button
                           onClick={() => dispatch(markAllAsRead())}
@@ -253,9 +266,12 @@ function AdminDashboardLayout() {
                                 {notif.content}
                               </p>
                               <span className="text-[10px] text-[var(--muted-foreground)] mt-2 block">
-                                {formatDistanceToNow(new Date(notif.createdAt), {
-                                  addSuffix: true,
-                                })}
+                                {formatDistanceToNow(
+                                  new Date(notif.createdAt),
+                                  {
+                                    addSuffix: true,
+                                  },
+                                )}
                               </span>
                             </div>
                           );
@@ -298,7 +314,9 @@ function AdminDashboardLayout() {
                       {displayName}
                       <Shield className="w-4 h-4 text-red-400" />
                     </p>
-                    <p className="text-[var(--muted-foreground)] text-xs">Administrator Account</p>
+                    <p className="text-[var(--muted-foreground)] text-xs">
+                      Administrator Account
+                    </p>
                   </div>
                 </button>
 

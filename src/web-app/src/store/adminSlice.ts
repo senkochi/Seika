@@ -91,17 +91,28 @@ export const fetchAdminDashboard = createAsyncThunk<
   try {
     return await adminService.getDashboardStats();
   } catch (error) {
-    return rejectWithValue(getApiErrorMessage(error, "Không thể tải dashboard."));
+    return rejectWithValue(
+      getApiErrorMessage(error, "Không thể tải dashboard."),
+    );
   }
 });
 
 export const fetchAdminUsers = createAsyncThunk<
-  { content: UserAdminResponse[]; page: number; totalElements: number; totalPages: number },
+  {
+    content: UserAdminResponse[];
+    page: number;
+    totalElements: number;
+    totalPages: number;
+  },
   { role?: string; page?: number; size?: number },
   { rejectValue: string }
 >("admin/fetchUsers", async (params, { rejectWithValue }) => {
   try {
-    const result = await adminService.listUsers(params.role, params.page ?? 0, params.size ?? 20);
+    const result = await adminService.listUsers(
+      params.role,
+      params.page ?? 0,
+      params.size ?? 20,
+    );
     return {
       content: result.content,
       page: result.number,
@@ -109,31 +120,39 @@ export const fetchAdminUsers = createAsyncThunk<
       totalPages: result.totalPages,
     };
   } catch (error) {
-    return rejectWithValue(getApiErrorMessage(error, "Không thể tải danh sách người dùng."));
+    return rejectWithValue(
+      getApiErrorMessage(error, "Không thể tải danh sách người dùng."),
+    );
   }
 });
 
-export const lockAdminUser = createAsyncThunk<UserAdminResponse, string, { rejectValue: string }>(
-  "admin/lockUser",
-  async (userId, { rejectWithValue }) => {
-    try {
-      return await adminService.lockUser(userId);
-    } catch (error) {
-      return rejectWithValue(getApiErrorMessage(error, "Không thể khóa tài khoản."));
-    }
-  },
-);
+export const lockAdminUser = createAsyncThunk<
+  UserAdminResponse,
+  string,
+  { rejectValue: string }
+>("admin/lockUser", async (userId, { rejectWithValue }) => {
+  try {
+    return await adminService.lockUser(userId);
+  } catch (error) {
+    return rejectWithValue(
+      getApiErrorMessage(error, "Không thể khóa tài khoản."),
+    );
+  }
+});
 
-export const unlockAdminUser = createAsyncThunk<UserAdminResponse, string, { rejectValue: string }>(
-  "admin/unlockUser",
-  async (userId, { rejectWithValue }) => {
-    try {
-      return await adminService.unlockUser(userId);
-    } catch (error) {
-      return rejectWithValue(getApiErrorMessage(error, "Không thể mở khóa tài khoản."));
-    }
-  },
-);
+export const unlockAdminUser = createAsyncThunk<
+  UserAdminResponse,
+  string,
+  { rejectValue: string }
+>("admin/unlockUser", async (userId, { rejectWithValue }) => {
+  try {
+    return await adminService.unlockUser(userId);
+  } catch (error) {
+    return rejectWithValue(
+      getApiErrorMessage(error, "Không thể mở khóa tài khoản."),
+    );
+  }
+});
 
 export const changeAdminUserRole = createAsyncThunk<
   UserAdminResponse,
@@ -155,17 +174,27 @@ export const resetAdminUserPassword = createAsyncThunk<
   try {
     return await adminService.resetUserPassword(userId);
   } catch (error) {
-    return rejectWithValue(getApiErrorMessage(error, "Không thể reset mật khẩu."));
+    return rejectWithValue(
+      getApiErrorMessage(error, "Không thể reset mật khẩu."),
+    );
   }
 });
 
 export const fetchPendingProducts = createAsyncThunk<
-  { content: PendingProduct[]; page: number; totalElements: number; totalPages: number },
+  {
+    content: PendingProduct[];
+    page: number;
+    totalElements: number;
+    totalPages: number;
+  },
   { page?: number; size?: number },
   { rejectValue: string }
 >("admin/fetchPendingProducts", async (params, { rejectWithValue }) => {
   try {
-    const result = await adminService.listPendingProducts(params.page ?? 0, params.size ?? 20);
+    const result = await adminService.listPendingProducts(
+      params.page ?? 0,
+      params.size ?? 20,
+    );
     return {
       content: result.content,
       page: result.number,
@@ -173,20 +202,25 @@ export const fetchPendingProducts = createAsyncThunk<
       totalPages: result.totalPages,
     };
   } catch (error) {
-    return rejectWithValue(getApiErrorMessage(error, "Không thể tải danh sách sản phẩm chờ duyệt."));
+    return rejectWithValue(
+      getApiErrorMessage(error, "Không thể tải danh sách sản phẩm chờ duyệt."),
+    );
   }
 });
 
-export const approveAdminProduct = createAsyncThunk<PendingProduct, string, { rejectValue: string }>(
-  "admin/approveProduct",
-  async (productId, { rejectWithValue }) => {
-    try {
-      return await adminService.approveProduct(productId);
-    } catch (error) {
-      return rejectWithValue(getApiErrorMessage(error, "Không thể duyệt sản phẩm."));
-    }
-  },
-);
+export const approveAdminProduct = createAsyncThunk<
+  PendingProduct,
+  string,
+  { rejectValue: string }
+>("admin/approveProduct", async (productId, { rejectWithValue }) => {
+  try {
+    return await adminService.approveProduct(productId);
+  } catch (error) {
+    return rejectWithValue(
+      getApiErrorMessage(error, "Không thể duyệt sản phẩm."),
+    );
+  }
+});
 
 export const rejectAdminProduct = createAsyncThunk<
   PendingProduct,
@@ -196,7 +230,9 @@ export const rejectAdminProduct = createAsyncThunk<
   try {
     return await adminService.rejectProduct(productId, { reason });
   } catch (error) {
-    return rejectWithValue(getApiErrorMessage(error, "Không thể từ chối sản phẩm."));
+    return rejectWithValue(
+      getApiErrorMessage(error, "Không thể từ chối sản phẩm."),
+    );
   }
 });
 
@@ -208,7 +244,9 @@ export const fetchAdminConfigs = createAsyncThunk<
   try {
     return await adminService.listConfigs();
   } catch (error) {
-    return rejectWithValue(getApiErrorMessage(error, "Không thể tải cấu hình."));
+    return rejectWithValue(
+      getApiErrorMessage(error, "Không thể tải cấu hình."),
+    );
   }
 });
 
@@ -220,7 +258,9 @@ export const updateAdminConfig = createAsyncThunk<
   try {
     return await adminService.updateConfig(key, { value });
   } catch (error) {
-    return rejectWithValue(getApiErrorMessage(error, "Không thể cập nhật cấu hình."));
+    return rejectWithValue(
+      getApiErrorMessage(error, "Không thể cập nhật cấu hình."),
+    );
   }
 });
 
@@ -235,6 +275,20 @@ const adminSlice = createSlice({
     setUsersRoleFilter(state, action: { payload: string }) {
       state.users.filterRole = action.payload;
       state.users.page = 0;
+    },
+    setUsersPage(state, action: { payload: number }) {
+      state.users.page = action.payload;
+    },
+    setUsersSize(state, action: { payload: number }) {
+      state.users.size = action.payload;
+      state.users.page = 0;
+    },
+    setProductsPage(state, action: { payload: number }) {
+      state.products.page = action.payload;
+    },
+    setProductsSize(state, action: { payload: number }) {
+      state.products.size = action.payload;
+      state.products.page = 0;
     },
     clearMutationStatus(state) {
       state.mutationStatus = "idle";
@@ -309,13 +363,19 @@ const adminSlice = createSlice({
         state.products.content = state.products.content.filter(
           (p) => p.id !== action.payload.id,
         );
-        state.products.totalElements = Math.max(0, state.products.totalElements - 1);
+        state.products.totalElements = Math.max(
+          0,
+          state.products.totalElements - 1,
+        );
       })
       .addCase(rejectAdminProduct.fulfilled, (state, action) => {
         state.products.content = state.products.content.filter(
           (p) => p.id !== action.payload.id,
         );
-        state.products.totalElements = Math.max(0, state.products.totalElements - 1);
+        state.products.totalElements = Math.max(
+          0,
+          state.products.totalElements - 1,
+        );
       });
 
     // Configs
@@ -333,7 +393,9 @@ const adminSlice = createSlice({
         state.configsError = action.payload ?? "Unknown";
       })
       .addCase(updateAdminConfig.fulfilled, (state, action) => {
-        const idx = state.configs.findIndex((c) => c.key === action.payload.key);
+        const idx = state.configs.findIndex(
+          (c) => c.key === action.payload.key,
+        );
         if (idx >= 0) {
           state.configs[idx] = action.payload;
         } else {
@@ -381,5 +443,12 @@ function replaceUser(state: AdminState, user: UserAdminResponse) {
   }
 }
 
-export const { setUsersRoleFilter, clearMutationStatus } = adminSlice.actions;
+export const {
+  setUsersRoleFilter,
+  setUsersPage,
+  setUsersSize,
+  setProductsPage,
+  setProductsSize,
+  clearMutationStatus,
+} = adminSlice.actions;
 export default adminSlice.reducer;

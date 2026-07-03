@@ -12,6 +12,7 @@ import {
   TrendingUp,
   Star,
   AlertTriangle,
+  RefreshCcw,
 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { fetchCurrentUserProfile } from "../../store/userProfileSlice";
@@ -54,22 +55,27 @@ function TeacherProfile() {
     }
   }, [profileState]);
 
+  const fetchTeacherProfile = async () => {
+    setLoadingStats(true);
+    setStatsError(false);
+    try {
+      const data = await teacherProfileService.getMyProfile();
+      setTeacherProfile(data);
+    } catch (err) {
+      console.error("Failed to fetch teacher profile stats:", err);
+      setStatsError(true);
+    } finally {
+      setLoadingStats(false);
+    }
+  };
+
+  const handleRefresh = async () => {
+    dispatch(fetchCurrentUserProfile());
+    await fetchTeacherProfile();
+  };
+
   // Fetch teacher stats
   useEffect(() => {
-    const fetchTeacherProfile = async () => {
-      setLoadingStats(true);
-      setStatsError(false);
-      try {
-        const data = await teacherProfileService.getMyProfile();
-        setTeacherProfile(data);
-      } catch (err) {
-        console.error("Failed to fetch teacher profile stats:", err);
-        setStatsError(true);
-      } finally {
-        setLoadingStats(false);
-      }
-    };
-
     if (profileState.status === "succeeded") {
       fetchTeacherProfile();
     }
@@ -101,12 +107,12 @@ function TeacherProfile() {
           profilePictureUrl: profilePictureUrl || undefined,
         });
       }
-      showSuccess("Cập nhật hồ sơ thành công!");
-      setIsEditing(false);
+      showSuccess("Cập nhật thông tin thành công!");
       dispatch(fetchCurrentUserProfile());
+      setIsEditing(false);
     } catch (err) {
       console.error(err);
-      showError("Cập nhật hồ sơ thất bại.");
+      showError("Không thể cập nhật thông tin.");
     } finally {
       setLoadingSubmit(false);
     }
@@ -128,20 +134,8 @@ function TeacherProfile() {
 
   const statCards = [
     {
-      icon: HelpCircle,
-      label: "Bộ đề Quiz đã tạo",
-      value: loadingStats
-        ? "..."
-        : statsError
-          ? "–"
-          : (teacherProfile?.totalQuizCreated ?? 0),
-      color: "text-blue-400",
-      bg: "bg-blue-500/10",
-      border: "border-blue-500/20",
-    },
-    {
       icon: BookOpen,
-      label: "Bộ Flashcard đã tạo",
+      label: "Bộ thẻ Flashcard",
       value: loadingStats
         ? "..."
         : statsError
@@ -150,6 +144,18 @@ function TeacherProfile() {
       color: "text-purple-400",
       bg: "bg-purple-500/10",
       border: "border-purple-500/20",
+    },
+    {
+      icon: HelpCircle,
+      label: "Bộ đề trắc nghiệm",
+      value: loadingStats
+        ? "..."
+        : statsError
+          ? "–"
+          : (teacherProfile?.totalQuizCreated ?? 0),
+      color: "text-blue-400",
+      bg: "bg-blue-500/10",
+      border: "border-blue-500/20",
     },
     {
       icon: Users,
@@ -180,13 +186,21 @@ function TeacherProfile() {
   return (
     <div className="p-8 max-w-5xl mx-auto">
       {/* Page Title */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-black text-[var(--foreground)] mb-2">
-          Teacher Profile
-        </h1>
-        <p className="text-[var(--muted-foreground)]">
-          Quản lý thông tin cá nhân, huy hiệu và thống kê giảng dạy của bạn.
-        </p>
+      <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-black text-[var(--foreground)] mb-2">
+            Teacher Profile
+          </h1>
+          <p className="text-[var(--muted-foreground)]">
+            Quản lý thông tin cá nhân, huy hiệu và thống kê giảng dạy của bạn.
+          </p>
+        </div>
+        <button
+          onClick={handleRefresh}
+          className="inline-flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-sm font-medium text-[var(--foreground)] hover:border-[var(--primary)] transition-all"
+        >
+          <RefreshCcw className="h-4 w-4" /> Làm mới
+        </button>
       </div>
 
       {/* Main Grid */}

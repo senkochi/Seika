@@ -325,3 +325,27 @@ export interface AdminProductsPage {
   number: number;
   size: number;
 }
+
+export interface AdminRevenueStats {
+  totalTopupCoins: number;
+  totalTopupVnd: number;
+  totalWithdrawalCoins: number;
+  totalWithdrawalVnd: number;
+  netRevenueVnd: number;
+  totalCoinCirculation: number;
+  potentialLiabilityVnd: number;
+  guaranteedProfitVnd: number;
+  currentTopupRate: number;
+  currentWithdrawalRate: number;
+}
+
+export interface AdminTransactionResponse {
+  id: string;
+  userId: string;
+  walletId: string;
+  type: string;
+  amount: number;
+  amountVnd: number;
+  description: string;
+  createdAt: string;
+}

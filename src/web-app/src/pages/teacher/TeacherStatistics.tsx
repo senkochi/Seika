@@ -32,18 +32,17 @@ import {
   fetchTopProducts,
 } from "../../store/statisticsSlice";
 import { showError } from "../../components/toast/toastUtils";
-import type { QuizAttempt, RevenuePoint, StudentPurchase, TopProduct } from "../../api/types";
-
-const currencyFormatter = new Intl.NumberFormat("vi-VN", {
-  style: "currency",
-  currency: "VND",
-  maximumFractionDigits: 0,
-});
+import type {
+  QuizAttempt,
+  RevenuePoint,
+  StudentPurchase,
+  TopProduct,
+} from "../../api/types";
 
 const numberFormatter = new Intl.NumberFormat("vi-VN");
 
 const formatCurrency = (value: number | undefined | null) =>
-  currencyFormatter.format(value ?? 0);
+  `${numberFormatter.format(value ?? 0)} Coins`;
 
 const formatNumber = (value: number | undefined | null) =>
   numberFormatter.format(value ?? 0);
@@ -65,8 +64,12 @@ function StatCard({
     >
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <p className="text-[var(--muted-foreground)] text-sm font-medium">{label}</p>
-          <p className="mt-3 text-2xl font-bold text-[var(--foreground)] truncate">{value}</p>
+          <p className="text-[var(--muted-foreground)] text-sm font-medium">
+            {label}
+          </p>
+          <p className="mt-3 text-2xl font-bold text-[var(--foreground)] truncate">
+            {value}
+          </p>
         </div>
         <div
           className={`flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br ${accent}`}
@@ -89,13 +92,23 @@ function LoadingState({ message }: { message: string }) {
   );
 }
 
-function ErrorState({ message, onRetry }: { message: string; onRetry: () => void }) {
+function ErrorState({
+  message,
+  onRetry,
+}: {
+  message: string;
+  onRetry: () => void;
+}) {
   return (
     <div className="p-8 flex items-center justify-center min-h-[60vh]">
       <div className="flex flex-col items-center gap-4 text-center">
         <div className="text-4xl">⚠️</div>
-        <p className="text-[var(--foreground)] font-bold">Không thể tải thống kê</p>
-        <p className="text-[var(--muted-foreground)] text-sm max-w-md">{message}</p>
+        <p className="text-[var(--foreground)] font-bold">
+          Không thể tải thống kê
+        </p>
+        <p className="text-[var(--muted-foreground)] text-sm max-w-md">
+          {message}
+        </p>
         <button
           onClick={onRetry}
           className="inline-flex items-center gap-2 rounded-xl bg-[var(--primary)] px-4 py-2 text-sm font-medium text-[var(--primary-foreground)] hover:opacity-90"
@@ -115,7 +128,13 @@ interface AttemptsModalProps {
   isLoading: boolean;
 }
 
-function AttemptsModal({ open, onClose, productName, attempts, isLoading }: AttemptsModalProps) {
+function AttemptsModal({
+  open,
+  onClose,
+  productName,
+  attempts,
+  isLoading,
+}: AttemptsModalProps) {
   if (!open) {
     return null;
   }
@@ -125,8 +144,12 @@ function AttemptsModal({ open, onClose, productName, attempts, isLoading }: Atte
       <div className="w-full max-w-3xl rounded-2xl bg-[var(--card)] border border-[var(--border)] shadow-2xl overflow-hidden">
         <div className="flex items-center justify-between border-b border-[var(--border)] p-4">
           <div>
-            <h3 className="text-lg font-semibold text-[var(--foreground)]">Lịch sử làm bài</h3>
-            <p className="text-sm text-[var(--muted-foreground)]">{productName}</p>
+            <h3 className="text-lg font-semibold text-[var(--foreground)]">
+              Lịch sử làm bài
+            </h3>
+            <p className="text-sm text-[var(--muted-foreground)]">
+              {productName}
+            </p>
           </div>
           <button
             aria-label="Đóng"
@@ -220,14 +243,21 @@ function TeacherStatistics() {
   }, [dispatch, period]);
 
   const totals = useMemo(() => {
-    const revenueTotal = revenue.reduce((acc, p) => acc + (p.totalRevenue || 0), 0);
-    const ordersTotal = revenue.reduce((acc, p) => acc + (p.orderCount || 0), 0);
+    const revenueTotal = revenue.reduce(
+      (acc, p) => acc + (p.totalRevenue || 0),
+      0,
+    );
+    const ordersTotal = revenue.reduce(
+      (acc, p) => acc + (p.orderCount || 0),
+      0,
+    );
     return { revenueTotal, ordersTotal };
   }, [revenue]);
 
   const flashcardRevenue = flashcardOverview?.totalRevenue ?? 0;
   const quizRevenue = quizOverview?.totalRevenue ?? 0;
-  const totalRevenue = revenue.length > 0 ? totals.revenueTotal : flashcardRevenue + quizRevenue;
+  const totalRevenue =
+    revenue.length > 0 ? totals.revenueTotal : flashcardRevenue + quizRevenue;
 
   const totalOrders = revenue.length > 0 ? totals.ordersTotal : 0;
   const totalFlashcardSales = flashcardOverview?.totalPurchases ?? 0;
@@ -236,7 +266,8 @@ function TeacherStatistics() {
     quizOverview?.totalStudents ?? 0,
   );
   const totalContent =
-    (quizOverview?.totalQuizSets ?? 0) + (flashcardOverview?.totalCardSets ?? 0);
+    (quizOverview?.totalQuizSets ?? 0) +
+    (flashcardOverview?.totalCardSets ?? 0);
 
   const onRetry = () => {
     void dispatch(fetchStatisticsOverview());
@@ -251,7 +282,8 @@ function TeacherStatistics() {
       dispatch(fetchQuizAttempts(quizSetId)).then((result) => {
         if (fetchQuizAttempts.rejected.match(result)) {
           const message =
-            (result.payload as string | undefined) ?? "Không thể tải lịch sử làm bài.";
+            (result.payload as string | undefined) ??
+            "Không thể tải lịch sử làm bài.";
           showError(message);
         }
       });
@@ -263,14 +295,20 @@ function TeacherStatistics() {
   }
 
   if (overviewStatus === "failed" && !quizOverview && !flashcardOverview) {
-    return <ErrorState message={overviewError ?? "Lỗi không xác định"} onRetry={onRetry} />;
+    return (
+      <ErrorState
+        message={overviewError ?? "Lỗi không xác định"}
+        onRetry={onRetry}
+      />
+    );
   }
 
   const chartData: RevenuePoint[] = revenue ?? [];
 
   const modalProductName =
     modalQuizSetId && topProducts
-      ? topProducts.find((p) => p.productId === modalQuizSetId)?.productName ?? ""
+      ? (topProducts.find((p) => p.productId === modalQuizSetId)?.productName ??
+        "")
       : "";
 
   return (
@@ -283,7 +321,8 @@ function TeacherStatistics() {
             Thống kê giáo viên
           </h1>
           <p className="mt-1 text-sm text-[var(--muted-foreground)]">
-            Theo dõi doanh thu, học sinh và kết quả học tập của các sản phẩm bạn đã tạo.
+            Theo dõi doanh thu, học sinh và kết quả học tập của các sản phẩm bạn
+            đã tạo.
           </p>
         </div>
 
@@ -346,11 +385,14 @@ function TeacherStatistics() {
           <div className="flex items-center gap-3">
             <TrendingUp className="h-5 w-5 text-[var(--primary)]" />
             <div>
-              <p className="text-sm text-[var(--muted-foreground)]">Tỷ lệ đạt quiz trung bình</p>
+              <p className="text-sm text-[var(--muted-foreground)]">
+                Tỷ lệ đạt quiz trung bình
+              </p>
               <p className="text-xl font-bold text-[var(--foreground)]">
                 {quizOverview.passRate.toFixed(1)}%
                 <span className="ml-2 text-sm font-medium text-[var(--muted-foreground)]">
-                  ({formatNumber(quizOverview.totalPassed)} / {formatNumber(quizOverview.totalAttempts)} lượt)
+                  ({formatNumber(quizOverview.totalPassed)} /{" "}
+                  {formatNumber(quizOverview.totalAttempts)} lượt)
                 </span>
               </p>
             </div>
@@ -370,7 +412,10 @@ function TeacherStatistics() {
         ) : (
           <div className="h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={chartData} margin={{ top: 10, right: 16, left: 0, bottom: 0 }}>
+              <LineChart
+                data={chartData}
+                margin={{ top: 10, right: 16, left: 0, bottom: 0 }}
+              >
                 <CartesianGrid stroke="var(--border)" strokeDasharray="3 3" />
                 <XAxis
                   dataKey="period"
@@ -391,7 +436,10 @@ function TeacherStatistics() {
                     color: "var(--foreground)",
                   }}
                   labelStyle={{ color: "var(--muted-foreground)" }}
-                  formatter={(value: number) => [formatCurrency(value), "Doanh thu"]}
+                  formatter={(value: number) => [
+                    formatCurrency(value),
+                    "Doanh thu",
+                  ]}
                 />
                 <Line
                   type="monotone"
@@ -409,7 +457,9 @@ function TeacherStatistics() {
       {/* Top products + students */}
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
         <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-6 shadow-[0_20px_60px_rgba(10,10,20,0.28)]">
-          <h2 className="mb-4 text-lg font-semibold text-[var(--foreground)]">Sản phẩm bán chạy</h2>
+          <h2 className="mb-4 text-lg font-semibold text-[var(--foreground)]">
+            Sản phẩm bán chạy
+          </h2>
           {topProductsStatus === "loading" ? (
             <LoadingState message="Đang tải..." />
           ) : !topProducts || topProducts.length === 0 ? (
@@ -464,9 +514,6 @@ function TeacherStatistics() {
                   ))}
                 </tbody>
               </table>
-              <p className="mt-3 text-xs text-[var(--muted-foreground)]">
-                * Nhấp vào một QuizSet để xem lịch sử làm bài của học sinh.
-              </p>
             </div>
           )}
         </div>
@@ -500,12 +547,17 @@ function TeacherStatistics() {
                           ? `${entry.userId.slice(0, 8)}…${entry.userId.slice(-4)}`
                           : entry.userId}
                       </td>
-                      <td className="py-3 text-[var(--foreground)]">{entry.productName}</td>
+                      <td className="py-3 text-[var(--foreground)]">
+                        {entry.productName}
+                      </td>
                       <td className="py-3 text-right text-[var(--foreground)]">
                         {formatCurrency(entry.unitPrice)}
                       </td>
                       <td className="py-3 text-[var(--muted-foreground)]">
-                        {format(new Date(entry.purchasedAt), "dd/MM/yyyy HH:mm")}
+                        {format(
+                          new Date(entry.purchasedAt),
+                          "dd/MM/yyyy HH:mm",
+                        )}
                       </td>
                     </tr>
                   ))}
@@ -520,7 +572,9 @@ function TeacherStatistics() {
         open={modalQuizSetId !== null}
         onClose={() => setModalQuizSetId(null)}
         productName={modalProductName}
-        attempts={modalQuizSetId ? attemptsByQuizSet[modalQuizSetId] : undefined}
+        attempts={
+          modalQuizSetId ? attemptsByQuizSet[modalQuizSetId] : undefined
+        }
         isLoading={attemptsStatus === "loading"}
       />
     </div>

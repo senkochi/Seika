@@ -7,6 +7,7 @@ import {
   Zap,
   ArrowUpRight,
   Coins,
+  RefreshCcw,
 } from "lucide-react";
 import { walletService } from "../../api";
 import { showError, showSuccess } from "../../components/toast/toastUtils";
@@ -137,12 +138,18 @@ function TeacherWallet() {
     <div className="p-8">
       {/* Header section */}
       <div className="mb-8">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 w-full">
           <div>
-            <h1 className="text-3xl font-black text-[var(--foreground)] mb-2">
+            <h1 className="text-3xl font-black text-[var(--foreground)] mb-2 flex items-center gap-3">
               <span className="bg-gradient-to-r from-amber-300 to-yellow-400 bg-clip-text text-transparent">
                 Teacher Wallet
               </span>
+              <button
+                onClick={fetchWalletData}
+                className="inline-flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-sm font-medium text-[var(--foreground)] hover:border-[var(--primary)] transition-all"
+              >
+                <RefreshCcw className="h-4 w-4" /> Làm mới
+              </button>
             </h1>
             <p className="text-[var(--muted-foreground)]">
               Manage your earnings, check balances and spent coins.

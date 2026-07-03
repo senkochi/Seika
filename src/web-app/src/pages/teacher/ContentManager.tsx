@@ -9,6 +9,7 @@ import {
   Loader2,
   AlertTriangle,
   X,
+  RefreshCcw,
 } from "lucide-react";
 import { useAppSelector, useAppDispatch } from "../../store/hooks";
 import { fetchCurrentUserProfile } from "../../store/userProfileSlice";
@@ -434,19 +435,32 @@ function ContentManager() {
             Sets).
           </p>
         </div>
-        {!isCreatingSet && !isCreatingQuizSet && (
-          <button
-            id="btn-create-content"
-            onClick={() => {
-              if (activeTab === "flashcards") setIsCreatingSet(true);
-              else setIsCreatingQuizSet(true);
-            }}
-            className="flex items-center gap-2 px-5 py-3 bg-[var(--primary)] text-white font-bold text-sm rounded-xl hover:opacity-90 transition-all shadow-lg shadow-purple-600/20"
-          >
-            <Plus className="w-4 h-4" />
-            {activeTab === "flashcards" ? "Bộ Flashcard Mới" : "Bộ đề Quiz Mới"}
-          </button>
-        )}
+        <div className="flex items-center gap-3">
+          {!isCreatingSet && !isCreatingQuizSet && (
+            <>
+              <button
+                onClick={loadData}
+                className="inline-flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-sm font-medium text-[var(--foreground)] hover:border-[var(--primary)] transition-all"
+              >
+                <RefreshCcw className="h-4 w-4" />
+                Làm mới
+              </button>
+              <button
+                id="btn-create-content"
+                onClick={() => {
+                  if (activeTab === "flashcards") setIsCreatingSet(true);
+                  else setIsCreatingQuizSet(true);
+                }}
+                className="flex items-center gap-2 px-5 py-3 bg-[var(--primary)] text-white font-bold text-sm rounded-xl hover:opacity-90 transition-all shadow-lg shadow-purple-600/20"
+              >
+                <Plus className="w-4 h-4" />
+                {activeTab === "flashcards"
+                  ? "Bộ Flashcard Mới"
+                  : "Bộ đề Quiz Mới"}
+              </button>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Tabs */}

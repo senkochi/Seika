@@ -42,9 +42,8 @@ const AdminUsers = lazy(() => import("./pages/admin/AdminUsers"));
 const AdminContentModeration = lazy(
   () => import("./pages/admin/AdminContentModeration"),
 );
-const AdminSystemConfig = lazy(
-  () => import("./pages/admin/AdminSystemConfig"),
-);
+const AdminSystemConfig = lazy(() => import("./pages/admin/AdminSystemConfig"));
+const AdminRevenue = lazy(() => import("./pages/admin/AdminRevenue"));
 
 const withLoader = (content: ReactNode) => (
   <Suspense fallback={<PageLoader />}>{content}</Suspense>
@@ -155,6 +154,10 @@ const router = createBrowserRouter([
       {
         path: "config",
         element: withLoader(<AdminSystemConfig />),
+      },
+      {
+        path: "revenue",
+        element: withLoader(<AdminRevenue />),
       },
     ],
   },

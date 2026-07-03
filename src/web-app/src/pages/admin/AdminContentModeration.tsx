@@ -15,7 +15,10 @@ import {
   fetchPendingProducts,
   approveAdminProduct,
   rejectAdminProduct,
+  setProductsPage,
+  setProductsSize,
 } from "../../store/adminSlice";
+import { Pagination } from "../../components/ui/Pagination";
 import { showError, showSuccess } from "../../components/toast/toastUtils";
 import type { PendingProduct } from "../../api/types";
 
@@ -126,8 +129,10 @@ function AdminContentModeration() {
   const [modalReject, setModalReject] = useState<PendingProduct | null>(null);
 
   useEffect(() => {
-    void dispatch(fetchPendingProducts({ page: 0, size: 20 }));
-  }, [dispatch]);
+    void dispatch(
+      fetchPendingProducts({ page: products.page, size: products.size }),
+    );
+  }, [dispatch, products.page, products.size]);
 
   const isMutating = mutationStatus === "loading";
 
@@ -251,7 +256,14 @@ function AdminContentModeration() {
           </p>
         </div>
         <button
-          onClick={() => dispatch(fetchPendingProducts({ page: 0, size: 20 }))}
+          onClick={() =>
+            dispatch(
+              fetchPendingProducts({
+                page: products.page,
+                size: products.size,
+              }),
+            )
+          }
           className="inline-flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-sm font-medium text-[var(--foreground)] hover:border-[var(--primary)]"
         >
           <RefreshCw className="h-4 w-4" />
@@ -277,6 +289,14 @@ function AdminContentModeration() {
             </tbody>
           </table>
         </div>
+        <Pagination
+          currentPage={products.page}
+          totalPages={products.totalPages}
+          totalElements={products.totalElements}
+          pageSize={products.size}
+          onPageChange={(page) => dispatch(setProductsPage(page))}
+          onPageSizeChange={(size) => dispatch(setProductsSize(size))}
+        />
       </div>
 
       <RejectModal

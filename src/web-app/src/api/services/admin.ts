@@ -2,6 +2,8 @@ import { apiClient } from "../client";
 import type {
   AdminDashboardStats,
   AdminProductsPage,
+  AdminRevenueStats,
+  AdminTransactionResponse,
   AdminUsersPage,
   PendingProduct,
   RejectProductRequest,
@@ -10,8 +12,12 @@ import type {
   UserAdminResponse,
 } from "../types";
 
-const unwrap = <T,>(payload: unknown): T => {
-  if (payload && typeof payload === "object" && "data" in (payload as Record<string, unknown>)) {
+const unwrap = <T>(payload: unknown): T => {
+  if (
+    payload &&
+    typeof payload === "object" &&
+    "data" in (payload as Record<string, unknown>)
+  ) {
     return (payload as { data: T }).data;
   }
   return payload as T;
@@ -70,19 +76,26 @@ export const adminService = {
     userId: string,
     role: "STUDENT" | "TEACHER",
   ): Promise<UserAdminResponse> => {
-    const response = await apiClient.put(`/admin/users/${userId}/role`, { role });
+    const response = await apiClient.put(`/admin/users/${userId}/role`, {
+      role,
+    });
     return unwrap<UserAdminResponse>(response.data);
   },
 
   resetUserPassword: async (userId: string): Promise<{ message: string }> => {
-    const response = await apiClient.post(`/admin/users/${userId}/reset-password`);
+    const response = await apiClient.post(
+      `/admin/users/${userId}/reset-password`,
+    );
     return unwrap<{ message: string }>(response.data);
   },
 
   // -------------------------------------------------------------------------
   // Content moderation
   // -------------------------------------------------------------------------
-  listPendingProducts: async (page = 0, size = 20): Promise<AdminProductsPage> => {
+  listPendingProducts: async (
+    page = 0,
+    size = 20,
+  ): Promise<AdminProductsPage> => {
     const response = await apiClient.get(
       `/marketplace/admin/products/pending?page=${page}&size=${size}`,
     );
@@ -103,11 +116,16 @@ export const adminService = {
   },
 
   approveProduct: async (id: string): Promise<PendingProduct> => {
-    const response = await apiClient.post(`/marketplace/admin/products/${id}/approve`);
+    const response = await apiClient.post(
+      `/marketplace/admin/products/${id}/approve`,
+    );
     return unwrap<PendingProduct>(response.data);
   },
 
-  rejectProduct: async (id: string, request: RejectProductRequest): Promise<PendingProduct> => {
+  rejectProduct: async (
+    id: string,
+    request: RejectProductRequest,
+  ): Promise<PendingProduct> => {
     const response = await apiClient.post(
       `/marketplace/admin/products/${id}/reject`,
       request,
@@ -116,7 +134,9 @@ export const adminService = {
   },
 
   hideProduct: async (id: string): Promise<PendingProduct> => {
-    const response = await apiClient.post(`/marketplace/admin/products/${id}/hide`);
+    const response = await apiClient.post(
+      `/marketplace/admin/products/${id}/hide`,
+    );
     return unwrap<PendingProduct>(response.data);
   },
 
@@ -133,7 +153,28 @@ export const adminService = {
     key: string,
     request: UpdateConfigRequest,
   ): Promise<SystemConfigEntry> => {
-    const response = await apiClient.put(`/wallet/admin/configs/${key}`, request);
+    const response = await apiClient.put(
+      `/wallet/admin/configs/${key}`,
+      request,
+    );
     return unwrap<SystemConfigEntry>(response.data);
+  },
+
+  // -------------------------------------------------------------------------
+  // Revenue and Treasury management
+  // -------------------------------------------------------------------------
+  getRevenueStats: async (): Promise<AdminRevenueStats> => {
+    const response = await apiClient.get("/wallet/admin/revenue-stats");
+    return unwrap<AdminRevenueStats>(response.data);
+  },
+
+  getSystemTransactions: async (
+    type = "ALL",
+  ): Promise<AdminTransactionResponse[]> => {
+    const response = await apiClient.get(
+      `/wallet/admin/transactions?type=${type}`,
+    );
+    const data = unwrap<AdminTransactionResponse[]>(response.data);
+    return data ?? [];
   },
 };

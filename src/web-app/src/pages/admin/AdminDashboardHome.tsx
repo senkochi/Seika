@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   BarChart3,
   Users,
@@ -6,6 +7,7 @@ import {
   Wallet as WalletIcon,
   Loader2,
   RefreshCcw,
+  TrendingUp,
 } from "lucide-react";
 import {
   Bar,
@@ -81,6 +83,7 @@ function LoadingState({ message }: { message: string }) {
 
 function AdminDashboardHome() {
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const { dashboard, dashboardStatus, dashboardError } = useAppSelector(
     (state) => state.admin,
   );
@@ -120,7 +123,7 @@ function AdminDashboardHome() {
     ? Number.parseFloat(d.totalCoinCirculation)
     : 0;
   const circulationDisplay = Number.isFinite(circulation)
-    ? formatCurrency(circulation)
+    ? `${formatNumber(circulation)} Coins`
     : "N/A";
 
   const pendingDisplay =
@@ -144,12 +147,20 @@ function AdminDashboardHome() {
             Tổng quan hệ thống: người dùng, nội dung chờ duyệt và coin lưu hành.
           </p>
         </div>
-        <button
-          onClick={() => dispatch(fetchAdminDashboard())}
-          className="inline-flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-sm font-medium text-[var(--foreground)] hover:border-[var(--primary)]"
-        >
-          <RefreshCcw className="h-4 w-4" /> Làm mới
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => navigate("/admin/dashboard/revenue")}
+            className="inline-flex items-center gap-2 rounded-xl bg-[var(--primary)] px-4 py-2 text-sm font-bold text-[var(--primary-foreground)] hover:opacity-90 shadow-md transition-all"
+          >
+            <TrendingUp className="h-4 w-4" /> Quản lý Thu nhập
+          </button>
+          <button
+            onClick={() => dispatch(fetchAdminDashboard())}
+            className="inline-flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-sm font-medium text-[var(--foreground)] hover:border-[var(--primary)]"
+          >
+            <RefreshCcw className="h-4 w-4" /> Làm mới
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
