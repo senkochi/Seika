@@ -14,11 +14,16 @@ jobs:
 
       - name: Khởi động hệ thống Microservices bằng Docker Compose Production
         run: |
-          echo "GitHub Actions đã kết nối thành công tới máy cá nhân!"
-          echo "Bắt đầu build và deploy hệ thống Seika..."
+          echo "Bắt đầu xử lý cấu hình môi trường..."
           
-          # Lệnh này sẽ tự bóc tách biến môi trường từ file .env có sẵn ở local của bạn 
-          # và build song song các service dựa trên Dockerfile tối ưu
+          # Lệnh này tìm file .env thật ở thư mục code hằng ngày của bạn 
+          # và copy nó vào thư mục làm việc tạm thời của GitHub Runner.
+          # Bạn nhớ sửa đường dẫn "/path/to/your/local/project" thành đường dẫn thư mục dự án thật trên máy bạn nhé!
+          # Ví dụ: cp /Users/ten-ban/Projects/Seika/.env . 
+          # Hoặc trên Windows: cp E:\Seika\.env .
+          cp E:\Seika\.env .
+          
+          echo "Đã đồng bộ file .env thành công! Bắt đầu build hệ thống..."
           docker compose up -d --build
           
           echo "Hệ thống đã được cập nhật"
