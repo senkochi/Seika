@@ -1,0 +1,25 @@
+name: CI/CD Seika Monorepo Local Deploy
+
+on:
+  push:
+    branches: [ "master" ]
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout mã nguồn mới nhất
+        uses: actions/checkout@v5
+
+      - name: Khởi động hệ thống Microservices bằng Docker Compose Production
+        run: |
+          echo "Bat dau xu ly cau hinh moi truong..."
+          
+          # Copy .env from local workspace
+          cp E:\Seika\.env .
+          
+          echo "Da dong bo file .env thanh cong! Bat dau build he thong..."
+          docker compose -f docker-compose.prod.yml up -d --build
+          
+          echo "He thong da duoc cap nhat"
