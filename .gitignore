@@ -73,7 +73,6 @@ playwright-report/
 *.prompt.md
 *.instructions.md
 *.agent.md
-CLAUDE.md
 .rtk
 
 # Local runtime files

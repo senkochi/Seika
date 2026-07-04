@@ -28,8 +28,9 @@ public class NotificationService {
 
     private final NotificationRepository notificationRepository;
     private final NotificationMapper notificationMapper;
+    private final SseService sseService;
 
-    @Transactional
+    // @Transactional (MongoDB đang ở chế độ standalone - do đang local, không hỗ trợ transaction, khi nào deploy lên cluster thì sẽ bật lại)
     public NotificationResponse createNotification(CreateNotificationRequest request) {
         if (isBlank(request.getUserId())) {
             throw new BadRequestException("userId is required");
@@ -59,7 +60,12 @@ public class NotificationService {
         notification.setCreatedAt(Instant.now());
 
         Notification saved = notificationRepository.save(notification);
-        return notificationMapper.toResponse(saved);
+        NotificationResponse response = notificationMapper.toResponse(saved);
+        
+        // Push SSE event
+        sseService.sendNotification(saved.getUserId(), response);
+        
+        return response;
     }
 
     public Page<NotificationResponse> getNotificationsByUser(String userId, int page, int size) {
@@ -79,7 +85,7 @@ public class NotificationService {
                 .map(notificationMapper::toResponse);
     }
 
-    @Transactional
+    // @Transactional (MongoDB đang ở chế độ standalone - do đang local, không hỗ trợ transaction, khi nào deploy lên cluster thì sẽ bật lại)
     public NotificationResponse markAsRead(String notificationId, String userId) {
         if (isBlank(userId)) {
             throw new BadRequestException("userId is required");
@@ -95,7 +101,7 @@ public class NotificationService {
         return notificationMapper.toResponse(saved);
     }
 
-    @Transactional
+    // @Transactional (MongoDB đang ở chế độ standalone - do đang local, không hỗ trợ transaction, khi nào deploy lên cluster thì sẽ bật lại)
     public MarkAllAsReadResponse markAllAsRead(String userId) {
         if (isBlank(userId)) {
             throw new BadRequestException("userId is required");
@@ -131,7 +137,7 @@ public class NotificationService {
                 .build();
     }
 
-    @Transactional
+    // @Transactional (MongoDB đang ở chế độ standalone - do đang local, không hỗ trợ transaction, khi nào deploy lên cluster thì sẽ bật lại)
     public void deleteNotification(String notificationId, String userId) {
         if (isBlank(userId)) {
             throw new BadRequestException("userId is required");

@@ -13,20 +13,29 @@ interface PersonalStepProps {
   setErrors?: (errors: any) => void;
 }
 
-export default function PersonalStep({ formData, setFormData, errors = {}, setErrors = () => {} }: PersonalStepProps) {
+export default function PersonalStep({
+  formData,
+  setFormData,
+  errors = {},
+  setErrors = () => {},
+}: PersonalStepProps) {
   const clearError = (field: string) => {
     setErrors({ [field]: undefined });
   };
   return (
     <div className="space-y-6">
       <div className="text-center mb-6">
-        <h2 className="text-2xl font-black text-purple-900">Personal Information</h2>
+        <h2 className="text-2xl font-black text-purple-900">
+          Personal Information
+        </h2>
         <p className="text-sm text-gray-600">Tell us a bit about yourself</p>
       </div>
 
       <div className="space-y-5">
         <div>
-          <label className="block text-sm font-black text-purple-900 mb-2">Full Name</label>
+          <label className="block text-sm font-black text-purple-900 mb-2">
+            Full Name
+          </label>
           <div className="relative">
             <User className="w-4 h-4 text-purple-400 absolute left-4 top-1/2 -translate-y-1/2" />
             <input
@@ -37,18 +46,22 @@ export default function PersonalStep({ formData, setFormData, errors = {}, setEr
                 if (errors.fullname) clearError("fullname");
               }}
               placeholder="Enter your full name"
-              className={`w-full pl-11 pr-4 py-3 border-2 rounded-xl focus:outline-none transition-colors ${
+              className={`w-full pl-11 pr-4 py-3 text-purple-900 border-2 rounded-xl focus:outline-none transition-colors ${
                 errors.fullname
                   ? "border-red-500 bg-red-50 focus:border-red-500"
                   : "border-purple-200 focus:border-purple-500"
               }`}
             />
           </div>
-          {errors.fullname && <p className="text-xs text-red-500 mt-1">{errors.fullname}</p>}
+          {errors.fullname && (
+            <p className="text-xs text-red-500 mt-1">{errors.fullname}</p>
+          )}
         </div>
 
         <div>
-          <label className="block text-sm font-black text-purple-900 mb-2">Date of Birth</label>
+          <label className="block text-sm font-black text-purple-900 mb-2">
+            Date of Birth
+          </label>
           <input
             type="date"
             value={formData.dateOfBirth}
@@ -56,17 +69,21 @@ export default function PersonalStep({ formData, setFormData, errors = {}, setEr
               setFormData({ ...formData, dateOfBirth: e.target.value });
               if (errors.dateOfBirth) clearError("dateOfBirth");
             }}
-            className={`w-full px-4 py-3 border-2 rounded-xl focus:outline-none transition-colors ${
+            className={`w-full px-4 py-3 border-2 text-purple-900 rounded-xl focus:outline-none transition-colors ${
               errors.dateOfBirth
                 ? "border-red-500 bg-red-50 focus:border-red-500"
                 : "border-purple-200 focus:border-purple-500"
             }`}
           />
-          {errors.dateOfBirth && <p className="text-xs text-red-500 mt-1">{errors.dateOfBirth}</p>}
+          {errors.dateOfBirth && (
+            <p className="text-xs text-red-500 mt-1">{errors.dateOfBirth}</p>
+          )}
         </div>
 
         <div>
-          <label className="block text-sm font-black text-purple-900 mb-2">Gender</label>
+          <label className="block text-sm font-black text-purple-900 mb-2">
+            Gender
+          </label>
           <div className="grid grid-cols-3 gap-3">
             {(["male", "female", "other"] as const).map((gender) => (
               <button
@@ -88,7 +105,9 @@ export default function PersonalStep({ formData, setFormData, errors = {}, setEr
               </button>
             ))}
           </div>
-          {errors.gender && <p className="text-xs text-red-500 mt-1">{errors.gender}</p>}
+          {errors.gender && (
+            <p className="text-xs text-red-500 mt-1">{errors.gender}</p>
+          )}
         </div>
       </div>
     </div>

@@ -4,5 +4,7 @@ public enum NotificationType {
     SYSTEM,
     QUIZ_COMPLETED,
     ORDER_COMPLETED,
-    WALLET_UPDATED
+    WALLET_UPDATED,
+    CONTENT_REVIEWED,
+    CONTENT_CREATED
 }

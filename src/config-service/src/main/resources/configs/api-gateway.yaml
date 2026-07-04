@@ -1,9 +1,63 @@
 spring:
+  application:
+    name: api-gateway
+  reactor:
+    context-propagation: auto
   cloud:
     gateway:
       server:
         webflux:
           routes:
+            # OpenAPI aggregation routes
+            - id: identity-openapi
+              uri: lb://IDENTITY-SERVICE
+              predicates:
+                - Path=/v3/api-docs/identity-service/**,/v3/api-docs/identity-service
+              filters:
+                - RewritePath=/v3/api-docs/identity-service(?:/.*)?,/v3/api-docs
+            - id: flashcard-openapi
+              uri: lb://FLASHCARD-SERVICE
+              predicates:
+                - Path=/v3/api-docs/flashcard-service/**,/v3/api-docs/flashcard-service
+              filters:
+                - RewritePath=/v3/api-docs/flashcard-service(?:/.*)?,/v3/api-docs
+            - id: profile-openapi
+              uri: lb://PROFILE-SERVICE
+              predicates:
+                - Path=/v3/api-docs/profile-service/**,/v3/api-docs/profile-service
+              filters:
+                - RewritePath=/v3/api-docs/profile-service(?:/.*)?,/v3/api-docs
+            - id: wallet-openapi
+              uri: lb://WALLET-SERVICE
+              predicates:
+                - Path=/v3/api-docs/wallet-service/**,/v3/api-docs/wallet-service
+              filters:
+                - RewritePath=/v3/api-docs/wallet-service(?:/.*)?,/v3/api-docs
+            - id: marketplace-openapi
+              uri: lb://MARKETPLACE-SERVICE
+              predicates:
+                - Path=/v3/api-docs/marketplace-service/**,/v3/api-docs/marketplace-service
+              filters:
+                - RewritePath=/v3/api-docs/marketplace-service(?:/.*)?,/v3/api-docs
+            - id: quiz-openapi
+              uri: lb://QUIZ-SERVICE
+              predicates:
+                - Path=/v3/api-docs/quiz-service/**,/v3/api-docs/quiz-service
+              filters:
+                - RewritePath=/v3/api-docs/quiz-service(?:/.*)?,/v3/api-docs
+            - id: notification-openapi
+              uri: lb://NOTIFICATION-SERVICE
+              predicates:
+                - Path=/v3/api-docs/notification-service/**,/v3/api-docs/notification-service
+              filters:
+                - RewritePath=/v3/api-docs/notification-service(?:/.*)?,/v3/api-docs
+            - id: reward-openapi
+              uri: lb://REWARD-SERVICE
+              predicates:
+                - Path=/v3/api-docs/reward-service/**,/v3/api-docs/reward-service
+              filters:
+                - RewritePath=/v3/api-docs/reward-service(?:/.*)?,/v3/api-docs
+            # API routes
             - id: identity-auth-route
               uri: lb://IDENTITY-SERVICE
               predicates:
@@ -14,6 +68,14 @@ spring:
                 - Path=/identity/**
               filters:
                 - StripPrefix=1
+            - id: admin-route
+              uri: lb://IDENTITY-SERVICE
+              predicates:
+                - Path=/api/admin/**,/api/admin
+            - id: flashcard-service
+              uri: lb://FLASHCARD-SERVICE
+              predicates:
+                - Path=/api/flashcards/**,/api/flashcards
             - id: profile-route
               uri: lb://PROFILE-SERVICE
               predicates:
@@ -22,21 +84,39 @@ spring:
               uri: lb://WALLET-SERVICE
               predicates:
                 - Path=/api/wallet/**,/api/wallet
+            - id: quiz-route
+              uri: lb://QUIZ-SERVICE
+              predicates:
+                - Path=/api/quiz/**,/api/quiz,/api/quiz-sets/**,/api/quiz-sets
+            - id: marketplace-route
+              uri: lb://MARKETPLACE-SERVICE
+              predicates:
+                - Path=/api/marketplace/**,/api/marketplace
+            - id: notification-route
+              uri: lb://NOTIFICATION-SERVICE
+              predicates:
+                - Path=/api/notifications/**,/api/notifications
+            - id: reward-route
+              uri: lb://REWARD-SERVICE
+              predicates:
+                - Path=/api/rewards/**,/api/rewards
           discovery:
             locator:
               enabled: false
               lower-case-service-id: true
+          route-definition-locator:
+            enabled: true
 
 jwt:
-  secret: ${JWT_SECRET:8db8d4987f6a51ed76090464c02e06205d68fc0b8d8f024e6c3c57cb67da7a9b}
+  secret: ${JWT_SECRET}
   issuer: ${JWT_ISSUER:seika-identity-service}
-  access-token-expiration-minutes: ${JWT_ACCESS_TOKEN_EXPIRATION_MINUTES:60}
+  access-token-expiration-minutes: ${JWT_ACCESS_TOKEN_EXPIRATION_MINUTES}
 
 eureka:
   client:
     enabled: true
     service-url:
-      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka}
+      defaultZone: ${EUREKA_SERVER_URL}
     register-with-eureka: true
     fetch-registry: true
 
@@ -49,11 +129,33 @@ app:
       - /api/auth/jwt-validate
       - /health
       - /actuator/**
+      - /swagger-ui.html
+      - /swagger-ui/**
+      - /v3/api-docs/**
+      - /*/v3/api-docs/**
 
+management:
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      namespace: default
+  endpoints:
+    web:
+      exposure:
+        include: "health,info,prometheus,trace"
+  endpoint:
+    health:
+      show-details: always
+  opentelemetry:
+    tracing:
+      export:
+        otlp:
+          endpoint: "http://tempo:4318/v1/traces"
+          transport: http
+  tracing:
+    enabled: true
+    sampling:
+      probability: 1.0
 logging:
-  level:
-    root: INFO
-    com.seika.api_gateway: DEBUG
-    org.springframework.cloud.gateway: DEBUG
-    org.springframework.security: DEBUG
-    org.springframework.web.server: DEBUG
+  pattern:
+    level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"

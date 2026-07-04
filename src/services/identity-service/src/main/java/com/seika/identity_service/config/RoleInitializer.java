@@ -24,6 +24,7 @@ public class RoleInitializer {
     private final RoleRepository roleRepository;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final com.seika.identity_service.service.UserEventPublisher userEventPublisher;
 
     @Value("${ADMIN_INITIAL_ENABLED:false}")
     private boolean adminInitialEnabled;
@@ -79,6 +80,7 @@ public class RoleInitializer {
                 .build();
 
         userRepository.save(adminUser);
+        userEventPublisher.publishUserRegistered(adminUser);
         log.warn("Initial admin account '{}' has been created.", adminInitialUsername);
     }
 }

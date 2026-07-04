@@ -1,0 +1,23 @@
+spring:
+  config:
+    import: "configserver:"
+  application:
+    name: marketplace-service
+  profiles:
+    active: ${SPRING_PROFILE:dev}
+  cloud:
+    config:
+      uri: ${CONFIG_SERVER_URL}
+      fail-fast: true
+      retry:
+        initial-interval: 1000
+        max-interval: 2000
+        max-attempts: 6
+
+springdoc:
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    display-request-duration: true
+  api-docs:
+    path: /v3/api-docs

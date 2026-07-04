@@ -28,4 +28,6 @@ public class UserProfileRequest {
     String gender;
 
     String profilePictureUrl;
+
+    String role;
 }

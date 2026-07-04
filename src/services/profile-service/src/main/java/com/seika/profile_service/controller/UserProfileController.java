@@ -11,6 +11,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -38,8 +39,35 @@ public class UserProfileController {
     }
 
     @GetMapping("/{userId}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<UserProfileResponse> getUserProfile(@PathVariable String userId) {
+    public ResponseEntity<UserProfileResponse> getUserProfile(
+            @PathVariable String userId,
+            org.springframework.security.core.Authentication authentication) {
+        
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        boolean isOwner = userId.equals(authentication.getPrincipal());
+        
+        if (!isAdmin && !isOwner) {
+            throw new org.springframework.security.access.AccessDeniedException("Access denied");
+        }
+        
         return ResponseEntity.ok(userProfileService.getUserProfileByUserId(userId));
+    }
+
+    @PutMapping("/{userId}")
+    public ResponseEntity<UserProfileResponse> updateUserProfile(
+            @PathVariable String userId,
+            @Valid @RequestBody UserProfileRequest request,
+            org.springframework.security.core.Authentication authentication) {
+        
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        boolean isOwner = userId.equals(authentication.getPrincipal());
+        
+        if (!isAdmin && !isOwner) {
+            throw new org.springframework.security.access.AccessDeniedException("Access denied");
+        }
+        
+        return ResponseEntity.ok(userProfileService.updateUserProfile(userId, request));
     }
 }

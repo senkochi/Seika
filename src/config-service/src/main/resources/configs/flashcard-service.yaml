@@ -1,0 +1,51 @@
+server:
+  port: ${FLASHCARD_SERVER_PORT:8085}
+
+spring:
+  application:
+    name: flashcard-service
+  data:
+    mongodb:
+      uri: ${FLASHCARD_DB_URI}
+      socket-timeout-ms: 30000
+      connection-timeout-ms: 30000
+  cloud:
+    openfeign:
+      client:
+        config:
+          wallet-service:
+            url: ${WALLET_SERVER_URL}
+          default:
+            connect-timeout: 10000
+            read-timeout: 10000
+  rabbitmq:
+    host: ${RABBITMQ_HOST:rabbitmq}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
+
+management:
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      namespace: default
+  endpoints:
+    web:
+      exposure:
+        include: "health,info,prometheus,trace"
+  endpoint:
+    health:
+      show-details: always
+  opentelemetry:
+    tracing:
+      export:
+        otlp:
+          endpoint: "http://tempo:4318/v1/traces"
+          transport: http
+  tracing:
+    enabled: true
+    sampling:
+      probability: 1.0
+logging:
+  pattern:
+    level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"

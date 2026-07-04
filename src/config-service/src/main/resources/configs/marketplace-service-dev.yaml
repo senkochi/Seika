@@ -1,0 +1,11 @@
+spring:
+  jpa:
+    show-sql: true
+
+server:
+  port: ${MARKETPLACE_SERVER_PORT:8085}
+
+logging:
+  level:
+    root: INFO
+    com.seika: DEBUG

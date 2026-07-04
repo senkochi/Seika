@@ -9,31 +9,59 @@
 
 @layer base {
   :root {
-    --background: #ffffff;
-    --foreground: #0f172a;
-    --card: #ffffff;
-    --card-foreground: #0f172a;
-    --popover: #ffffff;
-    --popover-foreground: #1e1b4b;
-    --primary: #6d28d9;
-    --primary-foreground: #fefce8;
-    --secondary: #fef3c7;
-    --secondary-foreground: #4c1d95;
-    --muted: #f5f3ff;
-    --muted-foreground: #6b7280;
-    --accent: #f59e0b;
+    --background: linear-gradient(
+      135deg,
+      #12091f 0%,
+      #22103d 35%,
+      #34115e 70%,
+      #4c1d95 100%
+    );
+
+    --foreground: #faf7ff;
+
+    --card: rgba(30, 18, 58, 0.92);
+    --second-card: rgba(45, 27, 78, 0.85);
+
+    --card-foreground: #faf7ff;
+
+    --popover: rgba(30, 18, 58, 0.96);
+    --popover-foreground: #faf7ff;
+
+    --primary: #8b5cf6;
+    --primary-hover: #7c3aed;
+    --primary-light: #a78bfa;
+    --primary-foreground: #ffffff;
+
+    --accent: #facc15;
+    --accent-hover: #eab308;
+    --accent-light: #fde047;
     --accent-foreground: #2e1065;
-    --destructive: #ef4444;
-    --destructive-foreground: #ffffff;
-    --border: #ddd6fe;
-    --input: #ddd6fe;
-    --ring: #f59e0b;
-    --success: #10b981;
-    --success-foreground: #052e16;
+
+    --secondary: #c4b5fd;
+    --secondary-foreground: #1f1147;
+
+    --muted: rgba(255, 255, 255, 0.05);
+    --second-muted: rgba(255, 255, 255, 0.08);
+    --muted-foreground: #b8a9d9;
+
+    --border: rgba(255, 255, 255, 0.08);
+    --input: rgba(255, 255, 255, 0.06);
+    --ring: #facc15;
+
+    --xp: #38bdf8;
+    --level: #facc15;
+    --streak: #fb7185;
+
+    --success: #22c55e;
     --warning: #f59e0b;
-    --warning-foreground: #1e1b4b;
-    --info: #0ea5e9;
-    --info-foreground: #0f172a;
+    --info: #38bdf8;
+    --destructive: #ef4444;
+
+    --common: #94a3b8;
+    --rare: #3b82f6;
+    --epic: #a855f7;
+    --legendary: #facc15;
+    --mythic: #fb7185;
   }
 
   html {
@@ -48,8 +76,10 @@
     min-width: 320px;
     min-height: 100vh;
     background: var(--background);
-    background-color: #1e1b4b;
+    background-color: #0f1724;
     color: var(--foreground);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   #root {

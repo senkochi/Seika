@@ -15,6 +15,7 @@ import com.seika.identity_service.repository.RefreshTokenRepository;
 import com.seika.identity_service.repository.RoleRepository;
 import com.seika.identity_service.repository.UserRepository;
 import com.seika.identity_service.repository.httpclient.ProfileClient;
+import com.seika.identity_service.security.CustomUserDetails;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -82,7 +83,7 @@ public class AuthService {
             .map(Role::getName)
             .map(roleName -> new SimpleGrantedAuthority("ROLE_" + roleName))
             .collect(Collectors.toList());
-        Authentication authentication = new UsernamePasswordAuthenticationToken(savedUser.getUsername(), null, authorities);
+        Authentication authentication = new UsernamePasswordAuthenticationToken(new CustomUserDetails(savedUser), null, authorities);
         String accessToken = jwtService.generateAccessToken(authentication);
         String refreshToken = refreshTokenService.createTokenForUser(savedUser);
 
@@ -123,7 +124,7 @@ public class AuthService {
                 .map(Role::getName)
                 .map(roleName -> new SimpleGrantedAuthority("ROLE_" + roleName))
                 .collect(Collectors.toList());
-        Authentication authentication = new UsernamePasswordAuthenticationToken(user.getUsername(), null, authorities);
+        Authentication authentication = new UsernamePasswordAuthenticationToken(new CustomUserDetails(user), null, authorities);
 
         String accessToken = jwtService.generateAccessToken(authentication);
         refreshTokenService.revokeToken(refreshToken);
@@ -139,6 +140,12 @@ public class AuthService {
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         return authMapper.toUserInfoResponse(user);
+    }
+
+    public List<String> getAdminUserIds() {
+        return userRepository.findByRoles_Name("ADMIN").stream()
+                .map(User::getId)
+                .collect(Collectors.toList());
     }
 
     private Role resolveSelfSelectableRole(String rawRole) {

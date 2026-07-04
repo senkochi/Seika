@@ -1,0 +1,14 @@
+spring:
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+  sql:
+    init:
+      mode: always
+
+logging:
+  level:
+    com.seika: DEBUG
+    org.springframework.web: DEBUG
+    org.springframework.security: DEBUG

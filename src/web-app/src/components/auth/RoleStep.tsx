@@ -8,11 +8,17 @@ interface RoleStepProps {
   error?: string;
 }
 
-export default function RoleStep({ formData, setFormData, error }: RoleStepProps) {
+export default function RoleStep({
+  formData,
+  setFormData,
+  error: _error,
+}: RoleStepProps) {
   return (
     <div className="space-y-6">
       <div className="text-center mb-6">
-        <h2 className="text-2xl font-black text-purple-900">Choose Your Role</h2>
+        <h2 className="text-2xl font-black text-purple-900">
+          Choose Your Role
+        </h2>
         <p className="text-sm text-gray-600">How will you be using Seika?</p>
       </div>
 
@@ -36,7 +42,9 @@ export default function RoleStep({ formData, setFormData, error }: RoleStepProps
             <GraduationCap className="w-10 h-10 text-white" />
           </div>
           <h3 className="text-xl font-black text-purple-900">Student</h3>
-          <p className="text-sm text-gray-600 mt-2">Learn, compete, and earn rewards</p>
+          <p className="text-sm text-gray-600 mt-2">
+            Learn, compete, and earn rewards
+          </p>
         </button>
 
         <button
@@ -58,7 +66,9 @@ export default function RoleStep({ formData, setFormData, error }: RoleStepProps
             <User className="w-10 h-10 text-white" />
           </div>
           <h3 className="text-xl font-black text-purple-900">Teacher</h3>
-          <p className="text-sm text-gray-600 mt-2">Create quizzes and track progress</p>
+          <p className="text-sm text-gray-600 mt-2">
+            Create quizzes and track progress
+          </p>
         </button>
       </div>
     </div>

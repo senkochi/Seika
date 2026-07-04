@@ -5,21 +5,55 @@ eureka:
   client:
     enabled: true
     service-url:
-      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka}
+      defaultZone: ${EUREKA_SERVER_URL}
     register-with-eureka: true
     fetch-registry: true
 spring:
-  mongodb:
-    uri: ${NOTIFICATION_MONGO_URI}
-    database: ${NOTIFICATION_MONGO_DATABASE}
+  application:
+    name: notification-service
+  data:
+    mongodb:
+      uri: ${NOTIFICATION_MONGO_URI}
   rabbitmq:
     host: ${RABBITMQ_HOST}
     port: ${RABBITMQ_PORT}
     username: ${RABBITMQ_USERNAME}
     password: ${RABBITMQ_PASSWORD}
 
+jwt:
+  issuer: seika-identity-service
+  secret: ${JWT_SECRET}
+  access-token-expiration-minutes: ${JWT_ACCESS_TOKEN_EXPIRATION_MINUTES}
+  refresh-token-expiration-days: ${JWT_REFRESH_TOKEN_EXPIRATION_DAYS}
+
 messaging:
   events:
     identity-exchange: ${IDENTITY_EVENTS_EXCHANGE:identity.events}
     user-registered-routing-key: ${USER_REGISTERED_ROUTING_KEY:user.registered}
     user-registered-queue: ${USER_REGISTERED_QUEUE:notification.user-events}
+
+management:
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      namespace: default
+  endpoints:
+    web:
+      exposure:
+        include: "health,info,prometheus,trace"
+  endpoint:
+    health:
+      show-details: always
+  opentelemetry:
+    tracing:
+      export:
+        otlp:
+          endpoint: "http://tempo:4318/v1/traces"
+          transport: http
+  tracing:
+    enabled: true
+    sampling:
+      probability: 1.0
+logging:
+  pattern:
+    level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
