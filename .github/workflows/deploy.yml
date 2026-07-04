@@ -10,7 +10,7 @@ jobs:
 
     steps:
       - name: Checkout mã nguồn mới nhất
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Khởi động hệ thống Microservices bằng Docker Compose Production
         run: |
