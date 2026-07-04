@@ -1,0 +1,24 @@
+name: CI/CD Seika Monorepo Local Deploy
+
+on:
+  push:
+    branches: [ "master" ]
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout mã nguồn mới nhất
+        uses: actions/checkout@v4
+
+      - name: Khởi động hệ thống Microservices bằng Docker Compose Production
+        run: |
+          echo "GitHub Actions đã kết nối thành công tới máy cá nhân!"
+          echo "Bắt đầu build và deploy hệ thống Seika..."
+          
+          # Lệnh này sẽ tự bóc tách biến môi trường từ file .env có sẵn ở local của bạn 
+          # và build song song các service dựa trên Dockerfile tối ưu
+          docker compose up -d --build
+          
+          echo "Hệ thống đã được cập nhật"
