@@ -2,11 +2,11 @@ name: CI/CD Seika Monorepo Local Deploy
 
 on:
   push:
-    branches: [ "master" ] # Khi bạn push code lên nhánh main thì pipeline mới chạy
+    branches: [ "master" ]
 
 jobs:
   deploy:
-    runs-on: self-hosted # Ép GitHub gửi lệnh về máy cá nhân của bạn
+    runs-on: self-hosted
 
     steps:
       - name: Checkout mã nguồn mới nhất
