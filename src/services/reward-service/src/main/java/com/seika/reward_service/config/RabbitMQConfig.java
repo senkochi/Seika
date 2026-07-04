@@ -56,9 +56,10 @@ public class RabbitMQConfig {
         DefaultJackson2JavaTypeMapper typeMapper = new DefaultJackson2JavaTypeMapper();
         // Trust all packages so deserialization works cross-service
         typeMapper.setTrustedPackages("*");
-        // Map incoming type headers to local event classes
         Map<String, Class<?>> idClassMapping = new HashMap<>();
         idClassMapping.put("com.seika.flashcard_service.dto.DeckCompletedEvent", DeckCompletedEvent.class);
+        idClassMapping.put("com.seika.flashcard_service.event.DeckCompletedEvent", DeckCompletedEvent.class);
+        idClassMapping.put("com.seika.quiz_service.dto.QuizCompletedEvent", QuizCompletedEvent.class);
         idClassMapping.put("com.seika.quiz_service.event.QuizCompletedEvent", QuizCompletedEvent.class);
         // Also handle plain class names (without package) as fallback
         idClassMapping.put("DeckCompletedEvent", DeckCompletedEvent.class);
