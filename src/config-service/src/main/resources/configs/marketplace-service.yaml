@@ -50,10 +50,12 @@ management:
   endpoint:
     health:
       show-details: always
-  otlp:
+  opentelemetry:
     tracing:
-      endpoint: "http://tempo:4317"
-      transport: grpc
+      export:
+        otlp:
+          endpoint: "http://tempo:4318/v1/traces"
+          transport: http
   tracing:
     enabled: true
     sampling:

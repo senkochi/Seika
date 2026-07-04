@@ -9,7 +9,7 @@ datasources:
     version: 1
     editable: false
     uid: prometheus
-  
+
   - name: Loki
     type: loki
     access: proxy
@@ -19,7 +19,7 @@ datasources:
     jsonData:
       derivedFields:
         - datasourceUid: tempo
-          matcherRegex: "traceId=(\\w+)"
+          matcherRegex: '([0-9a-fA-F]{32})'
           name: TraceID
           url: "$${__value.raw}"
 
@@ -34,9 +34,9 @@ datasources:
       nodeGraph:
         enabled: true
       tracesToLogsV2:
-        datasourceUid: 'loki'
+        datasourceUid: "loki"
         tags:
-          - key: 'service.name'
-            dir: 'app'
+          - key: "service.name"
+            dir: "app"
         filterByTraceID: false
         filterBySpanID: false

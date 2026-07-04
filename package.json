@@ -8,11 +8,10 @@
     "prepare": "husky"
   },
   "lint-staged": {
-    "**/*.{js,jsx,ts,tsx}": [
-      "npx eslint --fix",
-      "npx prettier --write"
+    "src/web-app/**/*.{js,jsx,ts,tsx}": [
+      "npm --prefix src/web-app run lint"
     ],
-    "**/*.{json,md,html,css}": [
+    "**/*.{js,jsx,ts,tsx,json,md,html,css}": [
       "npx prettier --write"
     ]
   },
