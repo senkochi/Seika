@@ -1,0 +1,54 @@
+# Stage 1: Dependency cache layer (shared across all services)
+FROM maven:3.9.6-eclipse-temurin-21-jammy AS base
+WORKDIR /build
+
+# Copy parent pom.xml
+COPY pom.xml .
+
+# Copy all module poms to preserve reactor structure
+COPY src/api-gateway/pom.xml src/api-gateway/
+COPY src/config-service/pom.xml src/config-service/
+COPY src/eureka/pom.xml src/eureka/
+COPY src/services/identity-service/pom.xml src/services/identity-service/
+COPY src/services/profile-service/pom.xml src/services/profile-service/
+COPY src/services/wallet-service/pom.xml src/services/wallet-service/
+COPY src/services/marketplace-service/pom.xml src/services/marketplace-service/
+COPY src/services/notification-service/pom.xml src/services/notification-service/
+COPY src/services/flashcard-service/pom.xml src/services/flashcard-service/
+COPY src/services/quiz-service/pom.xml src/services/quiz-service/
+COPY src/services/reward-service/pom.xml src/services/reward-service/
+
+# Download all dependencies in a single sequential step (Docker will run this once and cache it)
+RUN --mount=type=cache,target=/root/.m2 mvn dependency:go-offline -B
+
+# Stage 2: Compile stage (specific to each service)
+FROM base AS builder
+WORKDIR /build
+# Copy the source code of the module being built
+ARG MODULE_DIR
+COPY ${MODULE_DIR}/src ${MODULE_DIR}/src
+
+# Compile and package the module (falls back to local repository cache)
+RUN --mount=type=cache,target=/root/.m2 mvn -pl ${MODULE_DIR} -am package -DskipTests
+
+# Stage 3: Production Runtime stage
+FROM eclipse-temurin:21-jre-jammy
+
+# Create a non-root user and group for security
+RUN groupadd -g 10001 seika && \
+    useradd -u 10001 -g seika -d /app -s /usr/sbin/nologin seika
+
+WORKDIR /app
+
+ARG MODULE_DIR
+COPY --from=builder --chown=seika:seika /build/${MODULE_DIR}/target/*.jar /app/app.jar
+
+# Switch to the non-root user
+USER seika
+
+# Production JVM configurations:
+# - MaxRAMPercentage=75.0: Tells the JVM to restrict heap memory to 75% of container RAM limits
+# - ExitOnOutOfMemoryError: Ensures the container restarts if an OOM occurs, avoiding zombie states
+# - G1GC: Standard modern garbage collector for microservices
+# - urandom: Speeds up cryptographic operations
+ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75.0", "-XX:+UseG1GC", "-XX:+ExitOnOutOfMemoryError", "-Djava.security.egd=file:/dev/./urandom", "-jar", "/app/app.jar"]
