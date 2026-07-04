@@ -14,16 +14,12 @@ jobs:
 
       - name: Khởi động hệ thống Microservices bằng Docker Compose Production
         run: |
-          echo "Bắt đầu xử lý cấu hình môi trường..."
+          echo "Bat dau xu ly cau hinh moi truong..."
           
-          # Lệnh này tìm file .env thật ở thư mục code hằng ngày của bạn 
-          # và copy nó vào thư mục làm việc tạm thời của GitHub Runner.
-          # Bạn nhớ sửa đường dẫn "/path/to/your/local/project" thành đường dẫn thư mục dự án thật trên máy bạn nhé!
-          # Ví dụ: cp /Users/ten-ban/Projects/Seika/.env . 
-          # Hoặc trên Windows: cp E:\Seika\.env .
+          # Copy .env from local workspace
           cp E:\Seika\.env .
           
-          echo "Đã đồng bộ file .env thành công! Bắt đầu build hệ thống..."
-          docker compose up -d --build
+          echo "Da dong bo file .env thanh cong! Bat dau build he thong..."
+          docker compose -f docker-compose.prod.yml up -d --build
           
-          echo "Hệ thống đã được cập nhật"
+          echo "He thong da duoc cap nhat"
