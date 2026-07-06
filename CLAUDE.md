@@ -38,7 +38,7 @@ The web-app container is part of `docker compose`, but for a faster inner loop r
 
 ```bash
 cd src/web-app
-npm install --legacy-peer-deps   # REQUIRED: see INSTALLATION_GUIDE.md
+npm install --legacy-peer-deps   # REQUIRED — peer-deps conflict forces the flag (see INSTALLATION_GUIDE.md)
 npm run dev          # Vite dev server
 npm run lint         # ESLint
 npm run typecheck    # tsc -b
@@ -47,55 +47,40 @@ npm run build        # production build
 
 `VITE_API_BASE_URL` overrides the API base (default `http://localhost:8080/api`).
 
-### Backend (Maven, run from repo root)
-Each module has its own `mvnw`. The parent POM (`pom.xml`) is at the repo root and lists every module.
+If you add `react-day-picker` (or any new peer-dep package), use `npm install <pkg> --legacy-peer-deps`. New ReactBit components must be installed into `src/components/reactbit` via `npx reactbit add --path src/components/reactbit`.
+
+### Backend (Maven)
+Each Spring module has its own `mvnw` wrapper (`src/services/<svc>/mvnw`, `src/api-gateway/mvnw`, etc.); the repo root has no wrapper. Use the wrapper of the module whose artifact you want to build. Compose builds set `SPRING_PROFILE` from `.env` (default `dev`). Per-profile config lives in `src/config-service/src/main/resources/configs/{service}.yaml` and `{service}-{profile}.yaml`.
 
 ```bash
-# Build everything
-./src/services/identity-service/mvnw -pl src/services/identity-service -am package
+# Compile a single service (fast sanity check)
+./src/services/quiz-service/mvnw -pl src/services/quiz-service -am compile -q -DskipTests
 
-# Run tests for one service
+# Build one service jar (used by compose)
+./src/services/identity-service/mvnw -pl src/services/identity-service -am package -DskipTests
+
+# Run all tests for one service
 ./src/services/quiz-service/mvnw -pl src/services/quiz-service -am test
 
 # Run a single test class
 ./src/services/identity-service/mvnw -pl src/services/identity-service -am test -Dtest=AuthServiceTests
-
-# Skip tests everywhere (e.g. for compose build)
-./src/services/wallet-service/mvnw -pl src/services/wallet-service -am -DskipTests package
 ```
-
-Spring profiles are set by `SPRING_PROFILE` in `.env` (default `dev`). The actual per-profile config (datasource URLs, Eureka URL, JWT issuer, etc.) lives in `src/config-service/src/main/resources/configs/{service}.yaml` and `{service}-{profile}.yaml`.
 
 ## Repository Layout
 
-```
-.
-├── pom.xml                     # Parent POM, lists all backend modules
-├── docker-compose.yml          # Everything: infra + 7 services + gateway
-├── .env                        # Secrets, ports, DB URLs, JWT settings
-├── .husky/pre-commit           # npx lint-staged
-├── documentation/              # Vietnamese architecture/setup docs
-│   ├── HOW_TO_RUN_DEV.md
-│   ├── CODING_STANDARDS.md     # Required Java conventions (see below)
-│   ├── SWAGGER_SETUP.md
-│   └── api/*.json              # Exported OpenAPI specs
-└── src/
-    ├── eureka/                 # Service registry (Netflix Eureka, 8761)
-    ├── config-service/         # Spring Cloud Config Server (8888)
-    ├── api-gateway/            # Spring Cloud Gateway WebFlux (8080)
-    ├── services/
-    │   ├── identity-service/      # port 8081  | Postgres  | JWT issuer
-    │   ├── profile-service/       # port 8082  | Postgres  |
-    │   ├── notification-service/  # port 8083  | MongoDB   | RabbitMQ consumer
-    │   ├── wallet-service/        # port 8084  | Postgres  | RabbitMQ consumer
-    │   ├── marketplace-service/   # port 8085  | Postgres  |
-    │   ├── flashcard-service/     # port 8086  | MongoDB   |
-    │   ├── quiz-service/          # port 8087  | MongoDB   |
-    │   └── reward-service/        # port 8088  | Postgres  |
-    └── web-app/                # React 19 + Vite + Redux Toolkit
-```
-
-`reward-service` is registered in `pom.xml` and `docker-compose.yml` but not in the gateway routes yet — treat it as a backend-only service until a route is added.
+- `pom.xml` — parent POM listing every backend module.
+- `docker-compose.yml` (dev) / `docker-compose.prod.yml` (prod) — full stack incl. infra.
+- `docker-compose.observability.yml` — independent Prometheus/Grafana/Loki/Tempo stack; bring up separately.
+- `.env` — secrets, ports, DB URLs, JWT settings. Compose substitutes it; `config-service` reads it.
+- `documentation/` — Vietnamese architecture/setup docs (see "Useful docs" below for index).
+- `src/eureka/`, `src/config-service/`, `src/api-gateway/` — cross-cutting infra (registry, config, single entry point).
+- `src/services/{identity,profile,wallet,marketplace}-service/` — Postgres-backed, ports `8081/8082/8084/8085`.
+- `src/services/{notification,flashcard,quiz}-service/` — MongoDB-backed, ports `8083/8086/8087`.
+- `src/services/reward-service/` — Postgres, port `8088`; **no gateway route yet** — treat as backend-only.
+- `src/web-app/` — React 19 + Vite + Redux Toolkit frontend.
+- `.github/workflows/deploy.yml` — self-hosted runner; pushes `master` → `docker compose -f docker-compose.prod.yml up -d --build`.
+- `scripts/load-test.js` — k6 load-test (run with `k6 run scripts/load-test.js`; see `documentation/LOAD_TESTING_GUIDE.md`).
+- `.husky/pre-commit` + root `package.json` `lint-staged` — runs `eslint` on staged web-app files and `prettier` on staged `*.{js,jsx,ts,tsx,json,md,html,css}`.
 
 ## Backend Architecture
 
@@ -163,17 +148,15 @@ Stack: Vite 6 + React 19 + TypeScript 5.9 + React Router 7 + Redux Toolkit 2 + M
   - `services/{auth,userProfiles,flashcards,quizzes,wallet,…}.ts` — one file per domain, exposes an object (e.g. `authService.register`, `authService.login`).
   - `index.ts` — barrel re-export; UI imports from `@/api` only.
 - **Path alias**: `@` → `src/` (configured in `vite.config.ts` and `tsconfig.app.json`).
-- **Pre-commit hook** (root `.husky/pre-commit`): `npx lint-staged` runs `eslint --fix` + `prettier --write` on staged `*.{js,jsx,ts,tsx}` and `prettier --write` on `*.{json,md,html,css}` (see root `package.json`).
 
 ## Useful docs in this repo
 
-- `documentation/HOW_TO_RUN_DEV.md` — Docker compose workflow.
-- `documentation/CODING_STANDARDS.md` — required Java conventions (package layout, response wrapper, exception hierarchy, REST conventions, logging, transactions).
-- `documentation/SWAGGER_SETUP.md` & `DOCKER_SWAGGER_SETUP.md` — per-service vs aggregated Swagger.
-- `documentation/api/*.json` — exported OpenAPI specs (Postman-style).
-- `documentation/OBSERVABILITY_LGTM_GUIDE.md`, `OBSERVABILITY_SETUP.md`, `OBSERVABILITY_THEORY.md`, `OBSERVABILITY_USAGE_GUIDE.md` — Prometheus/Loki/Grafana/Tempo stack.
-- `documentation/DOCKER_DATABASES_VISUALIZATION.md` — Postgres container layout across services.
-- `documentation/STYLE_GUIDE.md`, `KARPATHY_GUIDELINES.md` — design / authoring notes.
-- `src/services/quiz-service/RESPONSE_WRAPPER_USAGE.md` — concrete examples of `ApiResponse`/`PagedResponse`/exceptions.
+Authoritative / non-obvious — read these before contributing to the matching area:
+
+- `documentation/CODING_STANDARDS.md` — required Java conventions; the "Java conventions" summary above is just a recap.
+- `src/web-app/API_ARCHITECTURE_&_GUIDELINES.md` — `src/api/` layout, adapter pattern, "never configure axios from UI" rule.
+- `src/web-app/STATE_MANAGEMENT_REDUX_ARCHITECTURE.md` — slice / typed-hook rules; "do not import `useDispatch`/`useSelector` directly" rule.
+- `src/web-app/INSTALLATION_GUIDE.md` — `npm install --legacy-peer-deps` is mandatory.
+- `src/services/quiz-service/RESPONSE_WRAPPER_USAGE.md` — concrete `ApiResponse`/`PagedResponse`/exception patterns; copy this style when adding a new service.
 - `src/services/quiz-service/MOCK_DATA_GUIDE.md` — how mock data is wired into the quiz service.
-- `src/web-app/API_ARCHITECTURE_&_GUIDELINES.md`, `STATE_MANAGEMENT_REDUX_ARCHITECTURE.md`, `INSTALLATION_GUIDE.md` — frontend rules.
+- `documentation/OBSERVABILITY_LGTM_GUIDE.md` — required setup before Prometheus/traces flow (also see the "Observability" section above).
