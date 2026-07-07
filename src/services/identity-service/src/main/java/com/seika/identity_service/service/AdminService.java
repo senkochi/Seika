@@ -5,6 +5,8 @@ import com.seika.identity_service.dto.admin.ChangeRoleRequest;
 import com.seika.identity_service.dto.admin.UserAdminResponse;
 import com.seika.identity_service.entity.Role;
 import com.seika.identity_service.entity.User;
+import com.seika.identity_service.exception.InvalidRequestException;
+import com.seika.identity_service.exception.ResourceNotFoundException;
 import com.seika.identity_service.repository.RoleRepository;
 import com.seika.identity_service.repository.UserRepository;
 import com.seika.identity_service.repository.httpclient.MarketplaceClient;
@@ -51,16 +53,16 @@ public class AdminService {
     @Transactional(readOnly = true)
     public UserAdminResponse getUser(String userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User không tồn tại: " + userId));
+                .orElseThrow(() -> new ResourceNotFoundException("User", userId));
         return toResponse(user);
     }
 
     @Transactional
     public UserAdminResponse lockUser(String userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User không tồn tại: " + userId));
+                .orElseThrow(() -> new ResourceNotFoundException("User", userId));
         if (userHasRole(user, ROLE_ADMIN)) {
-            throw new IllegalArgumentException("Không thể khóa tài khoản ADMIN");
+            throw new InvalidRequestException("Không thể khóa tài khoản ADMIN");
         }
         user.setEnabled(false);
         userRepository.save(user);
@@ -71,7 +73,7 @@ public class AdminService {
     @Transactional
     public UserAdminResponse unlockUser(String userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User không tồn tại: " + userId));
+                .orElseThrow(() -> new ResourceNotFoundException("User", userId));
         user.setEnabled(true);
         userRepository.save(user);
         log.info("Unlocked user {}", user.getUsername());
@@ -81,14 +83,14 @@ public class AdminService {
     @Transactional
     public UserAdminResponse changeRole(String userId, ChangeRoleRequest request) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User không tồn tại: " + userId));
+                .orElseThrow(() -> new ResourceNotFoundException("User", userId));
         if (userHasRole(user, ROLE_ADMIN)) {
-            throw new IllegalArgumentException("Không thể đổi role của tài khoản ADMIN");
+            throw new InvalidRequestException("Không thể đổi role của tài khoản ADMIN");
         }
 
         String newRoleName = request.getRole().toUpperCase();
         Role newRole = roleRepository.findById(newRoleName)
-                .orElseThrow(() -> new IllegalStateException("Role không tồn tại: " + newRoleName));
+                .orElseThrow(() -> new ResourceNotFoundException("Role", newRoleName));
 
         // Xóa role cũ (STUDENT/TEACHER), giữ role khác (nếu có) — ở đây chỉ có STUDENT hoặc TEACHER
         Set<Role> updatedRoles = user.getRoles().stream()
@@ -109,7 +111,7 @@ public class AdminService {
     @Transactional
     public void resetPassword(String userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User không tồn tại: " + userId));
+                .orElseThrow(() -> new ResourceNotFoundException("User", userId));
         String randomPassword = UUID.randomUUID().toString();
         user.setPassword(passwordEncoder.encode(randomPassword));
         userRepository.save(user);
