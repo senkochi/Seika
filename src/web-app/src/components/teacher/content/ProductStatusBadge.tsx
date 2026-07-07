@@ -1,0 +1,65 @@
+interface ProductStatusBadgeProps {
+  status: string | undefined;
+  rejectionReason?: string | null;
+}
+
+const STYLES: Record<string, { bg: string; text: string; border: string; label: string }> = {
+  PUBLISHED: {
+    bg: "bg-emerald-500/10",
+    text: "text-emerald-400",
+    border: "border-emerald-500/20",
+    label: "Đã duyệt",
+  },
+  REJECTED: {
+    bg: "bg-rose-500/10",
+    text: "text-rose-400",
+    border: "border-rose-500/20",
+    label: "Từ chối",
+  },
+  HIDDEN: {
+    bg: "bg-slate-500/10",
+    text: "text-slate-400",
+    border: "border-slate-500/20",
+    label: "Đã ẩn",
+  },
+  PENDING_REVIEW: {
+    bg: "bg-amber-500/10",
+    text: "text-amber-400",
+    border: "border-amber-500/20",
+    label: "Chờ duyệt",
+  },
+};
+
+export const DEFAULT_STATUS_STYLE = {
+  bg: "bg-amber-500/10",
+  text: "text-amber-400",
+  border: "border-amber-500/20",
+  label: "Chờ duyệt",
+};
+
+function ProductStatusBadge({
+  status,
+  rejectionReason,
+}: ProductStatusBadgeProps) {
+  const s = STYLES[status ?? ""] ?? DEFAULT_STATUS_STYLE;
+  const isRejected = status === "REJECTED";
+
+  return (
+    <span
+      className={`px-3 py-1 ${s.bg} ${s.text} text-xs font-semibold rounded-full border ${s.border} ${
+        isRejected ? "cursor-help relative group/tooltip" : ""
+      }`}
+      title={isRejected ? (rejectionReason ? `Lý do từ chối: ${rejectionReason}` : "Bị từ chối") : undefined}
+    >
+      {isRejected ? "Từ chối" : s.label}
+      {isRejected && rejectionReason && (
+        <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 hidden group-hover/tooltip:block bg-slate-900 border border-red-500/30 text-red-200 text-xs rounded-lg p-2.5 shadow-xl z-20 whitespace-normal text-center">
+          {rejectionReason}
+        </span>
+      )}
+    </span>
+  );
+}
+
+export default ProductStatusBadge;
+export { STYLES };
