@@ -5,7 +5,9 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 
+import com.seika.marketplace_service.enums.EscrowState;
 import com.seika.marketplace_service.enums.ProductType;
 
 @Entity
@@ -60,4 +62,29 @@ public class OrderItem {
 
     @Column(name = "total_price", nullable = false, precision = 19, scale = 2)
     BigDecimal totalPrice;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "escrow_state", nullable = false, length = 32)
+    @Builder.Default
+    EscrowState escrowState = EscrowState.NONE;
+
+    @Column(name = "escrow_needs_review", nullable = false)
+    @Builder.Default
+    boolean escrowNeedsReview = false;
+
+    @Column(name = "escrow_review_reason", length = 255)
+    String escrowReviewReason;
+
+    @Column(name = "escrow_fully_refunded", nullable = false)
+    @Builder.Default
+    boolean escrowFullyRefunded = false;
+
+    @Column(name = "admin_decision_at")
+    Instant adminDecisionAt;
+
+    @Column(name = "admin_decision_by")
+    String adminDecisionBy;
+
+    @Column(name = "admin_decision_reason", length = 1000)
+    String adminDecisionReason;
 }

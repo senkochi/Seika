@@ -98,6 +98,7 @@ public class OrderService {
         WalletDebitRequestedEvent event = WalletDebitRequestedEvent.builder()
             .eventId(UUID.randomUUID().toString())
             .eventType(EVENT_TYPE)
+            .idempotencyKey("order:" + order.getId() + ":debit")
             .orderId(order.getId())
             .userId(order.getUserId())
             .amount(order.getTotalAmount())

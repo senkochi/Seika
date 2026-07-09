@@ -5,9 +5,7 @@ import com.seika.marketplace_service.service.ProductService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -35,5 +33,24 @@ public class ProductController {
             userId = request.getHeader("X-Auth-User-Id"); // Fallback
         }
         return ResponseEntity.ok(productService.getMyProducts(userId));
+    }
+
+    @PostMapping("/{productId}/archive")
+    public ResponseEntity<Product> archive(@PathVariable String productId, HttpServletRequest request) {
+        return ResponseEntity.ok(productService.archive(resolveUserId(request), productId));
+    }
+
+    @DeleteMapping("/{productId}")
+    public ResponseEntity<Void> hardDelete(@PathVariable String productId, HttpServletRequest request) {
+        productService.hardDelete(resolveUserId(request), productId);
+        return ResponseEntity.noContent().build();
+    }
+
+    private String resolveUserId(HttpServletRequest request) {
+        String userId = request.getHeader("X-User-Id");
+        if (userId == null) {
+            userId = request.getHeader("X-Auth-User-Id");
+        }
+        return userId;
     }
 }

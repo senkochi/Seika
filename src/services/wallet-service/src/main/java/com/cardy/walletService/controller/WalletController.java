@@ -29,6 +29,11 @@ public class WalletController {
         return ResponseEntity.ok(balance);
     }
 
+    @GetMapping("/balance/breakdown")
+    public ResponseEntity<?> getBalanceBreakdown(@AuthenticationPrincipal Jwt jwt){
+        UUID userId = UUID.fromString(jwt.getClaim("userId"));
+        return ResponseEntity.ok(walletService.getBalanceBreakdown(userId));
+    }
 
     @PostMapping("/cash-out")
     @PreAuthorize("hasRole('TEACHER')")
@@ -63,4 +68,3 @@ public class WalletController {
         return ResponseEntity.ok(walletService.getHistory(userId));
     }
 }
-

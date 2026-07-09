@@ -8,9 +8,12 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 import com.seika.marketplace_service.entity.OrderItem;
+import com.seika.marketplace_service.enums.EscrowState;
 
 public interface OrderItemRepository extends JpaRepository<OrderItem, String> {
     List<OrderItem> findByOrderId(String orderId);
+    List<OrderItem> findByProductIdAndEscrowStateIn(String productId, List<EscrowState> escrowStates);
+    boolean existsByProductIdAndEscrowStateInAndEscrowFullyRefundedFalse(String productId, List<EscrowState> escrowStates);
 
     // -------------------------------------------------------------------------
     // Teacher statistics queries

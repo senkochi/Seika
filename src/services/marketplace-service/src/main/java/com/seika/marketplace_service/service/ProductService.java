@@ -19,6 +19,7 @@ import com.seika.marketplace_service.repository.UserInventoryRepository;
 public class ProductService {
     private final ProductRepository productRepository;
     private final UserInventoryRepository userInventoryRepository;
+    private final MarketplaceEscrowSafetyService escrowSafetyService;
 
     public List<Product> getActiveProducts(String userId) {
         List<Product> products = productRepository.findByActiveTrueAndStatusOrderByCreatedAtDesc(ProductStatus.PUBLISHED);
@@ -46,5 +47,29 @@ public class ProductService {
             return List.of();
         }
         return productRepository.findBySellerUserIdOrderByCreatedAtDesc(sellerUserId);
+    }
+
+    @Transactional
+    public Product archive(String sellerUserId, String productId) {
+        Product product = mustOwnProduct(sellerUserId, productId);
+        product.setStatus(ProductStatus.HIDDEN);
+        product.setActive(false);
+        return productRepository.save(product);
+    }
+
+    @Transactional
+    public void hardDelete(String sellerUserId, String productId) {
+        Product product = mustOwnProduct(sellerUserId, productId);
+        escrowSafetyService.assertHardDeleteAllowed(productId);
+        productRepository.delete(product);
+    }
+
+    private Product mustOwnProduct(String sellerUserId, String productId) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new IllegalArgumentException("Product không tồn tại: " + productId));
+        if (sellerUserId == null || !sellerUserId.equals(product.getSellerUserId())) {
+            throw new IllegalArgumentException("Bạn không có quyền thao tác sản phẩm này.");
+        }
+        return product;
     }
 }

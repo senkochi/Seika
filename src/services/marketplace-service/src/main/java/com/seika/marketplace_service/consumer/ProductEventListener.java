@@ -8,6 +8,7 @@ import com.seika.marketplace_service.enums.ProductType;
 import com.seika.marketplace_service.event.FlashcardSetCreatedEvent;
 import com.seika.marketplace_service.event.QuizSetCreatedEvent;
 import com.seika.marketplace_service.repository.ProductRepository;
+import com.seika.marketplace_service.service.MarketplaceEscrowSafetyService;
 import com.seika.marketplace_service.service.MarketplaceNotificationPublisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +27,7 @@ public class ProductEventListener {
     private final ObjectMapper objectMapper;
     private final ProductRepository productRepository;
     private final MarketplaceNotificationPublisher notificationPublisher;
+    private final MarketplaceEscrowSafetyService escrowSafetyService;
 
     @RabbitListener(queues = "${messaging.events.marketplace-content-queue:marketplace.content-events}")
     public void handleContentCreatedEvent(String rawMessage, @Header(AmqpHeaders.RECEIVED_ROUTING_KEY) String routingKey) {
@@ -62,6 +64,7 @@ public class ProductEventListener {
             product.setStatus(ProductStatus.PENDING_REVIEW);
             product.setRejectionReason(null);
             productRepository.save(product);
+            escrowSafetyService.markHeldItemsPendingDecision(product.getId(), "content_edit_by_teacher");
             log.info("Updated product to pending review in marketplace: type={}, referenceId={}", type, referenceId);
         } else {
             log.warn("Product to update not found: type={}, referenceId={}", type, referenceId);

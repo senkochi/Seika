@@ -19,6 +19,7 @@ public class AdminProductService {
 
     private final ProductRepository productRepository;
     private final MarketplaceNotificationPublisher notificationPublisher;
+    private final MarketplaceEscrowSafetyService escrowSafetyService;
 
     @Transactional(readOnly = true)
     public Page<Product> listByStatus(ProductStatus status, int page, int size) {
@@ -51,6 +52,7 @@ public class AdminProductService {
         product.setActive(false);
         product.setRejectionReason(reason);
         Product saved = productRepository.save(product);
+        escrowSafetyService.cancelHeldItemsByAdmin(productId, "admin_reject_or_hide", "admin");
         log.info("Admin rejected product {} ({}) — reason: {}", productId, product.getName(), reason);
         notificationPublisher.publishContentReviewed(
                 saved.getId(), saved.getName(), saved.getType().name(), saved.getSellerUserId(), "REJECTED", reason);
@@ -63,6 +65,7 @@ public class AdminProductService {
         product.setStatus(ProductStatus.HIDDEN);
         product.setActive(false);
         Product saved = productRepository.save(product);
+        escrowSafetyService.cancelHeldItemsByAdmin(productId, "admin_reject_or_hide", "admin");
         log.info("Admin hid product {} ({})", productId, product.getName());
         return saved;
     }

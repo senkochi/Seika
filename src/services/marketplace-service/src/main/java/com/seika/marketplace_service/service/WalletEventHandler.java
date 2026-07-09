@@ -14,6 +14,7 @@ import com.seika.marketplace_service.entity.Order;
 import com.seika.marketplace_service.entity.OrderItem;
 import com.seika.marketplace_service.entity.UserInventory;
 import com.seika.marketplace_service.enums.InboxStatus;
+import com.seika.marketplace_service.enums.EscrowState;
 import com.seika.marketplace_service.enums.OrderStatus;
 import com.seika.marketplace_service.event.WalletDebitEvent;
 import com.seika.marketplace_service.repository.InboxEventRepository;
@@ -108,6 +109,7 @@ public class WalletEventHandler {
         if (success) {
             order.setStatus(OrderStatus.PAID);
             orderRepository.save(order);
+            markOrderItemsHeld(order.getId());
             createInventory(order.getUserId(), order.getId());
         } else {
             if (order.getStatus() != OrderStatus.PAID) {
@@ -115,6 +117,16 @@ public class WalletEventHandler {
                 orderRepository.save(order);
             }
         }
+    }
+
+    private void markOrderItemsHeld(String orderId) {
+        List<OrderItem> items = orderItemRepository.findByOrderId(orderId);
+        for (OrderItem item : items) {
+            if (item.getEscrowState() == EscrowState.NONE) {
+                item.setEscrowState(EscrowState.HELD);
+            }
+        }
+        orderItemRepository.saveAll(items);
     }
 
     private void createInventory(String userId, String orderId) {
@@ -135,6 +147,7 @@ public class WalletEventHandler {
                 .productType(item.getProductType())
                 .referenceId(item.getReferenceId())
                 .orderId(orderId)
+                .sourceOrderId(orderId)
                 .active(true)
                 .build();
 

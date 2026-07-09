@@ -60,4 +60,13 @@ public class UserInventory {
 
     @Column(name = "revoked_at")
     Instant revokedAt;
+
+    @Column(name = "consumed_at")
+    Instant consumedAt;
+
+    @Column(name = "revocation_reason", length = 500)
+    String revocationReason;
+
+    @Column(name = "source_order_id")
+    String sourceOrderId;
 }

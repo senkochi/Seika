@@ -41,6 +41,10 @@ public class Order {
     @Column(name = "total_amount", nullable = false, precision = 19, scale = 2)
     BigDecimal totalAmount;
 
+    @Column(name = "needs_admin_decision", nullable = false)
+    @Builder.Default
+    boolean needsAdminDecision = false;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     Instant createdAt;

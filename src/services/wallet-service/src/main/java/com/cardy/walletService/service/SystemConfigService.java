@@ -21,6 +21,8 @@ public class SystemConfigService {
     public static final String KEY_WITHDRAWAL_VND_PER_COIN = "WITHDRAWAL_VND_PER_COIN";
     public static final String KEY_STUDENT_INITIAL_COIN = "STUDENT_INITIAL_COIN";
     public static final String KEY_TEACHER_INITIAL_COIN = "TEACHER_INITIAL_COIN";
+    public static final String KEY_CASH_OUT_MIN_COINS = "CASH_OUT_MIN_COINS";
+    public static final String KEY_CASH_OUT_MULTIPLE = "CASH_OUT_MULTIPLE";
     public static final String KEY_MIN_PRODUCT_PRICE = "MIN_PRODUCT_PRICE";
     public static final String KEY_MAX_PRODUCT_PRICE = "MAX_PRODUCT_PRICE";
     public static final String KEY_FLASHCARD_REWARD_COOLDOWN_DAYS = "FLASHCARD_REWARD_COOLDOWN_DAYS";
@@ -35,6 +37,8 @@ public class SystemConfigService {
             new DefaultEntry(KEY_WITHDRAWAL_VND_PER_COIN, "90", "Số VNĐ Teacher nhận cho 1 Coin rút (cashOut)"),
             new DefaultEntry(KEY_STUDENT_INITIAL_COIN, "500", "Số coin khởi đầu khi Student đăng ký"),
             new DefaultEntry(KEY_TEACHER_INITIAL_COIN, "0", "Số coin khởi đầu khi Teacher đăng ký"),
+            new DefaultEntry(KEY_CASH_OUT_MIN_COINS, "10", "Số coin tối thiểu cho một lần cash-out"),
+            new DefaultEntry(KEY_CASH_OUT_MULTIPLE, "10", "Cash-out phải là bội số của số coin này"),
             new DefaultEntry(KEY_MIN_PRODUCT_PRICE, "10", "Giá tối thiểu của sản phẩm trên marketplace (coin)"),
             new DefaultEntry(KEY_MAX_PRODUCT_PRICE, "100000", "Giá tối đa của sản phẩm trên marketplace (coin)"),
             new DefaultEntry(KEY_FLASHCARD_REWARD_COOLDOWN_DAYS, "3", "Số ngày cooldown giữa 2 lần nhận flashcard reward")

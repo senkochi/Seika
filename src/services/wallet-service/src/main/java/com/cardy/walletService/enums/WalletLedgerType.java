@@ -1,0 +1,16 @@
+package com.cardy.walletService.enums;
+
+public enum WalletLedgerType {
+    TOP_UP,
+    INITIAL_BONUS,
+    LEARNING_REWARD,
+    PURCHASE_DEBIT,
+    ESCROW_RELEASE_CREDIT,
+    ESCROW_REFUND_CREDIT,
+    PLATFORM_FEE_REAL,
+    PLATFORM_FEE_PROMO_SINK,
+    CASH_OUT,
+    WALLET_HOLD,
+    WALLET_FREEZE,
+    WALLET_UNFREEZE
+}

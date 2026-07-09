@@ -5,6 +5,7 @@ import com.cardy.walletService.dto.TransactionReqDTO;
 import com.cardy.walletService.event.ContentPurchasedEvent;
 import com.cardy.walletService.event.WalletDebitEvent;
 import com.cardy.walletService.event.WalletDebitRequestedEvent;
+import com.cardy.walletService.service.WalletDebitResult;
 import com.cardy.walletService.service.WalletService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -14,6 +15,7 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Component;
 
+import java.time.Instant;
 import java.util.UUID;
 
 @Component
@@ -32,24 +34,29 @@ public class WalletEventListener {
             event = objectMapper.readValue(rawMessage, WalletDebitRequestedEvent.class);
             log.info("Received wallet.debit.requested for orderId={}, userId={}, amount={}", event.getOrderId(), event.getUserId(), event.getAmount());
             
-            TransactionReqDTO req = new TransactionReqDTO();
-            req.setAmount(event.getAmount());
             String desc = (event.getDescription() != null && !event.getDescription().isBlank())
                     ? "Mua " + event.getDescription()
                     : "Thanh toán đơn hàng " + event.getOrderId();
-            req.setDescription(desc);
-            
-            walletService.spend(UUID.fromString(event.getUserId()), req);
+            String idempotencyKey = (event.getIdempotencyKey() != null && !event.getIdempotencyKey().isBlank())
+                    ? event.getIdempotencyKey()
+                    : "order:" + event.getOrderId() + ":debit";
+
+            WalletDebitResult result = walletService.debitPurchase(
+                    UUID.fromString(event.getUserId()),
+                    event.getAmount(),
+                    desc,
+                    event.getOrderId(),
+                    idempotencyKey);
             log.info("Debit successful for orderId={}", event.getOrderId());
             
-            publishWalletEvent(event.getOrderId(), "wallet.debit.succeeded");
+            publishWalletEvent(event, "wallet.debit.succeeded", result, null);
             
         } catch (JsonProcessingException exception) {
             log.error("Failed to deserialize wallet debit requested event.", exception);
         } catch (Exception exception) {
             log.error("Failed to process wallet debit for event={}. Reason: {}", event, exception.getMessage());
             if (event != null && event.getOrderId() != null) {
-                publishWalletEvent(event.getOrderId(), "wallet.debit.failed");
+                publishWalletEvent(event, "wallet.debit.failed", new WalletDebitResult(java.util.Map.of()), exception.getMessage());
             }
         }
     }
@@ -82,11 +89,29 @@ public class WalletEventListener {
         }
     }
 
-    private void publishWalletEvent(String orderId, String eventType) {
+    private void publishWalletEvent(WalletDebitRequestedEvent requestEvent,
+                                    String eventType,
+                                    WalletDebitResult result,
+                                    String reason) {
         WalletDebitEvent outEvent = WalletDebitEvent.builder()
                 .eventId(UUID.randomUUID().toString())
                 .eventType(eventType)
-                .orderId(orderId)
+                .idempotencyKey((requestEvent.getIdempotencyKey() != null && !requestEvent.getIdempotencyKey().isBlank())
+                        ? requestEvent.getIdempotencyKey()
+                        : "order:" + requestEvent.getOrderId() + ":debit")
+                .orderId(requestEvent.getOrderId())
+                .buyerUserId(requestEvent.getUserId())
+                .totalAmount(requestEvent.getAmount())
+                .sourceBreakdown(WalletDebitEvent.SourceBreakdown.builder()
+                        .bonusAmount(result.bonusAmount())
+                        .rewardAmount(result.rewardAmount())
+                        .earnedPromoAmount(result.earnedPromoAmount())
+                        .paidAmount(result.paidAmount())
+                        .promoBackedAmount(result.promoBackedAmount())
+                        .build())
+                .ledgerEntryIds(result.ledgerEntryIds())
+                .occurredAt(Instant.now())
+                .reason(reason)
                 .build();
         try {
             String message = objectMapper.writeValueAsString(outEvent);
@@ -94,9 +119,9 @@ public class WalletEventListener {
                     RabbitMQConfig.WALLET_EVENTS_EXCHANGE,
                     eventType,
                     message);
-            log.info("Published event: {} for orderId={}", eventType, orderId);
+            log.info("Published event: {} for orderId={}", eventType, requestEvent.getOrderId());
         } catch (JsonProcessingException e) {
-            log.error("Failed to publish event: {} for orderId={}", eventType, orderId, e);
+            log.error("Failed to publish event: {} for orderId={}", eventType, requestEvent.getOrderId(), e);
         }
     }
 }

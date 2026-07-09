@@ -4,16 +4,22 @@ import com.cardy.walletService.dto.TopUpDTO;
 import com.cardy.walletService.dto.TopUpReqDTO;
 import com.cardy.walletService.dto.TransactionDTO;
 import com.cardy.walletService.dto.TransactionReqDTO;
+import com.cardy.walletService.dto.WalletBalanceBreakdownDTO;
 
 import com.cardy.walletService.domain.Transaction;
 import com.cardy.walletService.domain.Wallet;
+import com.cardy.walletService.domain.WalletLedgerEntry;
 import com.cardy.walletService.enums.TransactionType;
+import com.cardy.walletService.enums.WalletLedgerSource;
+import com.cardy.walletService.enums.WalletLedgerType;
 import com.cardy.walletService.repository.TransactionRepository;
+import com.cardy.walletService.repository.WalletLedgerEntryRepository;
 import com.cardy.walletService.repository.WalletRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -22,48 +28,111 @@ import java.util.stream.Collectors;
 public class WalletService {
     private final WalletRepository walletRepository;
     private final TransactionRepository transactionRepository;
+    private final WalletLedgerEntryRepository walletLedgerEntryRepository;
     private final SystemConfigService systemConfigService;
     private final WalletNotificationPublisher walletNotificationPublisher;
 
     public WalletService(WalletRepository walletRepository,
                          TransactionRepository transactionRepository,
+                         WalletLedgerEntryRepository walletLedgerEntryRepository,
                          SystemConfigService systemConfigService,
                          WalletNotificationPublisher walletNotificationPublisher){
         this.walletRepository = walletRepository;
         this.transactionRepository = transactionRepository;
+        this.walletLedgerEntryRepository = walletLedgerEntryRepository;
         this.systemConfigService = systemConfigService;
         this.walletNotificationPublisher = walletNotificationPublisher;
     }
 
-    private void updateBalance(UUID userId, BigDecimal amount, TransactionType type, String description) {
-        Wallet wallet = walletRepository.findByUserId(userId)
-                .orElseGet(() -> walletRepository.save(
-                        Wallet.builder()
-                                .userId(userId)
-                                .balance(systemConfigService.getBigDecimal(
-                                        SystemConfigService.KEY_STUDENT_INITIAL_COIN,
-                                        new BigDecimal("500")))
-                                .build()
-                ));
+    private Wallet getOrCreateWallet(UUID userId) {
+        return walletRepository.findByUserId(userId)
+                .map(wallet -> {
+                    wallet.recalculateBalance();
+                    return wallet;
+                })
+                .orElseGet(() -> {
+                    BigDecimal initial = systemConfigService.getBigDecimal(
+                            SystemConfigService.KEY_STUDENT_INITIAL_COIN,
+                            new BigDecimal("500"));
+                    Wallet wallet = Wallet.builder()
+                            .userId(userId)
+                            .bonusBalance(initial)
+                            .build();
+                    wallet.recalculateBalance();
+                    Wallet saved = walletRepository.save(wallet);
+                    writeLedger(saved, WalletLedgerType.INITIAL_BONUS, WalletLedgerSource.BONUS,
+                            initial, null, null, null, null, "Initial student bonus");
+                    return saved;
+                });
+    }
 
-        BigDecimal newBalance = wallet.getBalance().add(amount);
-
-        if (newBalance.compareTo(BigDecimal.ZERO) < 0) {
-            throw new IllegalStateException("Số dư không đủ để thực hiện giao dịch!");
+    private void creditBalance(UUID userId,
+                               BigDecimal amount,
+                               WalletLedgerSource source,
+                               WalletLedgerType ledgerType,
+                               TransactionType transactionType,
+                               String description,
+                               BigDecimal amountVnd,
+                               BigDecimal rateVndPerCoin) {
+        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Số coin phải lớn hơn 0");
         }
-
-        wallet.setBalance(newBalance);
+        Wallet wallet = getOrCreateWallet(userId);
+        creditSource(wallet, source, amount);
+        wallet.recalculateBalance();
         walletRepository.save(wallet);
 
         Transaction tx = Transaction.builder()
                 .wallet(wallet)
                 .amount(amount)
-                .type(type)
+                .type(transactionType)
                 .description(description)
                 .build();
         transactionRepository.save(tx);
+        writeLedger(wallet, ledgerType, source, amount, amountVnd, rateVndPerCoin,
+                null, null, description);
 
-        walletNotificationPublisher.publishWalletUpdated(userId, amount, type.name(), description);
+        walletNotificationPublisher.publishWalletUpdated(userId, amount, transactionType.name(), description);
+    }
+
+    private void creditSource(Wallet wallet, WalletLedgerSource source, BigDecimal amount) {
+        wallet.recalculateBalance();
+        switch (source) {
+            case BONUS -> wallet.setBonusBalance(wallet.getBonusBalance().add(amount));
+            case REWARD -> wallet.setRewardBalance(wallet.getRewardBalance().add(amount));
+            case PAID -> wallet.setPaidBalance(wallet.getPaidBalance().add(amount));
+            case EARNED_WITHDRAWABLE -> wallet.setEarnedWithdrawableBalance(wallet.getEarnedWithdrawableBalance().add(amount));
+            case EARNED_PROMO -> wallet.setEarnedPromoBalance(wallet.getEarnedPromoBalance().add(amount));
+            default -> throw new IllegalArgumentException("Unsupported wallet credit source: " + source);
+        }
+    }
+
+    private WalletLedgerEntry writeLedger(Wallet wallet,
+                                          WalletLedgerType type,
+                                          WalletLedgerSource source,
+                                          BigDecimal amount,
+                                          BigDecimal amountVnd,
+                                          BigDecimal rateVndPerCoin,
+                                          String orderId,
+                                          String idempotencyKey,
+                                          String description) {
+        BigDecimal withdrawable = source == WalletLedgerSource.EARNED_WITHDRAWABLE ? amount : BigDecimal.ZERO;
+        BigDecimal nonWithdrawable = source == WalletLedgerSource.EARNED_WITHDRAWABLE ? BigDecimal.ZERO : amount;
+        WalletLedgerEntry entry = WalletLedgerEntry.builder()
+                .wallet(wallet)
+                .userId(wallet.getUserId())
+                .type(type)
+                .source(source)
+                .amount(amount)
+                .withdrawableAmount(withdrawable)
+                .nonWithdrawableAmount(nonWithdrawable)
+                .amountVnd(amountVnd)
+                .rateVndPerCoin(rateVndPerCoin)
+                .orderId(orderId)
+                .idempotencyKey(idempotencyKey)
+                .description(description)
+                .build();
+        return walletLedgerEntryRepository.save(entry);
     }
 
     @Transactional
@@ -74,14 +143,26 @@ public class WalletService {
                 SystemConfigService.KEY_STUDENT_INITIAL_COIN, new BigDecimal("500"));
         BigDecimal defaultBalance = isTeacher ? teacherInitial : studentInitial;
         walletRepository.findByUserId(userId)
-                .orElseGet(() -> walletRepository.save(
-                        Wallet.builder().userId(userId).balance(defaultBalance).build()
-                ));
+                .orElseGet(() -> {
+                    Wallet wallet = Wallet.builder()
+                            .userId(userId)
+                            .bonusBalance(defaultBalance)
+                            .build();
+                    wallet.recalculateBalance();
+                    Wallet saved = walletRepository.save(wallet);
+                    if (defaultBalance.compareTo(BigDecimal.ZERO) > 0) {
+                        writeLedger(saved, WalletLedgerType.INITIAL_BONUS, WalletLedgerSource.BONUS,
+                                defaultBalance, null, null, null, "user:" + userId + ":initial-bonus",
+                                isTeacher ? "Initial teacher bonus" : "Initial student bonus");
+                    }
+                    return saved;
+                });
     }
 
     @Transactional
     public void deposit(UUID userId, TransactionReqDTO req) {
-        updateBalance(userId, req.getAmount(), TransactionType.DEPOSIT, req.getDescription());
+        creditBalance(userId, req.getAmount(), WalletLedgerSource.PAID, WalletLedgerType.TOP_UP,
+                TransactionType.DEPOSIT, req.getDescription(), null, null);
     }
 
     @Transactional
@@ -99,7 +180,8 @@ public class WalletService {
             throw new IllegalArgumentException("Số tiền nạp không đủ để quy đổi tối thiểu 1 Coin (tỷ giá hiện tại: " + rate.toPlainString() + " VNĐ/Coin)");
         }
         String description = "Nạp tiền: " + req.getAmountVnd().toPlainString() + " VNĐ = " + coins.toPlainString() + " Coin";
-        updateBalance(userId, coins, TransactionType.TOP_UP, description);
+        creditBalance(userId, coins, WalletLedgerSource.PAID, WalletLedgerType.TOP_UP,
+                TransactionType.TOP_UP, description, req.getAmountVnd(), rate);
 
         return TopUpDTO.builder()
                 .coinsReceived(coins)
@@ -111,18 +193,52 @@ public class WalletService {
 
     @Transactional
     public void reward(UUID userId, TransactionReqDTO req) {
-        updateBalance(userId, req.getAmount(), TransactionType.REWARD, req.getDescription());
+        creditBalance(userId, req.getAmount(), WalletLedgerSource.REWARD, WalletLedgerType.LEARNING_REWARD,
+                TransactionType.REWARD, req.getDescription(), null, null);
     }
 
     @Transactional
     public void spend(UUID userId, TransactionReqDTO req) {
-        updateBalance(userId, req.getAmount().negate(), TransactionType.WITHDRAW, req.getDescription());
+        debitPurchase(userId, req.getAmount(), req.getDescription(), null, null);
+    }
+
+    @Transactional
+    public WalletDebitResult debitPurchase(UUID userId,
+                                           BigDecimal amount,
+                                           String description,
+                                           String orderId,
+                                           String idempotencyKey) {
+        if (idempotencyKey != null && walletLedgerEntryRepository.findFirstByIdempotencyKey(idempotencyKey).isPresent()) {
+            return new WalletDebitResult(java.util.Map.of());
+        }
+        Wallet wallet = getOrCreateWallet(userId);
+        WalletDebitResult result = WalletSourceAllocator.allocatePurchase(wallet, amount);
+        walletRepository.save(wallet);
+
+        List<String> ledgerIds = new ArrayList<>();
+        result.amounts().forEach((source, debitAmount) -> {
+            WalletLedgerEntry entry = writeLedger(wallet, WalletLedgerType.PURCHASE_DEBIT, source,
+                    debitAmount.negate(), null, null, orderId, idempotencyKey, description);
+            ledgerIds.add(entry.getId().toString());
+        });
+
+        Transaction tx = Transaction.builder()
+                .wallet(wallet)
+                .amount(amount.negate())
+                .type(TransactionType.WITHDRAW)
+                .description(description)
+                .build();
+        transactionRepository.save(tx);
+        walletNotificationPublisher.publishWalletUpdated(userId, amount.negate(), TransactionType.WITHDRAW.name(), description);
+        return new WalletDebitResult(result.amounts(), ledgerIds);
     }
 
     @Transactional
     public void cashOut(UUID userId, BigDecimal amount, String customDescription) {
-        if (amount == null || amount.compareTo(new BigDecimal("10")) < 0 || amount.remainder(new BigDecimal("10")).compareTo(BigDecimal.ZERO) != 0) {
-            throw new IllegalArgumentException("Số tiền rút phải lớn hơn hoặc bằng 10 và là bội số của 10");
+        BigDecimal min = systemConfigService.getBigDecimal(SystemConfigService.KEY_CASH_OUT_MIN_COINS, new BigDecimal("10"));
+        BigDecimal multiple = systemConfigService.getBigDecimal(SystemConfigService.KEY_CASH_OUT_MULTIPLE, new BigDecimal("10"));
+        if (amount == null || amount.compareTo(min) < 0 || amount.remainder(multiple).compareTo(BigDecimal.ZERO) != 0) {
+            throw new IllegalArgumentException("Số tiền rút phải lớn hơn hoặc bằng " + min.toPlainString() + " và là bội số của " + multiple.toPlainString());
         }
         BigDecimal coinToVnd = systemConfigService.getBigDecimal(
                 SystemConfigService.KEY_WITHDRAWAL_VND_PER_COIN, new BigDecimal("90"));
@@ -131,7 +247,20 @@ public class WalletService {
         if (customDescription != null && !customDescription.trim().isEmpty()) {
             description += " (" + customDescription + ")";
         }
-        updateBalance(userId, amount.negate(), TransactionType.CASH_OUT, description);
+        Wallet wallet = getOrCreateWallet(userId);
+        WalletSourceAllocator.allocateCashOut(wallet, amount);
+        walletRepository.save(wallet);
+
+        Transaction tx = Transaction.builder()
+                .wallet(wallet)
+                .amount(amount.negate())
+                .type(TransactionType.CASH_OUT)
+                .description(description)
+                .build();
+        transactionRepository.save(tx);
+        writeLedger(wallet, WalletLedgerType.CASH_OUT, WalletLedgerSource.EARNED_WITHDRAWABLE,
+                amount.negate(), vnd, coinToVnd, null, null, description);
+        walletNotificationPublisher.publishWalletUpdated(userId, amount.negate(), TransactionType.CASH_OUT.name(), description);
     }
 
     @Transactional
@@ -139,6 +268,21 @@ public class WalletService {
         return walletRepository.findByUserId(userId)
                 .map(Wallet::getBalance)
                 .orElse(BigDecimal.ZERO);
+    }
+
+    @Transactional
+    public WalletBalanceBreakdownDTO getBalanceBreakdown(UUID userId) {
+        Wallet wallet = getOrCreateWallet(userId);
+        return WalletBalanceBreakdownDTO.builder()
+                .balance(wallet.getBalance())
+                .bonusBalance(wallet.getBonusBalance())
+                .rewardBalance(wallet.getRewardBalance())
+                .paidBalance(wallet.getPaidBalance())
+                .earnedWithdrawableBalance(wallet.getEarnedWithdrawableBalance())
+                .earnedPromoBalance(wallet.getEarnedPromoBalance())
+                .heldBalance(wallet.getHeldBalance())
+                .frozen(wallet.isFrozen())
+                .build();
     }
 
     private TransactionDTO toDto(Transaction transaction){
