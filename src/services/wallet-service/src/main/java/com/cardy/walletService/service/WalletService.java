@@ -8,14 +8,17 @@ import com.cardy.walletService.dto.WalletBalanceBreakdownDTO;
 
 import com.cardy.walletService.domain.Transaction;
 import com.cardy.walletService.domain.Wallet;
+import com.cardy.walletService.domain.WalletIdempotencyKey;
 import com.cardy.walletService.domain.WalletLedgerEntry;
 import com.cardy.walletService.enums.TransactionType;
 import com.cardy.walletService.enums.WalletLedgerSource;
 import com.cardy.walletService.enums.WalletLedgerType;
 import com.cardy.walletService.repository.TransactionRepository;
+import com.cardy.walletService.repository.WalletIdempotencyKeyRepository;
 import com.cardy.walletService.repository.WalletLedgerEntryRepository;
 import com.cardy.walletService.repository.WalletRepository;
 import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -25,21 +28,25 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class WalletService {
     private final WalletRepository walletRepository;
     private final TransactionRepository transactionRepository;
     private final WalletLedgerEntryRepository walletLedgerEntryRepository;
+    private final WalletIdempotencyKeyRepository walletIdempotencyKeyRepository;
     private final SystemConfigService systemConfigService;
     private final WalletNotificationPublisher walletNotificationPublisher;
 
     public WalletService(WalletRepository walletRepository,
                          TransactionRepository transactionRepository,
                          WalletLedgerEntryRepository walletLedgerEntryRepository,
+                         WalletIdempotencyKeyRepository walletIdempotencyKeyRepository,
                          SystemConfigService systemConfigService,
                          WalletNotificationPublisher walletNotificationPublisher){
         this.walletRepository = walletRepository;
         this.transactionRepository = transactionRepository;
         this.walletLedgerEntryRepository = walletLedgerEntryRepository;
+        this.walletIdempotencyKeyRepository = walletIdempotencyKeyRepository;
         this.systemConfigService = systemConfigService;
         this.walletNotificationPublisher = walletNotificationPublisher;
     }
@@ -51,18 +58,11 @@ public class WalletService {
                     return wallet;
                 })
                 .orElseGet(() -> {
-                    BigDecimal initial = systemConfigService.getBigDecimal(
-                            SystemConfigService.KEY_STUDENT_INITIAL_COIN,
-                            new BigDecimal("500"));
                     Wallet wallet = Wallet.builder()
                             .userId(userId)
-                            .bonusBalance(initial)
                             .build();
                     wallet.recalculateBalance();
-                    Wallet saved = walletRepository.save(wallet);
-                    writeLedger(saved, WalletLedgerType.INITIAL_BONUS, WalletLedgerSource.BONUS,
-                            initial, null, null, null, null, "Initial student bonus");
-                    return saved;
+                    return walletRepository.save(wallet);
                 });
     }
 
@@ -78,6 +78,7 @@ public class WalletService {
             throw new IllegalArgumentException("Số coin phải lớn hơn 0");
         }
         Wallet wallet = getOrCreateWallet(userId);
+        requireActive(wallet);
         creditSource(wallet, source, amount);
         wallet.recalculateBalance();
         walletRepository.save(wallet);
@@ -208,10 +209,10 @@ public class WalletService {
                                            String description,
                                            String orderId,
                                            String idempotencyKey) {
-        if (idempotencyKey != null && walletLedgerEntryRepository.findFirstByIdempotencyKey(idempotencyKey).isPresent()) {
-            return new WalletDebitResult(java.util.Map.of());
-        }
         Wallet wallet = getOrCreateWallet(userId);
+        if (idempotencyKey != null && walletIdempotencyKeyRepository.existsById(idempotencyKey)) {
+            return existingDebitResult(idempotencyKey);
+        }
         WalletDebitResult result = WalletSourceAllocator.allocatePurchase(wallet, amount);
         walletRepository.save(wallet);
 
@@ -229,8 +230,32 @@ public class WalletService {
                 .description(description)
                 .build();
         transactionRepository.save(tx);
+        if (idempotencyKey != null && !idempotencyKey.isBlank()) {
+            walletIdempotencyKeyRepository.save(WalletIdempotencyKey.builder()
+                    .idempotencyKey(idempotencyKey)
+                    .orderId(orderId)
+                    .operation(WalletLedgerType.PURCHASE_DEBIT.name())
+                    .build());
+        }
         walletNotificationPublisher.publishWalletUpdated(userId, amount.negate(), TransactionType.WITHDRAW.name(), description);
         return new WalletDebitResult(result.amounts(), ledgerIds);
+    }
+
+    private WalletDebitResult existingDebitResult(String idempotencyKey) {
+        List<WalletLedgerEntry> entries = walletLedgerEntryRepository.findByIdempotencyKeyAndTypeOrderByCreatedAtAsc(
+                idempotencyKey,
+                WalletLedgerType.PURCHASE_DEBIT);
+        java.util.EnumMap<WalletLedgerSource, BigDecimal> amounts = new java.util.EnumMap<>(WalletLedgerSource.class);
+        List<String> ledgerIds = new ArrayList<>();
+        for (WalletLedgerEntry entry : entries) {
+            if (entry.getSource() != null && entry.getAmount() != null) {
+                amounts.merge(entry.getSource(), entry.getAmount().abs(), BigDecimal::add);
+            }
+            if (entry.getId() != null) {
+                ledgerIds.add(entry.getId().toString());
+            }
+        }
+        return new WalletDebitResult(amounts, ledgerIds);
     }
 
     @Transactional
@@ -261,6 +286,12 @@ public class WalletService {
         writeLedger(wallet, WalletLedgerType.CASH_OUT, WalletLedgerSource.EARNED_WITHDRAWABLE,
                 amount.negate(), vnd, coinToVnd, null, null, description);
         walletNotificationPublisher.publishWalletUpdated(userId, amount.negate(), TransactionType.CASH_OUT.name(), description);
+    }
+
+    private void requireActive(Wallet wallet) {
+        if (wallet != null && wallet.isFrozen()) {
+            throw new IllegalStateException("Ví đang bị khóa, không thể thực hiện giao dịch.");
+        }
     }
 
     @Transactional

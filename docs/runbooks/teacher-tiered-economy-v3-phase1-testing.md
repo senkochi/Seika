@@ -86,6 +86,21 @@ paid_balance increases by 100 when TOPUP_VND_PER_COIN = 100
 wallet_ledger_entries has type TOP_UP, source PAID, amount_vnd 10000
 ```
 
+Legacy spend alias used by flashcard-service:
+
+```bash
+curl -X POST http://localhost:8080/api/wallet/withdraw \
+  -H "Authorization: Bearer <student-token>" \
+  -H "Content-Type: application/json" \
+  -d '{"amount":10,"description":"Legacy spend smoke test"}'
+```
+
+Expected:
+
+```txt
+BONUS is debited before REWARD, PAID, and EARNED_PROMO
+```
+
 Check balance breakdown:
 
 ```bash

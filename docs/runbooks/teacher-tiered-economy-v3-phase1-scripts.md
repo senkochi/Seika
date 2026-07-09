@@ -80,6 +80,14 @@ FROM wallet_ledger_entries
 ORDER BY created_at DESC;
 ```
 
+Wallet debit idempotency:
+
+```sql
+SELECT idempotency_key, order_id, operation, created_at
+FROM wallet_idempotency_keys
+ORDER BY created_at DESC;
+```
+
 Marketplace escrow guards:
 
 ```sql
@@ -119,6 +127,15 @@ curl -X POST http://localhost:8080/api/wallet/top-up \
   -H "Authorization: Bearer <student-token>" \
   -H "Content-Type: application/json" \
   -d '{"amountVnd":10000}'
+```
+
+Legacy spend alias:
+
+```bash
+curl -X POST http://localhost:8080/api/wallet/withdraw \
+  -H "Authorization: Bearer <student-token>" \
+  -H "Content-Type: application/json" \
+  -d '{"amount":10,"description":"Legacy spend smoke test"}'
 ```
 
 Marketplace config list:

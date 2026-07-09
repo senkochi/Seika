@@ -4,6 +4,7 @@ import com.seika.marketplace_service.entity.MarketplaceConfig;
 import com.seika.marketplace_service.repository.MarketplaceConfigRepository;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -11,6 +12,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class MarketplaceConfigService {
 
     public static final String KEY_ESCROW_HOLD_DAYS = "ESCROW_HOLD_DAYS";
@@ -50,6 +52,7 @@ public class MarketplaceConfigService {
                         .value(def.value())
                         .description(def.description())
                         .build());
+                log.info("Seeded MarketplaceConfig {} = {}", def.key(), def.value());
             }
         }
     }
@@ -65,6 +68,8 @@ public class MarketplaceConfigService {
                 .orElseThrow(() -> new IllegalArgumentException("Marketplace config không tồn tại: " + key));
         config.setValue(value);
         config.setUpdatedBy(updatedBy);
-        return repository.save(config);
+        MarketplaceConfig saved = repository.save(config);
+        log.info("Updated MarketplaceConfig {} by {}", key, updatedBy);
+        return saved;
     }
 }

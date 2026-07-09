@@ -5,6 +5,7 @@ import com.seika.marketplace_service.entity.MarketplaceConfig;
 import com.seika.marketplace_service.service.MarketplaceConfigService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -16,6 +17,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/marketplace/admin/configs")
 @RequiredArgsConstructor
+@Slf4j
 public class AdminMarketplaceConfigController {
 
     private final MarketplaceConfigService marketplaceConfigService;
@@ -30,6 +32,7 @@ public class AdminMarketplaceConfigController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<MarketplaceConfig> update(@PathVariable String key,
                                                     @Valid @RequestBody UpdateMarketplaceConfigRequest request) {
+        log.info("Admin update marketplace config {}", key);
         return ResponseEntity.ok(marketplaceConfigService.update(key, request.getValue(), resolveUserId()));
     }
 

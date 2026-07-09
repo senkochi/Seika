@@ -15,13 +15,14 @@ public final class WalletSourceAllocator {
 
     public static WalletDebitResult allocatePurchase(Wallet wallet, BigDecimal amount) {
         requirePositive(amount);
+        requireActive(wallet);
         EnumMap<WalletLedgerSource, BigDecimal> allocation = new EnumMap<>(WalletLedgerSource.class);
         BigDecimal remaining = amount;
 
         remaining = take(remaining, wallet::getBonusBalance, wallet::setBonusBalance, WalletLedgerSource.BONUS, allocation);
         remaining = take(remaining, wallet::getRewardBalance, wallet::setRewardBalance, WalletLedgerSource.REWARD, allocation);
-        remaining = take(remaining, wallet::getEarnedPromoBalance, wallet::setEarnedPromoBalance, WalletLedgerSource.EARNED_PROMO, allocation);
         remaining = take(remaining, wallet::getPaidBalance, wallet::setPaidBalance, WalletLedgerSource.PAID, allocation);
+        remaining = take(remaining, wallet::getEarnedPromoBalance, wallet::setEarnedPromoBalance, WalletLedgerSource.EARNED_PROMO, allocation);
 
         if (remaining.compareTo(BigDecimal.ZERO) > 0) {
             throw new IllegalStateException("Số dư không đủ để thực hiện giao dịch!");
@@ -32,6 +33,7 @@ public final class WalletSourceAllocator {
 
     public static WalletDebitResult allocateCashOut(Wallet wallet, BigDecimal amount) {
         requirePositive(amount);
+        requireActive(wallet);
         BigDecimal withdrawable = zeroIfNull(wallet.getEarnedWithdrawableBalance());
         if (withdrawable.compareTo(amount) < 0) {
             throw new IllegalStateException("Số dư có thể rút không đủ để thực hiện giao dịch!");
@@ -63,6 +65,12 @@ public final class WalletSourceAllocator {
     private static void requirePositive(BigDecimal amount) {
         if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("amount must be positive");
+        }
+    }
+
+    private static void requireActive(Wallet wallet) {
+        if (wallet != null && wallet.isFrozen()) {
+            throw new IllegalStateException("Ví đang bị khóa, không thể thực hiện giao dịch.");
         }
     }
 

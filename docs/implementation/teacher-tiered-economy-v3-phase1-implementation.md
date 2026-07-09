@@ -40,10 +40,10 @@ It records source, ledger type, `amountVnd`, `rateVndPerCoin`, order ids, escrow
 Implemented source allocation:
 
 ```txt
-BONUS -> REWARD -> EARNED_PROMO -> PAID
+BONUS -> REWARD -> PAID -> EARNED_PROMO
 ```
 
-`EARNED_PROMO` is included before `PAID` to preserve the V3 invariant that app-only coin cannot become withdrawable through resale.
+`EARNED_PROMO` remains spendable and keeps promo-backed lineage, but it is used only after the explicit V3 spend order buckets are exhausted.
 
 Top-up credits `PAID`.
 
@@ -52,6 +52,10 @@ Initial grant credits `BONUS`.
 Learning rewards credit `REWARD`.
 
 Cash-out debits only `earnedWithdrawableBalance`.
+
+Lazy wallet creation outside the registration flow now creates an empty wallet. This prevents teacher-side flows from minting the student initial bonus accidentally.
+
+Frozen wallets reject top-up, spend, reward/deposit credits, and cash-out operations.
 
 ## Wallet Debit Event
 
@@ -65,6 +69,8 @@ Cash-out debits only `earnedWithdrawableBalance`.
 - `occurredAt`
 
 `sourceBreakdown` includes the V3 fields plus `earnedPromoAmount` and `promoBackedAmount` for Phase 2 escrow lineage.
+
+Wallet debit idempotency is backed by `wallet_idempotency_keys`, a DB-unique marker table keyed by `idempotencyKey`.
 
 ## Marketplace Changes
 

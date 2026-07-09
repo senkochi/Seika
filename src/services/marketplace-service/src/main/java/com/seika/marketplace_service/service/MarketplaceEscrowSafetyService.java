@@ -6,6 +6,7 @@ import com.seika.marketplace_service.enums.EscrowState;
 import com.seika.marketplace_service.repository.OrderItemRepository;
 import com.seika.marketplace_service.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,6 +15,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class MarketplaceEscrowSafetyService {
 
     private final OrderItemRepository orderItemRepository;
@@ -27,6 +29,7 @@ public class MarketplaceEscrowSafetyService {
             markOrderNeedsDecision(item.getOrderId());
         }
         orderItemRepository.saveAll(items);
+        log.info("Marked {} held order items pending admin decision for productId={} reason={}", items.size(), productId, reason);
     }
 
     @Transactional
@@ -38,6 +41,7 @@ public class MarketplaceEscrowSafetyService {
             markOrderNeedsDecision(item.getOrderId());
         }
         orderItemRepository.saveAll(items);
+        log.info("Cancelled {} held order items by admin for productId={} reason={}", items.size(), productId, reason);
     }
 
     @Transactional(readOnly = true)
