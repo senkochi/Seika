@@ -36,19 +36,22 @@ public class WalletService {
     private final WalletIdempotencyKeyRepository walletIdempotencyKeyRepository;
     private final SystemConfigService systemConfigService;
     private final WalletNotificationPublisher walletNotificationPublisher;
+    private final WalletHoldService walletHoldService;
 
     public WalletService(WalletRepository walletRepository,
                          TransactionRepository transactionRepository,
                          WalletLedgerEntryRepository walletLedgerEntryRepository,
                          WalletIdempotencyKeyRepository walletIdempotencyKeyRepository,
                          SystemConfigService systemConfigService,
-                         WalletNotificationPublisher walletNotificationPublisher){
+                         WalletNotificationPublisher walletNotificationPublisher,
+                         WalletHoldService walletHoldService){
         this.walletRepository = walletRepository;
         this.transactionRepository = transactionRepository;
         this.walletLedgerEntryRepository = walletLedgerEntryRepository;
         this.walletIdempotencyKeyRepository = walletIdempotencyKeyRepository;
         this.systemConfigService = systemConfigService;
         this.walletNotificationPublisher = walletNotificationPublisher;
+        this.walletHoldService = walletHoldService;
     }
 
     private Wallet getOrCreateWallet(UUID userId) {
@@ -278,6 +281,9 @@ public class WalletService {
 
     @Transactional
     public void cashOut(UUID userId, BigDecimal amount, String customDescription) {
+        if (walletHoldService != null && !walletHoldService.canCashOut(userId)) {
+            throw new IllegalStateException("Cash-out is blocked due to an active account hold (e.g. wash trading review)");
+        }
         BigDecimal min = systemConfigService.getBigDecimal(SystemConfigService.KEY_CASH_OUT_MIN_COINS, new BigDecimal("10"));
         BigDecimal multiple = systemConfigService.getBigDecimal(SystemConfigService.KEY_CASH_OUT_MULTIPLE, new BigDecimal("10"));
         if (amount == null || amount.compareTo(min) < 0 || amount.remainder(multiple).compareTo(BigDecimal.ZERO) != 0) {

@@ -16,4 +16,7 @@ public interface EscrowTransactionRepository extends JpaRepository<EscrowTransac
     List<EscrowTransaction> findBySellerIdAndStatusInOrderByCreatedAtDesc(String sellerId, List<EscrowStatus> statuses);
     List<EscrowTransaction> findByStatusAndNeedsAdminDecisionFalseAndReleaseAtLessThanEqualAndCreditRequestedAtIsNullAndRefundRequestedAtIsNull(EscrowStatus status, Instant now);
     List<EscrowTransaction> findByNeedsAdminDecisionTrueOrderByUpdatedAtAsc();
+    List<EscrowTransaction> findBySellerId(String sellerId);
+    List<EscrowTransaction> findByCreatedAtBetween(Instant start, Instant end);
+    List<EscrowTransaction> findBySellerIdAndBuyerIdAndCreatedAtBetween(String sellerId, String buyerId, Instant start, Instant end);
 }

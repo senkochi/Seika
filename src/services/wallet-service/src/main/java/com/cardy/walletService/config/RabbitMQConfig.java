@@ -115,5 +115,18 @@ public class RabbitMQConfig {
     public Binding marketplaceEventsBinding(Queue marketplaceEventsQueue, TopicExchange marketplaceEventsExchange) {
         return BindingBuilder.bind(marketplaceEventsQueue).to(marketplaceEventsExchange).with(CONTENT_PURCHASED_ROUTING_KEY);
     }
+
+    public static final String COLLUSION_FLAGS_QUEUE = "wallet.collusion.flags.queue";
+    public static final String COLLUSION_FLAGGED_ROUTING_KEY = "collusion.flagged";
+
+    @Bean
+    public Queue collusionFlagsQueue() {
+        return new Queue(COLLUSION_FLAGS_QUEUE, true);
+    }
+
+    @Bean
+    public Binding collusionFlagsBinding(Queue collusionFlagsQueue, TopicExchange marketplaceEventsExchange) {
+        return BindingBuilder.bind(collusionFlagsQueue).to(marketplaceEventsExchange).with(COLLUSION_FLAGGED_ROUTING_KEY);
+    }
 }
 

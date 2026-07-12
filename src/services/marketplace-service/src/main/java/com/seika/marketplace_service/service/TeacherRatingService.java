@@ -30,6 +30,8 @@ public class TeacherRatingService {
     private final TeacherRatingRepository teacherRatingRepository;
     private final ReviewRepository reviewRepository;
     private final ProductRepository productRepository;
+    private final com.seika.marketplace_service.repository.EscrowTransactionRepository escrowTransactionRepository;
+    private final com.seika.marketplace_service.repository.UserInventoryRepository userInventoryRepository;
     private final RabbitTemplate rabbitTemplate;
     private final ObjectMapper objectMapper;
 
@@ -50,12 +52,63 @@ public class TeacherRatingService {
         long validCount = reviewRepository.countBySellerIdAndStatus(teacherId, ReviewStatus.VALID);
         long excludedCount = reviewRepository.countBySellerIdAndStatusIn(teacherId,
                 List.of(ReviewStatus.EXCLUDED_WASH, ReviewStatus.DELETED_BY_ADMIN));
-        TeacherTier tier = calculateTier(average, validCount);
+
+        List<Product> teacherProducts = productRepository.findBySellerUserIdOrderByCreatedAtDesc(teacherId);
+        List<String> productIds = teacherProducts.stream().map(Product::getId).toList();
+
+        // 1. consumeRate = consumed / completed purchases
+        BigDecimal consumeRate = BigDecimal.ZERO;
+        if (!productIds.isEmpty() && userInventoryRepository != null) {
+            List<com.seika.marketplace_service.entity.UserInventory> inventories = userInventoryRepository.findByProductIdIn(productIds);
+            long totalInv = inventories.size();
+            long consumedInv = inventories.stream().filter(inv -> inv.getConsumedAt() != null).count();
+            if (totalInv > 0) {
+                consumeRate = BigDecimal.valueOf(consumedInv)
+                        .divide(BigDecimal.valueOf(totalInv), 4, RoundingMode.HALF_UP);
+            }
+        }
+
+        // 2. refundRate = refunded / (released + refunded escrows)
+        BigDecimal refundRate = BigDecimal.ZERO;
+        if (escrowTransactionRepository != null) {
+            List<com.seika.marketplace_service.entity.EscrowTransaction> escrows = escrowTransactionRepository.findBySellerId(teacherId);
+            long totalResolved = escrows.stream()
+                    .filter(e -> e.getStatus() == com.seika.marketplace_service.enums.EscrowStatus.RELEASED
+                              || e.getStatus() == com.seika.marketplace_service.enums.EscrowStatus.REFUNDED)
+                    .count();
+            long refundedCount = escrows.stream()
+                    .filter(e -> e.getStatus() == com.seika.marketplace_service.enums.EscrowStatus.REFUNDED)
+                    .count();
+            if (totalResolved > 0) {
+                refundRate = BigDecimal.valueOf(refundedCount)
+                        .divide(BigDecimal.valueOf(totalResolved), 4, RoundingMode.HALF_UP);
+            }
+        }
+
+        // 3. approvalRejectionRate = rejected / total reviewed products
+        BigDecimal approvalRejectionRate = BigDecimal.ZERO;
+        long reviewedProducts = teacherProducts.stream()
+                .filter(p -> p.getStatus() == com.seika.marketplace_service.enums.ProductStatus.PUBLISHED
+                          || p.getStatus() == com.seika.marketplace_service.enums.ProductStatus.REJECTED
+                          || p.getStatus() == com.seika.marketplace_service.enums.ProductStatus.HIDDEN)
+                .count();
+        long rejectedProducts = teacherProducts.stream()
+                .filter(p -> p.getStatus() == com.seika.marketplace_service.enums.ProductStatus.REJECTED)
+                .count();
+        if (reviewedProducts > 0) {
+            approvalRejectionRate = BigDecimal.valueOf(rejectedProducts)
+                    .divide(BigDecimal.valueOf(reviewedProducts), 4, RoundingMode.HALF_UP);
+        }
+
+        TeacherTier tier = calculateTier(average, validCount, consumeRate, refundRate, approvalRejectionRate);
         BigDecimal fee = feeForTier(tier);
 
         existing.setAverageRating(average);
         existing.setValidReviewCount(validCount);
         existing.setExcludedReviewCount(excludedCount);
+        existing.setConsumeRate(consumeRate);
+        existing.setRefundRate(refundRate);
+        existing.setApprovalRejectionRate(approvalRejectionRate);
         existing.setTier(tier);
         existing.setTierFeePercent(fee);
         TeacherRating saved = teacherRatingRepository.save(existing);
@@ -68,17 +121,39 @@ public class TeacherRatingService {
     }
 
     public TeacherTier calculateTier(BigDecimal averageRating, long validReviewCount) {
+        return calculateTier(averageRating, validReviewCount, BigDecimal.ONE, BigDecimal.ZERO, BigDecimal.ZERO);
+    }
+
+    public TeacherTier calculateTier(BigDecimal averageRating, long validReviewCount,
+                                     BigDecimal consumeRate, BigDecimal refundRate,
+                                     BigDecimal approvalRejectionRate) {
         BigDecimal rating = averageRating == null ? BigDecimal.ZERO : averageRating;
-        if (validReviewCount >= 500 && rating.compareTo(new BigDecimal("4.5")) >= 0) {
+        BigDecimal consume = consumeRate == null ? BigDecimal.ZERO : consumeRate;
+        BigDecimal refund = refundRate == null ? BigDecimal.ZERO : refundRate;
+        BigDecimal reject = approvalRejectionRate == null ? BigDecimal.ZERO : approvalRejectionRate;
+
+        if (validReviewCount >= 500
+                && rating.compareTo(new BigDecimal("4.5")) >= 0
+                && consume.compareTo(new BigDecimal("0.65")) >= 0
+                && refund.compareTo(new BigDecimal("0.05")) <= 0
+                && reject.compareTo(new BigDecimal("0.08")) <= 0) {
             return TeacherTier.ELITE;
         }
-        if (validReviewCount >= 100 && rating.compareTo(new BigDecimal("4.0")) >= 0) {
+        if (validReviewCount >= 100
+                && rating.compareTo(new BigDecimal("4.0")) >= 0
+                && consume.compareTo(new BigDecimal("0.50")) >= 0
+                && refund.compareTo(new BigDecimal("0.10")) <= 0
+                && reject.compareTo(new BigDecimal("0.15")) <= 0) {
             return TeacherTier.GOLD;
         }
-        if (validReviewCount >= 20 && rating.compareTo(new BigDecimal("3.5")) >= 0) {
+        if (validReviewCount >= 20
+                && rating.compareTo(new BigDecimal("3.5")) >= 0
+                && consume.compareTo(new BigDecimal("0.35")) >= 0
+                && refund.compareTo(new BigDecimal("0.15")) <= 0) {
             return TeacherTier.SILVER;
         }
-        if (validReviewCount >= 5 && rating.compareTo(new BigDecimal("3.0")) >= 0) {
+        if (validReviewCount >= 5
+                && rating.compareTo(new BigDecimal("3.0")) >= 0) {
             return TeacherTier.BRONZE;
         }
         return TeacherTier.NEWBIE;

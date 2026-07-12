@@ -14,4 +14,5 @@ public interface UserInventoryRepository extends JpaRepository<UserInventory, St
     Optional<UserInventory> findByUserIdAndProductId(String userId, String productId);
     Optional<UserInventory> findByUserIdAndProductIdAndActiveTrue(String userId, String productId);
     Optional<UserInventory> findByOrderIdAndProductIdAndActiveTrue(String orderId, String productId);
+    java.util.List<UserInventory> findByProductIdIn(java.util.List<String> productIds);
 }

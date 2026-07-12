@@ -22,6 +22,7 @@ public class ReviewService {
     private final ProductRepository productRepository;
     private final UserInventoryRepository userInventoryRepository;
     private final TeacherRatingService teacherRatingService;
+    private final CollusionFlagService collusionFlagService;
 
     @Transactional
     public ReviewResponse createReview(String buyerId, CreateReviewRequest request) {
@@ -32,6 +33,10 @@ public class ReviewService {
         if (reviewRepository.existsByBuyerIdAndProductId(buyerId, product.getId())) {
             throw new IllegalStateException("You already reviewed this product");
         }
+        ReviewStatus status = ReviewStatus.VALID;
+        if (collusionFlagService != null && collusionFlagService.hasActiveSuspiciousOrConfirmedFlag(product.getSellerUserId(), buyerId)) {
+            status = ReviewStatus.PENDING_RISK_REVIEW;
+        }
         Review review = Review.builder()
                 .buyerId(buyerId)
                 .sellerId(product.getSellerUserId())
@@ -39,7 +44,7 @@ public class ReviewService {
                 .orderId(inventory.getOrderId())
                 .rating(request.getRating())
                 .comment(request.getComment())
-                .status(ReviewStatus.VALID)
+                .status(status)
                 .build();
         Review saved = reviewRepository.save(review);
         teacherRatingService.recompute(product.getSellerUserId());

@@ -24,6 +24,7 @@ public class RabbitMQConfig {
     public static final String MARKETPLACE_EVENTS_EXCHANGE = "marketplace.events";
     public static final String CONTENT_PURCHASED_ROUTING_KEY = "content.purchased";
     public static final String TEACHER_TIER_UPDATED_ROUTING_KEY = "teacher.tier.updated";
+    public static final String COLLUSION_FLAGGED_ROUTING_KEY = "collusion.flagged";
 
     @Bean
     public TopicExchange marketplaceEventsExchange() {

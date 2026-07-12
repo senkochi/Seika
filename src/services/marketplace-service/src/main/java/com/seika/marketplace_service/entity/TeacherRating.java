@@ -43,6 +43,18 @@ public class TeacherRating {
     @Builder.Default
     BigDecimal tierFeePercent = new BigDecimal("20");
 
+    @Column(name = "consume_rate", nullable = false, precision = 5, scale = 4)
+    @Builder.Default
+    BigDecimal consumeRate = BigDecimal.ZERO;
+
+    @Column(name = "refund_rate", nullable = false, precision = 5, scale = 4)
+    @Builder.Default
+    BigDecimal refundRate = BigDecimal.ZERO;
+
+    @Column(name = "approval_rejection_rate", nullable = false, precision = 5, scale = 4)
+    @Builder.Default
+    BigDecimal approvalRejectionRate = BigDecimal.ZERO;
+
     @UpdateTimestamp
     @Column(name = "updated_at")
     Instant updatedAt;

@@ -25,41 +25,41 @@ V3 giữ trục chính của V2 nhưng chốt toàn bộ open questions:
 
 ## Decision Log
 
-| ID | Decision | Rationale |
-|---|---|---|
-| D1 | `REWARD` coin không withdrawable trong MVP | Reward là gamification, không phải real-money liability |
-| D2 | Dashboard hiển thị 3 số dư: `withdrawable`, `appOnly`, `escrowPending` | Minh bạch với teacher, giảm tranh cãi khi cash-out |
-| D3 | Spend order là `BONUS -> REWARD -> PAID` | Student dùng coin miễn phí trước, UX tự nhiên hơn |
-| D4 | Escrow operation fee default `0` trong pilot | Tránh cảm giác fee chồng fee; có thể bật sau bằng config |
-| D5 | `EARNED_PROMO` có thể mua content khác, nhưng lineage luôn non-withdrawable | Chặn rửa coin qua nhiều giao dịch |
-| D6 | `BONUS`/`REWARD` mua được mọi content | Không làm marketplace khó hiểu với student |
-| D7 | Teacher tier Phase 2 MVP dùng chỉ `rating` + `validReviewCount` (giống V2); 5-metric (`consumeRate`, `refundRate`, `approvalRejectionRate`) thêm vào Phase 3 hardening | Phase 2 giữ đơn giản; Phase 3 bổ sung khi đã có data `consumedAt` + `approved_rejected_count` thực |
-| D8 | Refund sau `consumedAt` chỉ admin override: full / partial / no refund | Self-service đơn giản, admin xử lý case chất lượng thấp |
-| D9 | Promo-backed fee là coin sink, không phải real revenue | Admin dashboard không phóng đại doanh thu |
-| D10 | Reset DB hoàn toàn trước Phase 1; không migrate balance cũ. Hướng dẫn reset xem `docs/runbooks/db-reset-v3.md` | Project cá nhân, dev/test nhiều máy cần baseline giống nhau |
-| D11 | Marketplace config nằm trong Marketplace Service | Tier/escrow/risk thuộc marketplace lifecycle |
-| D12 | `wallet.debit.succeeded` có source breakdown + ledgerEntryIds + idempotencyKey | Escrow cần source lineage và idempotency mạnh |
-| D13 | Escrow release dùng outbox/inbox + idempotency | Tránh double credit/double release |
-| D14 | Suspicious review là `PENDING_RISK_REVIEW`, tạm không tính tier | Giảm false positive nhưng vẫn bảo vệ tier |
-| D15 | `WASH_HOLD` chặn cash-out; `FROZEN` chặn wallet operations; không chặn login | User vẫn xem được trạng thái/tài liệu, wallet bị kiểm soát |
-| D16 | Product listing denormalize teacher tier/rating/name | Tránh frontend fan-out và giảm latency marketplace |
-| D17 | Marketplace Service là source of truth cho `TeacherRating`; publish `teacher.tier.updated` khi tier đổi; profile-service chỉ consume display | Tránh hai service cùng lắng nghe review event gây drift; single owner tính tier |
-| D18 | Phase 1 không cần field `source_origin` trên `WalletLedgerEntry`; lineage chỉ cần cho risk review Phase 3 nếu cần audit chain | Tránh over-engineer schema Phase 1; promo lineage xác định lại qua `escrow.paid_backed_amount` ở Phase 2 nếu cần |
-| D19 | `MarketplaceConfig` chỉ chứa key marketplace-service dùng. Wallet-service đọc key ảnh hưởng wallet operation (vd `WASH_HOLD_DAYS`) qua Feign client hoặc event publish khi config đổi | Tránh shared Postgres table cross-service |
+| ID  | Decision                                                                                                                                                                              | Rationale                                                                                                        |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| D1  | `REWARD` coin không withdrawable trong MVP                                                                                                                                            | Reward là gamification, không phải real-money liability                                                          |
+| D2  | Dashboard hiển thị 3 số dư: `withdrawable`, `appOnly`, `escrowPending`                                                                                                                | Minh bạch với teacher, giảm tranh cãi khi cash-out                                                               |
+| D3  | Spend order là `BONUS -> REWARD -> PAID`                                                                                                                                              | Student dùng coin miễn phí trước, UX tự nhiên hơn                                                                |
+| D4  | Escrow operation fee default `0` trong pilot                                                                                                                                          | Tránh cảm giác fee chồng fee; có thể bật sau bằng config                                                         |
+| D5  | `EARNED_PROMO` có thể mua content khác, nhưng lineage luôn non-withdrawable                                                                                                           | Chặn rửa coin qua nhiều giao dịch                                                                                |
+| D6  | `BONUS`/`REWARD` mua được mọi content                                                                                                                                                 | Không làm marketplace khó hiểu với student                                                                       |
+| D7  | Teacher tier Phase 2 MVP dùng chỉ `rating` + `validReviewCount` (giống V2); 5-metric (`consumeRate`, `refundRate`, `approvalRejectionRate`) thêm vào Phase 3 hardening                | Phase 2 giữ đơn giản; Phase 3 bổ sung khi đã có data `consumedAt` + `approved_rejected_count` thực               |
+| D8  | Refund sau `consumedAt` chỉ admin override: full / partial / no refund                                                                                                                | Self-service đơn giản, admin xử lý case chất lượng thấp                                                          |
+| D9  | Promo-backed fee là coin sink, không phải real revenue                                                                                                                                | Admin dashboard không phóng đại doanh thu                                                                        |
+| D10 | Reset DB hoàn toàn trước Phase 1; không migrate balance cũ. Hướng dẫn reset xem `docs/runbooks/db-reset-v3.md`                                                                        | Project cá nhân, dev/test nhiều máy cần baseline giống nhau                                                      |
+| D11 | Marketplace config nằm trong Marketplace Service                                                                                                                                      | Tier/escrow/risk thuộc marketplace lifecycle                                                                     |
+| D12 | `wallet.debit.succeeded` có source breakdown + ledgerEntryIds + idempotencyKey                                                                                                        | Escrow cần source lineage và idempotency mạnh                                                                    |
+| D13 | Escrow release dùng outbox/inbox + idempotency                                                                                                                                        | Tránh double credit/double release                                                                               |
+| D14 | Suspicious review là `PENDING_RISK_REVIEW`, tạm không tính tier                                                                                                                       | Giảm false positive nhưng vẫn bảo vệ tier                                                                        |
+| D15 | `WASH_HOLD` chặn cash-out; `FROZEN` chặn wallet operations; không chặn login                                                                                                          | User vẫn xem được trạng thái/tài liệu, wallet bị kiểm soát                                                       |
+| D16 | Product listing denormalize teacher tier/rating/name                                                                                                                                  | Tránh frontend fan-out và giảm latency marketplace                                                               |
+| D17 | Marketplace Service là source of truth cho `TeacherRating`; publish `teacher.tier.updated` khi tier đổi; profile-service chỉ consume display                                          | Tránh hai service cùng lắng nghe review event gây drift; single owner tính tier                                  |
+| D18 | Phase 1 không cần field `source_origin` trên `WalletLedgerEntry`; lineage chỉ cần cho risk review Phase 3 nếu cần audit chain                                                         | Tránh over-engineer schema Phase 1; promo lineage xác định lại qua `escrow.paid_backed_amount` ở Phase 2 nếu cần |
+| D19 | `MarketplaceConfig` chỉ chứa key marketplace-service dùng. Wallet-service đọc key ảnh hưởng wallet operation (vd `WASH_HOLD_DAYS`) qua Feign client hoặc event publish khi config đổi | Tránh shared Postgres table cross-service                                                                        |
 
 ## Business Rules
 
 ### Coin Sources and Lineage
 
-| Source | Created by | Can spend in app? | Can create withdrawable earning? | Cash-out eligible? |
-|---|---|:---:|:---:|:---:|
-| `PAID` | Student top-up | Yes | Yes | No, unless converted to teacher earning |
-| `BONUS` | Initial grant, promo | Yes | No | No |
-| `REWARD` | Learning reward | Yes | No in MVP | No |
-| `EARNED_WITHDRAWABLE` | Seller earning from paid-backed purchase | Yes | Yes | Yes |
-| `EARNED_PROMO` | Seller earning from bonus/reward-backed purchase | Yes | No | No |
-| `PLATFORM_FEE_REAL` | Fee from paid-backed purchase | No | Admin real revenue | N/A |
-| `PLATFORM_FEE_PROMO_SINK` | Fee from promo-backed purchase | No | Coin sink only | N/A |
+| Source                    | Created by                                       | Can spend in app? | Can create withdrawable earning? |           Cash-out eligible?            |
+| ------------------------- | ------------------------------------------------ | :---------------: | :------------------------------: | :-------------------------------------: |
+| `PAID`                    | Student top-up                                   |        Yes        |               Yes                | No, unless converted to teacher earning |
+| `BONUS`                   | Initial grant, promo                             |        Yes        |                No                |                   No                    |
+| `REWARD`                  | Learning reward                                  |        Yes        |            No in MVP             |                   No                    |
+| `EARNED_WITHDRAWABLE`     | Seller earning from paid-backed purchase         |        Yes        |               Yes                |                   Yes                   |
+| `EARNED_PROMO`            | Seller earning from bonus/reward-backed purchase |        Yes        |                No                |                   No                    |
+| `PLATFORM_FEE_REAL`       | Fee from paid-backed purchase                    |        No         |        Admin real revenue        |                   N/A                   |
+| `PLATFORM_FEE_PROMO_SINK` | Fee from promo-backed purchase                   |        No         |          Coin sink only          |                   N/A                   |
 
 Important invariant:
 
@@ -358,23 +358,23 @@ approvalRejectionRate
 
 Default tier rules (Phase 2 MVP — chỉ dùng rating + validReviewCount):
 
-| Tier | Minimum rule | Platform fee |
-|---|---|---:|
-| `NEWBIE` | fallback/default | 20% |
-| `BRONZE` | >= 5 valid reviews, rating >= 3.0 | 15% |
-| `SILVER` | >= 20 valid reviews, rating >= 3.5 | 10% |
-| `GOLD` | >= 100 valid reviews, rating >= 4.0 | 5% |
-| `ELITE` | >= 500 valid reviews, rating >= 4.5 | 3% |
+| Tier     | Minimum rule                        | Platform fee |
+| -------- | ----------------------------------- | -----------: |
+| `NEWBIE` | fallback/default                    |          20% |
+| `BRONZE` | >= 5 valid reviews, rating >= 3.0   |          15% |
+| `SILVER` | >= 20 valid reviews, rating >= 3.5  |          10% |
+| `GOLD`   | >= 100 valid reviews, rating >= 4.0 |           5% |
+| `ELITE`  | >= 500 valid reviews, rating >= 4.5 |           3% |
 
 Phase 3 sẽ nâng cấp table `tier_thresholds` từ singleton config json thành các row với rule 4 chiều:
 
-| Tier | Minimum rule (Phase 3) | Platform fee |
-|---|---|---:|
-| `NEWBIE` | fallback | 20% |
-| `BRONZE` | >= 5 reviews, rating >= 3.0 | 15% |
-| `SILVER` | >= 20 reviews, rating >= 3.5, consumeRate >= 35%, refundRate <= 15% | 10% |
-| `GOLD` | >= 100 reviews, rating >= 4.0, consumeRate >= 50%, refundRate <= 10%, approvalRejectionRate <= 15% | 5% |
-| `ELITE` | >= 500 reviews, rating >= 4.5, consumeRate >= 65%, refundRate <= 5%, approvalRejectionRate <= 8% | 3% |
+| Tier     | Minimum rule (Phase 3)                                                                             | Platform fee |
+| -------- | -------------------------------------------------------------------------------------------------- | -----------: |
+| `NEWBIE` | fallback                                                                                           |          20% |
+| `BRONZE` | >= 5 reviews, rating >= 3.0                                                                        |          15% |
+| `SILVER` | >= 20 reviews, rating >= 3.5, consumeRate >= 35%, refundRate <= 15%                                |          10% |
+| `GOLD`   | >= 100 reviews, rating >= 4.0, consumeRate >= 50%, refundRate <= 10%, approvalRejectionRate <= 15% |           5% |
+| `ELITE`  | >= 500 reviews, rating >= 4.5, consumeRate >= 65%, refundRate <= 5%, approvalRejectionRate <= 8%   |           3% |
 
 `approvalRejectionRate` uses marketplace moderation history:
 
@@ -543,12 +543,12 @@ Flag if `riskScore >= COLLUSION_RISK_THRESHOLD`.
 
 Admin status behavior:
 
-| Status | Behavior |
-|---|---|
-| `SUSPICIOUS` | Linked reviews become `PENDING_RISK_REVIEW`; no user notification |
-| `CONFIRMED` | Teacher gets `WASH_HOLD`; linked reviews become `EXCLUDED_WASH` |
-| `MALICIOUS` | Buyer/seller wallets become `FROZEN`; admin handles eligible refunds |
-| `DISMISSED` | Pending reviews can become `VALID` |
+| Status       | Behavior                                                             |
+| ------------ | -------------------------------------------------------------------- |
+| `SUSPICIOUS` | Linked reviews become `PENDING_RISK_REVIEW`; no user notification    |
+| `CONFIRMED`  | Teacher gets `WASH_HOLD`; linked reviews become `EXCLUDED_WASH`      |
+| `MALICIOUS`  | Buyer/seller wallets become `FROZEN`; admin handles eligible refunds |
+| `DISMISSED`  | Pending reviews can become `VALID`                                   |
 
 ## Content Lifecycle Conflict Resolution
 
@@ -621,10 +621,10 @@ Teacher onboarding/financial gate can be added after pilot if needed.
 
 ## Wallet Holds and Freezes
 
-| Hold type | Blocks cash-out | Blocks spend | Blocks top-up | Blocks login |
-|---|:---:|:---:|:---:|:---:|
-| `WASH_HOLD` | Yes | No | No | No |
-| `FROZEN` | Yes | Yes | Yes | No |
+| Hold type   | Blocks cash-out | Blocks spend | Blocks top-up | Blocks login |
+| ----------- | :-------------: | :----------: | :-----------: | :----------: |
+| `WASH_HOLD` |       Yes       |      No      |      No       |      No      |
+| `FROZEN`    |       Yes       |     Yes      |      Yes      |      No      |
 
 Users can still log in to see status, notifications, and contact/admin messaging.
 
@@ -778,13 +778,13 @@ Manual scenarios:
 
 ## Effort Estimate
 
-| Phase | Estimate |
-|---|---:|
-| Phase 1: Protected ledger + content safety hooks | 2.5-3 weeks |
-| Phase 2: Escrow + tier + review | 2.5-3.5 weeks |
-| Phase 3: Risk review + holds | 1.5-2.5 weeks |
-| Frontend polish + regression testing | 1-1.5 weeks |
-| Total | 7.5-10.5 weeks |
+| Phase                                            |       Estimate |
+| ------------------------------------------------ | -------------: |
+| Phase 1: Protected ledger + content safety hooks |    2.5-3 weeks |
+| Phase 2: Escrow + tier + review                  |  2.5-3.5 weeks |
+| Phase 3: Risk review + holds                     |  1.5-2.5 weeks |
+| Frontend polish + regression testing             |    1-1.5 weeks |
+| Total                                            | 7.5-10.5 weeks |
 
 ## Not Doing
 
