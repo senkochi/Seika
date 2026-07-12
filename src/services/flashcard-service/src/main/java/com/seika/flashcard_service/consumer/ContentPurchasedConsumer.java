@@ -39,7 +39,7 @@ public class ContentPurchasedConsumer {
     public void onContentPurchased(Map<String, Object> event) {
         try {
             String productType = stringValue(event, "productType");
-            if (!CARD_SET_PRODUCT_TYPE.equalsIgnoreCase(productType)) {
+            if (!CARD_SET_PRODUCT_TYPE.equalsIgnoreCase(productType) && !"FLASHCARD".equalsIgnoreCase(productType)) {
                 return;
             }
 

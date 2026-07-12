@@ -4,12 +4,17 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import com.seika.marketplace_service.entity.Product;
+import com.seika.marketplace_service.enums.OrderStatus;
 import com.seika.marketplace_service.enums.ProductStatus;
 import com.seika.marketplace_service.enums.ProductType;
+import com.seika.marketplace_service.repository.OrderRepository;
 import com.seika.marketplace_service.repository.ProductRepository;
 import com.seika.marketplace_service.repository.UserInventoryRepository;
 
@@ -19,19 +24,27 @@ import com.seika.marketplace_service.repository.UserInventoryRepository;
 public class ProductService {
     private final ProductRepository productRepository;
     private final UserInventoryRepository userInventoryRepository;
+    private final OrderRepository orderRepository;
     private final MarketplaceEscrowSafetyService escrowSafetyService;
 
     public List<Product> getActiveProducts(String userId) {
         List<Product> products = productRepository.findByActiveTrueAndStatusOrderByCreatedAtDesc(ProductStatus.PUBLISHED);
-        if (userId != null) {
-            List<String> ownedProductIds = userInventoryRepository.findByUserIdAndActiveTrue(userId).stream()
-                    .map(com.seika.marketplace_service.entity.UserInventory::getProductId)
-                    .collect(java.util.stream.Collectors.toList());
-            return products.stream()
-                    .filter(p -> !ownedProductIds.contains(p.getId()))
-                    .collect(java.util.stream.Collectors.toList());
+        if (userId == null || userId.isBlank()) {
+            return products;
         }
-        return products;
+
+        Set<String> unavailableProductIds = new HashSet<>();
+        userInventoryRepository.findByUserIdAndActiveTrue(userId).stream()
+                .map(com.seika.marketplace_service.entity.UserInventory::getProductId)
+                .forEach(unavailableProductIds::add);
+        orderRepository.findProductIdsByUserIdAndStatuses(
+                userId,
+                Arrays.asList(OrderStatus.PENDING_PAYMENT, OrderStatus.PAID)
+        ).forEach(unavailableProductIds::add);
+
+        return products.stream()
+                .filter(product -> !unavailableProductIds.contains(product.getId()))
+                .toList();
     }
 
     public List<Product> getActiveProductsByType(ProductType type) {

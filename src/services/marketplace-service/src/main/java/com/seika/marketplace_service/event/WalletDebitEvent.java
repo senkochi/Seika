@@ -1,5 +1,6 @@
 package com.seika.marketplace_service.event;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -13,6 +14,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class WalletDebitEvent {
     String eventId;
     String eventType;
@@ -31,6 +33,7 @@ public class WalletDebitEvent {
     @AllArgsConstructor
     @Builder
     @FieldDefaults(level = AccessLevel.PRIVATE)
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class SourceBreakdown {
         BigDecimal bonusAmount;
         BigDecimal rewardAmount;

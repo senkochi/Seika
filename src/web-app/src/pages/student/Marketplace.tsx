@@ -4,6 +4,28 @@ import { marketplaceApi, Product, walletService } from "@/api";
 import { useAppSelector } from "@/store/hooks";
 import { toast } from "sonner";
 
+const ORDER_POLL_ATTEMPTS = 10;
+const ORDER_POLL_DELAY_MS = 700;
+
+const wait = (ms: number) =>
+  new Promise((resolve) => window.setTimeout(resolve, ms));
+
+async function waitForPaidOrder(orderId: string) {
+  for (let attempt = 0; attempt < ORDER_POLL_ATTEMPTS; attempt += 1) {
+    const response = await marketplaceApi.getOrder(orderId);
+    if (response.data.status === "PAID") {
+      return response.data;
+    }
+    if (response.data.status === "FAILED") {
+      throw new Error(
+        "Thanh toán thất bại. Coin đã được giữ nguyên hoặc sẽ được hoàn theo hệ thống.",
+      );
+    }
+    await wait(ORDER_POLL_DELAY_MS);
+  }
+  return null;
+}
+
 function Marketplace() {
   const userId = useAppSelector((state) => state.userProfile.userId);
   const [products, setProducts] = useState<Product[]>([]);
@@ -44,8 +66,8 @@ function Marketplace() {
         return;
       }
 
-      toast.loading("Đang xử lý yêu cầu...", { id: "buy-product" });
-      await marketplaceApi.createOrder(userId, [
+      toast.loading("Đang tạo đơn hàng...", { id: "buy-product" });
+      const orderResponse = await marketplaceApi.createOrder(userId, [
         {
           productId: product.id,
           productType: product.type,
@@ -57,14 +79,34 @@ function Marketplace() {
         },
       ]);
 
-      toast.success("Đã mua hàng thành công!", { id: "buy-product" });
+      toast.loading("Đang xác nhận thanh toán...", { id: "buy-product" });
+      const paidOrder = await waitForPaidOrder(orderResponse.data.id);
+      await fetchProducts();
+
+      if (paidOrder) {
+        toast.success(
+          "Đã mua hàng thành công! Sản phẩm đã có trong Learning Hub.",
+          {
+            id: "buy-product",
+          },
+        );
+      } else {
+        toast.info(
+          "Đơn hàng đang được xử lý. Vui lòng làm mới Learning Hub sau ít giây.",
+          {
+            id: "buy-product",
+          },
+        );
+      }
     } catch (error: any) {
       console.error(error);
       const errorMessage =
         error.response?.data?.message ||
         error.response?.data?.error ||
+        error.message ||
         "Mua hàng thất bại";
       toast.error(errorMessage, { id: "buy-product" });
+      void fetchProducts();
     }
   };
 

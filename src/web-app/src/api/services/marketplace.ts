@@ -23,6 +23,49 @@ export interface OrderItemRequest {
   sellerUserId: string;
 }
 
+export interface MarketplaceOrder {
+  id: string;
+  userId: string;
+  status: "PENDING_PAYMENT" | "PAID" | "FAILED" | string;
+  totalAmount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface EscrowTransaction {
+  id: string;
+  orderId: string;
+  orderItemId: string;
+  buyerId: string;
+  sellerId: string;
+  productId: string;
+  productType: "FLASHCARD" | "QUIZ" | string;
+  grossAmount: number;
+  bonusBackedAmount: number;
+  rewardBackedAmount: number;
+  paidBackedAmount: number;
+  earnedPromoBackedAmount: number;
+  promoBackedAmount: number;
+  tierAtRelease?: string | null;
+  tierFeePercent?: number | null;
+  escrowFeePercent?: number | null;
+  teacherWithdrawableNet?: number | null;
+  teacherPromoNet?: number | null;
+  platformFeeReal?: number | null;
+  platformFeePromoSink?: number | null;
+  status: string;
+  needsAdminDecision: boolean;
+  reviewReason?: string | null;
+  releaseAt: string;
+  creditRequestedAt?: string | null;
+  refundRequestedAt?: string | null;
+  releasedAt?: string | null;
+  refundedAt?: string | null;
+  lastWalletError?: string | null;
+  createdAt: string;
+  updatedAt?: string | null;
+}
+
 export const marketplaceApi = {
   // Products
   getProducts: () => apiClient.get<Product[]>("/marketplace/products"),
@@ -35,5 +78,17 @@ export const marketplaceApi = {
 
   // Orders
   createOrder: (userId: string, items: OrderItemRequest[]) =>
-    apiClient.post<any>("/marketplace/orders", { userId, items }),
+    apiClient.post<MarketplaceOrder>("/marketplace/orders", { userId, items }),
+  getOrder: (orderId: string) =>
+    apiClient.get<MarketplaceOrder>(`/marketplace/orders/${orderId}`),
+
+  // Escrow
+  getMyEscrows: () =>
+    apiClient.get<EscrowTransaction[]>("/marketplace/escrows/me"),
+  getSellerEscrows: () =>
+    apiClient.get<EscrowTransaction[]>("/marketplace/escrows/seller/me"),
+  requestRefund: (escrowId: string) =>
+    apiClient.post<EscrowTransaction>(
+      `/marketplace/escrows/${escrowId}/refund`,
+    ),
 };

@@ -33,7 +33,8 @@ public class ProductEventListener {
     private final UserInventoryRepository userInventoryRepository;
 
     @RabbitListener(queues = "${messaging.events.marketplace-content-queue:marketplace.content-events}")
-    public void handleContentCreatedEvent(String rawMessage, @Header(AmqpHeaders.RECEIVED_ROUTING_KEY) String routingKey) {
+    public void handleContentCreatedEvent(org.springframework.amqp.core.Message message, @Header(AmqpHeaders.RECEIVED_ROUTING_KEY) String routingKey) {
+        String rawMessage = new String(message.getBody(), java.nio.charset.StandardCharsets.UTF_8);
         try {
             if ("flashcard.set.created".equals(routingKey)) {
                 FlashcardSetCreatedEvent event = objectMapper.readValue(rawMessage, FlashcardSetCreatedEvent.class);

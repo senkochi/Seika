@@ -1,7 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { useAppSelector } from "../../store/hooks";
 import { walletService } from "../../api";
+import {
+  marketplaceApi,
+  type EscrowTransaction,
+} from "../../api/services/marketplace";
 import { showError, showSuccess } from "../../components/toast/toastUtils";
 
 import TeacherWalletHeader from "../../components/teacher/wallet/TeacherWalletHeader";
@@ -9,6 +13,7 @@ import WalletStatsGrid from "../../components/teacher/wallet/WalletStatsGrid";
 import TransactionHistory from "../../components/teacher/wallet/TransactionHistory";
 import CashOutForm from "../../components/teacher/wallet/CashOutForm";
 import CashOutConfirmModal from "../../components/teacher/wallet/CashOutConfirmModal";
+import SellerEscrowPanel from "../../components/teacher/wallet/SellerEscrowPanel";
 import { useWalletData } from "../../components/teacher/wallet/useWalletData";
 
 interface PendingCashOut {
@@ -24,6 +29,35 @@ function TeacherWallet() {
 
   const [pending, setPending] = useState<PendingCashOut | null>(null);
   const [loading, setLoading] = useState(false);
+  const [escrows, setEscrows] = useState<EscrowTransaction[]>([]);
+  const [escrowsLoading, setEscrowsLoading] = useState(false);
+
+  const loadEscrows = async () => {
+    setEscrowsLoading(true);
+    try {
+      const response = await marketplaceApi.getSellerEscrows();
+      const rows = Array.isArray(response.data) ? response.data : [];
+      setEscrows(
+        [...rows].sort(
+          (a, b) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+        ),
+      );
+    } catch (err) {
+      console.error(err);
+      setEscrows([]);
+    } finally {
+      setEscrowsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    void loadEscrows();
+  }, []);
+
+  const reloadAll = async () => {
+    await Promise.all([wallet.reload(), loadEscrows()]);
+  };
 
   const handleWithdraw = async () => {
     if (!pending) return;
@@ -34,7 +68,7 @@ function TeacherWallet() {
       await walletService.cashOut({ amount: pending.amount, description });
       showSuccess("Rút tiền thành công!");
       setPending(null);
-      void wallet.reload();
+      void reloadAll();
     } catch (err: unknown) {
       const e = err as { response?: { data?: { message?: string } } };
       showError(e.response?.data?.message ?? "Lỗi khi rút tiền!");
@@ -47,8 +81,8 @@ function TeacherWallet() {
     <div className="p-8">
       <TeacherWalletHeader
         balance={wallet.balance}
-        loading={wallet.loading}
-        onReload={wallet.reload}
+        loading={wallet.loading || escrowsLoading}
+        onReload={reloadAll}
       />
 
       <WalletStatsGrid
@@ -57,13 +91,14 @@ function TeacherWallet() {
         currentStreak={streak}
       />
 
+      <div className="mb-8">
+        <SellerEscrowPanel escrows={escrows} loading={escrowsLoading} />
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
         <TransactionHistory history={wallet.history} loading={wallet.loading} />
 
-        <CashOutForm
-          balance={wallet.balance}
-          onSubmit={(p) => setPending(p)}
-        />
+        <CashOutForm balance={wallet.balance} onSubmit={(p) => setPending(p)} />
       </div>
 
       <CashOutConfirmModal

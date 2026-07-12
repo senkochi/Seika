@@ -1,4 +1,5 @@
 import { apiClient } from "../client";
+import type { EscrowTransaction } from "./marketplace";
 import type {
   AdminDashboardStats,
   AdminProductsPage,
@@ -12,6 +13,39 @@ import type {
   UserAdminResponse,
 } from "../types";
 
+export interface AdminCollusionFlag {
+  id: string;
+  teacherId: string;
+  buyerId: string;
+  riskScore: number;
+  transactionCount: number;
+  promoBackedRatio: number;
+  noConsumeRatio: number;
+  reciprocalRatio: number;
+  reviewVelocityAbnormal: boolean;
+  lookbackStart: string;
+  lookbackEnd: string;
+  lastEvaluatedAt: string;
+  status: string;
+  adminId?: string | null;
+  adminReason?: string | null;
+  resolvedAt?: string | null;
+  createdAt: string;
+  updatedAt?: string | null;
+}
+
+export interface AdminCollusionFlagsPage {
+  content: AdminCollusionFlag[];
+  totalElements: number;
+  totalPages: number;
+  number: number;
+  size: number;
+}
+
+export type CollusionAction =
+  | "CONFIRM_COLLUSION"
+  | "MARK_MALICIOUS"
+  | "DISMISS";
 const unwrap = <T>(payload: unknown): T => {
   if (
     payload &&
@@ -160,6 +194,85 @@ export const adminService = {
     return unwrap<SystemConfigEntry>(response.data);
   },
 
+  listMarketplaceConfigs: async (): Promise<SystemConfigEntry[]> => {
+    const response = await apiClient.get("/marketplace/admin/configs");
+    const data = unwrap<SystemConfigEntry[]>(response.data);
+    return data ?? [];
+  },
+
+  updateMarketplaceConfig: async (
+    key: string,
+    request: UpdateConfigRequest,
+  ): Promise<SystemConfigEntry> => {
+    const response = await apiClient.put(
+      `/marketplace/admin/configs/${encodeURIComponent(key)}`,
+      request,
+    );
+    return unwrap<SystemConfigEntry>(response.data);
+  },
+
+  // -------------------------------------------------------------------------
+  // Marketplace escrow and risk review
+  // -------------------------------------------------------------------------
+  listPendingEscrowDecisions: async (): Promise<EscrowTransaction[]> => {
+    const response = await apiClient.get(
+      "/marketplace/admin/orders/pending-decision",
+    );
+    const data = unwrap<EscrowTransaction[]>(response.data);
+    return data ?? [];
+  },
+
+  decideEscrow: async (
+    orderItemId: string,
+    action: "refund" | "force-release" | "no-refund",
+    reason: string,
+  ): Promise<EscrowTransaction> => {
+    const response = await apiClient.post(
+      `/marketplace/admin/order-items/${orderItemId}/${action}`,
+      { reason },
+    );
+    return unwrap<EscrowTransaction>(response.data);
+  },
+
+  listCollusionFlags: async (
+    status?: string,
+    page = 0,
+    size = 20,
+  ): Promise<AdminCollusionFlagsPage> => {
+    const params = new URLSearchParams();
+    if (status && status !== "ALL") params.set("status", status);
+    params.set("page", String(page));
+    params.set("size", String(size));
+    const response = await apiClient.get(
+      `/marketplace/admin/collusion-flags?${params.toString()}`,
+    );
+    const data = response.data as {
+      content?: AdminCollusionFlag[];
+      totalElements?: number;
+      totalPages?: number;
+      number?: number;
+      size?: number;
+    };
+    return {
+      content: data.content ?? [],
+      totalElements: data.totalElements ?? 0,
+      totalPages: data.totalPages ?? 0,
+      number: data.number ?? page,
+      size: data.size ?? size,
+    };
+  },
+
+  takeCollusionAction: async (
+    flagId: string,
+    action: CollusionAction,
+    reason: string,
+  ): Promise<AdminCollusionFlag> => {
+    const response = await apiClient.post(
+      `/marketplace/admin/collusion-flags/${flagId}/action`,
+      { action, reason },
+    );
+    return unwrap<AdminCollusionFlag>(response.data);
+  },
   // -------------------------------------------------------------------------
   // Revenue and Treasury management
   // -------------------------------------------------------------------------

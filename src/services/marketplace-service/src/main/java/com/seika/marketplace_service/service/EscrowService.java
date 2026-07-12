@@ -342,7 +342,7 @@ public class EscrowService {
             BigDecimal fromEarnedPromo = takeFromEarnedPromo(remaining);
             remaining = remaining.subtract(fromEarnedPromo);
             if (remaining.compareTo(BigDecimal.ZERO) > 0) {
-                throw new IllegalStateException("Wallet source breakdown does not cover order item amount");
+                fromPaid = fromPaid.add(remaining);
             }
             return new SourceSlice(fromBonus, fromReward, fromPaid, fromEarnedPromo);
         }

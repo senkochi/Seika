@@ -116,6 +116,16 @@ public class OrderService {
         return order;
     }
 
+
+    @Transactional(readOnly = true)
+    public Order getOrderForUser(String userId, String orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderId));
+        if (userId == null || !userId.equals(order.getUserId())) {
+            throw new IllegalArgumentException("Bạn không có quyền xem đơn hàng này.");
+        }
+        return order;
+    }
     private BigDecimal calculateTotal(List<OrderItem> items) {
         BigDecimal total = BigDecimal.ZERO;
         for (OrderItem item : items) {
