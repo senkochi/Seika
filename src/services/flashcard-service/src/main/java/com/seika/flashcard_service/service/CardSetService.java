@@ -224,6 +224,9 @@ public class CardSetService {
             return;
         }
 
+        boolean firstConsume = req.getResult() > 0
+                && !studySessionRepository.existsByUserIdAndCardSetId(req.getUserId(), req.getCardSetId());
+
         StudySession session = StudySession.builder()
                 .id(UUID.randomUUID().toString())
                 .userId(req.getUserId())
@@ -233,6 +236,9 @@ public class CardSetService {
                 .studiedAt(Instant.now())
                 .build();
         studySessionRepository.save(session);
+        if (firstConsume) {
+            contentEventPublisher.publishFlashcardSetConsumed(req.getCardSetId(), req.getUserId());
+        }
 
         // Forward to existing fanout exchange for downstream consumers
         req.setCreatedAt(req.getCreatedAt() != null ? req.getCreatedAt() : java.time.LocalDateTime.now());

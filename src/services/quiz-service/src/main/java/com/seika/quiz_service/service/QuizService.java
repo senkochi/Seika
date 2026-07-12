@@ -38,6 +38,7 @@ public class QuizService {
     private final QuizSetRepository quizSetRepository;
     private final QuizAttemptRepository quizAttemptRepository;
     private final org.springframework.amqp.rabbit.core.RabbitTemplate rabbitTemplate;
+    private final ContentEventPublisher contentEventPublisher;
     
     /**
      * Get all quizzes
@@ -262,6 +263,9 @@ public class QuizService {
                 ? id
                 : resolveOwningQuizSetId(id);
 
+        boolean firstConsume = resolvedQuizSetId != null
+                && !quizAttemptRepository.existsByUserIdAndQuizSetId(userId, resolvedQuizSetId);
+
         QuizAttempt attempt = QuizAttempt.builder()
                 .id(UUID.randomUUID().toString())
                 .userId(userId)
@@ -272,6 +276,9 @@ public class QuizService {
                 .attemptAt(Instant.now())
                 .build();
         quizAttemptRepository.save(attempt);
+        if (firstConsume) {
+            contentEventPublisher.publishQuizSetConsumed(resolvedQuizSetId, userId);
+        }
 
         // 2) Publish event for downstream consumers (rewards, profile, ...)
         com.seika.quiz_service.dto.QuizCompletedEvent event = com.seika.quiz_service.dto.QuizCompletedEvent.builder()
@@ -305,3 +312,5 @@ public class QuizService {
                 .orElse(null);
     }
 }
+
+

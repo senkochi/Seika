@@ -15,12 +15,15 @@ public class RabbitMQConfig {
     public static final String WALLET_EVENTS_EXCHANGE = "wallet.events";
     public static final String WALLET_EVENTS_QUEUE = "marketplace.wallet-events";
     public static final String WALLET_EVENTS_ROUTING_KEY = "wallet.debit.*";
+    public static final String WALLET_CREDIT_EVENTS_ROUTING_KEY = "wallet.credit.*";
+    public static final String WALLET_REFUND_EVENTS_ROUTING_KEY = "wallet.refund.*";
     public static final String WALLET_COMMANDS_EXCHANGE = "wallet.commands";
     public static final String WALLET_DEBIT_ROUTING_KEY = "wallet.debit.requested";
 
     // Marketplace events (published after a successful purchase)
     public static final String MARKETPLACE_EVENTS_EXCHANGE = "marketplace.events";
     public static final String CONTENT_PURCHASED_ROUTING_KEY = "content.purchased";
+    public static final String TEACHER_TIER_UPDATED_ROUTING_KEY = "teacher.tier.updated";
 
     @Bean
     public TopicExchange marketplaceEventsExchange() {
@@ -43,6 +46,16 @@ public class RabbitMQConfig {
             .bind(walletEventsQueue)
             .to(walletEventsExchange)
             .with(WALLET_EVENTS_ROUTING_KEY);
+    }
+
+    @Bean
+    public Binding walletCreditEventsBinding(Queue walletEventsQueue, TopicExchange walletEventsExchange) {
+        return BindingBuilder.bind(walletEventsQueue).to(walletEventsExchange).with(WALLET_CREDIT_EVENTS_ROUTING_KEY);
+    }
+
+    @Bean
+    public Binding walletRefundEventsBinding(Queue walletEventsQueue, TopicExchange walletEventsExchange) {
+        return BindingBuilder.bind(walletEventsQueue).to(walletEventsExchange).with(WALLET_REFUND_EVENTS_ROUTING_KEY);
     }
 
     // Content events
@@ -76,6 +89,14 @@ public class RabbitMQConfig {
     }
 
     @Bean
+    public Binding marketplaceContentConsumedBinding(Queue marketplaceContentEventsQueue, TopicExchange contentEventsExchange) {
+        return BindingBuilder
+                .bind(marketplaceContentEventsQueue)
+                .to(contentEventsExchange)
+                .with("*.*.consumed");
+    }
+
+    @Bean
     public TopicExchange walletCommandsExchange() {
         return new TopicExchange(WALLET_COMMANDS_EXCHANGE);
     }
@@ -90,3 +111,4 @@ public class RabbitMQConfig {
         return new ObjectMapper();
     }
 }
+

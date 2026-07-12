@@ -14,5 +14,7 @@ public interface StudySessionRepository extends MongoRepository<StudySession, St
 
     long countDistinctUserIdByCardSetIdIn(Collection<String> cardSetIds);
 
+    boolean existsByUserIdAndCardSetId(String userId, String cardSetId);
+
     List<StudySession> findByCardSetIdInOrderByStudiedAtDesc(Collection<String> cardSetIds);
 }

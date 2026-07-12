@@ -67,6 +67,8 @@ public class RabbitMQConfig {
     public static final String WALLET_COMMANDS_EXCHANGE = "wallet.commands";
     public static final String WALLET_COMMANDS_QUEUE = "wallet.commands.queue";
     public static final String WALLET_DEBIT_ROUTING_KEY = "wallet.debit.requested";
+    public static final String WALLET_CREDIT_ROUTING_KEY = "wallet.credit.requested";
+    public static final String WALLET_REFUND_ROUTING_KEY = "wallet.refund.requested";
 
     public static final String MARKETPLACE_EVENTS_EXCHANGE = "marketplace.events";
     public static final String MARKETPLACE_EVENTS_QUEUE = "wallet.marketplace-events";
@@ -90,6 +92,16 @@ public class RabbitMQConfig {
     }
 
     @Bean
+    public Binding walletCreditCommandsBinding(Queue walletCommandsQueue, TopicExchange walletCommandsExchange) {
+        return BindingBuilder.bind(walletCommandsQueue).to(walletCommandsExchange).with(WALLET_CREDIT_ROUTING_KEY);
+    }
+
+    @Bean
+    public Binding walletRefundCommandsBinding(Queue walletCommandsQueue, TopicExchange walletCommandsExchange) {
+        return BindingBuilder.bind(walletCommandsQueue).to(walletCommandsExchange).with(WALLET_REFUND_ROUTING_KEY);
+    }
+
+    @Bean
     public TopicExchange marketplaceEventsExchange() {
         return new TopicExchange(MARKETPLACE_EVENTS_EXCHANGE, true, false);
     }
@@ -104,3 +116,4 @@ public class RabbitMQConfig {
         return BindingBuilder.bind(marketplaceEventsQueue).to(marketplaceEventsExchange).with(CONTENT_PURCHASED_ROUTING_KEY);
     }
 }
+

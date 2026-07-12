@@ -117,6 +117,22 @@ public class WalletService {
                                           String orderId,
                                           String idempotencyKey,
                                           String description) {
+        return writeLedger(wallet, type, source, amount, amountVnd, rateVndPerCoin,
+                orderId, null, null, null, idempotencyKey, description);
+    }
+
+    private WalletLedgerEntry writeLedger(Wallet wallet,
+                                          WalletLedgerType type,
+                                          WalletLedgerSource source,
+                                          BigDecimal amount,
+                                          BigDecimal amountVnd,
+                                          BigDecimal rateVndPerCoin,
+                                          String orderId,
+                                          String orderItemId,
+                                          String escrowId,
+                                          UUID counterpartyUserId,
+                                          String idempotencyKey,
+                                          String description) {
         BigDecimal withdrawable = source == WalletLedgerSource.EARNED_WITHDRAWABLE ? amount : BigDecimal.ZERO;
         BigDecimal nonWithdrawable = source == WalletLedgerSource.EARNED_WITHDRAWABLE ? BigDecimal.ZERO : amount;
         WalletLedgerEntry entry = WalletLedgerEntry.builder()
@@ -130,12 +146,14 @@ public class WalletService {
                 .amountVnd(amountVnd)
                 .rateVndPerCoin(rateVndPerCoin)
                 .orderId(orderId)
+                .orderItemId(orderItemId)
+                .escrowId(escrowId)
+                .counterpartyUserId(counterpartyUserId)
                 .idempotencyKey(idempotencyKey)
                 .description(description)
                 .build();
         return walletLedgerEntryRepository.save(entry);
     }
-
     @Transactional
     public void createWallet(UUID userId, boolean isTeacher) {
         BigDecimal teacherInitial = systemConfigService.getBigDecimal(
@@ -288,6 +306,158 @@ public class WalletService {
         walletNotificationPublisher.publishWalletUpdated(userId, amount.negate(), TransactionType.CASH_OUT.name(), description);
     }
 
+    @Transactional
+    public void creditEscrowRelease(UUID sellerUserId,
+                                    UUID buyerUserId,
+                                    BigDecimal teacherWithdrawableAmount,
+                                    BigDecimal teacherPromoAmount,
+                                    BigDecimal platformFeeReal,
+                                    BigDecimal platformFeePromoSink,
+                                    String orderId,
+                                    String orderItemId,
+                                    String escrowId,
+                                    String idempotencyKey) {
+        requireIdempotencyKey(idempotencyKey);
+        if (walletIdempotencyKeyRepository.existsById(idempotencyKey)) {
+            return;
+        }
+
+        Wallet wallet = getOrCreateWallet(sellerUserId);
+        requireActive(wallet);
+        BigDecimal withdrawable = positiveOrZero(teacherWithdrawableAmount);
+        BigDecimal promo = positiveOrZero(teacherPromoAmount);
+        BigDecimal realFee = positiveOrZero(platformFeeReal);
+        BigDecimal promoSink = positiveOrZero(platformFeePromoSink);
+        BigDecimal teacherTotal = withdrawable.add(promo);
+        if (teacherTotal.compareTo(BigDecimal.ZERO) <= 0 && realFee.add(promoSink).compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Escrow release amount must be positive");
+        }
+
+        if (withdrawable.compareTo(BigDecimal.ZERO) > 0) {
+            creditSource(wallet, WalletLedgerSource.EARNED_WITHDRAWABLE, withdrawable);
+            writeLedger(wallet, WalletLedgerType.ESCROW_RELEASE_CREDIT, WalletLedgerSource.EARNED_WITHDRAWABLE,
+                    withdrawable, null, null, orderId, orderItemId, escrowId, buyerUserId,
+                    idempotencyKey, "Escrow release withdrawable earning");
+        }
+        if (promo.compareTo(BigDecimal.ZERO) > 0) {
+            creditSource(wallet, WalletLedgerSource.EARNED_PROMO, promo);
+            writeLedger(wallet, WalletLedgerType.ESCROW_RELEASE_CREDIT, WalletLedgerSource.EARNED_PROMO,
+                    promo, null, null, orderId, orderItemId, escrowId, buyerUserId,
+                    idempotencyKey, "Escrow release app-only earning");
+        }
+        if (realFee.compareTo(BigDecimal.ZERO) > 0) {
+            writeLedger(wallet, WalletLedgerType.PLATFORM_FEE_REAL, WalletLedgerSource.PLATFORM_FEE_REAL,
+                    realFee, null, null, orderId, orderItemId, escrowId, buyerUserId,
+                    idempotencyKey, "Paid-backed platform fee");
+        }
+        if (promoSink.compareTo(BigDecimal.ZERO) > 0) {
+            writeLedger(wallet, WalletLedgerType.PLATFORM_FEE_PROMO_SINK, WalletLedgerSource.PLATFORM_FEE_PROMO_SINK,
+                    promoSink, null, null, orderId, orderItemId, escrowId, buyerUserId,
+                    idempotencyKey, "Promo-backed platform fee sink");
+        }
+
+        wallet.recalculateBalance();
+        walletRepository.save(wallet);
+        walletIdempotencyKeyRepository.save(WalletIdempotencyKey.builder()
+                .idempotencyKey(idempotencyKey)
+                .orderId(orderId)
+                .operation(WalletLedgerType.ESCROW_RELEASE_CREDIT.name())
+                .build());
+
+        if (teacherTotal.compareTo(BigDecimal.ZERO) > 0) {
+            Transaction tx = Transaction.builder()
+                    .wallet(wallet)
+                    .amount(teacherTotal)
+                    .type(TransactionType.REWARD)
+                    .description("Escrow release for order " + orderId)
+                    .build();
+            transactionRepository.save(tx);
+            walletNotificationPublisher.publishWalletUpdated(sellerUserId, teacherTotal,
+                    TransactionType.REWARD.name(), "Escrow release for order " + orderId);
+        }
+    }
+
+    @Transactional
+    public void refundEscrowPurchase(UUID buyerUserId,
+                                     BigDecimal bonusAmount,
+                                     BigDecimal rewardAmount,
+                                     BigDecimal paidAmount,
+                                     BigDecimal earnedPromoAmount,
+                                     String orderId,
+                                     String orderItemId,
+                                     String escrowId,
+                                     String idempotencyKey) {
+        requireIdempotencyKey(idempotencyKey);
+        if (walletIdempotencyKeyRepository.existsById(idempotencyKey)) {
+            return;
+        }
+
+        Wallet wallet = getOrCreateWallet(buyerUserId);
+        requireActive(wallet);
+        BigDecimal bonus = positiveOrZero(bonusAmount);
+        BigDecimal reward = positiveOrZero(rewardAmount);
+        BigDecimal paid = positiveOrZero(paidAmount);
+        BigDecimal earnedPromo = positiveOrZero(earnedPromoAmount);
+        BigDecimal total = bonus.add(reward).add(paid).add(earnedPromo);
+        if (total.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Refund amount must be positive");
+        }
+
+        creditRefundSource(wallet, WalletLedgerSource.BONUS, bonus, orderId, orderItemId, escrowId, idempotencyKey);
+        creditRefundSource(wallet, WalletLedgerSource.REWARD, reward, orderId, orderItemId, escrowId, idempotencyKey);
+        creditRefundSource(wallet, WalletLedgerSource.PAID, paid, orderId, orderItemId, escrowId, idempotencyKey);
+        creditRefundSource(wallet, WalletLedgerSource.EARNED_PROMO, earnedPromo, orderId, orderItemId, escrowId, idempotencyKey);
+
+        wallet.recalculateBalance();
+        walletRepository.save(wallet);
+        walletIdempotencyKeyRepository.save(WalletIdempotencyKey.builder()
+                .idempotencyKey(idempotencyKey)
+                .orderId(orderId)
+                .operation(WalletLedgerType.ESCROW_REFUND_CREDIT.name())
+                .build());
+
+        Transaction tx = Transaction.builder()
+                .wallet(wallet)
+                .amount(total)
+                .type(TransactionType.DEPOSIT)
+                .description("Escrow refund for order " + orderId)
+                .build();
+        transactionRepository.save(tx);
+        walletNotificationPublisher.publishWalletUpdated(buyerUserId, total,
+                TransactionType.DEPOSIT.name(), "Escrow refund for order " + orderId);
+    }
+
+    private void creditRefundSource(Wallet wallet,
+                                    WalletLedgerSource source,
+                                    BigDecimal amount,
+                                    String orderId,
+                                    String orderItemId,
+                                    String escrowId,
+                                    String idempotencyKey) {
+        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+            return;
+        }
+        creditSource(wallet, source, amount);
+        writeLedger(wallet, WalletLedgerType.ESCROW_REFUND_CREDIT, source, amount,
+                null, null, orderId, orderItemId, escrowId, null, idempotencyKey,
+                "Escrow refund to original source");
+    }
+
+    private void requireIdempotencyKey(String idempotencyKey) {
+        if (idempotencyKey == null || idempotencyKey.isBlank()) {
+            throw new IllegalArgumentException("idempotencyKey is required");
+        }
+    }
+
+    private BigDecimal positiveOrZero(BigDecimal amount) {
+        if (amount == null) {
+            return BigDecimal.ZERO;
+        }
+        if (amount.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("amount must not be negative");
+        }
+        return amount;
+    }
     private void requireActive(Wallet wallet) {
         if (wallet != null && wallet.isFrozen()) {
             throw new IllegalStateException("Ví đang bị khóa, không thể thực hiện giao dịch.");
@@ -337,3 +507,6 @@ public class WalletService {
                 .collect(Collectors.toList());
     }
 }
+
+
+

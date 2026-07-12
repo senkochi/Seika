@@ -58,6 +58,30 @@ public class MarketplaceConfigService {
     }
 
     @Transactional(readOnly = true)
+    public String getValue(String key, String defaultValue) {
+        return repository.findById(key)
+                .map(MarketplaceConfig::getValue)
+                .orElse(defaultValue);
+    }
+
+    @Transactional(readOnly = true)
+    public int getInt(String key, int defaultValue) {
+        try {
+            return Integer.parseInt(getValue(key, Integer.toString(defaultValue)));
+        } catch (NumberFormatException exception) {
+            return defaultValue;
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public java.math.BigDecimal getBigDecimal(String key, java.math.BigDecimal defaultValue) {
+        try {
+            return new java.math.BigDecimal(getValue(key, defaultValue.toPlainString()));
+        } catch (NumberFormatException exception) {
+            return defaultValue;
+        }
+    }
+    @Transactional(readOnly = true)
     public List<MarketplaceConfig> getAll() {
         return repository.findAll();
     }
@@ -73,3 +97,4 @@ public class MarketplaceConfigService {
         return saved;
     }
 }
+

@@ -3,6 +3,8 @@ package com.seika.marketplace_service.service;
 import com.seika.marketplace_service.entity.Order;
 import com.seika.marketplace_service.entity.OrderItem;
 import com.seika.marketplace_service.enums.EscrowState;
+import com.seika.marketplace_service.enums.EscrowStatus;
+import com.seika.marketplace_service.repository.EscrowTransactionRepository;
 import com.seika.marketplace_service.repository.OrderItemRepository;
 import com.seika.marketplace_service.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
@@ -20,12 +22,19 @@ public class MarketplaceEscrowSafetyService {
 
     private final OrderItemRepository orderItemRepository;
     private final OrderRepository orderRepository;
+    private final EscrowTransactionRepository escrowTransactionRepository;
 
     @Transactional
     public void markHeldItemsPendingDecision(String productId, String reason) {
         List<OrderItem> items = orderItemRepository.findByProductIdAndEscrowStateIn(productId, List.of(EscrowState.HELD));
         for (OrderItem item : items) {
             EscrowSafetyRules.markPendingDecision(item, reason);
+            escrowTransactionRepository.findByOrderItemId(item.getId()).ifPresent(escrow -> {
+                escrow.setStatus(EscrowStatus.PENDING_ADMIN_DECISION);
+                escrow.setNeedsAdminDecision(true);
+                escrow.setReviewReason(reason);
+                escrowTransactionRepository.save(escrow);
+            });
             markOrderNeedsDecision(item.getOrderId());
         }
         orderItemRepository.saveAll(items);
@@ -38,6 +47,12 @@ public class MarketplaceEscrowSafetyService {
         Instant now = Instant.now();
         for (OrderItem item : items) {
             EscrowSafetyRules.cancelByAdmin(item, reason, adminUserId, now);
+            escrowTransactionRepository.findByOrderItemId(item.getId()).ifPresent(escrow -> {
+                escrow.setStatus(EscrowStatus.CANCELLED_BY_ADMIN);
+                escrow.setNeedsAdminDecision(true);
+                escrow.setReviewReason(reason);
+                escrowTransactionRepository.save(escrow);
+            });
             markOrderNeedsDecision(item.getOrderId());
         }
         orderItemRepository.saveAll(items);
@@ -62,3 +77,4 @@ public class MarketplaceEscrowSafetyService {
         });
     }
 }
+

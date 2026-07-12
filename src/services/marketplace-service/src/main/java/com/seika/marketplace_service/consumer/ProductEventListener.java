@@ -7,7 +7,9 @@ import com.seika.marketplace_service.enums.ProductStatus;
 import com.seika.marketplace_service.enums.ProductType;
 import com.seika.marketplace_service.event.FlashcardSetCreatedEvent;
 import com.seika.marketplace_service.event.QuizSetCreatedEvent;
+import com.seika.marketplace_service.event.ContentConsumedEvent;
 import com.seika.marketplace_service.repository.ProductRepository;
+import com.seika.marketplace_service.repository.UserInventoryRepository;
 import com.seika.marketplace_service.service.MarketplaceEscrowSafetyService;
 import com.seika.marketplace_service.service.MarketplaceNotificationPublisher;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +30,7 @@ public class ProductEventListener {
     private final ProductRepository productRepository;
     private final MarketplaceNotificationPublisher notificationPublisher;
     private final MarketplaceEscrowSafetyService escrowSafetyService;
+    private final UserInventoryRepository userInventoryRepository;
 
     @RabbitListener(queues = "${messaging.events.marketplace-content-queue:marketplace.content-events}")
     public void handleContentCreatedEvent(String rawMessage, @Header(AmqpHeaders.RECEIVED_ROUTING_KEY) String routingKey) {
@@ -44,6 +47,9 @@ public class ProductEventListener {
             } else if ("quiz.set.updated".equals(routingKey)) {
                 QuizSetCreatedEvent event = objectMapper.readValue(rawMessage, QuizSetCreatedEvent.class);
                 updateProduct(event.getQuizSetId(), ProductType.QUIZ, event.getTitle(), event.getDescription(), event.getPrice());
+            } else if ("flashcard.set.consumed".equals(routingKey) || "quiz.set.consumed".equals(routingKey)) {
+                ContentConsumedEvent event = objectMapper.readValue(rawMessage, ContentConsumedEvent.class);
+                markConsumed(event, routingKey.startsWith("flashcard") ? ProductType.FLASHCARD : ProductType.QUIZ);
             }
         } catch (JsonProcessingException exception) {
             log.error("Failed to deserialize content event. routingKey={}, payload={}", routingKey, rawMessage, exception);
@@ -53,6 +59,25 @@ public class ProductEventListener {
         }
     }
 
+    private void markConsumed(ContentConsumedEvent event, ProductType type) {
+        if (event.getUserId() == null || event.getUserId().isBlank()) {
+            return;
+        }
+        java.util.Optional<Product> product = java.util.Optional.empty();
+        if (event.getProductId() != null && !event.getProductId().isBlank()) {
+            product = productRepository.findById(event.getProductId());
+        }
+        if (product.isEmpty() && event.getReferenceId() != null && !event.getReferenceId().isBlank()) {
+            product = productRepository.findByReferenceIdAndType(event.getReferenceId(), type);
+        }
+        product.ifPresent(p -> userInventoryRepository.findByUserIdAndProductIdAndActiveTrue(event.getUserId(), p.getId())
+                .ifPresent(inventory -> {
+                    if (inventory.getConsumedAt() == null) {
+                        inventory.setConsumedAt(event.getConsumedAt() == null ? java.time.Instant.now() : event.getConsumedAt());
+                        userInventoryRepository.save(inventory);
+                    }
+                }));
+    }
     private void updateProduct(String referenceId, ProductType type, String title, String description, BigDecimal price) {
         java.util.Optional<Product> optionalProduct = productRepository.findByReferenceIdAndType(referenceId, type);
         if (optionalProduct.isPresent()) {
@@ -84,6 +109,7 @@ public class ProductEventListener {
                 .description(description)
                 .price(price == null ? BigDecimal.ZERO : price)
                 .sellerUserId(sellerId)
+                .teacherDisplayName(sellerId)
                 .active(false)                                     // chỉ active=true khi admin duyệt
                 .status(ProductStatus.PENDING_REVIEW)             // cần admin duyệt
                 .build();
@@ -92,3 +118,5 @@ public class ProductEventListener {
         notificationPublisher.publishContentCreated(saved.getId(), saved.getName(), saved.getType().name(), saved.getSellerUserId());
     }
 }
+
+

@@ -35,6 +35,7 @@ public class WalletEventHandler {
     private final OrderItemRepository orderItemRepository;
     private final UserInventoryRepository userInventoryRepository;
     private final ContentPurchasedEventPublisher contentPurchasedEventPublisher;
+    private final EscrowService escrowService;
 
     @Transactional
     public void handleWalletDebitEvent(WalletDebitEvent event, String rawPayload) {
@@ -111,6 +112,7 @@ public class WalletEventHandler {
             orderRepository.save(order);
             markOrderItemsHeld(order.getId());
             createInventory(order.getUserId(), order.getId());
+            escrowService.createEscrowsForPaidOrder(order.getUserId(), order.getId(), event.getSourceBreakdown());
         } else {
             if (order.getStatus() != OrderStatus.PAID) {
                 order.setStatus(OrderStatus.FAILED);
@@ -175,3 +177,4 @@ public class WalletEventHandler {
         return message.length() <= ERROR_LIMIT ? message : message.substring(0, ERROR_LIMIT);
     }
 }
+

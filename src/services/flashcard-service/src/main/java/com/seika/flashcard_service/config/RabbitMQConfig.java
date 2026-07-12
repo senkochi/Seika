@@ -21,6 +21,7 @@ public class RabbitMQConfig {
     // Content events (for teacher stats tracking in profile-service)
     public static final String CONTENT_EVENTS_EXCHANGE = "content.events";
     public static final String FLASHCARD_SET_CREATED_ROUTING_KEY = "flashcard.set.created";
+    public static final String FLASHCARD_SET_CONSUMED_ROUTING_KEY = "flashcard.set.consumed";
 
     // Learning events (for rewards)
     public static final String LEARNING_EVENTS_EXCHANGE = "learning.events";
@@ -69,3 +70,4 @@ public class RabbitMQConfig {
         return rabbitTemplate;
     }
 }
+
