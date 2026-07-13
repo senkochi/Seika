@@ -10,7 +10,24 @@ export interface Product {
   sellerUserId: string;
   status?: string;
   rejectionReason?: string | null;
+  teacherDisplayName?: string | null;
+  teacherTier?: string | null;
+  teacherAverageRating?: number | null;
+  teacherValidReviewCount?: number | null;
   createdAt: string;
+}
+
+export interface TeacherRating {
+  teacherId: string;
+  averageRating: number;
+  validReviewCount: number;
+  excludedReviewCount: number;
+  tier: "NEWBIE" | "BRONZE" | "SILVER" | "GOLD" | "ELITE" | string;
+  tierFeePercent: number;
+  consumeRate?: number | null;
+  refundRate?: number | null;
+  approvalRejectionRate?: number | null;
+  updatedAt?: string | null;
 }
 
 export interface OrderItemRequest {
@@ -90,5 +107,11 @@ export const marketplaceApi = {
   requestRefund: (escrowId: string) =>
     apiClient.post<EscrowTransaction>(
       `/marketplace/escrows/${escrowId}/refund`,
+    ),
+
+  // Teacher rating / tier
+  getTeacherRating: (teacherId: string) =>
+    apiClient.get<TeacherRating>(
+      `/marketplace/teachers/${encodeURIComponent(teacherId)}/rating`,
     ),
 };

@@ -4,11 +4,15 @@ import { ArrowUpRight, Coins, Loader2 } from "lucide-react";
 import { showError } from "../../toast/toastUtils";
 
 interface CashOutFormProps {
-  balance: number;
-  onSubmit: (data: { amount: number; bankName: string; bankAccount: string }) => void;
+  withdrawableBalance: number;
+  onSubmit: (data: {
+    amount: number;
+    bankName: string;
+    bankAccount: string;
+  }) => void;
 }
 
-function CashOutForm({ balance, onSubmit }: CashOutFormProps) {
+function CashOutForm({ withdrawableBalance, onSubmit }: CashOutFormProps) {
   const [amount, setAmount] = useState<string>("");
   const [bankName, setBankName] = useState<string>("Vietcombank");
   const [bankAccount, setBankAccount] = useState<string>(
@@ -19,64 +23,92 @@ function CashOutForm({ balance, onSubmit }: CashOutFormProps) {
     e.preventDefault();
     const parsed = parseInt(amount, 10);
     if (isNaN(parsed) || parsed <= 0) {
-      showError("Số lượng không hợp lệ!");
+      showError("Amount is invalid.");
       return;
     }
     if (parsed % 10 !== 0) {
-      showError("Số coin rút phải là bội số của 10!");
+      showError("Cash-out amount must be a multiple of 10 coins.");
       return;
     }
-    if (parsed > balance) {
-      showError("Số dư không đủ!");
+    if (parsed > withdrawableBalance) {
+      showError("Withdrawable balance is not enough.");
       return;
     }
     onSubmit({ amount: parsed, bankName, bankAccount });
   };
 
   return (
-    <div className="lg:col-span-2 bg-[var(--card)] backdrop-blur-xl border border-[var(--border)] rounded-3xl p-6 h-fit shadow-lg shadow-black/20">
-      <h2 className="text-xl font-bold text-[var(--foreground)] mb-6 flex items-center gap-2">
-        <ArrowUpRight className="w-5 h-5 text-amber-400" />
+    <div className="lg:col-span-2 h-fit rounded-lg border border-[var(--border)] bg-[var(--card)] p-6 shadow-lg shadow-black/20 backdrop-blur-xl">
+      <h2 className="mb-6 flex items-center gap-2 text-xl font-bold text-[var(--foreground)]">
+        <ArrowUpRight className="h-5 w-5 text-amber-400" />
         Request Cash Out
       </h2>
 
       <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="rounded-md border border-emerald-400/20 bg-emerald-400/10 px-3 py-2 text-xs text-emerald-200">
+          Available to cash out:{" "}
+          <span className="font-mono font-bold text-[var(--foreground)]">
+            {withdrawableBalance.toLocaleString("vi-VN")}
+          </span>{" "}
+          Coins
+        </div>
+
         <div>
-          <label className="block text-sm text-[var(--muted-foreground)] mb-2">
+          <label className="mb-2 block text-sm text-[var(--muted-foreground)]">
             Amount of Coins to Withdraw
           </label>
           <div className="relative">
-            <Coins className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted-foreground)]" />
+            <Coins className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-[var(--muted-foreground)]" />
             <input
               type="number"
               required
-              min={100}
-              placeholder="Min 100 Coins"
+              min={10}
+              placeholder="Min 10 Coins"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 bg-[rgba(255,255,255,0.06)] border border-[var(--border)] rounded-xl text-[var(--foreground)] focus:outline-none focus:border-[var(--ring)]"
+              className="w-full rounded-md border border-[var(--border)] bg-[rgba(255,255,255,0.06)] py-3 pl-10 pr-4 text-[var(--foreground)] focus:border-[var(--ring)] focus:outline-none"
             />
           </div>
         </div>
 
         <div>
-          <label className="block text-sm text-[var(--muted-foreground)] mb-2">
+          <label className="mb-2 block text-sm text-[var(--muted-foreground)]">
             Bank / Payment Partner
           </label>
           <select
             value={bankName}
             onChange={(e) => setBankName(e.target.value)}
-            className="w-full px-4 py-3 bg-[rgba(255,255,255,0.06)] border border-[var(--border)] rounded-xl text-[var(--foreground)] focus:outline-none focus:border-[var(--ring)]"
+            className="w-full rounded-md border border-[var(--border)] bg-[rgba(255,255,255,0.06)] px-4 py-3 text-[var(--foreground)] focus:border-[var(--ring)] focus:outline-none"
           >
-            <option value="Vietcombank" className="bg-[var(--card)] text-[var(--foreground)]">Vietcombank</option>
-            <option value="Techcombank" className="bg-[var(--card)] text-[var(--foreground)]">Techcombank</option>
-            <option value="MB Bank" className="bg-[var(--card)] text-[var(--foreground)]">MB Bank</option>
-            <option value="Momo Wallet" className="bg-[var(--card)] text-[var(--foreground)]">Momo Wallet</option>
+            <option
+              value="Vietcombank"
+              className="bg-[var(--card)] text-[var(--foreground)]"
+            >
+              Vietcombank
+            </option>
+            <option
+              value="Techcombank"
+              className="bg-[var(--card)] text-[var(--foreground)]"
+            >
+              Techcombank
+            </option>
+            <option
+              value="MB Bank"
+              className="bg-[var(--card)] text-[var(--foreground)]"
+            >
+              MB Bank
+            </option>
+            <option
+              value="Momo Wallet"
+              className="bg-[var(--card)] text-[var(--foreground)]"
+            >
+              Momo Wallet
+            </option>
           </select>
         </div>
 
         <div>
-          <label className="block text-sm text-[var(--muted-foreground)] mb-2">
+          <label className="mb-2 block text-sm text-[var(--muted-foreground)]">
             Account Number & Full Name
           </label>
           <input
@@ -85,16 +117,16 @@ function CashOutForm({ balance, onSubmit }: CashOutFormProps) {
             placeholder="e.g. 1029312093 - NGUYEN VAN A"
             value={bankAccount}
             onChange={(e) => setBankAccount(e.target.value)}
-            className="w-full px-4 py-3 bg-[rgba(255,255,255,0.06)] border border-[var(--border)] rounded-xl text-[var(--foreground)] focus:outline-none focus:border-[var(--ring)]"
+            className="w-full rounded-md border border-[var(--border)] bg-[rgba(255,255,255,0.06)] px-4 py-3 text-[var(--foreground)] focus:border-[var(--ring)] focus:outline-none"
           />
         </div>
 
         <div className="pt-2">
           <button
             type="submit"
-            className="w-full py-3 bg-gradient-to-r from-amber-400 to-yellow-500 text-purple-950 font-black rounded-xl hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="flex w-full items-center justify-center gap-2 rounded-md bg-gradient-to-r from-amber-400 to-yellow-500 py-3 font-black text-purple-950 transition-all hover:scale-[1.01] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <Loader2 className="w-4 h-4 animate-spin hidden" />
+            <Loader2 className="hidden h-4 w-4 animate-spin" />
             Confirm Cash Out
           </button>
         </div>

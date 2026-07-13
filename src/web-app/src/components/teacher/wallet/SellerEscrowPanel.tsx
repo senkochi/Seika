@@ -16,51 +16,61 @@ function formatDate(value: string | null | undefined) {
   return new Date(value).toLocaleString("vi-VN");
 }
 
-function statusLabel(status: string, needsAdminDecision: boolean) {
-  if (needsAdminDecision) return "Chờ admin quyết định";
-  if (status === "HELD") return "Đang giữ escrow";
-  if (status === "CREDIT_REQUESTED") return "Đang release";
-  if (status === "RELEASED") return "Đã release";
-  if (status === "REFUNDED") return "Đã hoàn";
-  return status;
+function statusLabel(escrow: EscrowTransaction) {
+  if (escrow.needsAdminDecision) return "Needs admin";
+  if (escrow.creditRequestedAt && escrow.status === "HELD") return "Releasing";
+  if (escrow.status === "HELD") return "Held escrow";
+  if (escrow.status === "RELEASED") return "Released";
+  if (escrow.status === "REFUNDED") return "Refunded";
+  return escrow.status;
 }
 
 export default function SellerEscrowPanel({
   escrows,
   loading,
 }: SellerEscrowPanelProps) {
-  const heldTotal = escrows
-    .filter((e) => e.status === "HELD" || e.status === "CREDIT_REQUESTED")
-    .reduce(
-      (sum, e) =>
-        sum + (e.teacherWithdrawableNet ?? 0) + (e.teacherPromoNet ?? 0),
-      0,
-    );
+  const activeEscrows = escrows.filter(
+    (e) => e.status === "HELD" || e.needsAdminDecision,
+  );
+  const escrowPending = activeEscrows.reduce(
+    (sum, e) => sum + (e.grossAmount ?? 0),
+    0,
+  );
+  const paidBacked = activeEscrows.reduce(
+    (sum, e) => sum + (e.paidBackedAmount ?? 0),
+    0,
+  );
   const decisionCount = escrows.filter((e) => e.needsAdminDecision).length;
 
   return (
-    <div className="rounded-3xl border border-[var(--border)] bg-[var(--card)] p-6 shadow-lg shadow-black/20">
+    <div className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-6 shadow-lg shadow-black/20">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h2 className="flex items-center gap-2 text-xl font-bold text-[var(--foreground)]">
             <ShieldCheck className="h-5 w-5 text-amber-400" />
-            Escrow đang chờ release
+            Escrow pending release
           </h2>
           <p className="mt-1 text-sm text-[var(--muted-foreground)]">
-            Doanh thu marketplace chỉ vào ví sau khi escrow được release.
+            Marketplace earnings enter the wallet only after escrow release.
           </p>
         </div>
-        <div className="grid grid-cols-2 gap-3 text-sm">
-          <div className="rounded-2xl border border-[var(--border)] bg-[var(--second-card)] px-4 py-3">
+        <div className="grid grid-cols-3 gap-3 text-sm">
+          <div className="rounded-lg border border-[var(--border)] bg-[var(--second-card)] px-4 py-3">
             <p className="text-xs text-[var(--muted-foreground)]">
-              Dự kiến nhận
+              Dang cho escrow
             </p>
             <p className="font-mono text-lg font-bold text-[var(--foreground)]">
-              {formatCoins(heldTotal)} Coins
+              {formatCoins(escrowPending)}
             </p>
           </div>
-          <div className="rounded-2xl border border-[var(--border)] bg-[var(--second-card)] px-4 py-3">
-            <p className="text-xs text-[var(--muted-foreground)]">Cần xử lý</p>
+          <div className="rounded-lg border border-emerald-400/20 bg-emerald-400/10 px-4 py-3">
+            <p className="text-xs text-emerald-200">Paid-backed</p>
+            <p className="font-mono text-lg font-bold text-emerald-300">
+              {formatCoins(paidBacked)}
+            </p>
+          </div>
+          <div className="rounded-lg border border-amber-400/20 bg-amber-400/10 px-4 py-3">
+            <p className="text-xs text-amber-200">Can xu ly</p>
             <p className="font-mono text-lg font-bold text-amber-300">
               {decisionCount}
             </p>
@@ -70,23 +80,24 @@ export default function SellerEscrowPanel({
 
       {loading ? (
         <div className="flex items-center justify-center gap-2 py-12 text-[var(--muted-foreground)]">
-          <Loader2 className="h-5 w-5 animate-spin" /> Đang tải escrow...
+          <Loader2 className="h-5 w-5 animate-spin" /> Loading escrows...
         </div>
       ) : escrows.length === 0 ? (
         <div className="py-10 text-center text-sm text-[var(--muted-foreground)]">
-          Chưa có khoản escrow nào từ đơn marketplace đã thanh toán.
+          No paid marketplace order is currently in seller escrow.
         </div>
       ) : (
         <div className="mt-6 overflow-x-auto">
-          <table className="w-full text-left text-sm">
+          <table className="w-full min-w-[860px] text-left text-sm">
             <thead>
               <tr className="border-b border-[var(--border)] text-xs uppercase text-[var(--muted-foreground)]">
-                <th className="pb-3 pr-4">Sản phẩm</th>
-                <th className="pb-3 pr-4">Trạng thái</th>
+                <th className="pb-3 pr-4">Product</th>
+                <th className="pb-3 pr-4">Status</th>
                 <th className="pb-3 pr-4 text-right">Gross</th>
-                <th className="pb-3 pr-4 text-right">Teacher net</th>
-                <th className="pb-3 pr-4">Release lúc</th>
-                <th className="pb-3">Ghi chú</th>
+                <th className="pb-3 pr-4 text-right">Paid-backed</th>
+                <th className="pb-3 pr-4 text-right">Promo-backed</th>
+                <th className="pb-3 pr-4">Release at</th>
+                <th className="pb-3">Note</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[var(--border)]">
@@ -112,19 +123,19 @@ export default function SellerEscrowPanel({
                       ) : (
                         <Clock className="h-3.5 w-3.5" />
                       )}
-                      {statusLabel(escrow.status, escrow.needsAdminDecision)}
+                      {statusLabel(escrow)}
                     </span>
                   </td>
                   <td className="py-3 pr-4 text-right font-mono text-[var(--foreground)]">
                     {formatCoins(escrow.grossAmount)}
                   </td>
-                  <td className="py-3 pr-4 text-right font-mono font-bold text-green-400">
-                    {formatCoins(
-                      (escrow.teacherWithdrawableNet ?? 0) +
-                        (escrow.teacherPromoNet ?? 0),
-                    )}
+                  <td className="py-3 pr-4 text-right font-mono font-bold text-emerald-300">
+                    {formatCoins(escrow.paidBackedAmount)}
                   </td>
-                  <td className="py-3 pr-4 whitespace-nowrap text-xs text-[var(--muted-foreground)]">
+                  <td className="py-3 pr-4 text-right font-mono font-bold text-amber-300">
+                    {formatCoins(escrow.promoBackedAmount)}
+                  </td>
+                  <td className="whitespace-nowrap py-3 pr-4 text-xs text-[var(--muted-foreground)]">
                     {formatDate(escrow.releaseAt)}
                   </td>
                   <td className="py-3 text-xs text-[var(--muted-foreground)]">

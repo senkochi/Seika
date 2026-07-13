@@ -17,23 +17,25 @@ import LevelProgressCard from "../../components/teacher/dashboard/LevelProgressC
 import RecentIncomesList from "../../components/teacher/dashboard/RecentIncomesList";
 import DashboardLoadingState from "../../components/teacher/dashboard/DashboardLoadingState";
 import DashboardFailedState from "../../components/teacher/dashboard/DashboardFailedState";
+import TeacherTierBadge from "../../components/teacher/TeacherTierBadge";
+import { useTeacherRating } from "../../components/teacher/useTeacherRating";
 
 const XP_PER_LEVEL = 1000;
 
 function TeacherDashboardHome() {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
-  const { status, error, fullName, username, exp, level } = useAppSelector(
-    (state) => state.userProfile,
-  );
+  const { status, error, fullName, username, exp, level, userId } =
+    useAppSelector((state) => state.userProfile);
   const { revenue } = useAppSelector((state) => state.statistics);
   const authUsername = useAppSelector((state) => state.auth.username);
 
   const [teacherProfile, setTeacherProfile] =
     useState<TeacherProfileResponse | null>(null);
-  const [balance, setBalance] = useState<number>(0);
+  const [withdrawableBalance, setWithdrawableBalance] = useState<number>(0);
   const [recentEvents, setRecentEvents] = useState<TransactionResponse[]>([]);
   const [period, setPeriod] = useState<"month" | "day">("month");
+  const { rating: teacherRating } = useTeacherRating(userId);
 
   useEffect(() => {
     if (status === "idle") {
@@ -46,8 +48,8 @@ function TeacherDashboardHome() {
       const profile = await userProfilesService.getTeacherProfile();
       setTeacherProfile(profile);
 
-      const balRes = await walletService.getBalance();
-      setBalance(balRes.balance);
+      const breakdown = await walletService.getBalanceBreakdown();
+      setWithdrawableBalance(breakdown.earnedWithdrawableBalance);
 
       const history = await walletService.getHistory();
       const incomeEvents = history
@@ -86,8 +88,8 @@ function TeacherDashboardHome() {
 
   const stats: TeacherTopStat[] = [
     {
-      label: "Total Balance",
-      value: `${balance.toLocaleString()} Coins`,
+      label: "Can cash out",
+      value: `${withdrawableBalance.toLocaleString()} Coins`,
       trend: "Current",
       icon: DollarSign,
       color: "from-amber-400 to-yellow-500",
@@ -128,6 +130,10 @@ function TeacherDashboardHome() {
         onRefresh={handleRefresh}
         onCreateMaterial={() => navigate("/teacher/dashboard/content")}
       />
+
+      <div className="mb-6 max-w-md">
+        <TeacherTierBadge rating={teacherRating} />
+      </div>
 
       <TopStatsGrid stats={stats} />
 

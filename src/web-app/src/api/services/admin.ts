@@ -214,6 +214,13 @@ export const adminService = {
   // -------------------------------------------------------------------------
   // Marketplace escrow and risk review
   // -------------------------------------------------------------------------
+  listEscrows: async (status?: string): Promise<EscrowTransaction[]> => {
+    const suffix =
+      status && status !== "ALL" ? `?status=${encodeURIComponent(status)}` : "";
+    const response = await apiClient.get(`/marketplace/admin/escrows${suffix}`);
+    const data = unwrap<EscrowTransaction[]>(response.data);
+    return data ?? [];
+  },
   listPendingEscrowDecisions: async (): Promise<EscrowTransaction[]> => {
     const response = await apiClient.get(
       "/marketplace/admin/orders/pending-decision",

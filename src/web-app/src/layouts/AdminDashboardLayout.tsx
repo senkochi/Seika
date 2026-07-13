@@ -10,6 +10,7 @@ import {
   Search,
   Shield,
   TrendingUp,
+  Store,
 } from "lucide-react";
 import GridBackground from "./GridBackground";
 import { Logo } from "../components/logo/Logo";
@@ -89,6 +90,12 @@ function AdminDashboardLayout() {
       label: "Revenue",
       icon: TrendingUp,
       path: "/admin/dashboard/revenue",
+    },
+    {
+      id: "marketplace",
+      label: "Marketplace Ops",
+      icon: Store,
+      path: "/admin/dashboard/marketplace",
     },
     {
       id: "users",

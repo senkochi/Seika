@@ -44,6 +44,9 @@ const AdminContentModeration = lazy(
 );
 const AdminSystemConfig = lazy(() => import("./pages/admin/AdminSystemConfig"));
 const AdminRevenue = lazy(() => import("./pages/admin/AdminRevenue"));
+const AdminMarketplaceRiskPanel = lazy(
+  () => import("./pages/admin/AdminMarketplaceRiskPanel"),
+);
 
 const withLoader = (content: ReactNode) => (
   <Suspense fallback={<PageLoader />}>{content}</Suspense>
@@ -166,6 +169,10 @@ const router = createBrowserRouter([
       {
         path: "revenue",
         element: withLoader(<AdminRevenue />),
+      },
+      {
+        path: "marketplace",
+        element: withLoader(<AdminMarketplaceRiskPanel />),
       },
     ],
   },

@@ -27,6 +27,8 @@ import {
   markAllAsRead,
 } from "../store/notificationSlice";
 import { formatDistanceToNow } from "date-fns";
+import TeacherTierBadge from "../components/teacher/TeacherTierBadge";
+import { useTeacherRating } from "../components/teacher/useTeacherRating";
 
 function TeacherDashboardLayout() {
   const navigate = useNavigate();
@@ -37,9 +39,8 @@ function TeacherDashboardLayout() {
   const notificationsRef = useRef<HTMLDivElement | null>(null);
 
   const dispatch = useAppDispatch();
-  const { fullName, username, profilePictureUrl, status } = useAppSelector(
-    (state) => state.userProfile,
-  );
+  const { fullName, username, profilePictureUrl, status, userId } =
+    useAppSelector((state) => state.userProfile);
 
   useEffect(() => {
     if (status === "idle") {
@@ -61,6 +62,7 @@ function TeacherDashboardLayout() {
   const roles = useAppSelector((state) => state.auth.roles);
 
   const displayName = fullName ?? username ?? authUsername ?? "Teacher";
+  const { rating: teacherRating } = useTeacherRating(userId);
 
   // Kiểm tra quyền Teacher
   useEffect(() => {
@@ -330,9 +332,9 @@ function TeacherDashboardLayout() {
                       {displayName}
                       <GraduationCap className="w-4 h-4 text-amber-400" />
                     </p>
-                    <p className="text-[var(--muted-foreground)] text-xs">
-                      Teacher Account
-                    </p>
+                    <div className="mt-1">
+                      <TeacherTierBadge rating={teacherRating} compact />
+                    </div>
                   </div>
                 </button>
 

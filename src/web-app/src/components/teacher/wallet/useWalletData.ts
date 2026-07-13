@@ -1,24 +1,35 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { walletService } from "../../../api";
-import {
-  EARN_TYPES,
-  SPEND_TYPES,
-  type Transaction,
-} from "./types";
+import { walletService, type WalletBalanceBreakdown } from "../../../api";
+import { EARN_TYPES, SPEND_TYPES, type Transaction } from "./types";
 
 interface WalletData {
   balance: number;
+  breakdown: WalletBalanceBreakdown;
   history: Transaction[];
   withdrawalRate: number;
   loading: boolean;
   totalEarned: number;
   totalSpent: number;
+  withdrawableBalance: number;
+  appOnlyBalance: number;
   reload: () => Promise<void>;
 }
 
+const emptyBreakdown: WalletBalanceBreakdown = {
+  balance: 0,
+  bonusBalance: 0,
+  rewardBalance: 0,
+  paidBalance: 0,
+  earnedWithdrawableBalance: 0,
+  earnedPromoBalance: 0,
+  heldBalance: 0,
+  frozen: false,
+};
+
 export function useWalletData(): WalletData {
-  const [balance, setBalance] = useState<number>(0);
+  const [breakdown, setBreakdown] =
+    useState<WalletBalanceBreakdown>(emptyBreakdown);
   const [history, setHistory] = useState<Transaction[]>([]);
   const [withdrawalRate, setWithdrawalRate] = useState<number>(90);
   const [loading, setLoading] = useState<boolean>(false);
@@ -26,13 +37,16 @@ export function useWalletData(): WalletData {
   const reload = useCallback(async () => {
     setLoading(true);
     try {
-      const [balanceRes, historyRes, configsRes] = await Promise.all([
-        walletService.getBalance(),
+      const [breakdownRes, historyRes, configsRes] = await Promise.all([
+        walletService.getBalanceBreakdown().catch(async () => {
+          const fallback = await walletService.getBalance();
+          return { ...emptyBreakdown, balance: fallback.balance || 0 };
+        }),
         walletService.getHistory(),
         walletService.getConfigs().catch(() => []),
       ]);
 
-      setBalance(balanceRes.balance || 0);
+      setBreakdown(breakdownRes);
 
       if (Array.isArray(historyRes)) {
         const sorted = [...historyRes].sort(
@@ -60,7 +74,7 @@ export function useWalletData(): WalletData {
       }
     } catch (err) {
       console.error(err);
-      setBalance(0);
+      setBreakdown(emptyBreakdown);
       setHistory([]);
     } finally {
       setLoading(false);
@@ -87,5 +101,22 @@ export function useWalletData(): WalletData {
     [history],
   );
 
-  return { balance, history, withdrawalRate, loading, totalEarned, totalSpent, reload };
+  const appOnlyBalance =
+    breakdown.bonusBalance +
+    breakdown.rewardBalance +
+    breakdown.paidBalance +
+    breakdown.earnedPromoBalance;
+
+  return {
+    balance: breakdown.balance,
+    breakdown,
+    history,
+    withdrawalRate,
+    loading,
+    totalEarned,
+    totalSpent,
+    withdrawableBalance: breakdown.earnedWithdrawableBalance,
+    appOnlyBalance,
+    reload,
+  };
 }

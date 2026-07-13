@@ -81,6 +81,8 @@ function TeacherWallet() {
     <div className="p-8">
       <TeacherWalletHeader
         balance={wallet.balance}
+        withdrawableBalance={wallet.withdrawableBalance}
+        appOnlyBalance={wallet.appOnlyBalance}
         loading={wallet.loading || escrowsLoading}
         onReload={reloadAll}
       />
@@ -98,7 +100,10 @@ function TeacherWallet() {
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
         <TransactionHistory history={wallet.history} loading={wallet.loading} />
 
-        <CashOutForm balance={wallet.balance} onSubmit={(p) => setPending(p)} />
+        <CashOutForm
+          withdrawableBalance={wallet.withdrawableBalance}
+          onSubmit={(p) => setPending(p)}
+        />
       </div>
 
       <CashOutConfirmModal

@@ -16,6 +16,17 @@ export interface TopUpResponse {
   message: string;
 }
 
+export interface WalletBalanceBreakdown {
+  balance: number;
+  bonusBalance: number;
+  rewardBalance: number;
+  paidBalance: number;
+  earnedWithdrawableBalance: number;
+  earnedPromoBalance: number;
+  heldBalance: number;
+  frozen: boolean;
+}
+
 export interface TransactionResponse {
   id: string;
   userId: string;
@@ -32,8 +43,23 @@ export interface TransactionResponse {
   createdAt: string;
 }
 
-// Vì response.data từ Wallet service trả về trực tiếp kết quả dạng Map hoặc Object,
-// chúng ta bọc kiểu trả về dưới dạng JSON linh hoạt.
+const toNumber = (value: unknown) => Number(value ?? 0) || 0;
+
+const normalizeBreakdown = (
+  data: Partial<WalletBalanceBreakdown>,
+): WalletBalanceBreakdown => ({
+  balance: toNumber(data.balance),
+  bonusBalance: toNumber(data.bonusBalance),
+  rewardBalance: toNumber(data.rewardBalance),
+  paidBalance: toNumber(data.paidBalance),
+  earnedWithdrawableBalance: toNumber(data.earnedWithdrawableBalance),
+  earnedPromoBalance: toNumber(data.earnedPromoBalance),
+  heldBalance: toNumber(data.heldBalance),
+  frozen: Boolean(data.frozen),
+});
+
+// Vi response.data tu Wallet service co the tra ve truc tiep Map hoac Object,
+// wrapper nay giu kieu tra ve linh hoat cho UI cu.
 export const walletService = {
   getBalance: async () => {
     // API GET /api/wallet/balance
@@ -48,8 +74,15 @@ export const walletService = {
     return { balance: Number(data) || 0 };
   },
 
+  getBalanceBreakdown: async (): Promise<WalletBalanceBreakdown> => {
+    const response = await apiClient.get<WalletBalanceBreakdown>(
+      "/wallet/balance/breakdown",
+    );
+    return normalizeBreakdown(response.data ?? {});
+  },
+
   getHistory: async (): Promise<TransactionResponse[]> => {
-    // API POST /api/wallet/history (Theo định nghĩa Swagger ở wallet.json là POST)
+    // API POST /api/wallet/history (Theo dinh nghia Swagger o wallet.json la POST)
     const response =
       await apiClient.post<TransactionResponse[]>("/wallet/history");
     return response.data;

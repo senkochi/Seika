@@ -259,6 +259,13 @@ public class EscrowService {
     }
 
     @Transactional(readOnly = true)
+    public List<EscrowTransaction> getAdminEscrows(EscrowStatus status) {
+        if (status == null) {
+            return escrowRepository.findAllByOrderByCreatedAtDesc();
+        }
+        return escrowRepository.findByStatusOrderByCreatedAtDesc(status);
+    }
+    @Transactional(readOnly = true)
     public List<EscrowTransaction> getPendingDecisionEscrows() {
         return escrowRepository.findByNeedsAdminDecisionTrueOrderByUpdatedAtAsc();
     }

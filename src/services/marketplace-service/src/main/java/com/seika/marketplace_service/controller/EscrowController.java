@@ -1,6 +1,7 @@
 package com.seika.marketplace_service.controller;
 
 import com.seika.marketplace_service.entity.EscrowTransaction;
+import com.seika.marketplace_service.enums.EscrowStatus;
 import com.seika.marketplace_service.service.EscrowService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.Data;
@@ -32,6 +33,12 @@ public class EscrowController {
     @PostMapping("/escrows/{escrowId}/refund")
     public ResponseEntity<EscrowTransaction> selfServiceRefund(@PathVariable String escrowId) {
         return ResponseEntity.ok(escrowService.requestSelfServiceRefund(resolveUserId(), escrowId));
+    }
+
+    @GetMapping("/admin/escrows")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<EscrowTransaction>> adminEscrows(@RequestParam(required = false) EscrowStatus status) {
+        return ResponseEntity.ok(escrowService.getAdminEscrows(status));
     }
 
     @GetMapping("/admin/orders/pending-decision")

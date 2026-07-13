@@ -11,10 +11,13 @@ import TeacherAvatarCard from "../../components/teacher/profile/TeacherAvatarCar
 import TeacherProfileForm from "../../components/teacher/profile/TeacherProfileForm";
 import TeacherAccomplishmentsCard from "../../components/teacher/profile/TeacherAccomplishmentsCard";
 import { useTeacherStatCards } from "../../components/teacher/profile/useTeacherStatCards";
+import TeacherTierBadge from "../../components/teacher/TeacherTierBadge";
+import { useTeacherRating } from "../../components/teacher/useTeacherRating";
 
 function TeacherProfile() {
   const dispatch = useAppDispatch();
   const profileState = useAppSelector((state) => state.userProfile);
+  const { rating: teacherRating } = useTeacherRating(profileState.userId);
 
   const [teacherProfile, setTeacherProfile] =
     useState<TeacherProfileResponse | null>(null);
@@ -90,6 +93,8 @@ function TeacherProfile() {
             initialProfilePictureUrl={profileState.profilePictureUrl ?? ""}
             onSaved={() => dispatch(fetchCurrentUserProfile())}
           />
+
+          <TeacherTierBadge rating={teacherRating} />
 
           <TeacherAccomplishmentsCard
             statCards={statCards}
