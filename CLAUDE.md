@@ -37,6 +37,10 @@ Useful URLs once up:
 The web-app container is part of `docker compose`, but for a faster inner loop run it on the host:
 
 ```bash
+# One-time after clone — installs husky/lint-staged/prettier at the repo root,
+# which wires the .husky/pre-commit hook for staged-file ESLint + Prettier.
+npm install
+
 cd src/web-app
 npm install --legacy-peer-deps   # REQUIRED — peer-deps conflict forces the flag (see INSTALLATION_GUIDE.md)
 npm run dev          # Vite dev server
@@ -47,7 +51,7 @@ npm run build        # production build
 
 `VITE_API_BASE_URL` overrides the API base (default `http://localhost:8080/api`).
 
-If you add `react-day-picker` (or any new peer-dep package), use `npm install <pkg> --legacy-peer-deps`. New ReactBit components must be installed into `src/components/reactbit` via `npx reactbit add --path src/components/reactbit`.
+If you add `react-day-picker` (or any new peer-dep package), use `npm install <pkg> --legacy-peer-deps`. New ReactBit components must be installed into `src/components/reactbit` via `npx reactbit add --path src/components/reactbit`. There is no `npm test` in web-app — there is only `lint`/`typecheck`/`build`.
 
 ### Backend (Maven)
 Each Spring module has its own `mvnw` wrapper (`src/services/<svc>/mvnw`, `src/api-gateway/mvnw`, etc.); the repo root has no wrapper. Use the wrapper of the module whose artifact you want to build. Compose builds set `SPRING_PROFILE` from `.env` (default `dev`). Per-profile config lives in `src/config-service/src/main/resources/configs/{service}.yaml` and `{service}-{profile}.yaml`.
@@ -78,9 +82,9 @@ Each Spring module has its own `mvnw` wrapper (`src/services/<svc>/mvnw`, `src/a
 - `src/services/{notification,flashcard,quiz}-service/` — MongoDB-backed, ports `8083/8086/8087`.
 - `src/services/reward-service/` — Postgres, port `8088`; **no gateway route yet** — treat as backend-only.
 - `src/web-app/` — React 19 + Vite + Redux Toolkit frontend.
-- `.github/workflows/deploy.yml` — self-hosted runner; pushes `master` → `docker compose -f docker-compose.prod.yml up -d --build`.
+- `.github/workflows/deploy.yml` — self-hosted runner; pushes `master` → `docker compose -f docker-compose.prod.yml up -d --build`. **Note:** the workflow currently copies `.env` from `E:\Seika\.env` (Windows path on the runner host) — change this if the runner is elsewhere.
 - `scripts/load-test.js` — k6 load-test (run with `k6 run scripts/load-test.js`; see `documentation/LOAD_TESTING_GUIDE.md`).
-- `.husky/pre-commit` + root `package.json` `lint-staged` — runs `eslint` on staged web-app files and `prettier` on staged `*.{js,jsx,ts,tsx,json,md,html,css}`.
+- `.husky/pre-commit` + root `package.json` `lint-staged` — runs `eslint` on staged web-app files and `prettier` on staged `*.{js,jsx,ts,tsx,json,md,html,css}`. Install once with `npm install` at the repo root.
 
 ## Backend Architecture
 
