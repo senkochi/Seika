@@ -1,8 +1,8 @@
 import { Lock, RefreshCw, Unlock } from "lucide-react";
 
 import type { UserAdminResponse } from "../../../api/types";
-import RoleBadge from "./RoleBadge";
-import UserStatusPill from "./UserStatusPill";
+import { Button } from "../../ui/Button";
+import { StatusPill } from "../../ui/StatusPill";
 
 interface UsersTableRowProps {
   user: UserAdminResponse;
@@ -11,6 +11,16 @@ interface UsersTableRowProps {
   onChangeRole: (user: UserAdminResponse) => void;
   onResetPassword: (user: UserAdminResponse) => void;
 }
+
+function roleVariant(role: string) {
+  const upper = role.toUpperCase();
+  if (upper === "ADMIN") return "danger" as const;
+  if (upper === "TEACHER") return "gold" as const;
+  return "info" as const;
+}
+
+const compactBtn =
+  "!h-8 !px-3 !text-xs gap-1.5 rounded-full";
 
 function UsersTableRow({
   user,
@@ -22,64 +32,70 @@ function UsersTableRow({
   const isAdmin = user.roles.some((r) => r.toUpperCase() === "ADMIN");
 
   return (
-    <tr className="hover:bg-[var(--background)] transition-colors">
-      <td className="py-3 font-medium text-[var(--foreground)]">
+    <tr className="border-b border-white/[0.04] hover:bg-white/[0.03] transition-colors">
+      <td className="py-3 pr-4 font-sans-ui font-medium text-cream">
         {user.username}
       </td>
-      <td className="py-3">
+      <td className="py-3 pr-4">
         <div className="flex flex-wrap gap-1">
           {user.roles.map((r) => (
-            <RoleBadge key={r} role={r} />
+            <StatusPill key={r} variant={roleVariant(r)}>
+              {r}
+            </StatusPill>
           ))}
         </div>
       </td>
-      <td className="py-3">
-        <UserStatusPill enabled={user.enabled} />
+      <td className="py-3 pr-4">
+        <StatusPill variant={user.enabled ? "success" : "neutral"}>
+          {user.enabled ? "Active" : "Locked"}
+        </StatusPill>
       </td>
-      <td className="py-3 font-mono text-xs text-[var(--muted-foreground)]">
+      <td className="py-3 pr-4 font-mono text-xs text-white/55 tabular-nums">
         {user.id.length > 14
           ? `${user.id.slice(0, 8)}…${user.id.slice(-4)}`
           : user.id}
       </td>
       <td className="py-3">
         <div className="flex justify-end gap-2">
-          {!isAdmin && (
+          {!isAdmin ? (
             <>
-              <button
+              <Button
+                variant="ghost"
+                size="md"
+                className={compactBtn}
                 onClick={() => onLockToggle(user)}
                 disabled={isMutating}
-                className={`inline-flex items-center gap-1 rounded-lg border px-3 py-1.5 text-xs font-medium disabled:opacity-50 ${
-                  user.enabled
-                    ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20"
-                    : "border-rose-500/30 bg-rose-500/10 text-rose-300 hover:bg-rose-500/20"
-                }`}
               >
                 {user.enabled ? (
-                  <Lock className="h-3.5 w-3.5" />
+                  <Lock className="h-3.5 w-3.5" aria-hidden="true" />
                 ) : (
-                  <Unlock className="h-3.5 w-3.5" />
+                  <Unlock className="h-3.5 w-3.5" aria-hidden="true" />
                 )}
                 {user.enabled ? "Khóa" : "Mở"}
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="ghost"
+                size="md"
+                className={compactBtn}
                 onClick={() => onChangeRole(user)}
                 disabled={isMutating}
-                className="inline-flex items-center gap-1 rounded-lg border border-[var(--border)] px-3 py-1.5 text-xs font-medium text-[var(--foreground)] hover:border-[var(--primary)] disabled:opacity-50"
               >
-                <RefreshCw className="h-3.5 w-3.5" />
+                <RefreshCw className="h-3.5 w-3.5" aria-hidden="true" />
                 Đổi role
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="ghost"
+                tone="danger"
+                size="md"
+                className={compactBtn}
                 onClick={() => onResetPassword(user)}
                 disabled={isMutating}
-                className="inline-flex items-center gap-1 rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-1.5 text-xs font-medium text-rose-300 hover:bg-rose-500/20 disabled:opacity-50"
               >
                 Reset
-              </button>
+              </Button>
             </>
-          )}
-          {isAdmin && (
-            <span className="text-xs text-[var(--muted-foreground)] italic">
+          ) : (
+            <span className="font-sans-ui text-xs italic text-white/45">
               Protected
             </span>
           )}

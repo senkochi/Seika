@@ -13,12 +13,14 @@ import {
 } from "../../store/adminSlice";
 import { showError, showSuccess } from "../../components/toast/toastUtils";
 import type { UserAdminResponse } from "../../api/types";
+import { SectionCard } from "../../components/ui/SectionCard";
+import { Pagination } from "../../components/ui/Pagination";
 
 import UsersHeader from "../../components/admin/users/UsersHeader";
+import UsersTable from "../../components/admin/users/UsersTable";
 import UsersTableRow from "../../components/admin/users/UsersTableRow";
 import ChangeRoleModal from "../../components/admin/users/ChangeRoleModal";
 import ResetPasswordModal from "../../components/admin/users/ResetPasswordModal";
-import UsersCardSection from "../../components/admin/users/UsersCardSection";
 
 function AdminUsers() {
   const dispatch = useAppDispatch();
@@ -82,33 +84,39 @@ function AdminUsers() {
       <UsersHeader
         totalElements={users.totalElements}
         filterRole={users.filterRole}
-        onFilterChange={(e) => dispatch(setUsersRoleFilter(e.target.value))}
+        onFilterChange={(role) => dispatch(setUsersRoleFilter(role))}
         onReload={refetch}
       />
 
-      <UsersCardSection
-        loading={isLoading}
-        error={isFailed ? (users.error ?? "Lỗi không xác định") : null}
-        empty={users.content.length === 0}
-        hasRows={users.content.length > 0}
-        page={users.page}
-        totalPages={users.totalPages}
-        totalElements={users.totalElements}
-        pageSize={users.size}
-        onPageChange={(page) => dispatch(setUsersPage(page))}
-        onPageSizeChange={(size) => dispatch(setUsersSize(size))}
-      >
-        {users.content.map((u) => (
-          <UsersTableRow
-            key={u.id}
-            user={u}
-            isMutating={isMutating}
-            onLockToggle={handleLockToggle}
-            onChangeRole={setModalRole}
-            onResetPassword={setModalReset}
-          />
-        ))}
-      </UsersCardSection>
+      <SectionCard className="overflow-hidden p-0">
+        <div className="overflow-x-auto p-6">
+          <UsersTable
+            loading={isLoading}
+            error={isFailed ? (users.error ?? "Lỗi không xác định") : null}
+            empty={users.content.length === 0}
+            hasRows={users.content.length > 0}
+          >
+            {users.content.map((u) => (
+              <UsersTableRow
+                key={u.id}
+                user={u}
+                isMutating={isMutating}
+                onLockToggle={handleLockToggle}
+                onChangeRole={setModalRole}
+                onResetPassword={setModalReset}
+              />
+            ))}
+          </UsersTable>
+        </div>
+        <Pagination
+          currentPage={users.page}
+          totalPages={users.totalPages}
+          totalElements={users.totalElements}
+          pageSize={users.size}
+          onPageChange={(page) => dispatch(setUsersPage(page))}
+          onPageSizeChange={(size) => dispatch(setUsersSize(size))}
+        />
+      </SectionCard>
 
       <ChangeRoleModal
         open={modalRole !== null}
