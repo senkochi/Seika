@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { CalendarDays, ImageUp, Loader2, RefreshCcw } from "lucide-react";
-import StudentActionButton from "@/components/student/StudentActionButton";
 
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { fetchCurrentUserProfile } from "../../store/userProfileSlice";
 import { userProfilesService } from "../../api";
 import { showSuccess, showError } from "../../components/toast/toastUtils";
+import { Button } from "../../components/ui/Button";
 
 function StudentProfile() {
   const dispatch = useAppDispatch();
@@ -290,7 +290,8 @@ function StudentProfile() {
           </div>
 
           <div className="mt-8 flex justify-end">
-            <StudentActionButton
+            <Button
+              variant="primary"
               size="lg"
               className="px-8"
               type="submit"
@@ -298,13 +299,13 @@ function StudentProfile() {
             >
               {isUpdating ? (
                 <>
-                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                  Saving...
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" aria-hidden="true" />
+                  Đang lưu…
                 </>
               ) : (
-                "Save Changes"
+                "Lưu thay đổi"
               )}
-            </StudentActionButton>
+            </Button>
           </div>
         </form>
       </div>

@@ -5,21 +5,22 @@ import {
   Check,
   X,
   RotateCcw,
-  Sparkles,
   Trophy,
   Zap,
   Keyboard,
   Volume2,
   ShieldCheck,
 } from "lucide-react";
-import StudentBadge from "@/components/student/StudentBadge";
-import StudentActionButton from "@/components/student/StudentActionButton";
 import GridBackground from "@/layouts/GridBackground";
 import { flashcardsService } from "@/api/services/flashcards";
 import { rewardsService } from "@/api/services/rewards";
 import type { CardSetResponse, RewardStatusResponse } from "@/api/types";
 import { useAppDispatch } from "@/store/hooks";
 import { fetchCurrentUserProfile } from "@/store/userProfileSlice";
+import { Button } from "@/components/ui/Button";
+import { IconChip } from "@/components/ui/IconChip";
+import { StatusPill } from "@/components/ui/StatusPill";
+import { SectionCard } from "@/components/ui/SectionCard";
 
 function FlashcardDetail() {
   const { id } = useParams<{ id: string }>();
@@ -112,6 +113,7 @@ function FlashcardDetail() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isFlipped, isCompleted, currentIndex, deck, cards]);
 
   const handleSpeak = (
@@ -135,7 +137,7 @@ function FlashcardDetail() {
       setIsFlipped(false);
       setTimeout(() => {
         setCurrentIndex((prev) => prev + 1);
-      }, 300); // smooth slide-flip transition
+      }, 300);
     } else {
       setIsCompleted(true);
     }
@@ -150,16 +152,16 @@ function FlashcardDetail() {
 
   if (loading) {
     return (
-      <div className="relative isolate min-h-[100dvh] w-full flex items-center justify-center bg-[var(--background)]">
-        <p className="text-white">Loading flashcards...</p>
+      <div className="relative isolate min-h-[100dvh] w-full flex items-center justify-center bg-[#15091e]">
+        <p className="font-sans-ui text-white/55">Đang tải flashcard…</p>
       </div>
     );
   }
 
   if (!deck || cards.length === 0) {
     return (
-      <div className="relative isolate min-h-[100dvh] w-full flex items-center justify-center bg-[var(--background)]">
-        <p className="text-white">No flashcards found.</p>
+      <div className="relative isolate min-h-[100dvh] w-full flex items-center justify-center bg-[#15091e]">
+        <p className="font-sans-ui text-white/55">Không tìm thấy flashcard.</p>
       </div>
     );
   }
@@ -185,47 +187,41 @@ function FlashcardDetail() {
   };
 
   return (
-    <div className="relative isolate min-h-[100dvh] w-full overflow-hidden bg-[var(--background)] flex flex-col font-sans">
+    <div className="relative isolate min-h-[100dvh] w-full overflow-hidden bg-[#15091e] flex flex-col font-sans-ui">
       <GridBackground />
 
-      {/* Decorative Glow Blobs */}
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
-
-      {/* Header Bar */}
-      <header className="relative z-10 bg-[rgba(24,18,45,0.9)] border-b border-[var(--border)] px-8 py-4 shadow-[0_12px_40px_rgba(10,10,20,0.18)] backdrop-blur-xl flex items-center justify-between">
+      {/* Header Bar — hairline, not glass */}
+      <header className="relative z-10 bg-[#15091e]/80 backdrop-blur-md border-b border-white/[0.06] px-8 py-4 flex items-center justify-between">
         <button
           onClick={() => navigate(backPath)}
-          className="flex items-center gap-2 text-[var(--muted-foreground)] hover:text-white transition-colors bg-[rgba(255,255,255,0.04)] hover:bg-[rgba(255,255,255,0.08)] border border-[var(--border)] px-4 py-2.5 rounded-xl text-sm font-bold"
+          className="flex items-center gap-2 font-sans-ui text-sm font-medium text-white/55 hover:text-cream bg-white/[0.02] hover:bg-white/[0.04] border border-white/[0.06] px-4 py-2.5 rounded-lg transition-colors"
         >
-          <ArrowLeft className="w-4 h-4" />
-          <span>{isAdmin ? "Quay lại trang duyệt" : "Exit Session"}</span>
+          <ArrowLeft className="w-4 h-4" aria-hidden="true" />
+          <span>{isAdmin ? "Quay lại trang duyệt" : "Thoát phiên"}</span>
         </button>
 
         <div className="text-center hidden md:block">
-          <p className="text-xs text-[var(--muted-foreground)] font-semibold uppercase tracking-wider">
-            Flashcard Deck
+          <p className="font-sans-ui text-xs text-white/45 uppercase tracking-[0.12em]">
+            Flashcard deck
           </p>
-          <h1 className="text-xl font-black text-white flex items-center gap-2 justify-center">
-            <span>📚</span>
+          <h1 className="font-sans-ui text-base font-semibold text-cream flex items-center gap-2 justify-center mt-1">
+            <span aria-hidden="true">📚</span>
             <span>{deck.title}</span>
           </h1>
         </div>
 
-        <StudentBadge variant="purple" className="px-4 py-1.5">
-          Epic
-        </StudentBadge>
+        <StatusPill variant="info">Epic</StatusPill>
       </header>
 
       {isAdmin && (
-        <div className="relative z-10 bg-sky-500/10 border-b border-sky-500/30 px-8 py-3 flex items-center justify-between text-sky-200">
-          <div className="flex items-center gap-2 text-sm font-semibold">
-            <ShieldCheck className="w-4 h-4 text-sky-400" />
+        <div className="relative z-10 bg-sky-400/10 border-b border-sky-400/25 px-8 py-3 flex items-center justify-between text-sky-200">
+          <div className="flex items-center gap-2 font-sans-ui text-sm font-medium">
+            <ShieldCheck className="w-4 h-4 text-sky-300" aria-hidden="true" />
             <span>Chế độ xem trước dành cho Admin (Admin Preview Mode)</span>
           </div>
           <button
             onClick={() => navigate("/admin/dashboard/moderation")}
-            className="rounded-lg bg-sky-500/20 px-3 py-1.5 text-xs font-medium text-sky-200 hover:bg-sky-500/30 transition-colors"
+            className="rounded-md bg-sky-400/20 px-3 py-1.5 font-sans-ui text-xs font-medium text-sky-200 hover:bg-sky-400/30 transition-colors"
           >
             Quay lại trang duyệt
           </button>
@@ -238,19 +234,19 @@ function FlashcardDetail() {
           <div className="w-full max-w-xl flex flex-col items-center gap-6">
             {/* Progress Area */}
             <div className="w-full">
-              <div className="flex justify-between items-center text-sm font-bold text-[var(--muted-foreground)] mb-2">
-                <span>
-                  Card {currentIndex + 1} of {cards.length}
+              <div className="flex justify-between items-center font-sans-ui text-xs text-white/55 mb-2">
+                <span className="tabular-nums">
+                  Card {currentIndex + 1} / {cards.length}
                 </span>
-                <span className="text-[var(--primary-light)]">
-                  {Math.round((currentIndex / cards.length) * 100)}% Complete
+                <span className="tabular-nums text-[#d4a843]">
+                  {Math.round((currentIndex / cards.length) * 100)}%
                 </span>
               </div>
-              <div className="w-full h-3 bg-[var(--muted)] border border-[var(--border)] rounded-full overflow-hidden">
+              <div className="w-full h-2 bg-white/[0.04] border border-white/[0.06] rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full transition-all duration-300"
+                  className="h-full bg-[#d4a843] rounded-full transition-all duration-300"
                   style={{ width: `${(currentIndex / cards.length) * 100}%` }}
-                ></div>
+                />
               </div>
             </div>
 
@@ -259,74 +255,80 @@ function FlashcardDetail() {
               onClick={() => setIsFlipped(!isFlipped)}
               className="w-full aspect-[4/3] min-h-[300px] md:min-h-[360px] cursor-pointer"
               style={{ perspective: "1000px" }}
+              role="button"
+              aria-label={
+                isFlipped ? "Hiện câu hỏi" : "Lật thẻ để xem đáp án"
+              }
             >
               <div
-                className="relative w-full h-full text-center transition-all duration-500"
+                className="relative w-full h-full text-center"
                 style={cardInnerStyle}
               >
                 {/* FRONT FACE */}
                 <div
-                  className="absolute inset-0 w-full h-full flex flex-col justify-between p-8 rounded-3xl border border-purple-500/30 bg-[#18122d] shadow-2xl transition-all hover:border-purple-500/50 hover:shadow-[0_20px_50px_rgba(168,85,247,0.15)]"
+                  className="absolute inset-0 w-full h-full flex flex-col justify-between p-8 rounded-2xl border border-white/[0.08] bg-[#1c0f2e]"
                   style={cardFaceStyle}
                 >
-                  <div className="flex justify-between items-center text-xs text-[var(--muted-foreground)] font-bold tracking-wider uppercase">
-                    <span>Front Side</span>
-                    <span className="text-purple-400/80">{deck.title}</span>
+                  <div className="flex justify-between items-center font-sans-ui text-[10px] text-white/45 uppercase tracking-[0.12em]">
+                    <span>Mặt trước</span>
+                    <span>{deck.title}</span>
                   </div>
 
                   <div className="flex-1 flex flex-col items-center justify-center gap-6">
-                    <p className="text-3xl md:text-5xl font-black text-white max-w-md leading-relaxed px-4 tracking-tight drop-shadow-[0_2px_10px_rgba(0,0,0,0.5)]">
+                    <p className="font-sans-ui text-3xl md:text-5xl font-semibold text-cream max-w-md leading-tight px-4 tracking-tight">
                       {cards[currentIndex].frontSide}
                     </p>
                     <button
                       onClick={(e) =>
                         handleSpeak(e, cards[currentIndex].frontSide)
                       }
-                      className="p-3 bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 text-purple-300 hover:text-white rounded-full transition-all duration-200 shadow-md hover:scale-105 active:scale-95 flex items-center justify-center"
-                      title="Listen to pronunciation"
+                      className="p-3 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-white/65 hover:text-cream rounded-full transition-colors flex items-center justify-center"
+                      title="Nghe phát âm"
+                      aria-label="Nghe phát âm"
                     >
-                      <Volume2 className="w-5 h-5" />
+                      <Volume2 className="w-5 h-5" aria-hidden="true" />
                     </button>
                   </div>
 
-                  <div className="text-xs text-[var(--muted-foreground)] font-semibold flex items-center justify-center gap-1.5 animate-pulse">
-                    <span>Click card to reveal answer</span>
-                    <RotateCcw className="w-3.5 h-3.5" />
+                  <div className="font-sans-ui text-xs text-white/45 flex items-center justify-center gap-1.5">
+                    <span>Nhấp thẻ để lật</span>
+                    <RotateCcw className="w-3.5 h-3.5" aria-hidden="true" />
                   </div>
                 </div>
 
                 {/* BACK FACE */}
                 <div
-                  className="absolute inset-0 w-full h-full flex flex-col justify-between p-8 rounded-3xl border border-amber-500/30 bg-[#1c163a] shadow-2xl transition-all hover:border-amber-500/50 hover:shadow-[0_20px_50px_rgba(245,158,11,0.15)]"
+                  className="absolute inset-0 w-full h-full flex flex-col justify-between p-8 rounded-2xl border border-[#d4a843]/25 bg-[#1c0f2e]"
                   style={cardBackStyle}
                 >
-                  <div className="flex justify-between items-center text-xs text-[var(--muted-foreground)] font-bold tracking-wider uppercase">
-                    <span>Back Side</span>
-                    <span className="text-amber-400 font-extrabold tracking-widest">
-                      Answer Revealed
+                  <div className="flex justify-between items-center font-sans-ui text-[10px] text-white/45 uppercase tracking-[0.12em]">
+                    <span>Mặt sau</span>
+                    <span className="text-[#d4a843] tracking-widest">
+                      Answer revealed
                     </span>
                   </div>
 
                   <div className="flex-1 flex flex-col items-center justify-center gap-6">
-                    <p className="text-3xl md:text-5xl font-black bg-gradient-to-r from-amber-300 via-yellow-400 to-orange-400 bg-clip-text text-transparent px-4 tracking-tight drop-shadow-[0_2px_10px_rgba(0,0,0,0.3)]">
+                    <p className="font-sans-ui text-3xl md:text-5xl font-semibold text-cream px-4 tracking-tight">
                       {cards[currentIndex].backSide}
                     </p>
                     <button
                       onClick={(e) =>
                         handleSpeak(e, cards[currentIndex].backSide)
                       }
-                      className="p-3 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-300 hover:text-white rounded-full transition-all duration-200 shadow-md hover:scale-105 active:scale-95 flex items-center justify-center"
-                      title="Listen to pronunciation"
+                      className="p-3 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-white/65 hover:text-cream rounded-full transition-colors flex items-center justify-center"
+                      title="Nghe phát âm"
+                      aria-label="Nghe phát âm"
                     >
-                      <Volume2 className="w-5 h-5" />
+                      <Volume2 className="w-5 h-5" aria-hidden="true" />
                     </button>
                   </div>
 
                   <div className="flex items-center justify-between w-full">
                     <div />
-                    <div className="text-xs text-[var(--muted-foreground)] font-semibold flex items-center justify-center gap-1.5">
-                      <span>Click card to show question</span>
-                      <RotateCcw className="w-3.5 h-3.5" />
+                    <div className="font-sans-ui text-xs text-white/45 flex items-center justify-center gap-1.5">
+                      <span>Nhấp thẻ để xem câu hỏi</span>
+                      <RotateCcw className="w-3.5 h-3.5" aria-hidden="true" />
                     </div>
                   </div>
                 </div>
@@ -334,90 +336,96 @@ function FlashcardDetail() {
             </div>
 
             {/* Keyboard Shortcuts Hint */}
-            <div className="flex items-center gap-2 text-xs text-[var(--muted-foreground)] bg-[rgba(0,0,0,0.2)] px-4 py-2.5 rounded-full border border-[var(--border)] shadow-sm">
-              <Keyboard className="w-4 h-4 text-[var(--primary)]" />
+            <div className="flex items-center gap-2 font-sans-ui text-xs text-white/55 bg-white/[0.02] px-4 py-2.5 rounded-full border border-white/[0.06]">
+              <Keyboard className="w-4 h-4 text-[#d4a843]" aria-hidden="true" />
               <span>
-                <strong>Space</strong>: Flip | <strong>Left/Right Arrow</strong>
-                : Got It / Review
+                <strong>Space</strong>: lật thẻ ·{" "}
+                <strong>← / →</strong>: ôn lại / đã nhớ
               </span>
             </div>
 
             {/* Study Actions */}
-            <div className="w-full flex gap-4 mt-2">
+            <div className="w-full flex gap-3 mt-2">
               {isFlipped ? (
                 <>
-                  <button
+                  <Button
+                    variant="ghost"
+                    tone="danger"
+                    size="lg"
+                    className="flex-1"
                     onClick={() => handleAnswer(false)}
-                    className="flex-1 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 active:scale-98 rounded-2xl py-4 font-black shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2"
                   >
-                    <X className="w-5 h-5" />
-                    <span>Review Again (1)</span>
-                  </button>
-                  <button
+                    <X className="w-4 h-4" aria-hidden="true" />
+                    Ôn lại (1)
+                  </Button>
+                  <Button
+                    variant="primary"
+                    size="lg"
+                    className="flex-1"
                     onClick={() => handleAnswer(true)}
-                    className="flex-1 bg-green-500/10 hover:bg-green-500/20 text-green-400 border border-green-500/30 active:scale-98 rounded-2xl py-4 font-black shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2"
                   >
-                    <Check className="w-5 h-5" />
-                    <span>Got It! (2)</span>
-                  </button>
+                    <Check className="w-4 h-4" aria-hidden="true" />
+                    Đã nhớ (2)
+                  </Button>
                 </>
               ) : (
-                <StudentActionButton
+                <Button
+                  variant="primary"
                   size="lg"
+                  className="w-full"
                   onClick={() => setIsFlipped(true)}
                 >
-                  <RotateCcw className="w-5 h-5" />
-                  Reveal Answer
-                </StudentActionButton>
+                  <RotateCcw className="w-4 h-4" aria-hidden="true" />
+                  Lật thẻ để xem đáp án
+                </Button>
               )}
             </div>
           </div>
         ) : (
-          /* CELEBRATION VIEW */
-          <div className="w-full max-w-lg bg-[var(--card)] backdrop-blur-xl border border-[var(--border)] rounded-3xl p-8 text-center shadow-2xl relative animate-[fadeIn_0.5s_ease-out]">
-            {/* Glow accent behind trophy */}
-            <div className="absolute top-12 left-1/2 -translate-x-1/2 w-48 h-48 bg-amber-400/20 rounded-full blur-2xl pointer-events-none" />
-
-            <div className="w-24 h-24 bg-gradient-to-r from-amber-400 to-yellow-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg border border-amber-300/40 animate-bounce">
-              <Trophy className="w-12 h-12 text-purple-950" />
+          /* CELEBRATION VIEW — flat, hairline, no animation theatre */
+          <SectionCard className="max-w-lg w-full text-center">
+            <div className="flex flex-col items-center gap-4 pt-2">
+              <IconChip variant="gold" className="h-12 w-12">
+                <Trophy className="w-5 h-5" aria-hidden="true" />
+              </IconChip>
+              <div>
+                <StatusPill variant="success">Đã hoàn thành</StatusPill>
+                <h2 className="font-sans-ui text-2xl font-semibold text-cream mt-3 tracking-tight">
+                  Hoàn thành bộ thẻ!
+                </h2>
+                <p className="font-sans-ui text-sm text-white/55 mt-2">
+                  Bạn vừa hoàn thành phiên học "{deck.title}".
+                </p>
+              </div>
             </div>
 
-            <h2 className="text-3xl font-black mb-2 text-white">
-              Deck Completed!
-            </h2>
-            <p className="text-[var(--muted-foreground)] mb-8">
-              Outstanding work! You've successfully completed the {deck.title}{" "}
-              session.
-            </p>
-
-            {/* Stats Summary Card */}
-            <div className="bg-[var(--second-card)] border border-[var(--border)] rounded-2xl p-6 mb-8 grid grid-cols-2 gap-4">
-              <div className="text-center border-r border-[var(--border)]">
-                <p className="text-xs text-[var(--muted-foreground)] font-bold uppercase tracking-wider mb-1">
-                  XP Gained
+            {/* Stats Summary */}
+            <div className="mt-6 bg-white/[0.02] border border-white/[0.06] rounded-xl p-6 grid grid-cols-2 gap-6 font-sans-ui">
+              <div className="text-center border-r border-white/[0.06]">
+                <p className="text-[10px] text-white/45 uppercase tracking-[0.12em] mb-1">
+                  XP gained
                 </p>
-                <div className="flex items-center justify-center gap-1 text-[var(--primary-light)]">
-                  <Zap className="w-5 h-5 fill-current" />
-                  <span className="text-3xl font-black">
+                <div className="flex items-center justify-center gap-1 text-cream">
+                  <Zap className="w-4 h-4 text-[#d4a843]" aria-hidden="true" />
+                  <span className="text-2xl font-semibold tabular-nums">
                     {rewardStatus?.eligible ? "+100" : "+0"}
                   </span>
                 </div>
               </div>
               <div className="text-center">
-                <p className="text-xs text-[var(--muted-foreground)] font-bold uppercase tracking-wider mb-1">
-                  Coins Earned
+                <p className="text-[10px] text-white/45 uppercase tracking-[0.12em] mb-1">
+                  Coins earned
                 </p>
-                <div className="flex items-center justify-center gap-1 text-amber-400">
-                  <Sparkles className="w-5 h-5" />
-                  <span className="text-3xl font-black">
+                <div className="flex items-center justify-center gap-1 text-cream">
+                  <span className="text-2xl font-semibold tabular-nums">
                     {rewardStatus?.eligible ? "+50" : "+0"}
                   </span>
                 </div>
               </div>
 
               {rewardStatus && !rewardStatus.eligible && (
-                <div className="col-span-2 mt-2 px-4 py-3 bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 rounded-xl text-xs font-bold text-center">
-                  ⏱️ Đang trong thời gian chờ (cooldown 1 ngày). Bạn sẽ đủ điều
+                <div className="col-span-2 px-4 py-3 bg-amber-400/10 border border-amber-400/25 text-amber-300 rounded-lg text-xs text-center">
+                  Đang trong thời gian chờ (cooldown 1 ngày). Bạn sẽ đủ điều
                   kiện nhận XP/Coin tiếp theo sau:{" "}
                   {rewardStatus.nextEligibleAt
                     ? new Date(rewardStatus.nextEligibleAt).toLocaleString(
@@ -427,34 +435,41 @@ function FlashcardDetail() {
                 </div>
               )}
 
-              <div className="col-span-2 pt-4 border-t border-[var(--border)]">
-                <p className="text-xs text-[var(--muted-foreground)] font-bold uppercase tracking-wider mb-1">
-                  Mastery Score
+              <div className="col-span-2 pt-4 border-t border-white/[0.06]">
+                <p className="text-[10px] text-white/45 uppercase tracking-[0.12em] mb-1">
+                  Mastery score
                 </p>
-                <p className="text-2xl font-black text-white">
-                  {correctCount} / {cards.length} Cards
+                <p className="text-xl font-semibold text-cream tabular-nums">
+                  {correctCount} / {cards.length} thẻ
                 </p>
-                <p className="text-sm text-[var(--muted-foreground)] mt-1">
-                  ({masteredPercentage}% accuracy)
+                <p className="text-xs text-white/55 mt-1 tabular-nums">
+                  {masteredPercentage}% đúng
                 </p>
               </div>
             </div>
 
             {/* Call to Actions */}
-            <div className="flex flex-col gap-3">
-              <StudentActionButton size="lg" onClick={() => navigate(backPath)}>
-                {isAdmin ? "Quay lại trang duyệt" : "Return to Learning Hub"}
-              </StudentActionButton>
-
-              <button
-                onClick={handleReset}
-                className="w-full py-4 text-base rounded-2xl bg-[var(--muted)] text-[var(--foreground)] border border-[var(--border)] hover:bg-[var(--second-muted)] font-black transition-all flex items-center justify-center gap-2"
+            <div className="mt-6 flex flex-col gap-3 font-sans-ui">
+              <Button
+                variant="primary"
+                size="lg"
+                className="w-full"
+                onClick={() => navigate(backPath)}
               >
-                <RotateCcw className="w-4 h-4" />
-                Study Again
-              </button>
+                {isAdmin ? "Quay lại trang duyệt" : "Về Learning Hub"}
+              </Button>
+
+              <Button
+                variant="ghost"
+                size="lg"
+                className="w-full"
+                onClick={handleReset}
+              >
+                <RotateCcw className="w-4 h-4" aria-hidden="true" />
+                Học lại
+              </Button>
             </div>
-          </div>
+          </SectionCard>
         )}
       </main>
     </div>

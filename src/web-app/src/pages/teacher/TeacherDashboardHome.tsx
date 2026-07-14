@@ -88,25 +88,25 @@ function TeacherDashboardHome() {
 
   const stats: TeacherTopStat[] = [
     {
-      label: "Can cash out",
-      value: `${withdrawableBalance.toLocaleString()} Coins`,
-      trend: "Current",
+      label: "Có thể rút",
+      value: `${withdrawableBalance.toLocaleString("vi-VN")} Coins`,
+      trend: "Hiện tại",
       icon: DollarSign,
-      color: "from-amber-400 to-yellow-500",
+      variant: "gold",
     },
     {
-      label: "Total Students Reached",
-      value: `${teacherProfile?.totalStudentsReached ?? 0} Students`,
-      trend: "Overall",
+      label: "Tổng học viên đã tiếp cận",
+      value: `${teacherProfile?.totalStudentsReached ?? 0}`,
+      trend: "Tổng thể",
       icon: Users,
-      color: "from-purple-500 to-violet-600",
+      variant: "info",
     },
     {
-      label: "Content Published",
-      value: `${contentPublished} Items`,
-      trend: "Overall",
+      label: "Nội dung đã xuất bản",
+      value: `${contentPublished} mục`,
+      trend: "Tổng thể",
       icon: BookOpen,
-      color: "from-blue-500 to-cyan-600",
+      variant: "success",
     },
   ];
 
@@ -124,20 +124,20 @@ function TeacherDashboardHome() {
   }
 
   return (
-    <div className="p-8">
+    <div className="space-y-8 p-6 lg:p-8">
       <DashboardWelcomeHeader
         displayName={displayName}
         onRefresh={handleRefresh}
         onCreateMaterial={() => navigate("/teacher/dashboard/content")}
       />
 
-      <div className="mb-6 max-w-md">
+      <div className="max-w-md">
         <TeacherTierBadge rating={teacherRating} />
       </div>
 
       <TopStatsGrid stats={stats} />
 
-      <div className="grid lg:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <RevenueChartCard
           chartData={chartData}
           period={period}

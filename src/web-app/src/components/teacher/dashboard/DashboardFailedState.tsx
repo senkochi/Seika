@@ -1,3 +1,6 @@
+import { Button } from "../../ui/Button";
+import { EmptyState } from "../../ui/EmptyState";
+
 interface DashboardFailedStateProps {
   error: string | null;
   onRetry: () => void;
@@ -5,19 +8,17 @@ interface DashboardFailedStateProps {
 
 function DashboardFailedState({ error, onRetry }: DashboardFailedStateProps) {
   return (
-    <div className="p-8 flex items-center justify-center min-h-[60vh]">
-      <div className="flex flex-col items-center gap-4 text-center">
-        <div className="text-4xl">⚠️</div>
-        <p className="text-[var(--foreground)] font-bold">
-          Failed to load profile
-        </p>
-        <p className="text-[var(--muted-foreground)] text-sm">{error}</p>
-        <button
-          onClick={onRetry}
-          className="px-4 py-2 bg-[var(--primary)] text-white rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity"
-        >
-          Retry
-        </button>
+    <div className="p-6 lg:p-8 flex items-center justify-center min-h-[60vh]">
+      <div className="max-w-md w-full">
+        <EmptyState
+          title="Không thể tải hồ sơ giảng viên"
+          description={error ?? "Đã xảy ra lỗi không xác định."}
+          action={
+            <Button variant="ghost" size="md" onClick={onRetry}>
+              Thử lại
+            </Button>
+          }
+        />
       </div>
     </div>
   );

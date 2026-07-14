@@ -261,6 +261,12 @@
   animation: fade-in 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+/* ConfirmModal scrim: opacity-only fade (no zoom) */
+@keyframes confirm-fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
 /* Stagger helpers */
 .delay-100 { animation-delay: 100ms; }
 .delay-150 { animation-delay: 150ms; }

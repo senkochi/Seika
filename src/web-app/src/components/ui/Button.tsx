@@ -4,10 +4,12 @@ import { cn } from "./utils";
 
 type Variant = "primary" | "ghost" | "link" | "dark";
 type Size = "md" | "lg";
+type Tone = "neutral" | "danger";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: Variant;
   size?: Size;
+  tone?: Tone;
   trailing?: boolean;
   loading?: boolean;
   children: ReactNode;
@@ -16,12 +18,17 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 /**
  * Magnetic-style pill button. Primary uses a soft gold gradient with an
  * inset highlight (double-bezel feel) and a nested trailing icon circle.
+ *
+ * `tone="danger"` shifts a ghost button to red text + red hover tint
+ * (use for destructive actions like Delete / Reset password). Other
+ * variants ignore `tone` to keep the API surface small.
  */
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   (
     {
       variant = "primary",
       size = "md",
+      tone = "neutral",
       trailing = false,
       loading = false,
       disabled,
@@ -49,6 +56,11 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       link: "text-[#d4a843] hover:text-[#f1e4c0] px-0 h-auto",
     };
 
+    const dangerGhost =
+      tone === "danger" && variant === "ghost"
+        ? "!text-red-300 hover:!bg-red-500/10 hover:!border-red-500/30"
+        : "";
+
     const isLink = variant === "link";
 
     return (
@@ -59,6 +71,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           base,
           isLink ? "gap-1.5" : sizes[size],
           variants[variant],
+          dangerGhost,
           className,
         )}
         {...props}
