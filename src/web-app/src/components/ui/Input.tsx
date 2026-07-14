@@ -52,8 +52,8 @@ export const TextInput = forwardRef<HTMLInputElement, TextInputProps>(
         >
           <div
             className={cn(
-              "rounded-[calc(1rem-1px)] bg-[#1c0f2e] shadow-[inset_0_1px_1px_rgba(255,255,255,0.04)]",
-              "flex items-center",
+              "rounded-[calc(1rem-1px)] shadow-[inset_0_1px_1px_rgba(255,255,255,0.04)]",
+              "flex items-center bg-[var(--color-card-surface)]",
             )}
           >
             {leadingIcon && (

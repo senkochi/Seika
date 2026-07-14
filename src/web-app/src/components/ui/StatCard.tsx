@@ -37,7 +37,8 @@ export function StatCard({
   return (
     <div
       className={cn(
-        "rounded-2xl bg-white/[0.03] border border-white/[0.06] p-5",
+        "rounded-2xl border border-white/[0.06] p-5",
+        "bg-[var(--color-card-surface)]",
         className,
       )}
     >

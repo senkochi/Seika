@@ -143,12 +143,12 @@ function TeacherDashboardLayout() {
   }, []);
 
   return (
-    <div className="relative isolate min-h-[100dvh] w-full overflow-hidden bg-[var(--background)]">
+    <div className="relative isolate min-h-[100dvh] w-full overflow-hidden bg-[var(--color-bg)]">
       {/* Grid Background */}
       <GridBackground />
 
       {/* Left Sidebar */}
-      <aside className="fixed inset-y-0 left-0 z-20 w-60 bg-[#1c0f2e] border-r border-white/[0.06] flex flex-col">
+      <aside className="fixed inset-y-0 left-0 z-20 w-60 bg-[var(--color-sidebar)] border-r border-white/[0.06] flex flex-col">
         {/* Logo */}
         <div className="p-6 border-b border-white/[0.06]">
           <div className="flex items-center gap-3">
@@ -209,7 +209,7 @@ function TeacherDashboardLayout() {
       {/* Main Content */}
       <div className="ml-60 flex min-h-[100dvh] min-w-0 flex-col overflow-hidden">
         {/* Top Header */}
-        <header className="relative z-50 bg-[#15091e]/80 backdrop-blur-md border-b border-white/[0.06] px-8 py-4">
+        <header className="relative z-50 bg-[var(--color-header)]/80 backdrop-blur-md border-b border-white/[0.06] px-8 py-4">
           <div className="flex items-center justify-between">
             {/* Search */}
             <div className="flex-1 max-w-xl">
@@ -239,7 +239,7 @@ function TeacherDashboardLayout() {
                 </button>
 
                 {notificationsOpen && (
-                  <div className="absolute right-0 top-[calc(100%+0.5rem)] z-30 w-80 overflow-hidden rounded-xl border border-white/[0.08] bg-[#1c0f2e] shadow-[0_8px_24px_rgba(0,0,0,0.4)]">
+                  <div className="absolute right-0 top-[calc(100%+0.5rem)] z-30 w-80 overflow-hidden rounded-xl border border-white/[0.08] bg-[var(--color-sidebar)] shadow-[0_8px_24px_rgba(0,0,0,0.4)]">
                     <div className="p-4 border-b border-white/[0.06] flex justify-between items-center">
                       <h3 className="font-sans-ui font-semibold text-cream text-sm">
                         Notifications
@@ -343,7 +343,7 @@ function TeacherDashboardLayout() {
                 </button>
 
                 {avatarMenuOpen && (
-                  <div className="absolute right-0 top-[calc(100%+0.5rem)] z-30 w-56 overflow-hidden rounded-xl border border-white/[0.08] bg-[#1c0f2e] shadow-[0_8px_24px_rgba(0,0,0,0.4)]">
+                  <div className="absolute right-0 top-[calc(100%+0.5rem)] z-30 w-56 overflow-hidden rounded-xl border border-white/[0.08] bg-[var(--color-sidebar)] shadow-[0_8px_24px_rgba(0,0,0,0.4)]">
                     <button
                       type="button"
                       onClick={() => {

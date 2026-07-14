@@ -61,7 +61,7 @@ export default function ConfirmModal({
       onClick={() => !isLoading && onClose()}
     >
       <div
-        className="w-full max-w-md rounded-2xl bg-[#1c0f2e] border border-white/[0.08] shadow-[0_8px_24px_rgba(0,0,0,0.4)] overflow-hidden"
+        className="w-full max-w-md rounded-2xl border border-white/[0.08] shadow-[0_8px_24px_rgba(0,0,0,0.4)] overflow-hidden bg-[var(--color-card-surface)]"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between border-b border-white/[0.06] px-6 py-4">

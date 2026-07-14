@@ -19,9 +19,21 @@
   --font-display: "Fraunces Variable", ui-serif, Georgia, serif;
   --font-mono: ui-monospace, "JetBrains Mono", monospace;
 
-  /* Color tokens — referenced via Tailwind v4 @theme inline */
-  --color-bg: #15091e;
-  --color-bg-2: #1c0f2e;
+  /* Color tokens — referenced via Tailwind v4 @theme inline.
+     Dashboard surfaces are split so you can change the content
+     background independently of the sidebar / header:
+       --color-home-bg      → body / homepage background (applied to <html>/<body>)
+       --color-bg           → dashboard content page background (GridBackground)
+       --color-sidebar      → fixed left sidebar surface
+       --color-header       → top header surface (translucent over content)
+       --color-card-surface → default card background inside content pages
+  */
+  --color-home-bg: #15091e;       /* homepage / body background */
+  --color-bg: #26173a;            /* content page */
+  --color-bg-2: #1c0f2e;          /* sidebar base */
+  --color-sidebar: #1c0f2e;       /* fixed sidebar */
+  --color-header: #15091e;        /* top header (dùng opacity khi áp dụng) */
+  --color-card-surface: rgba(255, 246, 238, 0.04); /* card trên nền tối */
   --color-aubergine: #2a1247;
   --color-aubergine-2: #3a1c5c;
   --color-aubergine-3: #4f2670;
@@ -58,7 +70,7 @@
   html {
     font-family: var(--font-sans);
     color: var(--color-cream);
-    background-color: var(--color-bg);
+    background-color: var(--color-home-bg);
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -70,7 +82,7 @@
     margin: 0;
     min-width: 320px;
     min-height: 100vh;
-    background-color: var(--color-bg);
+    background-color: var(--color-home-bg);
     color: var(--color-cream);
     overflow-x: hidden;
   }

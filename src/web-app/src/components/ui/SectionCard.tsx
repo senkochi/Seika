@@ -24,7 +24,8 @@ export function SectionCard({
   return (
     <Tag
       className={cn(
-        "rounded-2xl bg-white/[0.025] border border-white/[0.06] p-6",
+        "rounded-2xl border border-white/[0.06] p-6",
+        "bg-[var(--color-card-surface)]",
         className,
       )}
     >
