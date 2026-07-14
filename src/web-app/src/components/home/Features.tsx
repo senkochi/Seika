@@ -27,13 +27,14 @@ function BezelCard({
 }) {
   const shells = {
     dark: "bg-white/[0.04] border-white/[0.06]",
-    light: "bg-[#faf6ee]/[0.04] border-[#faf6ee]/[0.08]",
-    gold: "bg-gradient-to-b from-[#d4a843]/30 to-[#d4a843]/[0.04] border-[#d4a843]/[0.18]",
+    light: "bg-[var(--color-cream)]/[0.04] border-[var(--color-cream)]/[0.08]",
+    gold: "bg-gradient-to-b from-[var(--color-gold)]/30 to-[var(--color-gold)]/[0.04] border-[var(--color-gold)]/[0.18]",
   } as const;
   const cores = {
-    dark: "bg-gradient-to-br from-[#1c0f2e] to-[#15091e] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]",
-    light: "bg-[#faf6ee] text-[#1c0f2e] shadow-[inset_0_1px_1px_rgba(255,255,255,0.5)]",
-    gold: "bg-gradient-to-br from-[#1c0f2e] via-[#15091e] to-[#15091e] shadow-[inset_0_1px_1px_rgba(212,168,67,0.18)]",
+    dark: "bg-gradient-to-br from-[var(--color-ink)] to-[var(--color-home-bg)] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]",
+    light:
+      "bg-[var(--color-cream)] text-[var(--color-ink)] shadow-[inset_0_1px_1px_rgba(255,255,255,0.5)]",
+    gold: "bg-gradient-to-br from-[var(--color-ink)] via-[var(--color-home-bg)] to-[var(--color-home-bg)] shadow-[inset_0_1px_1px_rgba(212,168,67,0.18)]",
   } as const;
 
   return (
@@ -66,7 +67,7 @@ function IconChip({
 }) {
   const tones = {
     gold: "bg-gradient-to-br from-[#e6c264] to-[#c89a36] text-[#1c0f2e]",
-    purple: "bg-[#3a1c5c] text-[#faf6ee]",
+    purple: "bg-[var(--color-aubergine-2)] text-[#faf6ee]",
     blue: "bg-[#1e3a5f] text-[#faf6ee]",
     green: "bg-[#1d3a2e] text-[#faf6ee]",
   } as const;
@@ -88,10 +89,10 @@ function IconChip({
 
 export function Features() {
   return (
-    <section
-      id="features"
-      className="relative py-32 lg:py-40 overflow-hidden"
-    >
+    <section id="features" className="relative py-32 lg:py-40 overflow-hidden">
+      {/* Background atmosphere — seamless continuation from Hero */}
+      <div className="absolute inset-0 bg-glow-features pointer-events-none" />
+
       <div className="relative max-w-[1200px] mx-auto px-6 lg:px-10">
         {/* Section header — eyebrow + Fraunces headline + lede */}
         <AnimatedContent>
@@ -154,17 +155,14 @@ export function Features() {
                   <img
                     src={Images.FeatureImage1}
                     alt="A student reviewing flashcards at a desk"
-                    className="w-full h-48 lg:h-56 object-cover opacity-90"
+                    className="w-full object-cover opacity-90 rounded-2xl"
                   />
                 </div>
               </div>
             </BezelCard>
 
             {/* Smart Quizzes — text card with circular badge */}
-            <BezelCard
-              tone="dark"
-              className="col-span-12 md:col-span-5"
-            >
+            <BezelCard tone="dark" className="col-span-12 md:col-span-5">
               <div className="p-8 lg:p-10 h-full flex flex-col gap-5">
                 <IconChip tone="purple">
                   <Brain className="w-5 h-5" strokeWidth={1.5} />
@@ -181,20 +179,11 @@ export function Features() {
                   Instant scoring, detailed breakdowns, and a progress map that
                   actually shows you where to go next.
                 </p>
-                <div className="mt-auto flex items-center gap-3 text-sm text-[#d4a843]">
-                  <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-[#d4a843]/15">
-                    <Sparkles className="w-3.5 h-3.5" strokeWidth={1.8} />
-                  </span>
-                  <span className="font-medium">Auto-generated variants</span>
-                </div>
               </div>
             </BezelCard>
 
             {/* Marketplace — gold-bezel feature spotlight */}
-            <BezelCard
-              tone="gold"
-              className="col-span-12 md:col-span-5"
-            >
+            <BezelCard tone="gold" className="col-span-12 md:col-span-5">
               <div className="p-8 lg:p-10 h-full flex flex-col gap-5 relative">
                 <IconChip tone="gold">
                   <Store className="w-5 h-5" strokeWidth={1.5} />
@@ -226,42 +215,35 @@ export function Features() {
               </div>
             </BezelCard>
 
-            {/* Earn coins — cream-light, breaks the dark monotony */}
-            <BezelCard
-              tone="light"
-              className="col-span-12 md:col-span-7"
-            >
+            {/* Earn coins — synchronized dark tone matching all other feature cards */}
+            <BezelCard tone="dark" className="col-span-12 md:col-span-7">
               <div className="h-full p-8 lg:p-10 grid md:grid-cols-[1fr_auto] gap-6 items-end">
                 <div className="space-y-4">
                   <IconChip tone="green">
-                    <CreditCard
-                      className="w-5 h-5 text-[#1c0f2e]"
-                      strokeWidth={1.5}
-                    />
+                    <CreditCard className="w-5 h-5" strokeWidth={1.5} />
                   </IconChip>
-                  <p className="text-[11px] uppercase tracking-[0.18em] text-[#1c0f2e]/60">
-                    Rewards
-                  </p>
-                  <h3 className="font-display text-3xl text-[#1c0f2e]">
-                    Learning pays off. Literally.
-                  </h3>
-                  <p className="text-[#1c0f2e]/70 leading-relaxed max-w-md">
+                  <div>
+                    <p className="text-[11px] uppercase tracking-[0.18em] text-[#d4a843]/80">
+                      Rewards
+                    </p>
+                    <h3 className="mt-2 font-display text-3xl text-[#faf6ee]">
+                      Learning pays off. Literally.
+                    </h3>
+                  </div>
+                  <p className="text-[#faf6ee]/65 leading-relaxed max-w-md">
                     Every completed quiz drops coins into your wallet. Spend
                     them in the marketplace, or save them up for the premium
                     pack you've been eyeing.
                   </p>
                 </div>
-                <div className="font-display font-tabular text-6xl text-[#1c0f2e]/15 leading-none">
+                <div className="font-display font-tabular text-6xl text-[#faf6ee]/10 leading-none">
                   ✦
                 </div>
               </div>
             </BezelCard>
 
             {/* Leaderboards — small dark */}
-            <BezelCard
-              tone="dark"
-              className="col-span-12 md:col-span-5"
-            >
+            <BezelCard tone="dark" className="col-span-12 md:col-span-5">
               <div className="p-8 h-full flex flex-col gap-5">
                 <IconChip tone="gold">
                   <Trophy className="w-5 h-5" strokeWidth={1.5} />
@@ -282,10 +264,7 @@ export function Features() {
             </BezelCard>
 
             {/* Notifications — full-width slim band */}
-            <BezelCard
-              tone="dark"
-              className="col-span-12"
-            >
+            <BezelCard tone="dark" className="col-span-12">
               <div className="p-8 lg:p-10 flex flex-col md:flex-row md:items-center gap-6">
                 <IconChip tone="blue">
                   <Bell className="w-5 h-5" strokeWidth={1.5} />

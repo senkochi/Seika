@@ -33,6 +33,7 @@
   --color-bg-2: #1c0f2e; /* sidebar base */
   --color-sidebar: #15091e; /* fixed sidebar */
   --color-header: #15091e; /* top header (dùng opacity khi áp dụng) */
+  --color-footer: #0e0617; /* bottom footer */
   --color-card-surface: rgba(255, 246, 238, 0.04); /* card trên nền tối */
   --color-aubergine: #2a1247;
   --color-aubergine-2: #3a1c5c;
@@ -196,7 +197,7 @@
   .bg-glow-aubergine {
     background:
       radial-gradient(
-        50% 50% at 70% 52%,
+        40% 50% at 70% 52%,
         rgba(79, 38, 112, 0.5) 0%,
         transparent 45%
       ),
@@ -206,7 +207,7 @@
         transparent 60%
       ),
       radial-gradient(
-        60% 50% at 0% 100%,
+        52% 70% at 0% 100%,
         rgba(42, 18, 71, 0.45) 0%,
         transparent 60%
       );
@@ -217,6 +218,83 @@
       rgba(212, 168, 67, 0.18) 0%,
       transparent 60%
     );
+  }
+  .bg-glow-features {
+    background:
+      radial-gradient(
+        50% 55% at 0% 0%,
+        rgba(42, 18, 71, 0.5) 0%,
+        transparent 60%
+      ),
+      radial-gradient(
+        55% 40% at 90% 25%,
+        rgba(79, 38, 112, 0.45) 0%,
+        transparent 60%
+      ),
+      radial-gradient(
+        55% 55% at 85% 55%,
+        rgba(166, 0, 255, 0.12) 0%,
+        transparent 65%
+      ),
+      radial-gradient(
+        65% 50% at 40% 100%,
+        rgba(58, 28, 92, 0.45) 0%,
+        transparent 60%
+      );
+  }
+  .bg-glow-about {
+    background:
+      radial-gradient(
+        65% 50% at 40% 0%,
+        rgba(58, 28, 92, 0.45) 0%,
+        transparent 60%
+      ),
+      radial-gradient(
+        55% 55% at 10% 45%,
+        rgba(79, 38, 112, 0.45) 0%,
+        transparent 65%
+      ),
+      radial-gradient(
+        60% 50% at 90% 60%,
+        rgba(212, 168, 67, 0.1) 0%,
+        transparent 60%
+      ),
+      radial-gradient(
+        60% 50% at 80% 100%,
+        rgba(212, 168, 67, 0.18) 0%,
+        transparent 60%
+      );
+  }
+  .bg-glow-contact {
+    background:
+      radial-gradient(
+        65% 55% at 80% 0%,
+        rgba(212, 168, 67, 0.22) 0%,
+        transparent 60%
+      ),
+      radial-gradient(
+        70% 60% at 15% 90%,
+        rgba(212, 168, 67, 0.18) 0%,
+        transparent 65%
+      ),
+      radial-gradient(
+        80% 80% at 50% 30%,
+        rgba(255, 255, 255, 0.85) 0%,
+        transparent 70%
+      );
+  }
+  .bg-glow-footer {
+    background:
+      radial-gradient(
+        70% 60% at 20% 0%,
+        rgba(79, 38, 112, 0.3) 0%,
+        transparent 60%
+      ),
+      radial-gradient(
+        60% 50% at 80% 100%,
+        rgba(42, 18, 71, 0.4) 0%,
+        transparent 65%
+      );
   }
 
   /* Magnetic button physics */

@@ -34,7 +34,7 @@ export function Hero() {
             <div className="animate-fade-up">
               <span className="eyebrow">
                 <span className="inline-block w-1 h-1 rounded-full bg-[#d4a843]" />
-                Now in beta · Hà Nội
+                Now in beta
               </span>
             </div>
 
@@ -56,8 +56,8 @@ export function Hero() {
 
             <p className="max-w-xl text-lg text-[#faf6ee]/70 leading-relaxed animate-fade-up delay-200">
               Seika turns study material into something you actually want to
-              open. Quizzes, flashcards, and a coin economy that pays you
-              back for paying attention.
+              open. Quizzes, flashcards, and a coin economy that pays you back
+              for paying attention.
             </p>
 
             <div className="flex flex-wrap items-center gap-3 animate-fade-up delay-300">
@@ -115,16 +115,16 @@ export function Hero() {
             {/* Front layer — school bag, raw transparent PNG, slightly offset and tilted */}
             <div
               className="absolute bottom-1/4 right-1/10 -translate-x-1/2 -translate-y-1/2 translate-x-12 translate-y-10 rotate-[5deg]"
-              style={{ animation: "float-slow-reverse 5.2s ease-in-out infinite" }}
+              style={{
+                animation: "float-slow-reverse 5.2s ease-in-out infinite",
+              }}
             >
               <YellowBlueSchoolBag width={520} />
             </div>
 
             {/* Floating "+50 XP" chip */}
-            <div
-              className="absolute top-8 -left-4 lg:-left-12 rotate-[-6deg] animate-fade-up delay-500"
-            >
-              <div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-[#15091e]/80 backdrop-blur-xl border border-white/[0.08] shadow-[inset_0_1px_1px_rgba(255,255,255,0.06),0_12px_32px_-12px_rgba(0,0,0,0.6)]">
+            <div className="absolute top-8 -left-4 lg:-left-12 rotate-[-6deg] animate-fade-up delay-500">
+              <div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-[var(--color-home-bg)]/80 backdrop-blur-xl border border-white/[0.08] shadow-[inset_0_1px_1px_rgba(255,255,255,0.06),0_12px_32px_-12px_rgba(0,0,0,0.6)]">
                 <span className="w-9 h-9 rounded-full bg-gradient-to-br from-[#e6c264] to-[#c89a36] flex items-center justify-center text-[#1c0f2e] font-bold text-sm">
                   +
                 </span>

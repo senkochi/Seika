@@ -19,13 +19,16 @@ export function Contact() {
   return (
     <section
       id="contact"
-      className="relative py-32 lg:py-40 bg-[#faf6ee] text-[#1c0f2e] overflow-hidden"
+      className="relative py-32 lg:py-40 bg-[var(--color-cream)] text-[#1c0f2e] overflow-hidden"
     >
+      {/* Background atmosphere — warm cream/gold transition */}
+      <div className="absolute inset-0 bg-glow-contact pointer-events-none" />
+
       <div className="relative max-w-[1200px] mx-auto px-6 lg:px-10">
         {/* Section header */}
         <AnimatedContent>
           <div className="mb-16 max-w-2xl">
-            <span className="eyebrow !text-[#1c0f2e]/70 !border-[#1c0f2e]/15 !bg-[#1c0f2e]/[0.04]">
+            <span className="eyebrow !text-[#1c0f2e]/70 !border-[#1c0f2e]/15 !bg-[var(--color-ink)]/[0.04]">
               <span className="inline-block w-1 h-1 rounded-full bg-[#d4a843]" />
               Get in touch
             </span>
@@ -180,7 +183,7 @@ function ContactRow({
 }) {
   return (
     <li className="flex items-start gap-4">
-      <span className="w-10 h-10 shrink-0 rounded-xl bg-[#1c0f2e] text-[#d4a843] flex items-center justify-center">
+      <span className="w-10 h-10 shrink-0 rounded-xl bg-[var(--color-ink)] text-[#d4a843] flex items-center justify-center">
         {icon}
       </span>
       <div className="space-y-0.5">
