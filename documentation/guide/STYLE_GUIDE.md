@@ -1,9 +1,8 @@
 # Seika Frontend Style Guide
 
-This document defines the current visual and component conventions used in the Seika web frontend (as of the **public surface redesign** — homepage, login, register, 404).
-Use it as the single source of truth so new UI work stays consistent.
+This document defines the current visual and component conventions used in the Seika web frontend. Use it as the single source of truth so new UI work stays consistent across both the public surface and the authenticated dashboards.
 
-> Scope: this guide covers the **guest / public surface** (homepage, auth, 404) and the shared UI primitives it introduced. The authenticated dashboards (`/student/dashboard`, `/teacher/dashboard`, `/admin/dashboard`) keep their existing visual system and are not part of this redesign.
+> Scope: covers the **guest / public surface** (homepage, auth, 404) **and the authenticated dashboards** (`/student/dashboard`, `/teacher/dashboard`, `/admin/dashboard`). Both halves share the same palette + typography but use different densities (see § Dashboard Patterns for the workspace rules).
 
 ---
 
@@ -40,9 +39,11 @@ Use it as the single source of truth so new UI work stays consistent.
 - Purpose: recover gracefully from dead ends.
 - Style: same form-card double-bezel as auth, Fraunces `12rem` 404, gold accent bar.
 
-### Dashboard Pages (out of scope for this redesign)
+### Dashboard Pages (`/student/dashboard`, `/teacher/dashboard`, `/admin/dashboard`)
 
-- Student / Teacher / Admin dashboards keep their existing dark-purple shell + amber accents system. They are **not** part of this redesign and should not be retrofitted with the public-surface tokens unless explicitly requested.
+- Purpose: dense, functional workspace. Not a marketing surface.
+- Style: dark aubergine base, **hairline borders only** (no shadows, no `backdrop-blur`, no gradient tiles), Outfit-only typography (no Fraunces), one gold accent per screen.
+- See **§ Dashboard Patterns** below for the full ruleset and component list.
 
 ---
 
@@ -135,7 +136,7 @@ The following patterns from the previous design are **no longer allowed**:
 
 ## 6) Component Primitives
 
-All new components live under `src/components/ui`. Prefer them over hand-rolled markup.
+All new components live under `src/components/ui`. Prefer them over hand-rolled markup. The dashboards introduced a second wave of primitives on top of the public-surface set — see § 19 for the full dashboard primitive list.
 
 ### `<Button>` (`src/components/ui/Button.tsx`)
 
@@ -266,7 +267,7 @@ Use `<Button variant="link">` for inline text links that still need a trailing a
 
 ### Chip / badge
 
-`.eyebrow` utility, or hand-rolled `inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-white/[0.06] border border-white/[0.08]`.
+`.eyebrow` utility, or hand-rolled `inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-white/[0.06] border border-white/[0.08]`. On dashboards prefer `<StatusPill>` (always renders text — no color-only meaning) with the appropriate `variant`.
 
 ---
 
@@ -400,6 +401,14 @@ Pin the CTA to the bottom of the card (`mt-auto`) when card content varies in le
 - Use generic `box-shadow` / `shadow-md` on cards — use double-bezel with inset highlights.
 - Use `width` prop without `style={{ maxWidth: "none" }}` on `<img>` (Tailwind preflight will clamp it).
 
+**Dashboard-specific (in addition to the above)**:
+
+- Use Fraunces (`font-display`) in dashboard chrome — apply `font-sans-ui` explicitly on layout-level `h1`/`h2`.
+- Use `backdrop-blur-xl` / `shadow-[0_2Npx_*]` / Tailwind palette pills (`bg-emerald-500/20 text-emerald-300` etc.) on dashboards — use `<SectionCard>`, hairlines, and `<StatusPill>`.
+- Use emoji-only product hero at `text-5xl` — keep emoji but frame it in `aspect-[4/3] bg-white/[0.03] border border-white/[0.06]` at `text-3xl`.
+- Use `animate-bounce` / `animate-pulse` for celebration / hint states — flat `<SectionCard>` + `<IconChip>` + `<StatusPill>` is sufficient.
+- Mix more than one gold accent per dashboard screen — see the Gold Accent Rule in § Dashboard Patterns.
+
 ---
 
 ## 17) Quick Copy Recipes
@@ -494,3 +503,136 @@ Pin the CTA to the bottom of the card (`mt-auto`) when card content varies in le
 ## 18) Changelog
 
 - **Public surface redesign** — replaced Inter + indigo→purple→violet gradient + floating blur orbs with Fraunces/Outfit typography + deep aubergine + desaturated gold + cream contrast. New shared primitives (`Button`, `TextInput`, `AuthShell`). Navbar now a floating glass pill. Features converted to asymmetrical bento. Auth pages use a single centered card with double-bezel hardware aesthetic.
+
+- **Dashboard redesign (Phase A–D)** — replaced the pre-redesign chrome (`backdrop-blur-xl`, `shadow-[0_2Npx_*]`, gradient tiles, `bg-clip-text` gold headings, emoji-only product hero at `text-5xl`, `animate-bounce` trophies, `font-black`) on Student/Teacher/Admin dashboards with a restrained hairline-bordered system. Added six new shared primitives in `src/components/ui/`: `PageHeader`, `SectionCard`, `StatCard`, `IconChip`, `StatusPill`, `EmptyState`. Extended `<Button>` with a `tone?: "neutral" | "danger"` prop for destructive ghost actions. Rewrote `<ConfirmModal>` visuals (focus trap preserved) and `<Pagination>` (hairline + gold-pill active state). Local `RoleBadge` / `UserStatusPill` / `UsersCardSection` / `StudentActionButton` / dashboard-local `StatCard` / `QuickStatItem` deleted; callers migrated to `<StatusPill>` + `<SectionCard>` + shared `<StatCard>`.
+
+---
+
+## 19) Dashboard Patterns
+
+The authenticated dashboards (`/student/dashboard`, `/teacher/dashboard`, `/admin/dashboard`) share the public-surface palette and typography, but apply them under a stricter workspace discipline. Tone reference: Linear / Notion / Vercel dashboard — one gold accent per screen, the rest is hairline-bordered `bg-white/[0.03]` surfaces.
+
+### Architectural principles
+
+1. **One accent per screen.** Only one element per page gets gold: the active nav row in the sidebar, the primary CTA, or the one KPI the page is about. Everything else is `text-cream` + `text-white/45`–`text-white/65` + hairline borders.
+2. **No gradients in dashboards.** `bg-gradient-*`, `bg-clip-text`, `from-*/to-*` belong only on the public surface. Forbidden inside `src/web-app/src/pages/{admin,student,teacher}` and `src/web-app/src/layouts`.
+3. **Hairlines > shadows.** Replace `shadow-2xl`, `shadow-[0_2Npx_*]` with `border border-white/[0.06]`. Shadows are reserved for the modal scrim and modal panel only.
+4. **Tabular figures for all numbers.** Apply `tabular-nums` on any rendered number.
+5. **Outfit only in dashboards.** Apply explicit `font-sans-ui` on every layout-level `h1`/`h2` so the global `font-display` rule does not leak into the workspace.
+
+### New shared primitives (`src/components/ui/`)
+
+| Component | Purpose | Notes |
+| --- | --- | --- |
+| `<PageHeader>` | Title row at the top of every dashboard page | Token: `font-sans-ui text-2xl font-semibold tracking-tight text-cream`. Props: `title`, `subtitle`, `actions`, `breadcrumbs`. |
+| `<SectionCard>` | Minimalist container for dashboard sections | `bg-white/[0.025] border border-white/[0.06] rounded-2xl p-6`. Optional `header` and `footer`. No backdrop-blur, no shadow. |
+| `<StatCard>` | Single KPI card | Label: `text-xs uppercase tracking-[0.12em] text-white/45`. Value: `text-3xl font-semibold text-cream tabular-nums`. Optional `icon` + `iconVariant`, `delta`, `unit`, `hint`. Replaces 4-up gradient KPI tiles. |
+| `<IconChip>` | 9×9 hairline square for icons | Variants: `gold \| muted \| info \| success \| danger \| warning`. Decorative by default (`aria-hidden`); consumer passes `ariaLabel` + `decorative={false}` when meaning is conveyed. |
+| `<StatusPill>` | Text-carrying status / role / type pill | Variants: `success \| danger \| warning \| info \| neutral \| gold`. Always renders text (no color-only meaning). Replaces inline Tailwind palette pills. |
+| `<EmptyState>` | Composed empty-state block | IconChip + title + description + optional action. Use wherever a section has nothing to show. |
+
+### Extended / rewritten primitives
+
+- `<Button>` (`src/components/ui/Button.tsx`) — extended with `tone?: "neutral" | "danger"`. When `tone === "danger"` and `variant === "ghost"`, the button renders `text-red-300 hover:bg-red-500/10`. Other variants ignore `tone` to keep the API surface small.
+- `<ConfirmModal>` (`src/components/ui/ConfirmModal.tsx`) — visuals rewritten to match the dashboard palette: `bg-[#1c0f2e] border border-white/[0.08] rounded-2xl p-6`, scrim `bg-black/60`, opacity-only fade-in via custom `confirm-fadeIn` keyframe (200 ms). Focus trap + Escape handler preserved verbatim. Confirm button uses `<Button variant="ghost" tone={variant === "danger" ? "danger" : "neutral"}>`.
+- `<Pagination>` (`src/components/ui/Pagination.tsx`) — hairline borders, `tabular-nums`, gold-pill active state (`bg-[#d4a843]/10 border-[#d4a843]/30 text-[#d4a843]`). Active page uses `aria-current="page"`.
+
+### Layout chrome (Student/Teacher/Admin DashboardLayout)
+
+| Surface | Replace | With |
+| --- | --- | --- |
+| Sidebar wrapper | `backdrop-blur-xl bg-[rgba(20,15,38,0.88)]` | `bg-[#1c0f2e] border-r border-white/[0.06]` |
+| Sidebar width | `w-64` | `w-60` |
+| Header wrapper | `backdrop-blur-xl bg-[rgba(24,18,45,0.9)] shadow-[0_24px_80px_*]` | `bg-[#15091e]/80 backdrop-blur-md border-b border-white/[0.06]` |
+| Nav row (inactive) | `text-[var(--text-muted)] hover:bg-[var(--muted)]/50` | `text-white/60 hover:text-cream hover:bg-white/[0.03]` |
+| Nav row (active) | `bg-[var(--primary)] text-[var(--primary-foreground)]` | `bg-white/[0.05] text-cream border-l-2 border-[#d4a843]` (left-rail accent) |
+| Role chip (Teacher) | `bg-amber-500/20 text-amber-300` | `<StatusPill variant="gold">Teacher</StatusPill>` |
+| Role chip (Admin) | `bg-red-500/20 text-red-300` | `<StatusPill variant="neutral">Admin</StatusPill>` (red is reserved for destructive actions at rest) |
+| Avatar fallback | `bg-[var(--primary)]/20` | `bg-white/[0.06] text-cream` |
+
+### Forbidden patterns (dashboard grep audit)
+
+These queries must return zero hits inside `src/web-app/src/pages/{student,teacher,admin}/**` and `src/web-app/src/layouts/**`:
+
+- `bg-gradient-to-`
+- `bg-clip-text`
+- `from-amber-`, `to-amber-`, `from-yellow-`, `to-yellow-`
+- `from-purple-`, `to-purple-`, `from-violet-`, `to-violet-`
+- `from-emerald-`, `to-emerald-`, `from-rose-`, `to-rose-`
+- `from-blue-`, `to-blue-`, `from-cyan-`, `to-cyan-`
+- `from-pink-`, `to-pink-`, `from-fuchsia-`, `to-fuchsia-`
+- `backdrop-blur-xl`
+- `shadow-[0_2[04]px_`
+- `animate-bounce`, `animate-pulse` inside dashboard chrome
+- `animate-in fade-in zoom-in`
+- `font-display` (Fraunces leaks — see § architectural principle 5)
+
+### Gold Accent Rule
+
+The one element per screen that gets gold must be the element that communicates the page's primary action or state:
+
+- **Sidebar nav**: the active row gets `border-l-2 border-[#d4a843]`.
+- **Revenue / wallet**: the hero balance or the most-important KPI gets `<IconChip variant="gold">` or a gold left-rail bar (`absolute left-0 top-0 bottom-0 w-px bg-[#d4a843]/60`).
+- **Forms / modals**: the primary CTA is `<Button variant="primary">` (gold gradient); destructive actions are `<Button variant="ghost" tone="danger">` (red ghost).
+- **Charts**: one series per chart uses gold `#d4a843` stroke; other series use muted white `rgba(255,255,255,0.45)`.
+
+### Accessibility baselines (dashboard-specific)
+
+- `<IconChip>` defaults to `aria-hidden="true"`; pass `ariaLabel` + `decorative={false}` when meaning is conveyed (e.g. a status badge that is the only indication of state).
+- `<StatusPill>` always renders text content (no color-only information).
+- `<ConfirmModal>` retains the existing focus trap and Escape-to-close handler — visuals-only changes were made in Phase A.
+- `<Pagination>` uses `aria-current="page"` on the active page button.
+- `<PageHeader>` breadcrumbs (when present) are wrapped in `<nav aria-label="Breadcrumb">`.
+
+### Quick copy recipes (dashboard)
+
+```jsx
+// Page header with reload action
+<PageHeader
+  title="Quản lý người dùng"
+  subtitle={`Tổng ${users.totalElements} user`}
+  actions={
+    <Button variant="ghost" size="md" onClick={refetch}>Tải lại</Button>
+  }
+/>
+
+// KPI grid (single gold accent)
+<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+  <StatCard label="Total XP" value={exp} icon={<Zap className="h-4 w-4" />} iconVariant="gold" delta={{ value: "+12%", trend: "up" }} />
+  <StatCard label="Quizzes" value={quizzes} icon={<Target className="h-4 w-4" />} iconVariant="info" />
+  <StatCard label="Spent" value={spent} icon={<Coins className="h-4 w-4" />} iconVariant="muted" />
+  <StatCard label="Locked" value={locked} icon={<ShieldAlert className="h-4 w-4" />} iconVariant="danger" />
+</div>
+
+// Hairline-bordered container
+<SectionCard className="overflow-hidden p-0">
+  <div className="overflow-x-auto p-6">
+    <table>...</table>
+  </div>
+  <Pagination ... />
+</SectionCard>
+
+// Empty state
+<EmptyState
+  icon={<Inbox className="w-5 h-5" aria-hidden="true" />}
+  title="Chưa có sản phẩm nào"
+  description="Marketplace hiện chưa có sản phẩm. Quay lại sau nhé."
+/>
+
+// Filter chip group (gold when active)
+<div role="group" aria-label="Lọc theo role" className="flex items-center gap-1 rounded-full border border-white/[0.08] bg-white/[0.02] p-1">
+  {OPTIONS.map(opt => (
+    <button
+      aria-pressed={active}
+      className={active
+        ? "rounded-full bg-[#d4a843]/10 border border-[#d4a843]/30 px-3 py-1 text-xs font-medium text-[#d4a843]"
+        : "rounded-full border border-transparent px-3 py-1 text-xs font-medium text-white/60 hover:bg-white/[0.04] hover:text-cream"}
+    >
+      {opt.label}
+    </button>
+  ))}
+</div>
+
+// Input (hairline + gold/50 focus)
+<input className="w-full rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 py-2 font-sans-ui text-sm text-cream focus:border-[#d4a843]/50 focus:outline-none transition-colors" />
+```
