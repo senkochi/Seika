@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Home } from "lucide-react";
 
 import RegistrationBox from "../../components/auth/RegistrationBox";
 import { RegisterData } from "../../components/auth/types";
 import { showError, showSuccess } from "../../components/toast/toastUtils";
 import { register } from "../../store/authSlice";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
+import { AuthShell } from "../../components/auth/AuthShell";
 
 export default function Register() {
   const navigate = useNavigate();
@@ -25,29 +25,16 @@ export default function Register() {
   });
 
   const handleNext = () => {
-    if (currentStep === 1) {
-      if (!formData.role) {
-        showError("Please select your role.");
-        return;
-      }
+    if (currentStep === 1 && !formData.role) {
+      showError("Please select your role.");
+      return;
     }
     if (currentStep === 2) {
-      if (!formData.fullname) {
-        showError("Full name is required.");
-        return;
-      }
-      if (!formData.dateOfBirth) {
-        showError("Date of birth is required.");
-        return;
-      }
-      if (!formData.gender) {
-        showError("Please select your gender.");
-        return;
-      }
+      if (!formData.fullname) return showError("Full name is required.");
+      if (!formData.dateOfBirth) return showError("Date of birth is required.");
+      if (!formData.gender) return showError("Please select your gender.");
     }
-    if (currentStep < 3) {
-      setCurrentStep(currentStep + 1);
-    }
+    if (currentStep < 3) setCurrentStep(currentStep + 1);
   };
 
   const handleBack = () => {
@@ -55,40 +42,16 @@ export default function Register() {
       navigate("/");
       return;
     }
-
-    if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
-    }
+    if (currentStep > 1) setCurrentStep(currentStep - 1);
   };
 
   const handleSubmit = async () => {
-    // Validate all fields
-    if (!formData.role) {
-      showError("Please select your role.");
-      return;
-    }
-    if (!formData.fullname) {
-      showError("Full name is required.");
-      return;
-    }
-    if (!formData.dateOfBirth) {
-      showError("Date of birth is required.");
-      return;
-    }
-    if (!formData.gender) {
-      showError("Please select your gender.");
-      return;
-    }
-    if (!formData.username) {
-      showError("Username is required.");
-      return;
-    }
-    if (!formData.password) {
-      showError("Password is required.");
-      return;
-    }
-
-    // You can add more validation here (e.g., password strength, username format)
+    if (!formData.role) return showError("Please select your role.");
+    if (!formData.fullname) return showError("Full name is required.");
+    if (!formData.dateOfBirth) return showError("Date of birth is required.");
+    if (!formData.gender) return showError("Please select your gender.");
+    if (!formData.username) return showError("Username is required.");
+    if (!formData.password) return showError("Password is required.");
 
     try {
       const authState = await dispatch(
@@ -120,38 +83,37 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-950 via-purple-900 via-30% to-amber-600 via-60% to-violet-950 relative overflow-hidden flex items-center justify-center p-4">
-      {/* Decorative elements */}
-      <div className="absolute top-20 left-10 w-32 h-32 bg-violet-400 rounded-full opacity-10 blur-3xl animate-pulse"></div>
-      <div
-        className="absolute bottom-20 right-10 w-40 h-40 bg-violet-500 rounded-full opacity-10 blur-3xl animate-pulse"
-        style={{ animationDelay: "1s" }}
-      ></div>
-      <div className="absolute top-1/2 left-1/3 w-24 h-24 bg-yellow-400 rounded-full opacity-5 blur-2xl"></div>
-      <div className="absolute top-1/2 right-1/4 w-48 h-48 bg-violet-500 rounded-full opacity-10 blur-3xl animate-pulse"></div>
-      <div
-        className="absolute bottom-10 left-1/4 w-48 h-48 bg-violet-500 rounded-full opacity-10 blur-3xl animate-pulse"
-        style={{ animationDelay: "0.5s" }}
-      ></div>
-      {/* Back to Home Button */}
-      <button
-        type="button"
-        onClick={() => navigate("/")}
-        className="fixed top-6 left-6 z-50 px-4 py-2 text-white opacity-80 hover:opacity-100 hover:underline flex items-center gap-2 transition-all"
-      >
-        <Home className="w-4 h-4" />
-        <span className="hidden sm:inline">Back to Home</span>
-      </button>
+    <AuthShell maxWidth={720}>
+      <div className="p-8 sm:p-10 lg:px-12 lg:pt-10">
+        <header className="space-y-3 mb-2">
+          <span className="eyebrow">
+            <span className="inline-block w-1 h-1 rounded-full bg-[#d4a843]" />
+            Create account
+          </span>
+          <h1
+            className="font-display font-medium text-[#faf6ee] text-4xl lg:text-5xl leading-[1.02] tracking-[-0.025em]"
+            style={{ textWrap: "balance" as const }}
+          >
+            Join{" "}
+            <span className="italic font-display font-light text-[#d4a843]">
+              Seika.
+            </span>
+          </h1>
+          <p className="text-[#faf6ee]/65">
+            Three quick steps. No credit card required.
+          </p>
+        </header>
 
-      <RegistrationBox
-        currentStep={currentStep}
-        formData={formData}
-        setFormData={setFormData}
-        onBack={handleBack}
-        onNext={handleNext}
-        onSubmit={handleSubmit}
-        isSubmitting={isSubmitting}
-      />
-    </div>
+        <RegistrationBox
+          currentStep={currentStep}
+          formData={formData}
+          setFormData={setFormData}
+          onBack={handleBack}
+          onNext={handleNext}
+          onSubmit={handleSubmit}
+          isSubmitting={isSubmitting}
+        />
+      </div>
+    </AuthShell>
   );
 }

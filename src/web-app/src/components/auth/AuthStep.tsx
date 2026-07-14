@@ -1,6 +1,7 @@
-import { Dispatch, SetStateAction, useState } from "react";
-import { RegisterData } from "./types";
+import { type Dispatch, type SetStateAction, useState } from "react";
 import { Eye, EyeOff, Lock, User } from "lucide-react";
+import { RegisterData } from "./types";
+import { TextInput } from "../ui/Input";
 
 interface AuthStepProps {
   formData: RegisterData;
@@ -24,132 +25,97 @@ export default function AuthStep({
   setErrors = () => {},
 }: AuthStepProps) {
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
-  const clearError = (field: string) => {
+  const clearError = (field: keyof typeof errors) => {
     setErrors({ [field]: undefined });
   };
 
   return (
     <div className="space-y-6">
-      <div className="text-center mb-6">
-        <h2 className="text-2xl font-black text-purple-900">
-          Account Security
+      <div className="text-center mb-2">
+        <h2 className="font-display text-2xl text-[#faf6ee] tracking-[-0.015em]">
+          Last step — your credentials
         </h2>
-        <p className="text-sm text-gray-600">Choose your login credentials</p>
+        <p className="mt-2 text-sm text-[#faf6ee]/60">
+          Choose how you'll sign in.
+        </p>
       </div>
 
       <div className="space-y-5">
-        <div>
-          <label className="block text-sm font-black text-purple-900 mb-2">
-            Username
-          </label>
-          <div className="relative">
-            <User className="w-4 h-4 text-purple-400 absolute left-4 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              value={formData.username}
-              onChange={(e) => {
-                setFormData({ ...formData, username: e.target.value });
-                if (errors.username) clearError("username");
-              }}
-              placeholder="Choose a unique username"
-              className={`w-full pl-11 pr-4 py-3 border-2 text-purple-900 rounded-xl focus:outline-none transition-colors ${
-                errors.username
-                  ? "border-red-500 bg-red-50 focus:border-red-500"
-                  : "border-purple-200 focus:border-purple-500"
-              }`}
-            />
-          </div>
-          {errors.username && (
-            <p className="text-xs text-red-500 mt-1">{errors.username}</p>
-          )}
-        </div>
+        <TextInput
+          label="Username"
+          value={formData.username}
+          onChange={(e) =>
+            setFormData({ ...formData, username: e.target.value })
+          }
+          placeholder="your.username"
+          error={errors.username}
+          onClearError={() => clearError("username")}
+          leadingIcon={<User className="w-4 h-4" strokeWidth={1.5} />}
+          autoComplete="username"
+        />
 
-        <div>
-          <label className="block text-sm font-black text-purple-900 mb-2">
-            Confirm password
-          </label>
-          <div className="relative">
-            <Lock className="w-4 h-4 text-purple-400 absolute left-4 top-1/2 -translate-y-1/2" />
-            <input
-              type={showConfirmPassword ? "text" : "password"}
-              value={confirmPassword}
-              onChange={(e) => {
-                setConfirmPassword(e.target.value);
-                if (errors.confirmPassword) clearError("confirmPassword");
-              }}
-              placeholder="Confirm your password"
-              className={`w-full pl-11 pr-12 py-3 border-2 text-purple-900 rounded-xl focus:outline-none transition-colors ${
-                errors.confirmPassword
-                  ? "border-red-500 bg-red-50 focus:border-red-500"
-                  : "border-purple-200 focus:border-purple-500"
-              }`}
-            />
+        <TextInput
+          label="Password"
+          type={showPassword ? "text" : "password"}
+          value={formData.password}
+          onChange={(e) =>
+            setFormData({ ...formData, password: e.target.value })
+          }
+          placeholder="At least 8 characters"
+          error={errors.password}
+          onClearError={() => clearError("password")}
+          hint={
+            !errors.password
+              ? "Use 8+ characters with a mix of letters and numbers."
+              : undefined
+          }
+          leadingIcon={<Lock className="w-4 h-4" strokeWidth={1.5} />}
+          trailing={
             <button
               type="button"
-              onClick={() => setShowConfirmPassword((current) => !current)}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-purple-400 hover:text-purple-700 transition-colors"
-              aria-label={
-                showConfirmPassword
-                  ? "Hide confirm password"
-                  : "Show confirm password"
-              }
-            >
-              {showConfirmPassword ? (
-                <EyeOff className="w-4 h-4" />
-              ) : (
-                <Eye className="w-4 h-4" />
-              )}
-            </button>
-          </div>
-          {errors.confirmPassword && (
-            <p className="text-xs text-red-500 mt-1">
-              {errors.confirmPassword}
-            </p>
-          )}
-        </div>
-        <div>
-          <label className="block text-sm font-black text-purple-900 mb-2">
-            Password
-          </label>
-          <div className="relative">
-            <Lock className="w-4 h-4 text-purple-400 absolute left-4 top-1/2 -translate-y-1/2" />
-            <input
-              type={showPassword ? "text" : "password"}
-              value={formData.password}
-              onChange={(e) => {
-                setFormData({ ...formData, password: e.target.value });
-                if (errors.password) clearError("password");
-              }}
-              placeholder="Create a strong password"
-              className={`w-full pl-11 pr-12 py-3 border-2 text-purple-900 rounded-xl focus:outline-none transition-colors ${
-                errors.password
-                  ? "border-red-500 bg-red-50 focus:border-red-500"
-                  : "border-purple-200 focus:border-purple-500"
-              }`}
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword((current) => !current)}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-purple-400 hover:text-purple-700 transition-colors"
+              onClick={() => setShowPassword((v) => !v)}
+              className="w-9 h-9 rounded-full hover:bg-white/[0.06] flex items-center justify-center transition-colors"
               aria-label={showPassword ? "Hide password" : "Show password"}
             >
               {showPassword ? (
-                <EyeOff className="w-4 h-4" />
+                <EyeOff className="w-4 h-4" strokeWidth={1.5} />
               ) : (
-                <Eye className="w-4 h-4" />
+                <Eye className="w-4 h-4" strokeWidth={1.5} />
               )}
             </button>
-          </div>
-          {errors.password ? (
-            <p className="text-xs text-red-500 mt-1">{errors.password}</p>
-          ) : (
-            <p className="text-xs text-gray-500 mt-2">
-              Must be at least 8 characters with letters and numbers
-            </p>
-          )}
-        </div>
+          }
+          autoComplete="new-password"
+        />
+
+        <TextInput
+          label="Confirm password"
+          type={showConfirm ? "text" : "password"}
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          placeholder="Re-enter password"
+          error={errors.confirmPassword}
+          onClearError={() => clearError("confirmPassword")}
+          leadingIcon={<Lock className="w-4 h-4" strokeWidth={1.5} />}
+          trailing={
+            <button
+              type="button"
+              onClick={() => setShowConfirm((v) => !v)}
+              className="w-9 h-9 rounded-full hover:bg-white/[0.06] flex items-center justify-center transition-colors"
+              aria-label={
+                showConfirm ? "Hide confirm password" : "Show confirm password"
+              }
+            >
+              {showConfirm ? (
+                <EyeOff className="w-4 h-4" strokeWidth={1.5} />
+              ) : (
+                <Eye className="w-4 h-4" strokeWidth={1.5} />
+              )}
+            </button>
+          }
+          autoComplete="new-password"
+        />
       </div>
     </div>
   );
