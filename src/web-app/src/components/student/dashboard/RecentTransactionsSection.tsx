@@ -1,5 +1,7 @@
 import { ArrowRight } from "lucide-react";
 import type { TransactionResponse } from "../../../api/services/wallet";
+import { SectionCard } from "../../ui/SectionCard";
+import { EmptyState } from "../../ui/EmptyState";
 import TransactionListItem from "./TransactionListItem";
 
 interface RecentTransactionsSectionProps {
@@ -10,27 +12,33 @@ function RecentTransactionsSection({
   transactions,
 }: RecentTransactionsSectionProps) {
   return (
-    <div className="bg-[var(--card)] backdrop-blur-xl border border-[var(--border)] shadow-[0_20px_60px_rgba(10,10,20,0.28)] hover:border-[var(--primary)] rounded-2xl p-6">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-lg font-bold text-[var(--foreground)]">
-          Recent Transactions
-        </h2>
-        <button className="text-sm text-[var(--muted-foreground)] hover:text-[var(--light-primary)] transition-colors flex items-center gap-1">
-          See All
-          <ArrowRight className="w-4 h-4" />
-        </button>
-      </div>
-
-      <div className="space-y-3">
-        {transactions.length === 0 ? (
-          <p className="text-[var(--muted-foreground)] text-sm">
-            No recent transactions.
-          </p>
-        ) : (
-          transactions.map((tx) => <TransactionListItem key={tx.id} tx={tx} />)
-        )}
-      </div>
-    </div>
+    <SectionCard
+      header={
+        <>
+          <h2 className="font-sans-ui text-base font-semibold text-cream">
+            Giao dịch gần đây
+          </h2>
+          <button className="font-sans-ui text-xs text-white/55 hover:text-cream transition-colors flex items-center gap-1">
+            Xem tất cả
+            <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
+          </button>
+        </>
+      }
+    >
+      {transactions.length === 0 ? (
+        <EmptyState
+          icon={<ArrowRight className="w-5 h-5" aria-hidden="true" />}
+          title="Chưa có giao dịch nào"
+          description="Hoạt động mua bán hoặc nạp/rút coin sẽ hiện ở đây."
+        />
+      ) : (
+        <div className="space-y-2">
+          {transactions.map((tx) => (
+            <TransactionListItem key={tx.id} tx={tx} />
+          ))}
+        </div>
+      )}
+    </SectionCard>
   );
 }
 
