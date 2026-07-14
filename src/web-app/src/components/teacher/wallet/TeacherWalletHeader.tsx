@@ -28,7 +28,7 @@ function TeacherWalletHeader({
             <button
               type="button"
               onClick={onReload}
-              className="inline-flex items-center gap-2 rounded-md border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-sm font-medium text-[var(--foreground)] transition-all hover:border-[var(--primary)]"
+              className="inline-flex items-center gap-2 rounded-md border border-[var(--border)] bg-[var(--card)] backdrop-blur-md px-3 py-2 text-sm font-medium text-[var(--foreground)] transition-all hover:border-[var(--primary)]"
             >
               <RefreshCcw className="h-4 w-4" /> Refresh
             </button>
@@ -39,7 +39,7 @@ function TeacherWalletHeader({
         </div>
 
         <div className="grid w-full gap-3 md:grid-cols-3 lg:max-w-3xl">
-          <div className="rounded-lg border border-emerald-400/20 bg-emerald-400/10 p-4">
+          <div className="rounded-lg border border-emerald-400/20 bg-emerald-400/10 backdrop-blur-xl p-4">
             <div className="flex items-center gap-2 text-emerald-300">
               <ShieldCheck className="h-5 w-5" />
               <p className="text-xs font-bold uppercase">Co the rut</p>
@@ -52,7 +52,7 @@ function TeacherWalletHeader({
             </p>
           </div>
 
-          <div className="rounded-lg border border-amber-400/20 bg-amber-400/10 p-4">
+          <div className="rounded-lg border border-amber-400/20 bg-amber-400/10 backdrop-blur-xl p-4">
             <div className="flex items-center gap-2 text-amber-300">
               <WalletCards className="h-5 w-5" />
               <p className="text-xs font-bold uppercase">Chi dung trong app</p>
@@ -65,7 +65,7 @@ function TeacherWalletHeader({
             </p>
           </div>
 
-          <div className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-4">
+          <div className="rounded-lg border border-[var(--border)] bg-[var(--card)] backdrop-blur-xl p-4">
             <p className="text-xs font-bold uppercase text-[var(--muted-foreground)]">
               Total wallet
             </p>

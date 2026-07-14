@@ -37,7 +37,7 @@ interface TransactionHistoryProps {
 
 function TransactionHistory({ history, loading }: TransactionHistoryProps) {
   return (
-    <div className="lg:col-span-3 bg-[var(--card)] backdrop-blur-xl border border-[var(--border)] rounded-3xl p-6 shadow-lg shadow-black/20">
+    <div className="lg:col-span-3 bg-[var(--card)] backdrop-blur-xl border border-[var(--border)] rounded-3xl p-6">
       <h2 className="text-xl font-bold text-[var(--foreground)] mb-6 flex items-center gap-2">
         <DollarSign className="w-5 h-5 text-amber-400" />
         Transaction History

@@ -12,7 +12,7 @@ type Props = {
 /**
  * SectionCard — quiet container for dashboard sections. Hairline border, no
  * shadow, no backdrop-blur. Replaces every `backdrop-blur-xl +
- * shadow-[0_24px_80px_*]` panel that the dashboards currently use.
+ * SectionCard — solid container for dashboard sections. Has hairline border and backdrop-blur-xl to make cards solid like FlashcardSetCard.
  */
 export function SectionCard({
   children,
@@ -24,8 +24,8 @@ export function SectionCard({
   return (
     <Tag
       className={cn(
-        "rounded-2xl border border-white/[0.06] p-6",
-        "bg-[var(--color-card-surface)]",
+        "rounded-2xl border border-[var(--border)] p-6",
+        "bg-[var(--card)] backdrop-blur-xl",
         className,
       )}
     >

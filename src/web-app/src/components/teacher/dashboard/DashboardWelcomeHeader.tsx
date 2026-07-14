@@ -22,14 +22,24 @@ function DashboardWelcomeHeader({
           Tổng quan giảng dạy và thu nhập Marketplace của bạn hôm nay.
         </p>
       </div>
-      <div className="flex gap-3">
-        <Button variant="ghost" size="md" onClick={onRefresh}>
-          <RefreshCcw className="w-4 h-4" aria-hidden="true" />
-          Làm mới
+      <div className="flex flex-wrap items-center gap-3">
+        <Button
+          variant="ghost"
+          size="md"
+          onClick={onRefresh}
+          className="inline-flex items-center justify-center gap-2"
+        >
+          <RefreshCcw className="w-4 h-4 shrink-0" aria-hidden="true" />
+          <span>Làm mới</span>
         </Button>
-        <Button variant="primary" size="md" onClick={onCreateMaterial}>
-          <PlusCircle className="w-4 h-4" aria-hidden="true" />
-          Tạo nội dung mới
+        <Button
+          variant="primary"
+          size="md"
+          onClick={onCreateMaterial}
+          className="inline-flex items-center justify-center gap-2"
+        >
+          <PlusCircle className="w-4 h-4 shrink-0" aria-hidden="true" />
+          <span>Tạo nội dung mới</span>
         </Button>
       </div>
     </div>

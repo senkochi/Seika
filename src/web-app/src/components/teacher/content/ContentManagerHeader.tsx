@@ -28,7 +28,7 @@ function ContentManagerHeader({
         <div className="flex items-center gap-3">
           <button
             onClick={onReload}
-            className="inline-flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-sm font-medium text-[var(--foreground)] hover:border-[var(--primary)] transition-all"
+            className="inline-flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--card)] backdrop-blur-md px-3 py-2 text-sm font-medium text-[var(--foreground)] hover:border-[var(--primary)] transition-all"
           >
             <RefreshCcw className="h-4 w-4" />
             Làm mới

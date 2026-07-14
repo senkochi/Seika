@@ -38,7 +38,7 @@ function CashOutForm({ withdrawableBalance, onSubmit }: CashOutFormProps) {
   };
 
   return (
-    <div className="lg:col-span-2 h-fit rounded-lg border border-[var(--border)] bg-[var(--card)] p-6 shadow-lg shadow-black/20 backdrop-blur-xl">
+    <div className="lg:col-span-2 h-fit rounded-lg border border-[var(--border)] bg-[var(--card)] p-6 backdrop-blur-xl">
       <h2 className="mb-6 flex items-center gap-2 text-xl font-bold text-[var(--foreground)]">
         <ArrowUpRight className="h-5 w-5 text-amber-400" />
         Request Cash Out

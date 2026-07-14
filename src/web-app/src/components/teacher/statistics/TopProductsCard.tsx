@@ -14,7 +14,7 @@ function TopProductsCard({
   onOpenAttempts,
 }: TopProductsCardProps) {
   return (
-    <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-6 shadow-[0_20px_60px_rgba(10,10,20,0.28)]">
+    <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] backdrop-blur-xl p-6">
       <h2 className="mb-4 text-lg font-semibold text-[var(--foreground)]">
         Sản phẩm bán chạy
       </h2>

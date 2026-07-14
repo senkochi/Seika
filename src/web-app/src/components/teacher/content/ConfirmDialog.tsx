@@ -17,7 +17,7 @@ function ConfirmDialog({
 }: ConfirmDialogProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-      <div className="bg-[var(--card)] border border-red-500/30 rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl shadow-red-900/30">
+      <div className="bg-[var(--card)] backdrop-blur-xl border border-red-500/30 rounded-2xl p-6 max-w-md w-full mx-4">
         <div className="flex items-start gap-4 mb-5">
           <div className="p-2 bg-red-500/10 rounded-xl shrink-0">
             <AlertTriangle className="w-6 h-6 text-red-400" />

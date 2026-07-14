@@ -50,7 +50,8 @@ export default function ConfirmModal({
   if (!open) return null;
 
   // Map legacy variant → new Button tone. Keep the public API stable.
-  const confirmTone: "neutral" | "danger" = variant === "danger" ? "danger" : "neutral";
+  const confirmTone: "neutral" | "danger" =
+    variant === "danger" ? "danger" : "neutral";
 
   return (
     <div
@@ -61,7 +62,7 @@ export default function ConfirmModal({
       onClick={() => !isLoading && onClose()}
     >
       <div
-        className="w-full max-w-md rounded-2xl border border-white/[0.08] shadow-[0_8px_24px_rgba(0,0,0,0.4)] overflow-hidden bg-[var(--color-card-surface)]"
+        className="w-full max-w-md rounded-2xl border border-[var(--border)] overflow-hidden bg-[var(--card)] backdrop-blur-xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between border-b border-white/[0.06] px-6 py-4">

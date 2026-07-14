@@ -210,7 +210,10 @@ function StudentDashboardLayout() {
             {/* Search */}
             <div className="flex-1 max-w-xl">
               <div className="relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" aria-hidden="true" />
+                <Search
+                  className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40"
+                  aria-hidden="true"
+                />
                 <input
                   type="text"
                   placeholder="Search..."
@@ -347,7 +350,10 @@ function StudentDashboardLayout() {
                       }}
                       className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm font-sans-ui text-cream hover:bg-white/[0.05] transition-colors"
                     >
-                      <User className="w-4 h-4 text-[#d4a843]" aria-hidden="true" />
+                      <User
+                        className="w-4 h-4 text-[#d4a843]"
+                        aria-hidden="true"
+                      />
                       Profile
                     </button>
                     <button
@@ -358,7 +364,10 @@ function StudentDashboardLayout() {
                       }}
                       className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm font-sans-ui text-cream hover:bg-white/[0.05] transition-colors"
                     >
-                      <Settings className="w-4 h-4 text-[#d4a843]" aria-hidden="true" />
+                      <Settings
+                        className="w-4 h-4 text-[#d4a843]"
+                        aria-hidden="true"
+                      />
                       Settings
                     </button>
                     <button

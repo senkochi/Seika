@@ -23,7 +23,7 @@ function AttemptsModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-      <div className="w-full max-w-3xl rounded-2xl bg-[var(--card)] border border-[var(--border)] shadow-2xl overflow-hidden">
+      <div className="w-full max-w-3xl rounded-2xl bg-[var(--card)] backdrop-blur-xl border border-[var(--border)] overflow-hidden">
         <div className="flex items-center justify-between border-b border-[var(--border)] p-4">
           <div>
             <h3 className="text-lg font-semibold text-[var(--foreground)]">

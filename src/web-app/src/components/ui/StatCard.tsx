@@ -37,8 +37,8 @@ export function StatCard({
   return (
     <div
       className={cn(
-        "rounded-2xl border border-white/[0.06] p-5",
-        "bg-[var(--color-card-surface)]",
+        "rounded-2xl border border-[var(--border)] p-5",
+        "bg-[var(--card)] backdrop-blur-xl",
         className,
       )}
     >
@@ -46,9 +46,7 @@ export function StatCard({
         <p className="text-xs uppercase tracking-[0.12em] text-white/45 font-sans-ui">
           {label}
         </p>
-        {icon && (
-          <IconChip variant={iconVariant}>{icon}</IconChip>
-        )}
+        {icon && <IconChip variant={iconVariant}>{icon}</IconChip>}
       </div>
       <div className="mt-3 flex items-baseline gap-1.5">
         <span className="font-sans-ui text-3xl font-semibold text-cream tabular-nums">

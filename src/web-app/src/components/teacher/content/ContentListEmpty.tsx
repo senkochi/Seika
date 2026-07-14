@@ -13,7 +13,7 @@ function ContentListEmpty({ variant, onCreate }: ContentListEmptyProps) {
       ? "Bạn chưa tạo bộ Flashcard nào."
       : "Bạn chưa tạo Bộ đề Quiz nào.";
   return (
-    <div className="text-center p-20 bg-[var(--card)] border border-[var(--border)] rounded-2xl">
+    <div className="text-center p-20 bg-[var(--card)] backdrop-blur-xl border border-[var(--border)] rounded-2xl">
       <Icon className="w-12 h-12 mx-auto text-[var(--muted-foreground)] mb-4 opacity-50" />
       <p className="text-[var(--muted-foreground)] mb-4">{message}</p>
       <button

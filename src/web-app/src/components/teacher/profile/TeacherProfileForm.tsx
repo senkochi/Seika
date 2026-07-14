@@ -28,8 +28,9 @@ function TeacherProfileForm({
   const [fullName, setFullName] = useState(initialFullName);
   const [dateOfBirth, setDateOfBirth] = useState(initialDateOfBirth);
   const [gender, setGender] = useState(initialGender);
-  const [profilePictureUrl, setProfilePictureUrl] =
-    useState(initialProfilePictureUrl);
+  const [profilePictureUrl, setProfilePictureUrl] = useState(
+    initialProfilePictureUrl,
+  );
 
   useEffect(() => {
     if (!isEditing) {
@@ -86,7 +87,7 @@ function TeacherProfileForm({
   };
 
   return (
-    <div className="bg-[var(--card)] backdrop-blur-xl border border-[var(--border)] rounded-3xl p-8 shadow-lg shadow-black/20">
+    <div className="bg-[var(--card)] backdrop-blur-xl border border-[var(--border)] rounded-3xl p-8">
       <div className="flex justify-between items-center mb-6 border-b border-[var(--border)] pb-4">
         <h3 className="text-lg font-bold text-[var(--foreground)] flex items-center gap-2">
           <User className="w-5 h-5 text-[var(--primary)]" />
@@ -146,9 +147,15 @@ function TeacherProfileForm({
               onChange={(e) => setGender(e.target.value)}
               className="w-full px-4 py-3 bg-[rgba(255,255,255,0.06)] border border-[var(--border)] rounded-xl text-[var(--foreground)] focus:outline-none focus:border-[var(--ring)] disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <option value="Male" className="bg-[var(--card)]">Nam</option>
-              <option value="Female" className="bg-[var(--card)]">Nữ</option>
-              <option value="Other" className="bg-[var(--card)]">Khác</option>
+              <option value="Male" className="bg-[var(--card)]">
+                Nam
+              </option>
+              <option value="Female" className="bg-[var(--card)]">
+                Nữ
+              </option>
+              <option value="Other" className="bg-[var(--card)]">
+                Khác
+              </option>
             </select>
           </div>
         </div>

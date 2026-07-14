@@ -14,7 +14,7 @@ function PassRateStrip({
   totalAttempts,
 }: PassRateStripProps) {
   return (
-    <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-6 shadow-[0_20px_60px_rgba(10,10,20,0.28)]">
+    <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] backdrop-blur-xl p-6">
       <div className="flex items-center gap-3">
         <TrendingUp className="h-5 w-5 text-[var(--primary)]" />
         <div>

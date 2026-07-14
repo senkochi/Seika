@@ -27,7 +27,7 @@ function StatisticsHeader({
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
-        <div className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--card)] p-1 text-sm">
+        <div className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--card)] backdrop-blur-md p-1 text-sm">
           {(["month", "day"] as const).map((value) => (
             <button
               key={value}
@@ -44,7 +44,7 @@ function StatisticsHeader({
         </div>
         <button
           onClick={onReload}
-          className="inline-flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-sm font-medium text-[var(--foreground)] hover:border-[var(--primary)]"
+          className="inline-flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--card)] backdrop-blur-md px-3 py-2 text-sm font-medium text-[var(--foreground)] hover:border-[var(--primary)]"
         >
           <RefreshCcw className="h-4 w-4" /> Làm mới
         </button>
