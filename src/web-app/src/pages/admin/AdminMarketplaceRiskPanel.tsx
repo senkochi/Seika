@@ -7,7 +7,6 @@ import {
   Loader2,
   RefreshCw,
   RotateCcw,
-  ShieldAlert,
   ShieldCheck,
   XCircle,
 } from "lucide-react";
@@ -20,6 +19,12 @@ import {
 } from "../../api/services/admin";
 import type { EscrowTransaction } from "../../api/services/marketplace";
 import { showError, showSuccess } from "../../components/toast/toastUtils";
+import { PageHeader } from "../../components/ui/PageHeader";
+import { SectionCard } from "../../components/ui/SectionCard";
+import { StatCard } from "../../components/ui/StatCard";
+import { StatusPill } from "../../components/ui/StatusPill";
+import { Button } from "../../components/ui/Button";
+import { EmptyState } from "../../components/ui/EmptyState";
 
 type EscrowFilter =
   | "ALL"
@@ -48,7 +53,7 @@ function formatDate(value: string | null | undefined) {
 
 function shortId(value: string | null | undefined) {
   if (!value) return "N/A";
-  return value.length > 12 ? `${value.slice(0, 8)}...` : value;
+  return value.length > 12 ? `${value.slice(0, 8)}…` : value;
 }
 
 function statusLabel(escrow: EscrowTransaction) {
@@ -60,50 +65,19 @@ function statusLabel(escrow: EscrowTransaction) {
   return escrow.status;
 }
 
-function Badge({
-  children,
-  tone = "neutral",
-}: {
-  children: string;
-  tone?: "neutral" | "ok" | "warn" | "danger";
-}) {
-  const toneClass = {
-    neutral:
-      "border-[var(--border)] bg-[var(--second-card)] text-[var(--foreground)]",
-    ok: "border-emerald-400/20 bg-emerald-400/10 text-emerald-300",
-    warn: "border-amber-400/20 bg-amber-400/10 text-amber-300",
-    danger: "border-rose-400/20 bg-rose-400/10 text-rose-300",
-  }[tone];
-
-  return (
-    <span
-      className={`inline-flex items-center rounded-md border px-2 py-1 text-xs font-bold ${toneClass}`}
-    >
-      {children}
-    </span>
-  );
-}
-
-function SummaryTile({
-  label,
-  value,
-  sublabel,
-}: {
-  label: string;
-  value: string;
-  sublabel: string;
-}) {
-  return (
-    <div className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-4">
-      <p className="text-xs font-semibold uppercase text-[var(--muted-foreground)]">
-        {label}
-      </p>
-      <p className="mt-2 font-mono text-2xl font-bold text-[var(--foreground)]">
-        {value}
-      </p>
-      <p className="mt-1 text-xs text-[var(--muted-foreground)]">{sublabel}</p>
-    </div>
-  );
+function escrowStatusVariant(status: string) {
+  switch (status) {
+    case "RELEASED":
+      return "success" as const;
+    case "REFUNDED":
+      return "danger" as const;
+    case "PENDING_ADMIN_DECISION":
+    case "CREDIT_REQUESTED":
+    case "REFUND_REQUESTED":
+      return "warning" as const;
+    default:
+      return "neutral" as const;
+  }
 }
 
 export default function AdminMarketplaceRiskPanel() {
@@ -204,52 +178,56 @@ export default function AdminMarketplaceRiskPanel() {
   };
 
   return (
-    <div className="space-y-6 p-6 lg:p-8">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-        <div>
-          <h1 className="flex items-center gap-3 text-2xl font-bold text-[var(--foreground)]">
-            <ShieldAlert className="h-7 w-7 text-[var(--primary)]" />
-            Marketplace Ops
-          </h1>
-          <p className="mt-1 text-sm text-[var(--muted-foreground)]">
-            Escrow release, refund decisions, and collusion review for the
-            tiered economy.
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={() =>
-            activeTab === "escrow" ? void loadEscrows() : void loadFlags()
-          }
-          disabled={loading}
-          className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-[var(--border)] bg-[var(--card)] px-3 text-sm font-medium text-[var(--foreground)] hover:border-[var(--primary)] disabled:opacity-50"
-        >
-          {loading ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <RefreshCw className="h-4 w-4" />
-          )}
-          Refresh
-        </button>
-      </div>
+    <div className="space-y-8 p-6 lg:p-8">
+      <PageHeader
+        title="Marketplace Ops"
+        subtitle="Giải phóng escrow, hoàn tiền và rà soát collusion theo tiered economy."
+        actions={
+          <Button
+            variant="ghost"
+            size="md"
+            onClick={() =>
+              activeTab === "escrow" ? void loadEscrows() : void loadFlags()
+            }
+            disabled={loading}
+          >
+            {loading ? (
+              <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+            ) : (
+              <RefreshCw className="h-4 w-4" aria-hidden="true" />
+            )}
+            Làm mới
+          </Button>
+        }
+      />
 
+      {/* Tabs */}
       <div
         role="tablist"
         aria-label="Marketplace operations"
-        className="grid gap-2 rounded-lg border border-[var(--border)] bg-[var(--card)] p-2 sm:grid-cols-2"
+        className="grid gap-2 sm:grid-cols-2"
       >
         <button
           type="button"
           role="tab"
           aria-selected={activeTab === "escrow"}
           onClick={() => setActiveTab("escrow")}
-          className={`flex items-center gap-3 rounded-md px-3 py-3 text-left ${activeTab === "escrow" ? "bg-[var(--primary)] text-[var(--primary-foreground)]" : "text-[var(--muted-foreground)] hover:bg-[rgba(255,255,255,0.06)]"}`}
+          className={
+            activeTab === "escrow"
+              ? "flex items-center gap-3 rounded-xl border border-[#d4a843]/30 bg-[#d4a843]/10 px-4 py-3 text-left font-sans-ui transition-colors"
+              : "flex items-center gap-3 rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-left font-sans-ui text-white/55 hover:text-cream transition-colors"
+          }
         >
-          <CircleDollarSign className="h-5 w-5" />
+          <CircleDollarSign
+            className={
+              activeTab === "escrow" ? "h-5 w-5 text-[#d4a843]" : "h-5 w-5"
+            }
+            aria-hidden="true"
+          />
           <span>
-            <span className="block font-semibold">Escrow ledger</span>
-            <span className="block text-xs opacity-80">
-              Release and refund operations
+            <span className="block font-medium">Escrow ledger</span>
+            <span className="block text-xs text-white/55">
+              Giải phóng và hoàn tiền
             </span>
           </span>
         </button>
@@ -258,50 +236,65 @@ export default function AdminMarketplaceRiskPanel() {
           role="tab"
           aria-selected={activeTab === "risk"}
           onClick={() => setActiveTab("risk")}
-          className={`flex items-center gap-3 rounded-md px-3 py-3 text-left ${activeTab === "risk" ? "bg-[var(--primary)] text-[var(--primary-foreground)]" : "text-[var(--muted-foreground)] hover:bg-[rgba(255,255,255,0.06)]"}`}
+          className={
+            activeTab === "risk"
+              ? "flex items-center gap-3 rounded-xl border border-[#d4a843]/30 bg-[#d4a843]/10 px-4 py-3 text-left font-sans-ui transition-colors"
+              : "flex items-center gap-3 rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-left font-sans-ui text-white/55 hover:text-cream transition-colors"
+          }
         >
-          <ShieldCheck className="h-5 w-5" />
+          <ShieldCheck
+            className={
+              activeTab === "risk" ? "h-5 w-5 text-[#d4a843]" : "h-5 w-5"
+            }
+            aria-hidden="true"
+          />
           <span>
-            <span className="block font-semibold">Risk review</span>
-            <span className="block text-xs opacity-80">
-              Collusion flags and holds
+            <span className="block font-medium">Risk review</span>
+            <span className="block text-xs text-white/55">
+              Cờ collusion và hold
             </span>
           </span>
         </button>
       </div>
 
       {activeTab === "escrow" ? (
-        <div className="space-y-5">
-          <div className="grid gap-3 md:grid-cols-4">
-            <SummaryTile
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <StatCard
               label="Held gross"
-              value={`${formatCoins(summary.heldGross)} Coins`}
-              sublabel="Gross amount still in escrow"
+              value={`${formatCoins(summary.heldGross)}`}
+              unit="Coins"
+              hint="Tổng giá trị còn kẹt trong escrow"
             />
-            <SummaryTile
+            <StatCard
               label="Paid-backed"
-              value={`${formatCoins(summary.paidBacked)} Coins`}
-              sublabel="Potential withdrawable lineage"
+              value={`${formatCoins(summary.paidBacked)}`}
+              unit="Coins"
+              hint="Dòng tiền có thể rút được"
+              iconVariant="success"
             />
-            <SummaryTile
+            <StatCard
               label="Promo-backed"
-              value={`${formatCoins(summary.promoBacked)} Coins`}
-              sublabel="App-only lineage or sink"
+              value={`${formatCoins(summary.promoBacked)}`}
+              unit="Coins"
+              hint="Dòng app-only hoặc sink"
+              iconVariant="warning"
             />
-            <SummaryTile
+            <StatCard
               label="Needs admin"
               value={String(summary.decisions)}
-              sublabel="Manual decision queue"
+              hint="Hàng chờ admin xử lý"
+              iconVariant="danger"
             />
           </div>
 
-          <div className="flex flex-col gap-3 rounded-lg border border-[var(--border)] bg-[var(--card)] p-4 sm:flex-row sm:items-center sm:justify-between">
+          <SectionCard className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h2 className="font-semibold text-[var(--foreground)]">
+              <h2 className="font-sans-ui text-base font-semibold text-cream">
                 Escrow transactions
               </h2>
-              <p className="text-sm text-[var(--muted-foreground)]">
-                Use Force release for dev testing without waiting for hold days.
+              <p className="font-sans-ui text-sm text-white/55 mt-1">
+                Dùng Force release để test mà không cần chờ hết hold days.
               </p>
             </div>
             <select
@@ -309,7 +302,7 @@ export default function AdminMarketplaceRiskPanel() {
               onChange={(event) =>
                 setEscrowFilter(event.target.value as EscrowFilter)
               }
-              className="h-10 rounded-md border border-[var(--border)] bg-[var(--background)] px-3 text-sm text-[var(--foreground)]"
+              className="h-10 rounded-lg border border-white/[0.06] bg-white/[0.04] px-3 font-sans-ui text-sm text-cream focus:outline-none focus:border-[#d4a843]/50 transition-colors"
             >
               {ESCROW_FILTERS.map((status) => (
                 <option key={status} value={status}>
@@ -317,83 +310,80 @@ export default function AdminMarketplaceRiskPanel() {
                 </option>
               ))}
             </select>
-          </div>
+          </SectionCard>
 
-          <div className="overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--card)]">
+          <SectionCard className="overflow-hidden p-0">
             {loading ? (
-              <div className="flex min-h-64 items-center justify-center gap-2 text-[var(--muted-foreground)]">
-                <Loader2 className="h-5 w-5 animate-spin" /> Loading escrows...
+              <div className="flex min-h-64 items-center justify-center gap-2 font-sans-ui text-white/55 p-10">
+                <Loader2 className="h-5 w-5 animate-spin text-[#d4a843]" aria-hidden="true" />
+                Đang tải escrow…
               </div>
             ) : escrows.length === 0 ? (
-              <div className="p-10 text-center text-sm text-[var(--muted-foreground)]">
-                No escrow transactions match this filter.
+              <div className="p-10">
+                <EmptyState
+                  title="Không có escrow nào khớp filter"
+                  description="Thử đổi trạng thái khác hoặc làm mới."
+                />
               </div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full min-w-[980px] text-left text-sm">
-                  <thead className="border-b border-[var(--border)] text-xs uppercase text-[var(--muted-foreground)]">
+                <table className="w-full min-w-[980px] text-left font-sans-ui text-sm">
+                  <thead className="border-b border-white/[0.06] text-[10px] uppercase tracking-[0.12em] text-white/45">
                     <tr>
-                      <th className="px-4 py-3">Product</th>
-                      <th className="px-4 py-3">Status</th>
+                      <th className="px-4 py-3">Sản phẩm</th>
+                      <th className="px-4 py-3">Trạng thái</th>
                       <th className="px-4 py-3 text-right">Gross</th>
                       <th className="px-4 py-3 text-right">Paid</th>
                       <th className="px-4 py-3 text-right">Promo</th>
                       <th className="px-4 py-3">Release at</th>
                       <th className="px-4 py-3">Parties</th>
-                      <th className="px-4 py-3 text-right">Actions</th>
+                      <th className="px-4 py-3 text-right">Hành động</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[var(--border)]">
+                  <tbody>
                     {escrows.map((escrow) => {
                       const status = statusLabel(escrow);
                       const canAct =
                         escrow.status === "HELD" || escrow.needsAdminDecision;
                       return (
-                        <tr key={escrow.id}>
+                        <tr
+                          key={escrow.id}
+                          className="border-b border-white/[0.04] hover:bg-white/[0.03] transition-colors"
+                        >
                           <td className="px-4 py-3">
-                            <div className="font-semibold text-[var(--foreground)]">
+                            <div className="font-medium text-cream">
                               {escrow.productType}
                             </div>
                             <div
-                              className="font-mono text-xs text-[var(--muted-foreground)]"
+                              className="font-mono text-xs text-white/55"
                               title={escrow.productId}
                             >
                               {shortId(escrow.productId)}
                             </div>
                           </td>
                           <td className="px-4 py-3">
-                            <Badge
-                              tone={
-                                escrow.needsAdminDecision
-                                  ? "warn"
-                                  : status === "RELEASED"
-                                    ? "ok"
-                                    : status === "REFUNDED"
-                                      ? "danger"
-                                      : "neutral"
-                              }
-                            >
+                            <StatusPill variant={escrowStatusVariant(status)}>
                               {status}
-                            </Badge>
+                            </StatusPill>
                             {escrow.lastWalletError && (
-                              <p className="mt-1 text-xs text-rose-300">
+                              <p className="mt-1 text-xs text-red-300">
                                 {escrow.lastWalletError}
                               </p>
                             )}
                           </td>
-                          <td className="px-4 py-3 text-right font-mono text-[var(--foreground)]">
+                          <td className="px-4 py-3 text-right font-mono text-cream tabular-nums">
                             {formatCoins(escrow.grossAmount)}
                           </td>
-                          <td className="px-4 py-3 text-right font-mono text-emerald-300">
+                          <td className="px-4 py-3 text-right font-mono text-emerald-300 tabular-nums">
                             {formatCoins(escrow.paidBackedAmount)}
                           </td>
-                          <td className="px-4 py-3 text-right font-mono text-amber-300">
+                          <td className="px-4 py-3 text-right font-mono text-amber-300 tabular-nums">
                             {formatCoins(escrow.promoBackedAmount)}
                           </td>
-                          <td className="px-4 py-3 whitespace-nowrap text-xs text-[var(--muted-foreground)]">
+                          <td className="px-4 py-3 whitespace-nowrap text-xs text-white/55">
                             {formatDate(escrow.releaseAt)}
                           </td>
-                          <td className="px-4 py-3 text-xs text-[var(--muted-foreground)]">
+                          <td className="px-4 py-3 text-xs text-white/55">
                             <div>Buyer {shortId(escrow.buyerId)}</div>
                             <div>Seller {shortId(escrow.sellerId)}</div>
                           </td>
@@ -405,9 +395,9 @@ export default function AdminMarketplaceRiskPanel() {
                                   void decideEscrow(escrow, "force-release")
                                 }
                                 disabled={!canAct || actingId === escrow.id}
-                                className="inline-flex items-center gap-1 rounded-md bg-emerald-500/10 px-2 py-1.5 text-xs font-semibold text-emerald-300 hover:bg-emerald-500/20 disabled:cursor-not-allowed disabled:opacity-40"
+                                className="inline-flex items-center gap-1 rounded-md border border-emerald-400/25 bg-emerald-400/10 px-2 py-1.5 font-sans-ui text-xs font-medium text-emerald-300 hover:bg-emerald-400/15 disabled:cursor-not-allowed disabled:opacity-40 transition-colors"
                               >
-                                <CheckCircle2 className="h-3.5 w-3.5" /> Release
+                                <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" /> Release
                               </button>
                               <button
                                 type="button"
@@ -415,9 +405,9 @@ export default function AdminMarketplaceRiskPanel() {
                                   void decideEscrow(escrow, "refund")
                                 }
                                 disabled={!canAct || actingId === escrow.id}
-                                className="inline-flex items-center gap-1 rounded-md bg-rose-500/10 px-2 py-1.5 text-xs font-semibold text-rose-300 hover:bg-rose-500/20 disabled:cursor-not-allowed disabled:opacity-40"
+                                className="inline-flex items-center gap-1 rounded-md border border-red-400/25 bg-red-400/10 px-2 py-1.5 font-sans-ui text-xs font-medium text-red-300 hover:bg-red-400/15 disabled:cursor-not-allowed disabled:opacity-40 transition-colors"
                               >
-                                <XCircle className="h-3.5 w-3.5" /> Refund
+                                <XCircle className="h-3.5 w-3.5" aria-hidden="true" /> Refund
                               </button>
                               <button
                                 type="button"
@@ -428,9 +418,9 @@ export default function AdminMarketplaceRiskPanel() {
                                   !escrow.needsAdminDecision ||
                                   actingId === escrow.id
                                 }
-                                className="inline-flex items-center gap-1 rounded-md bg-[var(--second-card)] px-2 py-1.5 text-xs font-semibold text-[var(--foreground)] hover:bg-[var(--second-muted)] disabled:cursor-not-allowed disabled:opacity-40"
+                                className="inline-flex items-center gap-1 rounded-md border border-white/[0.06] bg-white/[0.02] px-2 py-1.5 font-sans-ui text-xs font-medium text-cream hover:bg-white/[0.04] disabled:cursor-not-allowed disabled:opacity-40 transition-colors"
                               >
-                                <Clock className="h-3.5 w-3.5" /> Hold
+                                <Clock className="h-3.5 w-3.5" aria-hidden="true" /> Hold
                               </button>
                             </div>
                           </td>
@@ -441,24 +431,24 @@ export default function AdminMarketplaceRiskPanel() {
                 </table>
               </div>
             )}
-          </div>
+          </SectionCard>
         </div>
       ) : (
-        <div className="grid gap-6 xl:grid-cols-2">
-          <section className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-4">
+        <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+          <SectionCard>
             <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <h2 className="font-semibold text-[var(--foreground)]">
-                  Collusion flags
+                <h2 className="font-sans-ui text-base font-semibold text-cream">
+                  Cờ collusion
                 </h2>
-                <p className="text-sm text-[var(--muted-foreground)]">
-                  Review suspicious buyer-seller patterns.
+                <p className="font-sans-ui text-sm text-white/55 mt-1">
+                  Rà soát các cặp buyer–seller có dấu hiệu bất thường.
                 </p>
               </div>
               <select
                 value={flagStatus}
                 onChange={(event) => setFlagStatus(event.target.value)}
-                className="h-10 rounded-md border border-[var(--border)] bg-[var(--background)] px-3 text-sm text-[var(--foreground)]"
+                className="h-10 rounded-lg border border-white/[0.06] bg-white/[0.04] px-3 font-sans-ui text-sm text-cream focus:outline-none focus:border-[#d4a843]/50 transition-colors"
               >
                 <option value="OPEN">OPEN</option>
                 <option value="CONFIRMED">CONFIRMED</option>
@@ -467,71 +457,85 @@ export default function AdminMarketplaceRiskPanel() {
                 <option value="ALL">ALL</option>
               </select>
             </div>
-            <div className="max-h-[34rem] overflow-y-auto pr-1">
+            <div className="max-h-[34rem] overflow-y-auto pr-1 custom-scrollbar">
               {loading ? (
-                <div className="flex min-h-40 items-center justify-center gap-2 text-[var(--muted-foreground)]">
-                  <Loader2 className="h-5 w-5 animate-spin" /> Loading flags...
+                <div className="flex min-h-40 items-center justify-center gap-2 font-sans-ui text-white/55 py-10">
+                  <Loader2 className="h-5 w-5 animate-spin text-[#d4a843]" aria-hidden="true" />
+                  Đang tải cờ…
                 </div>
               ) : flags.length === 0 ? (
-                <div className="py-10 text-center text-sm text-[var(--muted-foreground)]">
-                  No flags match this filter.
-                </div>
+                <EmptyState
+                  title="Không có cờ nào khớp filter"
+                  description="Thử đổi trạng thái hoặc làm mới."
+                />
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-3 font-sans-ui">
                   {flags.map((flag) => (
                     <div
                       key={flag.id}
-                      className="rounded-lg border border-[var(--border)] bg-[var(--background)] p-4"
+                      className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4"
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div>
-                          <p className="font-semibold text-[var(--foreground)]">
-                            Risk {flag.riskScore} - {flag.transactionCount} tx
+                          <p className="font-medium text-cream">
+                            Risk {flag.riskScore} · {flag.transactionCount} tx
                           </p>
-                          <p className="mt-1 text-xs text-[var(--muted-foreground)]">
-                            Teacher {shortId(flag.teacherId)} - Buyer{" "}
-                            {shortId(flag.buyerId)} -{" "}
+                          <p className="mt-1 text-xs text-white/55">
+                            Teacher {shortId(flag.teacherId)} · Buyer{" "}
+                            {shortId(flag.buyerId)} ·{" "}
                             {formatDate(flag.createdAt)}
                           </p>
-                          <p className="mt-2 text-xs text-[var(--muted-foreground)]">
-                            Promo {(flag.promoBackedRatio * 100).toFixed(0)}% -
-                            No consume {(flag.noConsumeRatio * 100).toFixed(0)}%
-                            - Reciprocal{" "}
+                          <p className="mt-2 text-xs text-white/55 tabular-nums">
+                            Promo {(flag.promoBackedRatio * 100).toFixed(0)}% · No consume{" "}
+                            {(flag.noConsumeRatio * 100).toFixed(0)}% · Reciprocal{" "}
                             {(flag.reciprocalRatio * 100).toFixed(0)}%
                           </p>
                         </div>
-                        <Badge tone="warn">{flag.status}</Badge>
+                        <StatusPill
+                          variant={
+                            flag.status === "OPEN"
+                              ? "warning"
+                              : flag.status === "CONFIRMED"
+                                ? "info"
+                                : flag.status === "MALICIOUS"
+                                  ? "danger"
+                                  : "neutral"
+                          }
+                        >
+                          {flag.status}
+                        </StatusPill>
                       </div>
                       {flag.status === "OPEN" && (
                         <div className="mt-4 flex flex-wrap gap-2">
-                          <button
-                            type="button"
+                          <Button
+                            variant="ghost"
+                            size="md"
                             onClick={() =>
                               void actOnFlag(flag, "CONFIRM_COLLUSION")
                             }
                             disabled={actingId === flag.id}
-                            className="rounded-md bg-amber-500/10 px-3 py-1.5 text-xs font-semibold text-amber-300 hover:bg-amber-500/20 disabled:opacity-50"
                           >
                             Confirm
-                          </button>
-                          <button
-                            type="button"
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            tone="danger"
+                            size="md"
                             onClick={() =>
                               void actOnFlag(flag, "MARK_MALICIOUS")
                             }
                             disabled={actingId === flag.id}
-                            className="rounded-md bg-rose-500/10 px-3 py-1.5 text-xs font-semibold text-rose-300 hover:bg-rose-500/20 disabled:opacity-50"
                           >
                             Malicious
-                          </button>
-                          <button
-                            type="button"
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="md"
                             onClick={() => void actOnFlag(flag, "DISMISS")}
                             disabled={actingId === flag.id}
-                            className="rounded-md bg-[var(--second-card)] px-3 py-1.5 text-xs font-semibold text-[var(--foreground)] hover:bg-[var(--second-muted)] disabled:opacity-50"
                           >
                             Dismiss
-                          </button>
+                          </Button>
                         </div>
                       )}
                     </div>
@@ -539,32 +543,37 @@ export default function AdminMarketplaceRiskPanel() {
                 </div>
               )}
             </div>
-          </section>
+          </SectionCard>
 
-          <section className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-4">
-            <div className="flex items-start gap-3">
-              <AlertTriangle className="mt-1 h-5 w-5 text-amber-300" />
+          <SectionCard>
+            <div className="flex items-start gap-3 font-sans-ui">
+              <AlertTriangle
+                className="mt-1 h-5 w-5 text-amber-300"
+                aria-hidden="true"
+              />
               <div>
-                <h2 className="font-semibold text-[var(--foreground)]">
+                <h2 className="font-sans-ui text-base font-semibold text-cream">
                   Plan v3 coverage
                 </h2>
-                <p className="mt-1 text-sm leading-6 text-[var(--muted-foreground)]">
-                  Admin can now inspect escrow lineage, force-release held rows
-                  for dev testing, refund unresolved purchases, and review
-                  collusion flags. Revenue reporting still depends on
-                  wallet-service ledger stats and should remain separate from
+                <p className="mt-2 text-sm leading-6 text-white/55">
+                  Admin giờ có thể truy vết lineage escrow, force-release các
+                  hàng đang giữ để dev test, hoàn tiền các giao dịch chưa xử
+                  lý, và rà soát cờ collusion. Báo cáo doanh thu vẫn phụ
+                  thuộc ledger của wallet-service và nên tách khỏi phần
                   promo sink accounting.
                 </p>
-                <button
-                  type="button"
+                <Button
+                  variant="ghost"
+                  size="md"
+                  className="mt-4"
                   onClick={() => setActiveTab("escrow")}
-                  className="mt-4 inline-flex items-center gap-2 rounded-md border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm font-semibold text-[var(--foreground)] hover:border-[var(--primary)]"
                 >
-                  <RotateCcw className="h-4 w-4" /> Back to escrow ledger
-                </button>
+                  <RotateCcw className="h-4 w-4" aria-hidden="true" />
+                  Quay lại escrow ledger
+                </Button>
               </div>
             </div>
-          </section>
+          </SectionCard>
         </div>
       )}
     </div>
