@@ -35,6 +35,22 @@ spring:
               uri: lb://WALLET-SERVICE
               predicates:
                 - Path=/api/wallet/**,/api/wallet
+            - id: quiz-route
+              uri: lb://QUIZ-SERVICE
+              predicates:
+                - Path=/api/quiz/**,/api/quiz,/api/quiz-sets/**,/api/quiz-sets
+            - id: marketplace-route
+              uri: lb://MARKETPLACE-SERVICE
+              predicates:
+                - Path=/api/marketplace/**,/api/marketplace
+            - id: notification-route
+              uri: lb://NOTIFICATION-SERVICE
+              predicates:
+                - Path=/api/notifications/**,/api/notifications
+            - id: reward-route
+              uri: lb://REWARD-SERVICE
+              predicates:
+                - Path=/api/rewards/**,/api/rewards
             # OpenAPI aggregation routes
             - id: openapi-identity
               uri: lb://IDENTITY-SERVICE
@@ -78,6 +94,12 @@ spring:
                 - Path=/v3/api-docs/notification-service
               filters:
                 - RewritePath=/v3/api-docs/notification-service,/v3/api-docs
+            - id: openapi-reward
+              uri: lb://REWARD-SERVICE
+              predicates:
+                - Path=/v3/api-docs/reward-service
+              filters:
+                - RewritePath=/v3/api-docs/reward-service,/v3/api-docs
           discovery:
             locator:
               enabled: false
@@ -112,6 +134,8 @@ springdoc:
         url: /v3/api-docs/quiz-service
       - name: Notification Service
         url: /v3/api-docs/notification-service
+      - name: Reward Service
+        url: /v3/api-docs/reward-service
   api-docs:
     path: /v3/api-docs
 
