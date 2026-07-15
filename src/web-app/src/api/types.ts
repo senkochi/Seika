@@ -332,6 +332,12 @@ export interface AdminRevenueStats {
   totalTopupVnd: number;
   totalWithdrawalCoins: number;
   totalWithdrawalVnd: number;
+  realRevenueVnd: number;
+  paidBackedFeeCoins: number;
+  promoSinkCoins: number;
+  cashOutLiabilityVnd: number;
+  withdrawableCoinCirculation: number;
+  nonWithdrawableCoinCirculation: number;
   netRevenueVnd: number;
   totalCoinCirculation: number;
   potentialLiabilityVnd: number;

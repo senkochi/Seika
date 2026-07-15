@@ -14,6 +14,12 @@ public class AdminRevenueStatsDTO {
     private BigDecimal totalTopupVnd;
     private BigDecimal totalWithdrawalCoins;
     private BigDecimal totalWithdrawalVnd;
+    private BigDecimal realRevenueVnd;
+    private BigDecimal paidBackedFeeCoins;
+    private BigDecimal promoSinkCoins;
+    private BigDecimal cashOutLiabilityVnd;
+    private BigDecimal withdrawableCoinCirculation;
+    private BigDecimal nonWithdrawableCoinCirculation;
     private BigDecimal netRevenueVnd;
     private BigDecimal totalCoinCirculation;
     private BigDecimal potentialLiabilityVnd;

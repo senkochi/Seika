@@ -25,13 +25,14 @@ public class CollusionFlagService {
     private final ReviewRepository reviewRepository;
     private final TeacherRatingService teacherRatingService;
     private final AdminActionLogService adminActionLogService;
+    private final MarketplaceConfigService configService;
     private final org.springframework.amqp.rabbit.core.RabbitTemplate rabbitTemplate;
 
     public CollusionFlagService(CollusionFlagRepository collusionFlagRepository,
                                 ReviewRepository reviewRepository,
                                 TeacherRatingService teacherRatingService,
                                 AdminActionLogService adminActionLogService) {
-        this(collusionFlagRepository, reviewRepository, teacherRatingService, adminActionLogService, null);
+        this(collusionFlagRepository, reviewRepository, teacherRatingService, adminActionLogService, null, null);
     }
 
     @org.springframework.beans.factory.annotation.Autowired
@@ -40,11 +41,14 @@ public class CollusionFlagService {
                                 TeacherRatingService teacherRatingService,
                                 AdminActionLogService adminActionLogService,
                                 @org.springframework.beans.factory.annotation.Autowired(required = false)
+                                MarketplaceConfigService configService,
+                                @org.springframework.beans.factory.annotation.Autowired(required = false)
                                 org.springframework.amqp.rabbit.core.RabbitTemplate rabbitTemplate) {
         this.collusionFlagRepository = collusionFlagRepository;
         this.reviewRepository = reviewRepository;
         this.teacherRatingService = teacherRatingService;
         this.adminActionLogService = adminActionLogService;
+        this.configService = configService;
         this.rabbitTemplate = rabbitTemplate;
     }
 
@@ -201,6 +205,13 @@ public class CollusionFlagService {
                 .orElseThrow(() -> new IllegalArgumentException("Collusion flag not found: " + flagId));
     }
 
+    private int resolveWashHoldDays() {
+        if (configService == null) {
+            return 30;
+        }
+        return configService.getInt(MarketplaceConfigService.KEY_WASH_HOLD_DAYS, 30);
+    }
+
     private void publishEvent(CollusionFlag flag) {
         if (rabbitTemplate != null) {
             try {
@@ -211,6 +222,7 @@ public class CollusionFlagService {
                         .riskScore(flag.getRiskScore())
                         .status(flag.getStatus().name())
                         .reason(flag.getAdminReason())
+                        .holdDays(resolveWashHoldDays())
                         .build();
                 rabbitTemplate.convertAndSend(
                         RabbitMQConfig.MARKETPLACE_EVENTS_EXCHANGE,

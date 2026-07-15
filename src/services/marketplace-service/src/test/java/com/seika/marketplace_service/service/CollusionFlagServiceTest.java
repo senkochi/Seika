@@ -82,5 +82,42 @@ class CollusionFlagServiceTest {
         assertThat(result.getStatus()).isEqualTo(CollusionFlagStatus.CONFIRMED);
         org.mockito.Mockito.verifyNoMoreInteractions(logService);
     }
+    @Test
+    void maliciousFlagPublishesConfiguredWashHoldDays() {
+        com.seika.marketplace_service.repository.CollusionFlagRepository flagRepo = org.mockito.Mockito.mock(com.seika.marketplace_service.repository.CollusionFlagRepository.class);
+        com.seika.marketplace_service.repository.ReviewRepository reviewRepo = org.mockito.Mockito.mock(com.seika.marketplace_service.repository.ReviewRepository.class);
+        TeacherRatingService ratingService = org.mockito.Mockito.mock(TeacherRatingService.class);
+        AdminActionLogService logService = org.mockito.Mockito.mock(AdminActionLogService.class);
+        MarketplaceConfigService configService = org.mockito.Mockito.mock(MarketplaceConfigService.class);
+        org.springframework.amqp.rabbit.core.RabbitTemplate rabbitTemplate = org.mockito.Mockito.mock(org.springframework.amqp.rabbit.core.RabbitTemplate.class);
+        CollusionFlagService service = new CollusionFlagService(flagRepo, reviewRepo, ratingService, logService, configService, rabbitTemplate);
+
+        CollusionFlag flag = CollusionFlag.builder()
+                .id("FLAG2")
+                .teacherId("T1")
+                .buyerId("B1")
+                .riskScore(80)
+                .status(CollusionFlagStatus.SUSPICIOUS)
+                .build();
+        org.mockito.Mockito.when(flagRepo.findById("FLAG2")).thenReturn(java.util.Optional.of(flag));
+        org.mockito.Mockito.when(flagRepo.save(org.mockito.ArgumentMatchers.any(CollusionFlag.class)))
+                .thenAnswer(inv -> inv.getArgument(0));
+        org.mockito.Mockito.when(reviewRepo.findBySellerIdAndBuyerIdAndStatus(
+                "T1", "B1", com.seika.marketplace_service.enums.ReviewStatus.PENDING_RISK_REVIEW))
+                .thenReturn(java.util.List.of());
+        org.mockito.Mockito.when(configService.getInt(MarketplaceConfigService.KEY_WASH_HOLD_DAYS, 30))
+                .thenReturn(14);
+
+        service.markMalicious("FLAG2", "admin1", "malicious abuse");
+
+        org.mockito.ArgumentCaptor<com.seika.marketplace_service.event.CollusionFlaggedEvent> captor =
+                org.mockito.ArgumentCaptor.forClass(com.seika.marketplace_service.event.CollusionFlaggedEvent.class);
+        org.mockito.Mockito.verify(rabbitTemplate).convertAndSend(
+                org.mockito.ArgumentMatchers.eq(com.seika.marketplace_service.config.RabbitMQConfig.MARKETPLACE_EVENTS_EXCHANGE),
+                org.mockito.ArgumentMatchers.eq(com.seika.marketplace_service.config.RabbitMQConfig.COLLUSION_FLAGGED_ROUTING_KEY),
+                captor.capture());
+        assertThat(captor.getValue().getHoldDays()).isEqualTo(14);
+    }
+
 }
 

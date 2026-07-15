@@ -126,7 +126,10 @@ export default function AdminRevenue() {
     return (
       <div className="p-6 lg:p-8 flex items-center justify-center min-h-[60vh]">
         <div className="flex flex-col items-center gap-4 text-white/55 font-sans-ui">
-          <Loader2 className="w-8 h-8 animate-spin text-[#d4a843]" aria-hidden="true" />
+          <Loader2
+            className="w-8 h-8 animate-spin text-[#d4a843]"
+            aria-hidden="true"
+          />
           <p>Đang tải dữ liệu tài chính và doanh thu nền tảng…</p>
         </div>
       </div>
@@ -189,18 +192,18 @@ export default function AdminRevenue() {
           hint={`${formatNumber(stats?.totalWithdrawalCoins)} Coins đã rút (${stats?.currentWithdrawalRate ?? 90} ₫/Coin)`}
         />
         <StatCard
-          label="Lợi nhuận ròng (Net)"
-          value={formatCurrency(stats?.netRevenueVnd)}
+          label="Doanh thu phí paid-backed"
+          value={formatCurrency(stats?.realRevenueVnd)}
           icon={<DollarSign className="w-4 h-4" aria-hidden="true" />}
           iconVariant="info"
-          hint="Chênh lệch thực tế thu vào trừ chi trả"
+          hint={`${formatNumber(stats?.paidBackedFeeCoins)} paid-backed fee Coins`}
         />
         <StatCard
-          label="Nợ phải trả tiềm năng"
-          value={formatCurrency(stats?.potentialLiabilityVnd)}
+          label="Nợ cash-out hiện tại"
+          value={formatCurrency(stats?.cashOutLiabilityVnd)}
           icon={<ShieldAlert className="w-4 h-4" aria-hidden="true" />}
           iconVariant="warning"
-          hint={`${formatNumber(stats?.totalCoinCirculation)} Coins lưu hành × ${stats?.currentWithdrawalRate ?? 90} ₫`}
+          hint={`${formatNumber(stats?.withdrawableCoinCirculation)} Coins lưu hành × ${stats?.currentWithdrawalRate ?? 90} ₫`}
         />
       </div>
 
@@ -237,19 +240,28 @@ export default function AdminRevenue() {
               Lịch sử đối soát dòng tiền toàn hệ thống
             </h2>
             <p className="font-sans-ui text-xs text-white/55 mt-0.5">
-              Sắp xếp từ mới nhất đến cũ nhất. Dùng bộ lọc để kiểm tra dòng
-              tiền vào và ra.
+              Sắp xếp từ mới nhất đến cũ nhất. Dùng bộ lọc để kiểm tra dòng tiền
+              vào và ra.
             </p>
           </div>
 
           <div className="flex items-center gap-2 flex-wrap">
-            <FilterChip active={filterType === "ALL"} onClick={() => setFilterType("ALL")}>
+            <FilterChip
+              active={filterType === "ALL"}
+              onClick={() => setFilterType("ALL")}
+            >
               Tất cả
             </FilterChip>
-            <FilterChip active={filterType === "TOP_UP"} onClick={() => setFilterType("TOP_UP")}>
+            <FilterChip
+              active={filterType === "TOP_UP"}
+              onClick={() => setFilterType("TOP_UP")}
+            >
               Nạp VNĐ
             </FilterChip>
-            <FilterChip active={filterType === "CASH_OUT"} onClick={() => setFilterType("CASH_OUT")}>
+            <FilterChip
+              active={filterType === "CASH_OUT"}
+              onClick={() => setFilterType("CASH_OUT")}
+            >
               Rút VNĐ
             </FilterChip>
           </div>
@@ -290,7 +302,9 @@ export default function AdminRevenue() {
                   } else if (isCashout) {
                     pill = <StatusPill variant="danger">Rút tiền</StatusPill>;
                   } else if (isReward) {
-                    pill = <StatusPill variant="info">Thu nhập / Thưởng</StatusPill>;
+                    pill = (
+                      <StatusPill variant="info">Thu nhập / Thưởng</StatusPill>
+                    );
                   } else {
                     pill = <StatusPill variant="neutral">{tx.type}</StatusPill>;
                   }

@@ -135,6 +135,10 @@ Acceptance criteria:
 - Teacher wallet does not show misleading pending balance.
 - One source of truth is documented.
 
+Implementation note, 2026-07-16:
+
+- Phase 1 keeps marketplace seller escrows as the source of truth for pending escrow balance. Wallet `heldBalance` remains a legacy/exposed field and must not be used as the teacher-facing pending escrow number until a later wallet-led hold accounting design is added.
+
 ## Phase 2 - Risk Review And Admin Decisions
 
 ### 2.1 Add Scheduled Risk Scan Job

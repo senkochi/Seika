@@ -16,4 +16,5 @@ public class CollusionFlaggedEvent {
     private int riskScore;
     private String status; // SUSPICIOUS, CONFIRMED, MALICIOUS
     private String reason;
+    private Integer holdDays;
 }

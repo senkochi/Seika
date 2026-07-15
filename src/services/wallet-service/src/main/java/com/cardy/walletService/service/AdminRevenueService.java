@@ -1,11 +1,9 @@
 package com.cardy.walletService.service;
 
-import com.cardy.walletService.domain.Transaction;
 import com.cardy.walletService.domain.Wallet;
 import com.cardy.walletService.domain.WalletLedgerEntry;
 import com.cardy.walletService.dto.admin.AdminRevenueStatsDTO;
 import com.cardy.walletService.dto.admin.AdminTransactionDTO;
-import com.cardy.walletService.enums.TransactionType;
 import com.cardy.walletService.enums.WalletLedgerType;
 import com.cardy.walletService.repository.TransactionRepository;
 import com.cardy.walletService.repository.WalletLedgerEntryRepository;
@@ -17,7 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -43,37 +40,56 @@ public class AdminRevenueService {
         BigDecimal totalTopupVnd = BigDecimal.ZERO;
         BigDecimal totalWithdrawalCoins = BigDecimal.ZERO;
         BigDecimal totalWithdrawalVnd = BigDecimal.ZERO;
+        BigDecimal paidBackedFeeCoins = BigDecimal.ZERO;
+        BigDecimal promoSinkCoins = BigDecimal.ZERO;
 
         for (WalletLedgerEntry entry : allLedgerEntries) {
             if (entry.getType() == WalletLedgerType.TOP_UP) {
-                BigDecimal coins = entry.getAmount() != null ? entry.getAmount() : BigDecimal.ZERO;
+                BigDecimal coins = zeroIfNull(entry.getAmount());
                 totalTopupCoins = totalTopupCoins.add(coins);
                 totalTopupVnd = totalTopupVnd.add(resolveLedgerVnd(entry, currentTopupRate));
             } else if (entry.getType() == WalletLedgerType.CASH_OUT) {
-                BigDecimal absAmount = entry.getAmount() != null ? entry.getAmount().abs() : BigDecimal.ZERO;
+                BigDecimal absAmount = absAmount(entry);
                 totalWithdrawalCoins = totalWithdrawalCoins.add(absAmount);
                 totalWithdrawalVnd = totalWithdrawalVnd.add(resolveLedgerVnd(entry, currentWithdrawalRate));
+            } else if (entry.getType() == WalletLedgerType.PLATFORM_FEE_REAL) {
+                paidBackedFeeCoins = paidBackedFeeCoins.add(absAmount(entry));
+            } else if (entry.getType() == WalletLedgerType.PLATFORM_FEE_PROMO_SINK) {
+                promoSinkCoins = promoSinkCoins.add(absAmount(entry));
             }
         }
 
-        BigDecimal netRevenueVnd = totalTopupVnd.subtract(totalWithdrawalVnd);
-
-        BigDecimal totalCoinCirculation = walletRepository.findAll().stream()
-                .map(Wallet::getBalance)
-                .filter(Objects::nonNull)
+        List<Wallet> wallets = walletRepository.findAll();
+        BigDecimal withdrawableCoinCirculation = wallets.stream()
+                .map(wallet -> zeroIfNull(wallet.getEarnedWithdrawableBalance()))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal nonWithdrawableCoinCirculation = wallets.stream()
+                .map(wallet -> zeroIfNull(wallet.getBonusBalance())
+                        .add(zeroIfNull(wallet.getRewardBalance()))
+                        .add(zeroIfNull(wallet.getPaidBalance()))
+                        .add(zeroIfNull(wallet.getEarnedPromoBalance())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        BigDecimal potentialLiabilityVnd = totalCoinCirculation.multiply(currentWithdrawalRate);
-        BigDecimal guaranteedProfitVnd = netRevenueVnd.subtract(potentialLiabilityVnd);
+        BigDecimal netRevenueVnd = totalTopupVnd.subtract(totalWithdrawalVnd);
+        BigDecimal realRevenueVnd = paidBackedFeeCoins.multiply(currentTopupRate);
+        BigDecimal cashOutLiabilityVnd = withdrawableCoinCirculation.multiply(currentWithdrawalRate);
+        BigDecimal totalCoinCirculation = withdrawableCoinCirculation.add(nonWithdrawableCoinCirculation);
+        BigDecimal guaranteedProfitVnd = netRevenueVnd.subtract(cashOutLiabilityVnd);
 
         return AdminRevenueStatsDTO.builder()
                 .totalTopupCoins(totalTopupCoins)
                 .totalTopupVnd(totalTopupVnd)
                 .totalWithdrawalCoins(totalWithdrawalCoins)
                 .totalWithdrawalVnd(totalWithdrawalVnd)
+                .realRevenueVnd(realRevenueVnd)
+                .paidBackedFeeCoins(paidBackedFeeCoins)
+                .promoSinkCoins(promoSinkCoins)
+                .cashOutLiabilityVnd(cashOutLiabilityVnd)
+                .withdrawableCoinCirculation(withdrawableCoinCirculation)
+                .nonWithdrawableCoinCirculation(nonWithdrawableCoinCirculation)
                 .netRevenueVnd(netRevenueVnd)
                 .totalCoinCirculation(totalCoinCirculation)
-                .potentialLiabilityVnd(potentialLiabilityVnd)
+                .potentialLiabilityVnd(cashOutLiabilityVnd)
                 .guaranteedProfitVnd(guaranteedProfitVnd)
                 .currentTopupRate(currentTopupRate)
                 .currentWithdrawalRate(currentWithdrawalRate)
@@ -121,8 +137,16 @@ public class AdminRevenueService {
         if (entry.getAmountVnd() != null) {
             return entry.getAmountVnd();
         }
-        BigDecimal absAmount = entry.getAmount() != null ? entry.getAmount().abs() : BigDecimal.ZERO;
+        BigDecimal absAmount = absAmount(entry);
         BigDecimal rate = entry.getRateVndPerCoin() != null ? entry.getRateVndPerCoin() : defaultRate;
         return absAmount.multiply(rate);
+    }
+
+    private BigDecimal absAmount(WalletLedgerEntry entry) {
+        return entry.getAmount() == null ? BigDecimal.ZERO : entry.getAmount().abs();
+    }
+
+    private BigDecimal zeroIfNull(BigDecimal value) {
+        return value == null ? BigDecimal.ZERO : value;
     }
 }

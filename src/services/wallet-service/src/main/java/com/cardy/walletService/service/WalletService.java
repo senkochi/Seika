@@ -313,6 +313,61 @@ public class WalletService {
     }
 
     @Transactional
+    public Wallet applyFreeze(UUID userId, String reason, String sourceFlagId, String createdBy) {
+        Wallet wallet = getOrCreateWallet(userId);
+        if (wallet.isFrozen()) {
+            return wallet;
+        }
+        wallet.setFrozen(true);
+        wallet.recalculateBalance();
+        Wallet saved = walletRepository.save(wallet);
+        String description = controlDescription("Freeze wallet", reason, sourceFlagId, createdBy);
+        writeLedger(saved, WalletLedgerType.WALLET_FREEZE, WalletLedgerSource.SYSTEM,
+                BigDecimal.ZERO, null, null, null,
+                freezeIdempotencyKey("wallet-freeze", userId, sourceFlagId), description);
+        walletNotificationPublisher.publishWalletUpdated(userId, BigDecimal.ZERO,
+                WalletLedgerType.WALLET_FREEZE.name(), description);
+        return saved;
+    }
+
+    @Transactional
+    public Wallet removeFreeze(UUID userId, String reason, String adminId) {
+        Wallet wallet = getOrCreateWallet(userId);
+        if (!wallet.isFrozen()) {
+            return wallet;
+        }
+        wallet.setFrozen(false);
+        wallet.recalculateBalance();
+        Wallet saved = walletRepository.save(wallet);
+        String description = controlDescription("Unfreeze wallet", reason, null, adminId);
+        writeLedger(saved, WalletLedgerType.WALLET_UNFREEZE, WalletLedgerSource.SYSTEM,
+                BigDecimal.ZERO, null, null, null,
+                freezeIdempotencyKey("wallet-unfreeze", userId, adminId), description);
+        walletNotificationPublisher.publishWalletUpdated(userId, BigDecimal.ZERO,
+                WalletLedgerType.WALLET_UNFREEZE.name(), description);
+        return saved;
+    }
+
+    private String freezeIdempotencyKey(String operation, UUID userId, String source) {
+        String suffix = source == null || source.isBlank() ? "manual" : source;
+        return operation + ":" + suffix + ":" + userId;
+    }
+
+    private String controlDescription(String action, String reason, String sourceFlagId, String actor) {
+        StringBuilder description = new StringBuilder(action);
+        if (reason != null && !reason.isBlank()) {
+            description.append(": ").append(reason);
+        }
+        if (sourceFlagId != null && !sourceFlagId.isBlank()) {
+            description.append(" (flag=").append(sourceFlagId).append(")");
+        }
+        if (actor != null && !actor.isBlank()) {
+            description.append(" by ").append(actor);
+        }
+        return description.toString();
+    }
+
+    @Transactional
     public void creditEscrowRelease(UUID sellerUserId,
                                     UUID buyerUserId,
                                     BigDecimal teacherWithdrawableAmount,
