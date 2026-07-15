@@ -12,6 +12,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -55,6 +56,15 @@ public class EscrowController {
         return ResponseEntity.ok(escrowService.adminFullRefund(orderItemId, resolveAdminId(httpRequest), request == null ? null : request.getReason()));
     }
 
+    @PostMapping("/admin/order-items/{orderItemId}/partial-refund")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<EscrowTransaction> adminPartialRefund(@PathVariable String orderItemId,
+                                                                  @RequestBody AdminPartialRefundRequest request,
+                                                                  HttpServletRequest httpRequest) {
+        return ResponseEntity.ok(escrowService.adminPartialRefund(orderItemId, request.getAmount(),
+                resolveAdminId(httpRequest), request.getReason()));
+    }
+
     @PostMapping("/admin/order-items/{orderItemId}/force-release")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<EscrowTransaction> adminForceRelease(@PathVariable String orderItemId,
@@ -82,6 +92,12 @@ public class EscrowController {
     private static String resolveAdminId(HttpServletRequest request) {
         String header = request.getHeader("X-User-Id");
         return header == null || header.isBlank() ? resolveUserId() : header;
+    }
+
+    @Data
+    public static class AdminPartialRefundRequest {
+        private BigDecimal amount;
+        private String reason;
     }
 
     @Data

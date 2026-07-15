@@ -21,12 +21,17 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class TeacherRatingService {
+    private static final String DEFAULT_TIER_CONSUME_RATE_MIN = "{\"SILVER\":0.35,\"GOLD\":0.50,\"ELITE\":0.65}";
+    private static final String DEFAULT_TIER_REFUND_RATE_MAX = "{\"BRONZE\":0.20,\"SILVER\":0.15,\"GOLD\":0.10,\"ELITE\":0.05}";
+    private static final String DEFAULT_TIER_APPROVAL_REJECTION_RATE_MAX = "{\"BRONZE\":0.50,\"SILVER\":0.30,\"GOLD\":0.15,\"ELITE\":0.08}";
+
     private final TeacherRatingRepository teacherRatingRepository;
     private final ReviewRepository reviewRepository;
     private final ProductRepository productRepository;
@@ -34,6 +39,18 @@ public class TeacherRatingService {
     private final com.seika.marketplace_service.repository.UserInventoryRepository userInventoryRepository;
     private final RabbitTemplate rabbitTemplate;
     private final ObjectMapper objectMapper;
+    private final MarketplaceConfigService configService;
+
+    public TeacherRatingService(TeacherRatingRepository teacherRatingRepository,
+                                ReviewRepository reviewRepository,
+                                ProductRepository productRepository,
+                                com.seika.marketplace_service.repository.EscrowTransactionRepository escrowTransactionRepository,
+                                com.seika.marketplace_service.repository.UserInventoryRepository userInventoryRepository,
+                                RabbitTemplate rabbitTemplate,
+                                ObjectMapper objectMapper) {
+        this(teacherRatingRepository, reviewRepository, productRepository, escrowTransactionRepository,
+                userInventoryRepository, rabbitTemplate, objectMapper, null);
+    }
 
     @Transactional(readOnly = true)
     public TeacherRating getOrDefault(String teacherId) {
@@ -134,22 +151,22 @@ public class TeacherRatingService {
 
         if (validReviewCount >= 500
                 && rating.compareTo(new BigDecimal("4.5")) >= 0
-                && consume.compareTo(new BigDecimal("0.65")) >= 0
-                && refund.compareTo(new BigDecimal("0.05")) <= 0
-                && reject.compareTo(new BigDecimal("0.08")) <= 0) {
+                && consume.compareTo(minConsume(TeacherTier.ELITE)) >= 0
+                && refund.compareTo(maxRefund(TeacherTier.ELITE)) <= 0
+                && reject.compareTo(maxApprovalRejection(TeacherTier.ELITE)) <= 0) {
             return TeacherTier.ELITE;
         }
         if (validReviewCount >= 100
                 && rating.compareTo(new BigDecimal("4.0")) >= 0
-                && consume.compareTo(new BigDecimal("0.50")) >= 0
-                && refund.compareTo(new BigDecimal("0.10")) <= 0
-                && reject.compareTo(new BigDecimal("0.15")) <= 0) {
+                && consume.compareTo(minConsume(TeacherTier.GOLD)) >= 0
+                && refund.compareTo(maxRefund(TeacherTier.GOLD)) <= 0
+                && reject.compareTo(maxApprovalRejection(TeacherTier.GOLD)) <= 0) {
             return TeacherTier.GOLD;
         }
         if (validReviewCount >= 20
                 && rating.compareTo(new BigDecimal("3.5")) >= 0
-                && consume.compareTo(new BigDecimal("0.35")) >= 0
-                && refund.compareTo(new BigDecimal("0.15")) <= 0) {
+                && consume.compareTo(minConsume(TeacherTier.SILVER)) >= 0
+                && refund.compareTo(maxRefund(TeacherTier.SILVER)) <= 0) {
             return TeacherTier.SILVER;
         }
         if (validReviewCount >= 5
@@ -157,6 +174,33 @@ public class TeacherRatingService {
             return TeacherTier.BRONZE;
         }
         return TeacherTier.NEWBIE;
+    }
+
+    private BigDecimal minConsume(TeacherTier tier) {
+        return configuredThreshold(MarketplaceConfigService.KEY_TIER_CONSUME_RATE_MIN,
+                DEFAULT_TIER_CONSUME_RATE_MIN, tier, BigDecimal.ZERO);
+    }
+
+    private BigDecimal maxRefund(TeacherTier tier) {
+        return configuredThreshold(MarketplaceConfigService.KEY_TIER_REFUND_RATE_MAX,
+                DEFAULT_TIER_REFUND_RATE_MAX, tier, BigDecimal.ONE);
+    }
+
+    private BigDecimal maxApprovalRejection(TeacherTier tier) {
+        return configuredThreshold(MarketplaceConfigService.KEY_TIER_APPROVAL_REJECTION_RATE_MAX,
+                DEFAULT_TIER_APPROVAL_REJECTION_RATE_MAX, tier, BigDecimal.ONE);
+    }
+
+    private BigDecimal configuredThreshold(String key, String defaultJson, TeacherTier tier, BigDecimal fallback) {
+        try {
+            String raw = configService == null ? defaultJson : configService.getValue(key, defaultJson);
+            ObjectMapper mapper = objectMapper == null ? new ObjectMapper() : objectMapper;
+            Map<String, BigDecimal> values = mapper.readValue(raw,
+                    new com.fasterxml.jackson.core.type.TypeReference<>() {});
+            return values.getOrDefault(tier.name(), fallback);
+        } catch (Exception exception) {
+            return fallback;
+        }
     }
 
     public BigDecimal feeForTier(TeacherTier tier) {

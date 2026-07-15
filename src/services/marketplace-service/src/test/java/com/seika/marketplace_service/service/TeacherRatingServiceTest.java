@@ -8,7 +8,7 @@ import java.math.BigDecimal;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class TeacherRatingServiceTest {
-    private final TeacherRatingService service = new TeacherRatingService(null, null, null, null, null, null, null);
+    private final TeacherRatingService service = new TeacherRatingService(null, null, null, null, null, null, null, null);
 
     @Test
     void calculatesPhase2TierFromRatingAndValidReviewCountOnly() {
@@ -17,6 +17,29 @@ class TeacherRatingServiceTest {
         assertThat(service.calculateTier(new BigDecimal("3.5"), 20)).isEqualTo(TeacherTier.SILVER);
         assertThat(service.calculateTier(new BigDecimal("4.0"), 100)).isEqualTo(TeacherTier.GOLD);
         assertThat(service.calculateTier(new BigDecimal("4.5"), 500)).isEqualTo(TeacherTier.ELITE);
+    }
+
+    @Test
+    void usesConfiguredPhase3MetricThresholds() {
+        MarketplaceConfigService configService = org.mockito.Mockito.mock(MarketplaceConfigService.class);
+        org.mockito.Mockito.when(configService.getValue(
+                        org.mockito.ArgumentMatchers.eq(MarketplaceConfigService.KEY_TIER_CONSUME_RATE_MIN),
+                        org.mockito.ArgumentMatchers.anyString()))
+                .thenReturn("{\"SILVER\":0.35,\"GOLD\":0.90,\"ELITE\":0.95}");
+        org.mockito.Mockito.when(configService.getValue(
+                        org.mockito.ArgumentMatchers.eq(MarketplaceConfigService.KEY_TIER_REFUND_RATE_MAX),
+                        org.mockito.ArgumentMatchers.anyString()))
+                .thenReturn("{\"BRONZE\":0.20,\"SILVER\":0.15,\"GOLD\":0.10,\"ELITE\":0.05}");
+        org.mockito.Mockito.when(configService.getValue(
+                        org.mockito.ArgumentMatchers.eq(MarketplaceConfigService.KEY_TIER_APPROVAL_REJECTION_RATE_MAX),
+                        org.mockito.ArgumentMatchers.anyString()))
+                .thenReturn("{\"BRONZE\":0.50,\"SILVER\":0.30,\"GOLD\":0.15,\"ELITE\":0.08}");
+        TeacherRatingService configuredService = new TeacherRatingService(null, null, null, null, null, null,
+                new com.fasterxml.jackson.databind.ObjectMapper(), configService);
+
+        assertThat(configuredService.calculateTier(new BigDecimal("4.6"), 600,
+                new BigDecimal("0.70"), new BigDecimal("0.03"), new BigDecimal("0.05")))
+                .isEqualTo(TeacherTier.SILVER);
     }
 
     @Test

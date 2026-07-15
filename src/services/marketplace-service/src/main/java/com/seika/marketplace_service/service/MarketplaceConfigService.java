@@ -21,6 +21,9 @@ public class MarketplaceConfigService {
     public static final String KEY_ESCROW_OPERATION_FEE_PERCENT = "ESCROW_OPERATION_FEE_PERCENT";
     public static final String KEY_TIER_PLATFORM_FEE_PERCENT = "TIER_PLATFORM_FEE_PERCENT";
     public static final String KEY_TIER_RATING_THRESHOLDS = "TIER_RATING_THRESHOLDS";
+    public static final String KEY_TIER_CONSUME_RATE_MIN = "TIER_CONSUME_RATE_MIN";
+    public static final String KEY_TIER_REFUND_RATE_MAX = "TIER_REFUND_RATE_MAX";
+    public static final String KEY_TIER_APPROVAL_REJECTION_RATE_MAX = "TIER_APPROVAL_REJECTION_RATE_MAX";
     public static final String KEY_COLLUSION_LOOKBACK_DAYS = "COLLUSION_LOOKBACK_DAYS";
     public static final String KEY_COLLUSION_RISK_THRESHOLD = "COLLUSION_RISK_THRESHOLD";
     public static final String KEY_COLLUSION_TX_THRESHOLD = "COLLUSION_TX_THRESHOLD";
@@ -37,6 +40,9 @@ public class MarketplaceConfigService {
             new DefaultEntry(KEY_ESCROW_OPERATION_FEE_PERCENT, "0", "Phí vận hành escrow trong pilot"),
             new DefaultEntry(KEY_TIER_PLATFORM_FEE_PERCENT, "{\"NEWBIE\":20,\"BRONZE\":15,\"SILVER\":10,\"GOLD\":5,\"ELITE\":3}", "Platform fee theo teacher tier"),
             new DefaultEntry(KEY_TIER_RATING_THRESHOLDS, "{\"NEWBIE\":{\"minReviews\":0,\"minRating\":0},\"BRONZE\":{\"minReviews\":5,\"minRating\":3.0},\"SILVER\":{\"minReviews\":20,\"minRating\":3.5},\"GOLD\":{\"minReviews\":100,\"minRating\":4.0},\"ELITE\":{\"minReviews\":500,\"minRating\":4.5}}", "Ngưỡng tier Phase 2"),
+            new DefaultEntry(KEY_TIER_CONSUME_RATE_MIN, "{\"SILVER\":0.35,\"GOLD\":0.50,\"ELITE\":0.65}", "Ngưỡng consume rate tối thiểu theo tier"),
+            new DefaultEntry(KEY_TIER_REFUND_RATE_MAX, "{\"BRONZE\":0.20,\"SILVER\":0.15,\"GOLD\":0.10,\"ELITE\":0.05}", "Ngưỡng refund rate tối đa theo tier"),
+            new DefaultEntry(KEY_TIER_APPROVAL_REJECTION_RATE_MAX, "{\"BRONZE\":0.50,\"SILVER\":0.30,\"GOLD\":0.15,\"ELITE\":0.08}", "Ngưỡng approval rejection rate tối đa theo tier"),
             new DefaultEntry(KEY_COLLUSION_LOOKBACK_DAYS, "30", "Risk review lookback window"),
             new DefaultEntry(KEY_COLLUSION_RISK_THRESHOLD, "50", "Điểm risk tối thiểu để flag"),
             new DefaultEntry(KEY_COLLUSION_TX_THRESHOLD, "5", "Số giao dịch nghi vấn trong lookback"),

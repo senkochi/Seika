@@ -37,6 +37,12 @@ public class AdminCollusionController {
         return ResponseEntity.ok(collusionFlagRepository.findAll(pageable));
     }
 
+    @GetMapping("/{flagId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<CollusionFlag> getFlag(@PathVariable String flagId) {
+        return ResponseEntity.ok(collusionFlagService.getFlag(flagId));
+    }
+
     @PostMapping("/{flagId}/action")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<CollusionFlag> takeAction(

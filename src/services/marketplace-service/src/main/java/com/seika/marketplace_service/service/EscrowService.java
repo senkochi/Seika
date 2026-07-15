@@ -48,6 +48,9 @@ public class EscrowService {
     private final TeacherRatingService teacherRatingService;
     private final ObjectMapper objectMapper;
 
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private AdminActionLogService adminActionLogService;
+
     @Transactional
     public void createEscrowsForPaidOrder(String buyerId, String orderId, WalletDebitEvent.SourceBreakdown breakdown) {
         List<OrderItem> items = orderItemRepository.findByOrderId(orderId);
@@ -166,6 +169,18 @@ public class EscrowService {
     }
 
     @Transactional
+    public EscrowTransaction adminPartialRefund(String orderItemId, BigDecimal amount, String adminId, String reason) {
+        EscrowTransaction escrow = escrowRepository.findByOrderItemId(orderItemId)
+                .orElseThrow(() -> new IllegalArgumentException("Escrow not found for orderItem: " + orderItemId));
+        BigDecimal refundAmount = money(amount);
+        requestPartialRefund(escrow, refundAmount, reason == null ? "admin_partial_refund" : reason);
+        markAdminDecision(escrow, adminId, reason);
+        logAdminAction(adminId, "PARTIAL_REFUND_ESCROW", "ORDER_ITEM", orderItemId, reason,
+                "{\"escrowId\":\"" + escrow.getId() + "\",\"amount\":\"" + refundAmount.toPlainString() + "\"}");
+        return escrow;
+    }
+
+    @Transactional
     public EscrowTransaction adminForceRelease(String orderItemId, String adminId, String reason) {
         EscrowTransaction escrow = escrowRepository.findByOrderItemId(orderItemId)
                 .orElseThrow(() -> new IllegalArgumentException("Escrow not found for orderItem: " + orderItemId));
@@ -188,6 +203,45 @@ public class EscrowService {
         escrow.setStatus(EscrowStatus.PENDING_ADMIN_DECISION);
         markAdminDecision(escrow, adminId, reason == null ? "admin_no_refund" : reason);
         return escrowRepository.save(escrow);
+    }
+
+    private void requestPartialRefund(EscrowTransaction escrow, BigDecimal amount, String reason) {
+        BigDecimal gross = money(escrow.getGrossAmount());
+        BigDecimal refundAmount = money(amount);
+        if (refundAmount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Partial refund amount must be positive");
+        }
+        if (gross.compareTo(BigDecimal.ZERO) <= 0 || refundAmount.compareTo(gross) >= 0) {
+            throw new IllegalArgumentException("Partial refund amount must be lower than gross escrow amount");
+        }
+
+        BigDecimal ratio = refundAmount.divide(gross, 8, RoundingMode.HALF_UP);
+        BigDecimal bonus = money(zero(escrow.getBonusBackedAmount()).multiply(ratio));
+        BigDecimal reward = money(zero(escrow.getRewardBackedAmount()).multiply(ratio));
+        BigDecimal earnedPromo = money(zero(escrow.getEarnedPromoBackedAmount()).multiply(ratio));
+        BigDecimal paid = money(refundAmount.subtract(bonus).subtract(reward).subtract(earnedPromo));
+
+        WalletRefundRequestedEvent event = WalletRefundRequestedEvent.builder()
+                .eventId(UUID.randomUUID().toString())
+                .eventType(REFUND_REQUESTED)
+                .idempotencyKey("escrow:" + escrow.getId() + ":partial-refund:" + refundAmount.toPlainString())
+                .escrowId(escrow.getId())
+                .orderId(escrow.getOrderId())
+                .orderItemId(escrow.getOrderItemId())
+                .buyerUserId(escrow.getBuyerId())
+                .bonusAmount(bonus)
+                .rewardAmount(reward)
+                .paidAmount(paid)
+                .earnedPromoAmount(earnedPromo)
+                .occurredAt(Instant.now())
+                .build();
+        saveOutbox("EscrowTransaction", escrow.getId(), REFUND_REQUESTED, event);
+        escrow.setRefundRequestedAt(Instant.now());
+        escrow.setNeedsAdminDecision(true);
+        escrow.setStatus(EscrowStatus.PENDING_ADMIN_DECISION);
+        escrow.setReviewReason(reason);
+        escrow.setLastWalletError(null);
+        escrowRepository.save(escrow);
     }
 
     private void requestRefund(EscrowTransaction escrow, String reason) {
@@ -223,6 +277,13 @@ public class EscrowService {
             escrow.setNeedsAdminDecision(false);
             escrow.setLastWalletError(null);
             updateOrderItemState(escrow, EscrowState.RELEASED, false, null);
+        } else if ("wallet.refund.succeeded".equals(event.getEventType()) && isPartialRefundResult(event)) {
+            escrow.setStatus(EscrowStatus.PENDING_ADMIN_DECISION);
+            escrow.setRefundedAt(event.getOccurredAt() == null ? Instant.now() : event.getOccurredAt());
+            escrow.setNeedsAdminDecision(true);
+            escrow.setReviewReason("partial_refund_completed");
+            escrow.setLastWalletError(null);
+            updateOrderItemState(escrow, EscrowState.PENDING_ADMIN_DECISION, false, "partial_refund_completed");
         } else if ("wallet.refund.succeeded".equals(event.getEventType())) {
             escrow.setStatus(EscrowStatus.REFUNDED);
             escrow.setRefundedAt(event.getOccurredAt() == null ? Instant.now() : event.getOccurredAt());
@@ -270,6 +331,14 @@ public class EscrowService {
         return escrowRepository.findByNeedsAdminDecisionTrueOrderByUpdatedAtAsc();
     }
 
+    private boolean isPartialRefundResult(WalletEscrowResultEvent event) {
+        return event.getIdempotencyKey() != null && event.getIdempotencyKey().contains(":partial-refund:");
+    }
+
+    private BigDecimal zero(BigDecimal value) {
+        return value == null ? BigDecimal.ZERO : value;
+    }
+
     private void revokeInventory(EscrowTransaction escrow) {
         userInventoryRepository.findByOrderIdAndProductIdAndActiveTrue(escrow.getOrderId(), escrow.getProductId())
                 .ifPresent(inventory -> {
@@ -297,6 +366,13 @@ public class EscrowService {
             item.setAdminDecisionReason(reason);
             orderItemRepository.save(item);
         });
+    }
+
+    private void logAdminAction(String adminId, String actionType, String targetType,
+                                String targetId, String reason, String metadata) {
+        if (adminActionLogService != null) {
+            adminActionLogService.logAction(adminId, actionType, targetType, targetId, reason, metadata);
+        }
     }
 
     private void saveOutbox(String aggregateType, String aggregateId, String eventType, Object event) {

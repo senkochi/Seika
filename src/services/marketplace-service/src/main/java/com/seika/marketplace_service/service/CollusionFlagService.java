@@ -1,25 +1,36 @@
 package com.seika.marketplace_service.service;
 
+import com.seika.marketplace_service.config.RabbitMQConfig;
 import com.seika.marketplace_service.entity.CollusionFlag;
+import com.seika.marketplace_service.entity.EscrowTransaction;
 import com.seika.marketplace_service.entity.Review;
+import com.seika.marketplace_service.entity.UserInventory;
 import com.seika.marketplace_service.enums.CollusionFlagStatus;
 import com.seika.marketplace_service.enums.ReviewStatus;
-import com.seika.marketplace_service.repository.CollusionFlagRepository;
-import com.seika.marketplace_service.repository.ReviewRepository;
-import com.seika.marketplace_service.config.RabbitMQConfig;
 import com.seika.marketplace_service.event.CollusionFlaggedEvent;
+import com.seika.marketplace_service.repository.CollusionFlagRepository;
+import com.seika.marketplace_service.repository.EscrowTransactionRepository;
+import com.seika.marketplace_service.repository.ReviewRepository;
+import com.seika.marketplace_service.repository.UserInventoryRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @Slf4j
 public class CollusionFlagService {
+
+    private static final BigDecimal DEFAULT_PROMO_RATIO_THRESHOLD = new BigDecimal("0.6");
+    private static final BigDecimal DEFAULT_NO_CONSUME_RATIO_THRESHOLD = new BigDecimal("0.7");
+    private static final BigDecimal DEFAULT_RECIPROCAL_RATIO_THRESHOLD = new BigDecimal("0.7");
 
     private final CollusionFlagRepository collusionFlagRepository;
     private final ReviewRepository reviewRepository;
@@ -27,12 +38,24 @@ public class CollusionFlagService {
     private final AdminActionLogService adminActionLogService;
     private final MarketplaceConfigService configService;
     private final org.springframework.amqp.rabbit.core.RabbitTemplate rabbitTemplate;
+    private final EscrowTransactionRepository escrowRepository;
+    private final UserInventoryRepository userInventoryRepository;
 
     public CollusionFlagService(CollusionFlagRepository collusionFlagRepository,
                                 ReviewRepository reviewRepository,
                                 TeacherRatingService teacherRatingService,
                                 AdminActionLogService adminActionLogService) {
-        this(collusionFlagRepository, reviewRepository, teacherRatingService, adminActionLogService, null, null);
+        this(collusionFlagRepository, reviewRepository, teacherRatingService, adminActionLogService, null, null, null, null);
+    }
+
+    public CollusionFlagService(CollusionFlagRepository collusionFlagRepository,
+                                ReviewRepository reviewRepository,
+                                TeacherRatingService teacherRatingService,
+                                AdminActionLogService adminActionLogService,
+                                MarketplaceConfigService configService,
+                                org.springframework.amqp.rabbit.core.RabbitTemplate rabbitTemplate) {
+        this(collusionFlagRepository, reviewRepository, teacherRatingService, adminActionLogService,
+                configService, rabbitTemplate, null, null);
     }
 
     @org.springframework.beans.factory.annotation.Autowired
@@ -43,13 +66,19 @@ public class CollusionFlagService {
                                 @org.springframework.beans.factory.annotation.Autowired(required = false)
                                 MarketplaceConfigService configService,
                                 @org.springframework.beans.factory.annotation.Autowired(required = false)
-                                org.springframework.amqp.rabbit.core.RabbitTemplate rabbitTemplate) {
+                                org.springframework.amqp.rabbit.core.RabbitTemplate rabbitTemplate,
+                                @org.springframework.beans.factory.annotation.Autowired(required = false)
+                                EscrowTransactionRepository escrowRepository,
+                                @org.springframework.beans.factory.annotation.Autowired(required = false)
+                                UserInventoryRepository userInventoryRepository) {
         this.collusionFlagRepository = collusionFlagRepository;
         this.reviewRepository = reviewRepository;
         this.teacherRatingService = teacherRatingService;
         this.adminActionLogService = adminActionLogService;
         this.configService = configService;
         this.rabbitTemplate = rabbitTemplate;
+        this.escrowRepository = escrowRepository;
+        this.userInventoryRepository = userInventoryRepository;
     }
 
     public static int computeRiskScore(int txCount, BigDecimal promoRatio, BigDecimal noConsumeRatio,
@@ -64,10 +93,63 @@ public class CollusionFlagService {
     }
 
     @Transactional
+    public int scanRecentEscrowsForCollusion() {
+        return scanRecentEscrowsForCollusion(Instant.now());
+    }
+
+    @Transactional
+    public int scanRecentEscrowsForCollusion(Instant now) {
+        if (escrowRepository == null) {
+            return 0;
+        }
+        int lookbackDays = configInt(MarketplaceConfigService.KEY_COLLUSION_LOOKBACK_DAYS, 30);
+        Instant lookbackStart = now.minus(lookbackDays, ChronoUnit.DAYS);
+        List<EscrowTransaction> escrows = escrowRepository.findByCreatedAtBetween(lookbackStart, now);
+        Map<Pair, List<EscrowTransaction>> byPair = new HashMap<>();
+        for (EscrowTransaction escrow : escrows) {
+            if (escrow.getSellerId() == null || escrow.getBuyerId() == null) {
+                continue;
+            }
+            byPair.computeIfAbsent(new Pair(escrow.getSellerId(), escrow.getBuyerId()), ignored -> new java.util.ArrayList<>())
+                    .add(escrow);
+        }
+
+        int created = 0;
+        for (Map.Entry<Pair, List<EscrowTransaction>> entry : byPair.entrySet()) {
+            Pair pair = entry.getKey();
+            List<EscrowTransaction> pairEscrows = entry.getValue();
+            BigDecimal gross = sum(pairEscrows, EscrowTransaction::getGrossAmount);
+            BigDecimal promo = sum(pairEscrows, EscrowTransaction::getPromoBackedAmount);
+            BigDecimal promoRatio = ratio(promo, gross);
+            BigDecimal noConsumeRatio = ratio(BigDecimal.valueOf(countNoConsume(pairEscrows)), BigDecimal.valueOf(pairEscrows.size()));
+            BigDecimal reciprocalRatio = ratio(
+                    BigDecimal.valueOf(byPair.getOrDefault(new Pair(pair.buyerId(), pair.teacherId()), List.of()).size()),
+                    BigDecimal.valueOf(pairEscrows.size()));
+            boolean reviewVelocityAbnormal = pairEscrows.size() > configInt(MarketplaceConfigService.KEY_COLLUSION_TX_THRESHOLD, 5) * 2;
+            CollusionFlag flag = detectAndFlagCollusion(pair.teacherId(), pair.buyerId(), pairEscrows.size(),
+                    promoRatio, noConsumeRatio, reciprocalRatio, reviewVelocityAbnormal, lookbackStart, now);
+            if (flag != null) {
+                created++;
+            }
+        }
+        return created;
+    }
+
+    @Transactional
     public CollusionFlag detectAndFlagCollusion(String teacherId, String buyerId,
                                                 int txCount, BigDecimal promoRatio,
                                                 BigDecimal noConsumeRatio, BigDecimal reciprocalRatio,
                                                 boolean reviewVelocityAbnormal) {
+        Instant now = Instant.now();
+        return detectAndFlagCollusion(teacherId, buyerId, txCount, promoRatio, noConsumeRatio, reciprocalRatio,
+                reviewVelocityAbnormal, now.minus(30, ChronoUnit.DAYS), now);
+    }
+
+    private CollusionFlag detectAndFlagCollusion(String teacherId, String buyerId,
+                                                int txCount, BigDecimal promoRatio,
+                                                BigDecimal noConsumeRatio, BigDecimal reciprocalRatio,
+                                                boolean reviewVelocityAbnormal,
+                                                Instant lookbackStart, Instant lookbackEnd) {
         boolean existingActive = collusionFlagRepository.existsByTeacherIdAndBuyerIdAndStatusIn(
                 teacherId, buyerId, List.of(CollusionFlagStatus.SUSPICIOUS, CollusionFlagStatus.CONFIRMED));
         if (existingActive) {
@@ -75,41 +157,27 @@ public class CollusionFlagService {
                     teacherId, buyerId, List.of(CollusionFlagStatus.SUSPICIOUS, CollusionFlagStatus.CONFIRMED)).orElse(null);
         }
 
-        int score = computeRiskScore(txCount, promoRatio, noConsumeRatio, reciprocalRatio, reviewVelocityAbnormal);
-        if (score < 50) {
+        int score = computeConfiguredRiskScore(txCount, promoRatio, noConsumeRatio, reciprocalRatio, reviewVelocityAbnormal);
+        if (score < configInt(MarketplaceConfigService.KEY_COLLUSION_RISK_THRESHOLD, 50)) {
             return null;
         }
-
-        Instant now = Instant.now();
-        Instant lookbackStart = now.minus(30, ChronoUnit.DAYS);
 
         CollusionFlag flag = CollusionFlag.builder()
                 .teacherId(teacherId)
                 .buyerId(buyerId)
                 .riskScore(score)
                 .transactionCount(txCount)
-                .promoBackedRatio(promoRatio == null ? BigDecimal.ZERO : promoRatio)
-                .noConsumeRatio(noConsumeRatio == null ? BigDecimal.ZERO : noConsumeRatio)
-                .reciprocalRatio(reciprocalRatio == null ? BigDecimal.ZERO : reciprocalRatio)
+                .promoBackedRatio(zero(promoRatio))
+                .noConsumeRatio(zero(noConsumeRatio))
+                .reciprocalRatio(zero(reciprocalRatio))
                 .reviewVelocityAbnormal(reviewVelocityAbnormal)
                 .lookbackStart(lookbackStart)
-                .lookbackEnd(now)
-                .lastEvaluatedAt(now)
+                .lookbackEnd(lookbackEnd)
+                .lastEvaluatedAt(lookbackEnd)
                 .status(CollusionFlagStatus.SUSPICIOUS)
                 .build();
         CollusionFlag saved = collusionFlagRepository.save(flag);
-
-        // Retroactively transition existing VALID reviews to PENDING_RISK_REVIEW and recompute rating
-        List<Review> validReviews = reviewRepository.findBySellerIdAndBuyerIdAndStatus(
-                teacherId, buyerId, ReviewStatus.VALID);
-        if (!validReviews.isEmpty()) {
-            for (Review review : validReviews) {
-                review.setStatus(ReviewStatus.PENDING_RISK_REVIEW);
-            }
-            reviewRepository.saveAll(validReviews);
-            teacherRatingService.recompute(teacherId);
-        }
-
+        transitionValidReviewsToPending(teacherId, buyerId);
         return saved;
     }
 
@@ -118,7 +186,7 @@ public class CollusionFlagService {
         validateReason(reason);
         CollusionFlag flag = getFlagOrThrow(flagId);
         if (flag.getStatus() == CollusionFlagStatus.CONFIRMED) {
-            return flag; // Idempotent
+            return flag;
         }
         flag.setStatus(CollusionFlagStatus.CONFIRMED);
         flag.setAdminId(adminId);
@@ -136,7 +204,7 @@ public class CollusionFlagService {
         validateReason(reason);
         CollusionFlag flag = getFlagOrThrow(flagId);
         if (flag.getStatus() == CollusionFlagStatus.MALICIOUS) {
-            return flag; // Idempotent
+            return flag;
         }
         flag.setStatus(CollusionFlagStatus.MALICIOUS);
         flag.setAdminId(adminId);
@@ -144,7 +212,6 @@ public class CollusionFlagService {
         flag.setResolvedAt(Instant.now());
         CollusionFlag saved = collusionFlagRepository.save(flag);
 
-        // Transition PENDING_RISK_REVIEW reviews to EXCLUDED_WASH
         List<Review> pendingReviews = reviewRepository.findBySellerIdAndBuyerIdAndStatus(
                 flag.getTeacherId(), flag.getBuyerId(), ReviewStatus.PENDING_RISK_REVIEW);
         if (!pendingReviews.isEmpty()) {
@@ -165,7 +232,7 @@ public class CollusionFlagService {
         validateReason(reason);
         CollusionFlag flag = getFlagOrThrow(flagId);
         if (flag.getStatus() == CollusionFlagStatus.DISMISSED) {
-            return flag; // Idempotent
+            return flag;
         }
         flag.setStatus(CollusionFlagStatus.DISMISSED);
         flag.setAdminId(adminId);
@@ -173,7 +240,6 @@ public class CollusionFlagService {
         flag.setResolvedAt(Instant.now());
         CollusionFlag saved = collusionFlagRepository.save(flag);
 
-        // Restore PENDING_RISK_REVIEW reviews to VALID
         List<Review> pendingReviews = reviewRepository.findBySellerIdAndBuyerIdAndStatus(
                 flag.getTeacherId(), flag.getBuyerId(), ReviewStatus.PENDING_RISK_REVIEW);
         if (!pendingReviews.isEmpty()) {
@@ -189,9 +255,80 @@ public class CollusionFlagService {
     }
 
     @Transactional(readOnly = true)
+    public CollusionFlag getFlag(String flagId) {
+        return getFlagOrThrow(flagId);
+    }
+
+    @Transactional(readOnly = true)
     public boolean hasActiveSuspiciousOrConfirmedFlag(String teacherId, String buyerId) {
         return collusionFlagRepository.existsByTeacherIdAndBuyerIdAndStatusIn(
                 teacherId, buyerId, List.of(CollusionFlagStatus.SUSPICIOUS, CollusionFlagStatus.CONFIRMED));
+    }
+
+    private void transitionValidReviewsToPending(String teacherId, String buyerId) {
+        List<Review> validReviews = reviewRepository.findBySellerIdAndBuyerIdAndStatus(
+                teacherId, buyerId, ReviewStatus.VALID);
+        if (!validReviews.isEmpty()) {
+            for (Review review : validReviews) {
+                review.setStatus(ReviewStatus.PENDING_RISK_REVIEW);
+            }
+            reviewRepository.saveAll(validReviews);
+            teacherRatingService.recompute(teacherId);
+        }
+    }
+
+    private int computeConfiguredRiskScore(int txCount, BigDecimal promoRatio, BigDecimal noConsumeRatio,
+                                           BigDecimal reciprocalRatio, boolean reviewVelocityAbnormal) {
+        int score = 0;
+        if (txCount > configInt(MarketplaceConfigService.KEY_COLLUSION_TX_THRESHOLD, 5)) score += 25;
+        if (promoRatio != null && promoRatio.compareTo(configBigDecimal(
+                MarketplaceConfigService.KEY_COLLUSION_PROMO_BACKED_RATIO_THRESHOLD, DEFAULT_PROMO_RATIO_THRESHOLD)) > 0) score += 25;
+        if (noConsumeRatio != null && noConsumeRatio.compareTo(configBigDecimal(
+                MarketplaceConfigService.KEY_COLLUSION_NO_CONSUME_RATIO_THRESHOLD, DEFAULT_NO_CONSUME_RATIO_THRESHOLD)) > 0) score += 20;
+        if (reciprocalRatio != null && reciprocalRatio.compareTo(DEFAULT_RECIPROCAL_RATIO_THRESHOLD) > 0) score += 15;
+        if (reviewVelocityAbnormal) score += 15;
+        return Math.min(100, score);
+    }
+
+    private long countNoConsume(List<EscrowTransaction> escrows) {
+        long count = 0;
+        for (EscrowTransaction escrow : escrows) {
+            if (userInventoryRepository == null) {
+                count++;
+                continue;
+            }
+            boolean consumed = userInventoryRepository
+                    .findByOrderIdAndProductIdAndActiveTrue(escrow.getOrderId(), escrow.getProductId())
+                    .map(UserInventory::getConsumedAt)
+                    .isPresent();
+            if (!consumed) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    private BigDecimal sum(List<EscrowTransaction> escrows, java.util.function.Function<EscrowTransaction, BigDecimal> getter) {
+        return escrows.stream().map(getter).map(this::zero).reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    private BigDecimal ratio(BigDecimal numerator, BigDecimal denominator) {
+        if (denominator == null || denominator.compareTo(BigDecimal.ZERO) <= 0) {
+            return BigDecimal.ZERO;
+        }
+        return zero(numerator).divide(denominator, 4, RoundingMode.HALF_UP);
+    }
+
+    private BigDecimal zero(BigDecimal value) {
+        return value == null ? BigDecimal.ZERO : value;
+    }
+
+    private int configInt(String key, int defaultValue) {
+        return configService == null ? defaultValue : configService.getInt(key, defaultValue);
+    }
+
+    private BigDecimal configBigDecimal(String key, BigDecimal defaultValue) {
+        return configService == null ? defaultValue : configService.getBigDecimal(key, defaultValue);
     }
 
     private void validateReason(String reason) {
@@ -206,10 +343,7 @@ public class CollusionFlagService {
     }
 
     private int resolveWashHoldDays() {
-        if (configService == null) {
-            return 30;
-        }
-        return configService.getInt(MarketplaceConfigService.KEY_WASH_HOLD_DAYS, 30);
+        return configInt(MarketplaceConfigService.KEY_WASH_HOLD_DAYS, 30);
     }
 
     private void publishEvent(CollusionFlag flag) {
@@ -235,4 +369,6 @@ public class CollusionFlagService {
             }
         }
     }
+
+    private record Pair(String teacherId, String buyerId) {}
 }

@@ -241,6 +241,18 @@ export const adminService = {
     return unwrap<EscrowTransaction>(response.data);
   },
 
+  partialRefundEscrow: async (
+    orderItemId: string,
+    amount: number,
+    reason: string,
+  ): Promise<EscrowTransaction> => {
+    const response = await apiClient.post(
+      `/marketplace/admin/order-items/${orderItemId}/partial-refund`,
+      { amount, reason },
+    );
+    return unwrap<EscrowTransaction>(response.data);
+  },
+
   listCollusionFlags: async (
     status?: string,
     page = 0,
@@ -267,6 +279,13 @@ export const adminService = {
       number: data.number ?? page,
       size: data.size ?? size,
     };
+  },
+
+  getCollusionFlag: async (flagId: string): Promise<AdminCollusionFlag> => {
+    const response = await apiClient.get(
+      `/marketplace/admin/collusion-flags/${flagId}`,
+    );
+    return unwrap<AdminCollusionFlag>(response.data);
   },
 
   takeCollusionAction: async (

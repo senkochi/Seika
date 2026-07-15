@@ -1,12 +1,4 @@
-import {
-  Trophy,
-  Bell,
-  Brain,
-  Store,
-  CreditCard,
-  Layers,
-  Sparkles,
-} from "lucide-react";
+import { Trophy, Bell, Brain, Store, CreditCard, Layers } from "lucide-react";
 import { Images } from "../../assets/images";
 import AnimatedContent from "../reactbit/AnimatedContent";
 import { SocialProof } from "./SocialProof";

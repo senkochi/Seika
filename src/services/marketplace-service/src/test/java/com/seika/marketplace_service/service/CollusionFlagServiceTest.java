@@ -119,5 +119,54 @@ class CollusionFlagServiceTest {
         assertThat(captor.getValue().getHoldDays()).isEqualTo(14);
     }
 
+    @Test
+    void scheduledRiskScanCreatesSuspiciousFlagFromRecentEscrows() {
+        com.seika.marketplace_service.repository.CollusionFlagRepository flagRepo = org.mockito.Mockito.mock(com.seika.marketplace_service.repository.CollusionFlagRepository.class);
+        com.seika.marketplace_service.repository.ReviewRepository reviewRepo = org.mockito.Mockito.mock(com.seika.marketplace_service.repository.ReviewRepository.class);
+        com.seika.marketplace_service.repository.EscrowTransactionRepository escrowRepo = org.mockito.Mockito.mock(com.seika.marketplace_service.repository.EscrowTransactionRepository.class);
+        com.seika.marketplace_service.repository.UserInventoryRepository inventoryRepo = org.mockito.Mockito.mock(com.seika.marketplace_service.repository.UserInventoryRepository.class);
+        TeacherRatingService ratingService = org.mockito.Mockito.mock(TeacherRatingService.class);
+        AdminActionLogService logService = org.mockito.Mockito.mock(AdminActionLogService.class);
+        MarketplaceConfigService configService = org.mockito.Mockito.mock(MarketplaceConfigService.class);
+        CollusionFlagService service = new CollusionFlagService(flagRepo, reviewRepo, ratingService, logService, configService, null, escrowRepo, inventoryRepo);
+
+        org.mockito.Mockito.when(configService.getInt(MarketplaceConfigService.KEY_COLLUSION_LOOKBACK_DAYS, 30)).thenReturn(7);
+        org.mockito.Mockito.when(configService.getInt(MarketplaceConfigService.KEY_COLLUSION_RISK_THRESHOLD, 50)).thenReturn(50);
+        org.mockito.Mockito.when(configService.getInt(MarketplaceConfigService.KEY_COLLUSION_TX_THRESHOLD, 5)).thenReturn(1);
+        org.mockito.Mockito.when(configService.getBigDecimal(MarketplaceConfigService.KEY_COLLUSION_PROMO_BACKED_RATIO_THRESHOLD, new BigDecimal("0.6"))).thenReturn(new BigDecimal("0.5"));
+        org.mockito.Mockito.when(configService.getBigDecimal(MarketplaceConfigService.KEY_COLLUSION_NO_CONSUME_RATIO_THRESHOLD, new BigDecimal("0.7"))).thenReturn(new BigDecimal("0.5"));
+        org.mockito.Mockito.when(flagRepo.existsByTeacherIdAndBuyerIdAndStatusIn(
+                org.mockito.ArgumentMatchers.eq("T1"), org.mockito.ArgumentMatchers.eq("B1"), org.mockito.ArgumentMatchers.anyList()))
+                .thenReturn(false);
+        org.mockito.Mockito.when(flagRepo.save(org.mockito.ArgumentMatchers.any(CollusionFlag.class))).thenAnswer(inv -> inv.getArgument(0));
+        org.mockito.Mockito.when(reviewRepo.findBySellerIdAndBuyerIdAndStatus("T1", "B1", com.seika.marketplace_service.enums.ReviewStatus.VALID))
+                .thenReturn(java.util.List.of());
+
+        java.time.Instant now = java.time.Instant.parse("2026-07-16T00:00:00Z");
+        java.util.List<com.seika.marketplace_service.entity.EscrowTransaction> escrows = java.util.List.of(
+                com.seika.marketplace_service.entity.EscrowTransaction.builder()
+                        .id("E1").sellerId("T1").buyerId("B1").orderId("O1").productId("P1")
+                        .grossAmount(new BigDecimal("100")).promoBackedAmount(new BigDecimal("80"))
+                        .createdAt(now.minusSeconds(60)).build(),
+                com.seika.marketplace_service.entity.EscrowTransaction.builder()
+                        .id("E2").sellerId("T1").buyerId("B1").orderId("O2").productId("P2")
+                        .grossAmount(new BigDecimal("100")).promoBackedAmount(new BigDecimal("90"))
+                        .createdAt(now.minusSeconds(30)).build()
+        );
+        org.mockito.Mockito.when(escrowRepo.findByCreatedAtBetween(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any()))
+                .thenReturn(escrows);
+        org.mockito.Mockito.when(inventoryRepo.findByOrderIdAndProductIdAndActiveTrue(org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.anyString()))
+                .thenReturn(java.util.Optional.empty());
+
+        int created = service.scanRecentEscrowsForCollusion(now);
+
+        assertThat(created).isEqualTo(1);
+        org.mockito.ArgumentCaptor<CollusionFlag> captor = org.mockito.ArgumentCaptor.forClass(CollusionFlag.class);
+        org.mockito.Mockito.verify(flagRepo).save(captor.capture());
+        assertThat(captor.getValue().getTeacherId()).isEqualTo("T1");
+        assertThat(captor.getValue().getBuyerId()).isEqualTo("B1");
+        assertThat(captor.getValue().getStatus()).isEqualTo(CollusionFlagStatus.SUSPICIOUS);
+    }
+
 }
 
