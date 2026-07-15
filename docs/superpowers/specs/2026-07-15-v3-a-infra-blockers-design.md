@@ -56,7 +56,7 @@ Add the following route entry alongside the existing wallet/quiz/flashcard route
 
 **Rationale:**
 - Plan §"API Surface" exposes 11 marketplace public/user/admin endpoints under `/api/marketplace/**`; all need to be reachable via gateway port 8080.
-- `StripPrefix=0` keeps the `/api/marketplace/...` prefix unchanged so marketplace controllers receive the same path they bind to.
+- `StripPrefix=0` is Spring Cloud Gateway syntax for stripping 0 path segments (= preserve full path). The block is explicit even though `StripPrefix` defaults to 0 segments; readers see at a glance that no rewriting occurs.
 - `lb://MARKETPLACE-SERVICE` requires Eureka registration (item 1 unblocks this transitively; marketplace-service already registers since it has Eureka config).
 - `AuthenticationFilter` runs globally; no per-route `public-endpoints` whitelist change needed for this scope. Public listing will require JWT for this cluster (acceptable — explicit scope decision; whitelisting is a separate spec).
 
@@ -105,7 +105,9 @@ Internal behavior preserved: still queries `wallet_ledger_entries` table, same D
 2. Navigate to `/admin/dashboard/revenue`.
 3. Switch to "Ledger" tab → rows load (calls `/wallet/admin/ledger`).
 4. Filter dropdown narrows rows correctly.
-5. Negative test: `curl -X GET http://localhost:8084/api/wallet/admin/transactions` (with admin JWT) → expect 404 (confirms rename complete).
+5. Negative tests (confirm rename complete on both ingress paths):
+   - Direct wallet-service: `curl -X GET http://localhost:8084/api/wallet/admin/transactions` (with admin JWT) → expect 404.
+   - Via gateway: `curl -X GET http://localhost:8080/api/wallet/admin/transactions` (with admin JWT) → expect 404.
 
 **Test scaffolding is intentionally out of scope** for this cluster (no MockMvc controller test, no service-level test). Rationale: 3 items are pure config + rename; existing project test convention does not cover gateway routing paths, and adding infrastructure test scaffolding should be a separate spec.
 
