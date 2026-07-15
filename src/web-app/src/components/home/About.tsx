@@ -26,10 +26,10 @@ export function About() {
     "w-10 h-10 rounded-full bg-white/[0.04] border border-white/[0.08] text-[#d4a843] flex items-center justify-center hover:bg-white/[0.08] hover:border-[#d4a843]/30 transition-all duration-300 ease-soft";
 
   return (
-    <section
-      id="about"
-      className="relative py-32 lg:py-40 overflow-hidden"
-    >
+    <section id="about" className="relative py-32 lg:py-40 overflow-hidden">
+      {/* Background atmosphere — seamless continuation from Features */}
+      <div className="absolute inset-0 bg-glow-about pointer-events-none" />
+
       <div className="relative max-w-[1200px] mx-auto px-6 lg:px-10">
         {/* Section header */}
         <AnimatedContent>
@@ -109,7 +109,7 @@ export function About() {
             <div className="p-1 rounded-[2rem] bg-gradient-to-b from-[#d4a843]/30 to-[#d4a843]/[0.04] border border-[#d4a843]/[0.18]">
               <div
                 className={cn(
-                  "rounded-[calc(2rem-0.375rem)] bg-[#faf6ee]",
+                  "rounded-[calc(2rem-0.375rem)] bg-[var(--color-cream)]",
                   "p-10 lg:p-14 shadow-[inset_0_1px_1px_rgba(255,255,255,0.6)]",
                   "relative overflow-hidden",
                 )}

@@ -89,7 +89,9 @@ function FlashcardSetForm({
     } catch (err) {
       console.error(err);
       showError(
-        isEditing ? "Không thể cập nhật Flashcard Set." : "Không thể tạo Flashcard Set.",
+        isEditing
+          ? "Không thể cập nhật Flashcard Set."
+          : "Không thể tạo Flashcard Set.",
       );
     } finally {
       setLoading(false);
@@ -99,7 +101,7 @@ function FlashcardSetForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="bg-[var(--card)] border border-[var(--border)] rounded-3xl p-8 max-w-4xl mx-auto shadow-2xl space-y-6"
+      className="bg-[var(--card)] backdrop-blur-xl border border-[var(--border)] rounded-3xl p-8 max-w-4xl mx-auto space-y-6"
     >
       <div className="border-b border-[var(--border)] pb-4 flex justify-between items-center">
         <h2 className="text-xl font-bold text-[var(--foreground)]">
@@ -157,7 +159,8 @@ function FlashcardSetForm({
           <p className="mt-1.5 text-xs text-[var(--muted-foreground)]">
             Không nhập gì nếu miễn phí. Khi bán trên Marketplace, giá phải từ{" "}
             <span className="font-semibold text-amber-400">{minPrice}</span> đến{" "}
-            <span className="font-semibold text-amber-400">{maxPrice}</span> coin.
+            <span className="font-semibold text-amber-400">{maxPrice}</span>{" "}
+            coin.
           </p>
         </div>
       </div>

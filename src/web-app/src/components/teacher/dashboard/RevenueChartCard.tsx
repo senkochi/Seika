@@ -8,6 +8,7 @@ import {
   YAxis,
 } from "recharts";
 import type { RevenuePoint } from "../../../api/types";
+import { SectionCard } from "../../ui/SectionCard";
 
 const currencyFormatter = new Intl.NumberFormat("vi-VN", {
   style: "currency",
@@ -30,21 +31,23 @@ function RevenueChartCard({
   onPeriodChange,
 }: RevenueChartCardProps) {
   return (
-    <div className="lg:col-span-2 bg-[var(--card)] backdrop-blur-xl border border-[var(--border)] shadow-[0_20px_60px_rgba(10,10,20,0.28)] hover:border-[var(--primary)] rounded-2xl p-6">
+    <SectionCard className="lg:col-span-2">
       <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
-        <h2 className="text-lg font-bold text-[var(--foreground)]">
+        <h2 className="font-sans-ui text-base font-semibold text-cream">
           Doanh thu ({period === "month" ? "theo tháng" : "theo ngày"})
         </h2>
-        <div className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--background)] p-1 text-xs font-medium">
+        <div className="inline-flex rounded-lg border border-white/[0.06] bg-white/[0.02] p-0.5 font-sans-ui text-xs font-medium">
           {(["month", "day"] as const).map((value) => (
             <button
               key={value}
+              type="button"
               onClick={() => onPeriodChange(value)}
-              className={`rounded-lg px-3 py-1 transition-colors ${
+              aria-pressed={period === value}
+              className={
                 period === value
-                  ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
-                  : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
-              }`}
+                  ? "rounded-md px-3 py-1 transition-colors bg-[#d4a843]/15 border border-[#d4a843]/30 text-[#d4a843]"
+                  : "rounded-md px-3 py-1 transition-colors text-white/55 hover:text-cream"
+              }
             >
               {value === "month" ? "Theo tháng" : "Theo ngày"}
             </button>
@@ -53,7 +56,7 @@ function RevenueChartCard({
       </div>
 
       {chartData.length === 0 ? (
-        <div className="flex h-[280px] w-full items-center justify-center text-sm text-[var(--muted-foreground)]">
+        <div className="flex h-[280px] w-full items-center justify-center font-sans-ui text-sm text-white/45">
           Chưa có dữ liệu doanh thu trong khoảng thời gian này.
         </div>
       ) : (
@@ -63,29 +66,31 @@ function RevenueChartCard({
               data={chartData}
               margin={{ top: 10, right: 16, left: 0, bottom: 0 }}
             >
-              <CartesianGrid stroke="var(--border)" strokeDasharray="3 3" />
+              <CartesianGrid stroke="rgba(255,255,255,0.06)" strokeDasharray="3 3" />
               <XAxis
                 dataKey="period"
-                stroke="var(--muted-foreground)"
+                stroke="rgba(255,255,255,0.45)"
                 fontSize={12}
+                tickLine={false}
               />
               <YAxis
-                stroke="var(--muted-foreground)"
+                stroke="rgba(255,255,255,0.45)"
                 fontSize={12}
+                tickLine={false}
                 tickFormatter={(value) =>
-                  value >= 1000
-                    ? `${Math.round(value / 1000)}k`
-                    : `${value}`
+                  value >= 1000 ? `${Math.round(value / 1000)}k` : `${value}`
                 }
               />
               <Tooltip
                 contentStyle={{
-                  background: "var(--card)",
-                  border: "1px solid var(--border)",
-                  color: "var(--foreground)",
+                  background: "#1c0f2e",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  color: "#faf6ee",
                   borderRadius: "0.75rem",
+                  fontSize: "12px",
                 }}
-                labelStyle={{ color: "var(--muted-foreground)" }}
+                labelStyle={{ color: "rgba(255,255,255,0.55)" }}
+                itemStyle={{ color: "#d4a843" }}
                 formatter={(value: number) => [
                   formatCurrency(value),
                   "Doanh thu",
@@ -94,16 +99,16 @@ function RevenueChartCard({
               <Line
                 type="monotone"
                 dataKey="totalRevenue"
-                stroke="var(--primary)"
+                stroke="#d4a843"
                 strokeWidth={2}
-                dot={{ stroke: "var(--primary)", fill: "var(--primary)" }}
-                activeDot={{ r: 6, fill: "var(--primary)" }}
+                dot={{ stroke: "#d4a843", fill: "#1c0f2e", r: 3 }}
+                activeDot={{ r: 6, fill: "#d4a843" }}
               />
             </LineChart>
           </ResponsiveContainer>
         </div>
       )}
-    </div>
+    </SectionCard>
   );
 }
 

@@ -18,7 +18,7 @@ function TeacherAvatarCard({
   exp,
 }: TeacherAvatarCardProps) {
   return (
-    <div className="bg-[var(--card)] backdrop-blur-xl border border-[var(--border)] rounded-3xl p-6 flex flex-col items-center justify-center text-center shadow-lg shadow-black/20 h-fit sticky top-8">
+    <div className="bg-[var(--card)] backdrop-blur-xl border border-[var(--border)] rounded-3xl p-6 flex flex-col items-center justify-center text-center h-fit sticky top-8">
       <div className="relative mb-4">
         <div className="w-32 h-32 rounded-full border-4 border-amber-400 overflow-hidden bg-[var(--second-card)] flex items-center justify-center shadow-lg shadow-amber-500/20">
           {profilePictureUrl ? (
@@ -44,9 +44,7 @@ function TeacherAvatarCard({
       <p className="text-amber-400 font-bold text-xs uppercase tracking-wider mb-1">
         Verified Teacher
       </p>
-      <p className="text-[var(--muted-foreground)] text-xs mb-5">
-        @{username}
-      </p>
+      <p className="text-[var(--muted-foreground)] text-xs mb-5">@{username}</p>
 
       <div className="w-full pt-4 border-t border-[var(--border)] text-left space-y-3 text-sm">
         <div className="flex justify-between items-center">

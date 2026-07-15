@@ -1,28 +1,35 @@
 import { Clock } from "lucide-react";
 import type { TransactionResponse } from "../../../api/services/wallet";
+import { IconChip } from "../../ui/IconChip";
 
 interface TransactionListItemProps {
   tx: TransactionResponse;
 }
 
 function TransactionListItem({ tx }: TransactionListItemProps) {
+  const isNegative = tx.amount < 0;
   return (
-    <div className="flex items-center gap-4 p-4 bg-[var(--second-card)] backdrop-blur-md rounded-xl hover:bg-[var(--second-muted)] transition-colors">
-      <div className="text-2xl">
-        <Clock className="w-6 h-6 text-blue-400" />
-      </div>
-      <div className="flex-1">
-        <p className="text-[var(--foreground)] font-semibold text-sm">
+    <div className="flex items-center gap-4 p-3 rounded-xl border border-white/[0.04] bg-white/[0.02] hover:bg-white/[0.04] transition-colors">
+      <IconChip variant={isNegative ? "danger" : "success"}>
+        <Clock className="w-4 h-4" aria-hidden="true" />
+      </IconChip>
+      <div className="flex-1 min-w-0">
+        <p className="font-sans-ui text-sm font-medium text-cream truncate">
           {tx.description}
         </p>
-        <p className="text-[var(--muted-foreground)] text-xs">
-          {new Date(tx.createdAt).toLocaleDateString()}
+        <p className="font-sans-ui text-xs text-white/55">
+          {new Date(tx.createdAt).toLocaleDateString("vi-VN")}
         </p>
       </div>
-      <div className="flex items-center gap-1 px-3 py-1 bg-red-500/10 rounded-full">
-        <span className="text-red-400 text-sm font-semibold">
-          -{tx.amount} Coins
-        </span>
+      <div
+        className={
+          isNegative
+            ? "font-sans-ui text-sm font-semibold text-red-300 tabular-nums"
+            : "font-sans-ui text-sm font-semibold text-emerald-300 tabular-nums"
+        }
+      >
+        {isNegative ? "-" : "+"}
+        {Math.abs(tx.amount).toLocaleString("vi-VN")} coin
       </div>
     </div>
   );

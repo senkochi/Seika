@@ -1,4 +1,5 @@
 import { PlusCircle, RefreshCcw } from "lucide-react";
+import { Button } from "../../ui/Button";
 
 interface DashboardWelcomeHeaderProps {
   displayName: string;
@@ -12,31 +13,34 @@ function DashboardWelcomeHeader({
   onCreateMaterial,
 }: DashboardWelcomeHeaderProps) {
   return (
-    <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="mb-8 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
       <div>
-        <h1 className="text-3xl font-bold text-[var(--foreground)] mb-2">
-          Welcome back, {displayName}!
+        <h1 className="font-sans-ui text-2xl font-semibold tracking-tight text-cream">
+          Chào, {displayName}
         </h1>
-        <p className="text-[var(--muted-foreground)]">
-          Here is your teaching dashboard overview and Marketplace earnings
-          today.
+        <p className="mt-1 font-sans-ui text-sm text-white/55">
+          Tổng quan giảng dạy và thu nhập Marketplace của bạn hôm nay.
         </p>
       </div>
-      <div className="flex gap-3">
-        <button
+      <div className="flex flex-wrap items-center gap-3">
+        <Button
+          variant="ghost"
+          size="md"
           onClick={onRefresh}
-          className="flex items-center gap-2 px-4 py-3 border border-[var(--border)] bg-[var(--card)] text-[var(--foreground)] font-bold text-sm rounded-xl hover:border-[var(--primary)] transition-colors"
+          className="inline-flex items-center justify-center gap-2"
         >
-          <RefreshCcw className="w-4 h-4" />
-          Làm mới
-        </button>
-        <button
+          <RefreshCcw className="w-4 h-4 shrink-0" aria-hidden="true" />
+          <span>Làm mới</span>
+        </Button>
+        <Button
+          variant="primary"
+          size="md"
           onClick={onCreateMaterial}
-          className="flex items-center gap-2 px-5 py-3 bg-[var(--primary)] text-white font-bold text-sm rounded-xl hover:opacity-90 transition-opacity shadow-lg shadow-purple-600/20"
+          className="inline-flex items-center justify-center gap-2"
         >
-          <PlusCircle className="w-4 h-4" />
-          Create Material
-        </button>
+          <PlusCircle className="w-4 h-4 shrink-0" aria-hidden="true" />
+          <span>Tạo nội dung mới</span>
+        </Button>
       </div>
     </div>
   );

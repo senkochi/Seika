@@ -14,7 +14,7 @@ function StatisticsStatCard({
   accent,
 }: StatisticsStatCardProps) {
   return (
-    <div className="bg-[var(--card)] backdrop-blur-xl border border-[var(--border)] rounded-2xl p-6 shadow-[0_20px_60px_rgba(10,10,20,0.28)] hover:border-[var(--primary)] transition-colors">
+    <div className="bg-[var(--card)] backdrop-blur-xl border border-[var(--border)] rounded-2xl p-6 hover:border-[var(--primary)] transition-colors">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <p className="text-[var(--muted-foreground)] text-sm font-medium">

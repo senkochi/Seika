@@ -29,6 +29,7 @@ import {
 import { formatDistanceToNow } from "date-fns";
 import TeacherTierBadge from "../components/teacher/TeacherTierBadge";
 import { useTeacherRating } from "../components/teacher/useTeacherRating";
+import { StatusPill } from "../components/ui/StatusPill";
 
 function TeacherDashboardLayout() {
   const navigate = useNavigate();
@@ -142,24 +143,22 @@ function TeacherDashboardLayout() {
   }, []);
 
   return (
-    <div className="relative isolate min-h-[100dvh] w-full overflow-hidden bg-[var(--background)]">
+    <div className="relative isolate min-h-[100dvh] w-full overflow-hidden bg-[var(--color-bg)]">
       {/* Grid Background */}
       <GridBackground />
 
       {/* Left Sidebar */}
-      <aside className="fixed inset-y-0 left-0 z-20 w-64 bg-[rgba(20,15,38,0.88)] border-r border-[var(--border)] flex flex-col shadow-[0_24px_80px_rgba(10,10,20,0.25)] backdrop-blur-xl">
+      <aside className="fixed inset-y-0 left-0 z-20 w-60 bg-[var(--color-sidebar)] border-r border-white/[0.06] flex flex-col">
         {/* Logo */}
-        <div className="p-6 border-b border-[var(--border)]">
+        <div className="p-6 border-b border-white/[0.06]">
           <div className="flex items-center gap-3">
             <Logo />
-            <span className="px-2 py-0.5 text-[10px] font-black tracking-wider uppercase bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded">
-              Teacher
-            </span>
+            <StatusPill variant="gold">Teacher</StatusPill>
           </div>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-4 space-y-2">
+        <nav className="flex-1 p-4 space-y-1" aria-label="Dashboard navigation">
           {navItems.map((item) => {
             const Icon = item.icon;
             const active = location.pathname === item.path;
@@ -169,55 +168,57 @@ function TeacherDashboardLayout() {
                 key={item.id}
                 type="button"
                 onClick={() => navigate(item.path)}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
+                aria-current={active ? "page" : undefined}
+                className={`w-full flex items-center gap-3 pl-3 pr-4 py-2.5 rounded-md transition-colors font-sans-ui text-sm ${
                   active
-                    ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
-                    : "text-[var(--muted-foreground)] hover:bg-[var(--muted)]/50 hover:text-[var(--foreground)]"
+                    ? "bg-white/[0.05] text-cream border-l-2 border-[#d4a843]"
+                    : "text-white/55 border-l-2 border-transparent hover:bg-white/[0.03] hover:text-cream"
                 }`}
               >
                 <Icon
-                  className={`w-5 h-5 ${active ? "text-[var(--primary-foreground)]" : ""}`}
+                  className={`w-4 h-4 ${active ? "text-[#d4a843]" : ""}`}
+                  aria-hidden="true"
                 />
-                <span className="font-bold text-sm">{item.label}</span>
+                <span className="font-medium">{item.label}</span>
               </button>
             );
           })}
         </nav>
 
         {/* Bottom Actions */}
-        <div className="p-4 border-t border-[var(--border)] space-y-2">
+        <div className="p-4 border-t border-white/[0.06] space-y-1">
           <button
             type="button"
             onClick={() => navigate("/teacher/dashboard")}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[var(--muted-foreground)] hover:bg-[var(--muted)]/50 hover:text-[var(--foreground)] transition-all"
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-white/55 hover:bg-white/[0.03] hover:text-cream transition-colors font-sans-ui text-sm"
           >
-            <Settings className="w-5 h-5" />
-            <span className="font-bold text-sm">Settings</span>
+            <Settings className="w-4 h-4" aria-hidden="true" />
+            <span className="font-medium">Settings</span>
           </button>
           <button
             type="button"
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[var(--muted-foreground)] hover:bg-[var(--muted)]/50 hover:text-[var(--foreground)] transition-all"
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-white/55 hover:bg-white/[0.03] hover:text-cream transition-colors font-sans-ui text-sm"
           >
-            <LogOut className="w-5 h-5" />
-            <span className="font-bold text-sm">Logout</span>
+            <LogOut className="w-4 h-4" aria-hidden="true" />
+            <span className="font-medium">Logout</span>
           </button>
         </div>
       </aside>
 
       {/* Main Content */}
-      <div className="ml-64 flex min-h-[100dvh] min-w-0 flex-col overflow-hidden">
+      <div className="ml-60 flex min-h-[100dvh] min-w-0 flex-col overflow-hidden">
         {/* Top Header */}
-        <header className="relative z-50 bg-[rgba(24,18,45,0.9)] border-b border-[var(--border)] px-8 py-4 shadow-[0_12px_40px_rgba(10,10,20,0.18)] backdrop-blur-xl">
+        <header className="relative z-50 bg-[var(--color-header)]/80 backdrop-blur-md border-b border-white/[0.06] px-8 py-4">
           <div className="flex items-center justify-between">
             {/* Search */}
             <div className="flex-1 max-w-xl">
               <div className="relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--muted-foreground)]" />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" aria-hidden="true" />
                 <input
                   type="text"
                   placeholder="Search materials, quizzes..."
-                  className="w-full pl-12 pr-4 py-3 bg-[rgba(255,255,255,0.06)] border border-[var(--border)] rounded-xl text-[var(--foreground)] placeholder-[var(--muted-foreground)] focus:outline-none focus:border-[var(--ring)] transition-colors"
+                  className="w-full pl-11 pr-4 py-2 bg-white/[0.04] border border-white/[0.08] rounded-lg text-cream placeholder-white/40 focus:outline-none focus:border-[#d4a843]/50 transition-colors font-sans-ui text-sm"
                 />
               </div>
             </div>
@@ -228,24 +229,25 @@ function TeacherDashboardLayout() {
                 <button
                   type="button"
                   onClick={() => setNotificationsOpen((prev) => !prev)}
-                  className="relative p-3 bg-[rgba(255,255,255,0.06)] border border-[var(--border)] rounded-xl hover:bg-[rgba(255,255,255,0.1)] transition-colors"
+                  aria-label="Notifications"
+                  className="relative p-2.5 bg-white/[0.04] border border-white/[0.08] rounded-lg hover:bg-white/[0.08] transition-colors"
                 >
-                  <Bell className="w-5 h-5 text-[var(--muted-foreground)]" />
+                  <Bell className="w-4 h-4 text-white/60" aria-hidden="true" />
                   {unreadCount > 0 && (
-                    <div className="absolute top-2 right-2 w-2 h-2 bg-[var(--primary)] rounded-full"></div>
+                    <div className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-[#d4a843] rounded-full" />
                   )}
                 </button>
 
                 {notificationsOpen && (
-                  <div className="absolute right-0 top-[calc(100%+0.75rem)] z-30 w-80 overflow-hidden rounded-2xl border border-[var(--border)] bg-[rgba(24,18,45,0.98)] shadow-[0_24px_80px_rgba(10,10,20,0.35)] backdrop-blur-xl">
-                    <div className="p-4 border-b border-[var(--border)] flex justify-between items-center">
-                      <h3 className="font-bold text-[var(--foreground)]">
+                  <div className="absolute right-0 top-[calc(100%+0.5rem)] z-30 w-80 overflow-hidden rounded-xl border border-white/[0.08] bg-[var(--color-sidebar)] shadow-[0_8px_24px_rgba(0,0,0,0.4)]">
+                    <div className="p-4 border-b border-white/[0.06] flex justify-between items-center">
+                      <h3 className="font-sans-ui font-semibold text-cream text-sm">
                         Notifications
                       </h3>
                       {unreadCount > 0 && (
                         <button
                           onClick={() => dispatch(markAllAsRead())}
-                          className="text-xs text-[var(--primary)] hover:underline"
+                          className="text-xs text-[#d4a843] hover:underline font-sans-ui"
                         >
                           Mark all as read
                         </button>
@@ -253,7 +255,7 @@ function TeacherDashboardLayout() {
                     </div>
                     <div className="max-h-80 overflow-y-auto custom-scrollbar">
                       {notifications.length === 0 ? (
-                        <div className="p-4 text-center text-sm text-[var(--muted-foreground)]">
+                        <div className="p-6 text-center text-sm text-white/50 font-sans-ui">
                           No notifications yet.
                         </div>
                       ) : (
@@ -265,24 +267,26 @@ function TeacherDashboardLayout() {
                               onClick={() => {
                                 if (isUnread) dispatch(markAsRead(notif.id));
                               }}
-                              className={`p-4 border-b border-[var(--border)] hover:bg-[rgba(255,255,255,0.06)] transition-colors cursor-pointer ${
-                                isUnread ? "bg-[rgba(255,255,255,0.02)]" : ""
+                              className={`p-4 border-b border-white/[0.04] hover:bg-white/[0.04] transition-colors cursor-pointer ${
+                                isUnread ? "bg-white/[0.02]" : ""
                               }`}
                             >
-                              <div className="flex justify-between items-start mb-1">
+                              <div className="flex justify-between items-start mb-1 gap-2">
                                 <h4
-                                  className={`text-sm font-bold ${isUnread ? "text-[var(--foreground)]" : "text-[var(--muted-foreground)]"}`}
+                                  className={`font-sans-ui text-sm font-medium ${
+                                    isUnread ? "text-cream" : "text-white/55"
+                                  }`}
                                 >
                                   {notif.title}
                                 </h4>
                                 {isUnread && (
-                                  <span className="w-2 h-2 rounded-full bg-[var(--primary)] mt-1.5 flex-shrink-0"></span>
+                                  <span className="w-1.5 h-1.5 rounded-full bg-[#d4a843] mt-2 flex-shrink-0" />
                                 )}
                               </div>
-                              <p className="text-xs text-[var(--muted-foreground)] line-clamp-2">
+                              <p className="text-xs text-white/50 line-clamp-2 font-sans-ui">
                                 {notif.content}
                               </p>
-                              <span className="text-[10px] text-[var(--muted-foreground)] mt-2 block">
+                              <span className="text-[10px] text-white/40 mt-2 block font-sans-ui">
                                 {formatDistanceToNow(
                                   new Date(notif.createdAt),
                                   {
@@ -295,8 +299,8 @@ function TeacherDashboardLayout() {
                         })
                       )}
                     </div>
-                    <div className="p-3 border-t border-[var(--border)] text-center bg-[rgba(255,255,255,0.02)]">
-                      <button className="text-sm font-bold text-[var(--primary)] hover:underline">
+                    <div className="p-3 border-t border-white/[0.06] text-center">
+                      <button className="text-xs font-sans-ui font-medium text-[#d4a843] hover:underline">
                         View all notifications
                       </button>
                     </div>
@@ -307,14 +311,14 @@ function TeacherDashboardLayout() {
               {/* User Avatar */}
               <div
                 ref={avatarMenuRef}
-                className="relative pl-4 border-l border-[var(--border)]"
+                className="relative pl-4 border-l border-white/[0.06]"
               >
                 <button
                   type="button"
                   onClick={() => setAvatarMenuOpen((current) => !current)}
-                  className="flex items-center gap-3 rounded-2xl px-2 py-1.5 transition-colors hover:bg-[rgba(255,255,255,0.06)]"
+                  className="flex items-center gap-2.5 rounded-md px-2 py-1 transition-colors hover:bg-white/[0.04]"
                 >
-                  <div className="w-10 h-10 rounded-full border-2 border-[var(--border)] overflow-hidden flex items-center justify-center bg-[var(--second-card)]">
+                  <div className="w-9 h-9 rounded-full border border-white/[0.08] overflow-hidden flex items-center justify-center bg-white/[0.06]">
                     {profilePictureUrl ? (
                       <img
                         src={profilePictureUrl}
@@ -322,15 +326,15 @@ function TeacherDashboardLayout() {
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <span className="text-sm font-bold text-[var(--foreground)]">
+                      <span className="text-sm font-sans-ui font-medium text-cream">
                         {displayName[0].toUpperCase()}
                       </span>
                     )}
                   </div>
                   <div className="text-left">
-                    <p className="text-[var(--foreground)] text-sm font-bold flex items-center gap-1.5">
+                    <p className="text-cream text-sm font-sans-ui font-medium flex items-center gap-1.5">
                       {displayName}
-                      <GraduationCap className="w-4 h-4 text-amber-400" />
+                      <GraduationCap className="w-3.5 h-3.5 text-[#d4a843]" />
                     </p>
                     <div className="mt-1">
                       <TeacherTierBadge rating={teacherRating} compact />
@@ -339,16 +343,16 @@ function TeacherDashboardLayout() {
                 </button>
 
                 {avatarMenuOpen && (
-                  <div className="absolute right-0 top-[calc(100%+0.75rem)] z-30 w-56 overflow-hidden rounded-2xl border border-[var(--border)] bg-[rgba(24,18,45,0.98)] shadow-[0_24px_80px_rgba(10,10,20,0.35)] backdrop-blur-xl">
+                  <div className="absolute right-0 top-[calc(100%+0.5rem)] z-30 w-56 overflow-hidden rounded-xl border border-white/[0.08] bg-[var(--color-sidebar)] shadow-[0_8px_24px_rgba(0,0,0,0.4)]">
                     <button
                       type="button"
                       onClick={() => {
                         setAvatarMenuOpen(false);
                         navigate("/teacher/dashboard/profile");
                       }}
-                      className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm font-bold text-[var(--foreground)] transition-colors hover:bg-[rgba(255,255,255,0.06)]"
+                      className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm font-sans-ui text-cream hover:bg-white/[0.05] transition-colors"
                     >
-                      <User className="w-4 h-4 text-[var(--primary)]" />
+                      <User className="w-4 h-4 text-[#d4a843]" aria-hidden="true" />
                       Profile
                     </button>
                     <button
@@ -357,9 +361,9 @@ function TeacherDashboardLayout() {
                         setAvatarMenuOpen(false);
                         navigate("/teacher/dashboard");
                       }}
-                      className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm font-bold text-[var(--foreground)] transition-colors hover:bg-[rgba(255,255,255,0.06)]"
+                      className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm font-sans-ui text-cream hover:bg-white/[0.05] transition-colors"
                     >
-                      <Settings className="w-4 h-4 text-[var(--primary)]" />
+                      <Settings className="w-4 h-4 text-[#d4a843]" aria-hidden="true" />
                       Settings
                     </button>
                     <button
@@ -368,9 +372,9 @@ function TeacherDashboardLayout() {
                         setAvatarMenuOpen(false);
                         handleLogout();
                       }}
-                      className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm font-bold text-[var(--foreground)] transition-colors hover:bg-[rgba(239,68,68,0.14)]"
+                      className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm font-sans-ui text-red-300 hover:bg-red-500/10 transition-colors"
                     >
-                      <LogOut className="w-4 h-4 text-red-400" />
+                      <LogOut className="w-4 h-4" aria-hidden="true" />
                       Logout
                     </button>
                   </div>

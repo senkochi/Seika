@@ -23,7 +23,7 @@ function TeacherAccomplishmentsCard({
   statsError,
 }: TeacherAccomplishmentsCardProps) {
   return (
-    <div className="bg-[var(--card)] backdrop-blur-xl border border-[var(--border)] rounded-3xl p-6 shadow-lg shadow-black/20">
+    <div className="bg-[var(--card)] backdrop-blur-xl border border-[var(--border)] rounded-3xl p-6">
       <div className="flex items-center justify-between mb-5">
         <h3 className="text-lg font-bold text-[var(--foreground)] flex items-center gap-2">
           <Award className="w-5 h-5 text-amber-400" />

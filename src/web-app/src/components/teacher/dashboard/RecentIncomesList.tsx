@@ -1,5 +1,8 @@
 import { ArrowRight, Clock } from "lucide-react";
 import type { TransactionResponse } from "../../../api/services/wallet";
+import { SectionCard } from "../../ui/SectionCard";
+import { EmptyState } from "../../ui/EmptyState";
+import { StatusPill } from "../../ui/StatusPill";
 
 interface RecentIncomesListProps {
   events: TransactionResponse[];
@@ -8,50 +11,53 @@ interface RecentIncomesListProps {
 
 function RecentIncomesList({ events, onGoToWallet }: RecentIncomesListProps) {
   return (
-    <div className="bg-[var(--card)] backdrop-blur-xl border border-[var(--border)] shadow-[0_20px_60px_rgba(10,10,20,0.28)] rounded-2xl p-6">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-lg font-bold text-[var(--foreground)]">
-          Recent Incomes
+    <SectionCard>
+      <div className="flex items-center justify-between mb-5">
+        <h2 className="font-sans-ui text-base font-semibold text-cream">
+          Thu nhập gần đây
         </h2>
         <button
+          type="button"
           onClick={onGoToWallet}
-          className="text-sm text-[var(--muted-foreground)] hover:text-[var(--light-primary)] transition-colors flex items-center gap-1"
+          className="font-sans-ui text-xs text-[#d4a843] hover:underline transition-colors flex items-center gap-1"
         >
-          Go to Wallet
-          <ArrowRight className="w-4 h-4" />
+          Mở ví
+          <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
         </button>
       </div>
 
-      <div className="space-y-3">
-        {events.length === 0 ? (
-          <p className="text-[var(--muted-foreground)] text-sm">
-            No recent incomes.
-          </p>
-        ) : (
-          events.map((event) => (
+      {events.length === 0 ? (
+        <EmptyState
+          icon={<Clock className="w-5 h-5" aria-hidden="true" />}
+          title="Chưa có thu nhập nào"
+          description="Hoạt động bán nội dung sẽ xuất hiện tại đây."
+        />
+      ) : (
+        <div className="space-y-3 font-sans-ui">
+          {events.map((event) => (
             <div
               key={event.id}
-              className="flex items-center gap-4 p-4 bg-[var(--second-card)] backdrop-blur-md rounded-xl hover:bg-[var(--second-muted)] transition-colors"
+              className="flex items-center gap-4 p-4 bg-white/[0.02] border border-white/[0.04] rounded-xl hover:bg-white/[0.04] transition-colors"
             >
-              <div className="text-2xl w-10 h-10 bg-[var(--card)] border border-[var(--border)] rounded-lg flex items-center justify-center">
-                <Clock className="w-5 h-5 text-green-400" />
+              <div className="w-10 h-10 bg-white/[0.04] border border-white/[0.06] rounded-lg flex items-center justify-center">
+                <Clock className="w-4 h-4 text-emerald-300" aria-hidden="true" />
               </div>
-              <div className="flex-1">
-                <p className="text-[var(--foreground)] font-semibold text-sm">
+              <div className="flex-1 min-w-0">
+                <p className="text-cream font-medium text-sm truncate">
                   {event.description}
                 </p>
-                <p className="text-[var(--muted-foreground)] text-xs">
-                  {new Date(event.createdAt).toLocaleDateString()}
+                <p className="text-white/45 text-xs mt-0.5">
+                  {new Date(event.createdAt).toLocaleDateString("vi-VN")}
                 </p>
               </div>
-              <div className="px-3 py-1 rounded-full text-xs font-semibold bg-green-500/10 text-green-400">
+              <StatusPill variant="success">
                 +{event.amount} Coins
-              </div>
+              </StatusPill>
             </div>
-          ))
-        )}
-      </div>
-    </div>
+          ))}
+        </div>
+      )}
+    </SectionCard>
   );
 }
 

@@ -4,10 +4,12 @@ import { cn } from "./utils";
 
 type Variant = "primary" | "ghost" | "link" | "dark";
 type Size = "md" | "lg";
+type Tone = "neutral" | "danger";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: Variant;
   size?: Size;
+  tone?: Tone;
   trailing?: boolean;
   loading?: boolean;
   children: ReactNode;
@@ -16,12 +18,17 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 /**
  * Magnetic-style pill button. Primary uses a soft gold gradient with an
  * inset highlight (double-bezel feel) and a nested trailing icon circle.
+ *
+ * `tone="danger"` shifts a ghost button to red text + red hover tint
+ * (use for destructive actions like Delete / Reset password). Other
+ * variants ignore `tone` to keep the API surface small.
  */
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   (
     {
       variant = "primary",
       size = "md",
+      tone = "neutral",
       trailing = false,
       loading = false,
       disabled,
@@ -44,10 +51,14 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         "bg-gradient-to-b from-[#e6c264] to-[#c89a36] text-[#1c0f2e] shadow-[inset_0_1px_1px_rgba(255,255,255,0.4),0_1px_2px_rgba(0,0,0,0.25)] hover:shadow-[inset_0_1px_1px_rgba(255,255,255,0.55),0_8px_24px_-8px_rgba(212,168,67,0.45)]",
       ghost:
         "bg-white/[0.04] text-[#faf6ee] border border-white/[0.08] hover:bg-white/[0.08] hover:border-white/[0.16]",
-      dark:
-        "bg-[#1c0f2e] text-[#faf6ee] border border-[#1c0f2e] hover:bg-[#2a1247]",
+      dark: "bg-[#1c0f2e] text-[#faf6ee] border border-[#1c0f2e] hover:bg-[#2a1247]",
       link: "text-[#d4a843] hover:text-[#f1e4c0] px-0 h-auto",
     };
+
+    const dangerGhost =
+      tone === "danger" && variant === "ghost"
+        ? "!text-red-300 hover:!bg-red-500/10 hover:!border-red-500/30"
+        : "";
 
     const isLink = variant === "link";
 
@@ -59,6 +70,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           base,
           isLink ? "gap-1.5" : sizes[size],
           variants[variant],
+          dangerGhost,
           className,
         )}
         {...props}
@@ -66,11 +78,15 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         {loading ? (
           <span className="inline-flex items-center gap-2">
             <Spinner />
-            <span>{children}</span>
+            <span className="inline-flex items-center justify-center gap-2 shrink-0">
+              {children}
+            </span>
           </span>
         ) : (
           <>
-            <span>{children}</span>
+            <span className="inline-flex items-center justify-center gap-2 shrink-0">
+              {children}
+            </span>
             {trailing && !isLink && (
               <span
                 aria-hidden

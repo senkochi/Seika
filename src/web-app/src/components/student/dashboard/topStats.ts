@@ -1,33 +1,48 @@
-import { Zap, Target, Sword, Swords } from "lucide-react";
+import { Zap, Target, Sword, Swords, type LucideIcon } from "lucide-react";
+import type { Variant } from "../../ui/IconChip";
 
 /** Stats có trend (hiển thị top). */
-export const topStatsConfig = [
+export type TopStatConfig = {
+  label: string;
+  trend: string;
+  trendUp: boolean;
+  icon: LucideIcon;
+  iconVariant: Variant;
+};
+
+export const topStatsConfig: readonly TopStatConfig[] = [
   {
     label: "Total XP",
     trend: "+12%",
     trendUp: true,
     icon: Zap,
-    color: "from-amber-400 to-yellow-500",
+    iconVariant: "gold",
   },
   {
     label: "Quizzes Completed",
     trend: "+1",
     trendUp: true,
     icon: Target,
-    color: "from-purple-500 to-violet-600",
+    iconVariant: "info",
   },
-] as const;
+];
 
 /** Stats đơn giản (hiển thị quick stats). */
-export const quickStatsConfig = [
+export type QuickStatConfig = {
+  label: string;
+  icon: LucideIcon;
+  iconVariant: Variant;
+};
+
+export const quickStatsConfig: readonly QuickStatConfig[] = [
   {
     label: "Current Streak",
     icon: Sword,
-    color: "text-blue-400",
+    iconVariant: "success",
   },
   {
     label: "Longest Streak",
     icon: Swords,
-    color: "text-green-400",
+    iconVariant: "warning",
   },
-] as const;
+];

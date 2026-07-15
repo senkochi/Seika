@@ -32,7 +32,7 @@ export function Navbar() {
           <div
             className={cn(
               "flex items-center justify-between h-14 pl-5 pr-2 rounded-full",
-              "bg-[#15091e]/70 backdrop-blur-2xl",
+              "bg-[var(--color-header)]/70 backdrop-blur-2xl",
               "border border-white/[0.08]",
               "shadow-[inset_0_1px_1px_rgba(255,255,255,0.08),0_8px_32px_-12px_rgba(0,0,0,0.5)]",
             )}
@@ -122,7 +122,7 @@ export function Navbar() {
             : "opacity-0 pointer-events-none",
         )}
       >
-        <div className="absolute inset-0 bg-[#15091e]/92 backdrop-blur-3xl" />
+        <div className="absolute inset-0 bg-[var(--color-header)]/92 backdrop-blur-3xl" />
         <div className="relative h-full flex flex-col items-center justify-center gap-10 px-6 pt-24">
           <div className="flex flex-col items-center gap-6">
             {NAV_LINKS.map((link, i) => (

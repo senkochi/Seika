@@ -121,8 +121,8 @@ function ContentManager() {
   const renderList = () => {
     if (loadingList) {
       return (
-        <div className="flex flex-col items-center justify-center p-20 text-[var(--muted-foreground)] gap-4">
-          <Loader2 className="w-10 h-10 animate-spin text-[var(--primary)]" />
+        <div className="flex flex-col items-center justify-center p-20 text-white/55 gap-4 font-sans-ui">
+          <Loader2 className="w-10 h-10 animate-spin text-[#d4a843]" aria-hidden="true" />
           <p>Đang tải nội dung của bạn...</p>
         </div>
       );

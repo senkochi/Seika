@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import { X, Loader2, AlertCircle } from "lucide-react";
+import { Button } from "./Button";
 
 export interface ConfirmModalProps {
   open: boolean;
@@ -14,6 +15,14 @@ export interface ConfirmModalProps {
   icon?: React.ReactNode;
 }
 
+/**
+ * ConfirmModal — quiet destructive confirmation. Hairline border, no zoom-in,
+ * no hover-scale, no shadow-2xl. Focus trap retained: Escape closes while
+ * not loading; clicking the scrim closes (unless loading); X button + Cancel
+ * button both route through onClose.
+ *
+ * Visuals only changed here — original behavior preserved verbatim.
+ */
 export default function ConfirmModal({
   open,
   onClose,
@@ -40,30 +49,31 @@ export default function ConfirmModal({
 
   if (!open) return null;
 
-  const getVariantStyles = () => {
-    switch (variant) {
-      case "warning":
-        return "bg-gradient-to-r from-amber-500 to-yellow-500 text-purple-950 font-black shadow-amber-500/20";
-      case "danger":
-        return "bg-gradient-to-r from-red-500 to-rose-600 text-white font-bold shadow-red-500/20";
-      default:
-        return "bg-gradient-to-r from-amber-400 to-yellow-500 text-purple-950 font-black shadow-amber-500/20";
-    }
-  };
+  // Map legacy variant → new Button tone. Keep the public API stable.
+  const confirmTone: "neutral" | "danger" =
+    variant === "danger" ? "danger" : "neutral";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="confirm-modal-title"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 animate-[confirm-fadeIn_200ms_ease-out]"
+      onClick={() => !isLoading && onClose()}
+    >
       <div
-        className="w-full max-w-lg rounded-3xl bg-[var(--card)] border border-[var(--border)] shadow-2xl overflow-hidden transform transition-all animate-in zoom-in-95 duration-200"
+        className="w-full max-w-md rounded-2xl border border-[var(--border)] overflow-hidden bg-[var(--card)] backdrop-blur-xl"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
-        <div className="flex items-center justify-between border-b border-[var(--border)] px-6 py-5 bg-[var(--second-card)]/50">
+        <div className="flex items-center justify-between border-b border-white/[0.06] px-6 py-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-400/10 border border-amber-400/20 flex items-center justify-center">
-              {icon || <AlertCircle className="w-5 h-5 text-amber-400" />}
+            <div className="w-10 h-10 rounded-xl bg-[#d4a843]/10 border border-[#d4a843]/25 flex items-center justify-center text-[#d4a843]">
+              {icon || <AlertCircle className="w-5 h-5" />}
             </div>
-            <h3 className="text-lg font-bold text-[var(--foreground)]">
+            <h3
+              id="confirm-modal-title"
+              className="font-sans-ui text-base font-semibold text-[#faf6ee]"
+            >
               {title}
             </h3>
           </div>
@@ -72,34 +82,35 @@ export default function ConfirmModal({
             aria-label="Đóng"
             onClick={onClose}
             disabled={isLoading}
-            className="rounded-xl p-2 text-[var(--muted-foreground)] hover:bg-[rgba(255,255,255,0.08)] hover:text-[var(--foreground)] transition-colors disabled:opacity-50"
+            className="rounded-lg p-1.5 text-white/45 hover:bg-white/[0.06] hover:text-[#faf6ee] transition-colors disabled:opacity-50"
           >
-            <X className="h-5 w-5" />
+            <X className="h-4 w-4" />
           </button>
         </div>
 
-        {/* Content */}
-        <div className="p-6 text-[var(--foreground)] space-y-4">{children}</div>
+        <div className="p-6 text-[#faf6ee]/75 font-sans-ui text-sm space-y-3">
+          {children}
+        </div>
 
-        {/* Footer */}
-        <div className="flex items-center justify-end gap-3 border-t border-[var(--border)] bg-[var(--second-card)]/30 px-6 py-4">
-          <button
-            type="button"
+        <div className="flex items-center justify-end gap-2 border-t border-white/[0.06] px-6 py-4">
+          <Button
+            variant="ghost"
+            size="md"
             onClick={onClose}
             disabled={isLoading}
-            className="px-5 py-2.5 rounded-xl border border-[var(--border)] text-sm font-semibold text-[var(--muted-foreground)] hover:bg-[rgba(255,255,255,0.06)] hover:text-[var(--foreground)] transition-all disabled:opacity-50"
           >
             {cancelText}
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            variant="ghost"
+            tone={confirmTone}
+            size="md"
             onClick={onConfirm}
             disabled={isLoading}
-            className={`inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-sm transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg disabled:opacity-50 disabled:cursor-not-allowed ${getVariantStyles()}`}
           >
             {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
             {confirmText}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

@@ -43,7 +43,7 @@ export default function SellerEscrowPanel({
   const decisionCount = escrows.filter((e) => e.needsAdminDecision).length;
 
   return (
-    <div className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-6 shadow-lg shadow-black/20">
+    <div className="rounded-lg border border-[var(--border)] bg-[var(--card)] backdrop-blur-xl p-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h2 className="flex items-center gap-2 text-xl font-bold text-[var(--foreground)]">

@@ -1,3 +1,5 @@
+import { SectionCard } from "../../ui/SectionCard";
+
 interface LevelProgressCardProps {
   level: number;
   currentXP: number;
@@ -15,9 +17,9 @@ function LevelProgressCard({
   const percent = nextXP > 0 ? Math.round((currentXP / nextXP) * 100) : 0;
 
   return (
-    <div className="bg-[var(--card)] backdrop-blur-xl border border-[var(--border)] shadow-[0_20px_60px_rgba(10,10,20,0.28)] hover:border-[var(--primary)] rounded-2xl p-6 flex flex-col items-center justify-center">
-      <h3 className="text-lg font-bold text-[var(--foreground)] mb-6">
-        Level Progress
+    <SectionCard className="flex flex-col items-center justify-center">
+      <h3 className="font-sans-ui text-base font-semibold text-cream mb-6 w-full text-left">
+        Tiến độ cấp độ
       </h3>
 
       <div className="relative w-40 h-40 mb-6">
@@ -26,7 +28,7 @@ function LevelProgressCard({
             cx="80"
             cy="80"
             r={RADIUS}
-            stroke="#10111a"
+            stroke="rgba(255,255,255,0.06)"
             strokeWidth="12"
             fill="none"
           />
@@ -34,7 +36,7 @@ function LevelProgressCard({
             cx="80"
             cy="80"
             r={RADIUS}
-            stroke="#9333ea"
+            stroke="#d4a843"
             strokeWidth="12"
             fill="none"
             strokeDasharray={CIRCUMFERENCE}
@@ -43,26 +45,29 @@ function LevelProgressCard({
             className="transition-all duration-500"
           />
         </svg>
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <p className="text-4xl font-bold text-[var(--foreground)]">
+        <div className="absolute inset-0 flex flex-col items-center justify-center font-sans-ui">
+          <p className="text-3xl font-semibold text-cream tabular-nums">
             {percent}%
           </p>
-          <p className="text-[var(--muted-foreground)] text-sm">Complete</p>
+          <p className="text-white/45 text-xs uppercase tracking-[0.12em] mt-1">
+            Hoàn thành
+          </p>
         </div>
       </div>
 
-      <div className="text-center">
-        <p className="text-[var(--muted-foreground)] text-sm mb-1">
-          Current Level
+      <div className="text-center font-sans-ui">
+        <p className="text-white/45 text-xs uppercase tracking-[0.12em] mb-1">
+          Cấp hiện tại
         </p>
-        <p className="text-2xl font-bold text-[var(--foreground)] mb-4">
+        <p className="text-xl font-semibold text-cream mb-3 tabular-nums">
           Level {level}
         </p>
-        <p className="text-xs text-[var(--muted-foreground)]">
-          {currentXP.toLocaleString()} / {nextXP.toLocaleString()} XP
+        <p className="text-xs text-white/55 tabular-nums">
+          {currentXP.toLocaleString("vi-VN")} / {nextXP.toLocaleString("vi-VN")}{" "}
+          XP
         </p>
       </div>
-    </div>
+    </SectionCard>
   );
 }
 

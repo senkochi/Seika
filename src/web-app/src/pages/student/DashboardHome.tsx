@@ -4,8 +4,6 @@ import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { fetchCurrentUserProfile } from "../../store/userProfileSlice";
 
 import WelcomeHeader from "../../components/student/dashboard/WelcomeHeader";
-import StatCard from "../../components/student/dashboard/StatCard";
-import QuickStatItem from "../../components/student/dashboard/QuickStatItem";
 import LevelProgressCard from "../../components/student/dashboard/LevelProgressCard";
 import RecentTransactionsSection from "../../components/student/dashboard/RecentTransactionsSection";
 import DashboardLoading from "../../components/student/dashboard/DashboardLoading";
@@ -15,6 +13,7 @@ import {
   topStatsConfig,
   quickStatsConfig,
 } from "../../components/student/dashboard/topStats";
+import { StatCard } from "../../components/ui/StatCard";
 
 const XP_PER_LEVEL = 1000;
 
@@ -49,7 +48,7 @@ function DashboardHome() {
 
   const currentLevelXP = exp % XP_PER_LEVEL;
   const nextLevelXP = XP_PER_LEVEL;
-  const displayName = fullName ?? username ?? authUsername ?? "Learner";
+  const displayName = fullName ?? username ?? authUsername ?? "bạn";
 
   if (status === "loading") {
     return <DashboardLoading />;
@@ -64,48 +63,55 @@ function DashboardHome() {
     );
   }
 
+  const topStatValues: Record<string, string | number> = {
+    "Total XP": exp.toLocaleString("vi-VN"),
+    "Quizzes Completed": quizzesCompleted,
+  };
+
   return (
-    <div className="p-8">
+    <div className="space-y-8 p-6 lg:p-8 font-sans-ui">
       <WelcomeHeader displayName={displayName} onRefresh={handleRefresh} />
 
-      <div className="grid md:grid-cols-2 gap-6 mb-8">
-        {topStatsConfig.map((stat) => (
-          <StatCard
-            key={stat.label}
-            label={stat.label}
-            value={
-              stat.label === "Total XP"
-                ? exp.toLocaleString()
-                : quizzesCompleted.toString()
-            }
-            trend={stat.trend}
-            trendUp={stat.trendUp}
-            icon={stat.icon}
-            color={stat.color}
-          />
-        ))}
+      <div className="grid gap-4 md:grid-cols-2">
+        {topStatsConfig.map((stat) => {
+          const Icon = stat.icon;
+          return (
+            <StatCard
+              key={stat.label}
+              label={stat.label}
+              value={topStatValues[stat.label] ?? "—"}
+              icon={<Icon className="h-4 w-4" aria-hidden="true" />}
+              iconVariant={stat.iconVariant}
+              delta={{ value: stat.trend, trend: stat.trendUp ? "up" : "down" }}
+            />
+          );
+        })}
       </div>
 
-      <div className="grid md:grid-cols-2 gap-6 mb-8">
+      <div className="grid gap-6 md:grid-cols-2">
         <LevelProgressCard
           level={level}
           currentXP={currentLevelXP}
           nextXP={nextLevelXP}
         />
-        <div className="flex flex-col gap-6 h-full">
-          {quickStatsConfig.map((stat) => (
-            <QuickStatItem
-              key={stat.label}
-              label={stat.label}
-              value={
-                stat.label === "Current Streak"
-                  ? currentStreak.toString()
-                  : longestStreak.toString()
-              }
-              icon={stat.icon}
-              color={stat.color}
-            />
-          ))}
+        <div className="grid gap-4 content-start">
+          {quickStatsConfig.map((stat) => {
+            const Icon = stat.icon;
+            const value =
+              stat.label === "Current Streak"
+                ? currentStreak
+                : longestStreak;
+            return (
+              <StatCard
+                key={stat.label}
+                label={stat.label}
+                value={value}
+                unit="ngày"
+                icon={<Icon className="h-4 w-4" aria-hidden="true" />}
+                iconVariant={stat.iconVariant}
+              />
+            );
+          })}
         </div>
       </div>
 

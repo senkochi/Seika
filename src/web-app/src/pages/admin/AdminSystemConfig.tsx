@@ -7,7 +7,6 @@ import {
   Loader2,
   RefreshCw,
   Save,
-  Settings,
   ShieldCheck,
   Store,
 } from "lucide-react";
@@ -18,6 +17,11 @@ import type { SystemConfigEntry } from "../../api/types";
 import { showError, showSuccess } from "../../components/toast/toastUtils";
 import { fetchAdminConfigs, updateAdminConfig } from "../../store/adminSlice";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
+import { PageHeader } from "../../components/ui/PageHeader";
+import { SectionCard } from "../../components/ui/SectionCard";
+import { IconChip } from "../../components/ui/IconChip";
+import { Button } from "../../components/ui/Button";
+import { EmptyState } from "../../components/ui/EmptyState";
 
 type ConfigDomain = "wallet" | "marketplace";
 type RequestStatus = "idle" | "loading" | "succeeded" | "failed";
@@ -121,61 +125,60 @@ function ConfigRow({
     : null;
 
   return (
-    <div className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-4">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
-        <div className="min-w-0 flex-1">
-          <label
-            htmlFor={inputId}
-            className="block break-words text-sm font-semibold text-[var(--foreground)]"
-          >
-            {entry.key}
-          </label>
-          {entry.description && (
-            <p className="mt-1 text-xs leading-5 text-[var(--muted-foreground)]">
-              {entry.description}
-            </p>
-          )}
-          {usesTextarea ? (
-            <textarea
-              id={inputId}
-              value={draft}
-              onChange={(event) => handleChange(event.target.value)}
-              rows={5}
-              spellCheck={false}
-              className="mt-3 min-h-28 w-full resize-y rounded-md border border-[var(--border)] bg-[rgba(255,255,255,0.06)] px-3 py-2 font-mono text-sm text-[var(--foreground)] focus:border-[var(--ring)] focus:outline-none"
-            />
-          ) : (
-            <input
-              id={inputId}
-              type="text"
-              inputMode="decimal"
-              value={draft}
-              onChange={(event) => handleChange(event.target.value)}
-              className="mt-3 w-full rounded-md border border-[var(--border)] bg-[rgba(255,255,255,0.06)] px-3 py-2 font-mono text-sm text-[var(--foreground)] focus:border-[var(--ring)] focus:outline-none"
-            />
-          )}
-          <div className="mt-2 min-h-4 text-xs text-[var(--muted-foreground)]">
-            {updatedAt && <span>Cập nhật: {updatedAt}</span>}
-            {entry.updatedBy && <span> bởi {entry.updatedBy}</span>}
-          </div>
-        </div>
-        <button
-          type="button"
-          onClick={() => onSave(domain, entry, draft)}
-          disabled={!isDirty || isSaving}
-          className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-[var(--primary)] px-4 text-sm font-medium text-[var(--primary-foreground)] hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 lg:mt-7"
+    <SectionCard className="flex flex-col gap-4 lg:flex-row lg:items-start">
+      <div className="min-w-0 flex-1">
+        <label
+          htmlFor={inputId}
+          className="block break-words font-sans-ui text-sm font-semibold text-cream"
         >
-          {isSaving ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : isDirty ? (
-            <Save className="h-4 w-4" />
-          ) : (
-            <Check className="h-4 w-4" />
-          )}
-          Lưu
-        </button>
+          {entry.key}
+        </label>
+        {entry.description && (
+          <p className="mt-1 font-sans-ui text-xs leading-5 text-white/55">
+            {entry.description}
+          </p>
+        )}
+        {usesTextarea ? (
+          <textarea
+            id={inputId}
+            value={draft}
+            onChange={(event) => handleChange(event.target.value)}
+            rows={5}
+            spellCheck={false}
+            className="mt-3 min-h-28 w-full resize-y rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 py-2 font-mono text-sm text-cream focus:border-[#d4a843]/50 focus:outline-none transition-colors"
+          />
+        ) : (
+          <input
+            id={inputId}
+            type="text"
+            inputMode="decimal"
+            value={draft}
+            onChange={(event) => handleChange(event.target.value)}
+            className="mt-3 w-full rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 py-2 font-mono text-sm text-cream focus:border-[#d4a843]/50 focus:outline-none transition-colors"
+          />
+        )}
+        <div className="mt-2 min-h-4 font-sans-ui text-xs text-white/55">
+          {updatedAt && <span>Cập nhật: {updatedAt}</span>}
+          {entry.updatedBy && <span> bởi {entry.updatedBy}</span>}
+        </div>
       </div>
-    </div>
+      <Button
+        variant="primary"
+        size="md"
+        onClick={() => onSave(domain, entry, draft)}
+        disabled={!isDirty || isSaving}
+        className="lg:mt-7"
+      >
+        {isSaving ? (
+          <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+        ) : isDirty ? (
+          <Save className="h-4 w-4" aria-hidden="true" />
+        ) : (
+          <Check className="h-4 w-4" aria-hidden="true" />
+        )}
+        Lưu
+      </Button>
+    </SectionCard>
   );
 }
 
@@ -203,18 +206,16 @@ function ConfigSection({
   }
 
   return (
-    <section className="space-y-3 border-t border-[var(--border)] pt-5">
+    <section className="space-y-3 border-t border-white/[0.06] pt-5 font-sans-ui">
       <div>
-        <h2 className="text-base font-semibold text-[var(--foreground)]">
+        <h2 className="font-sans-ui text-base font-semibold text-cream">
           {group.title}
         </h2>
-        <p className="mt-1 text-sm text-[var(--muted-foreground)]">
-          {group.description}
-        </p>
+        <p className="mt-1 text-sm text-white/55">{group.description}</p>
       </div>
       {missingKeys.length > 0 && (
-        <div className="flex gap-2 rounded-lg border border-[var(--border)] bg-[rgba(255,255,255,0.04)] p-3 text-sm text-[var(--muted-foreground)]">
-          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-[var(--primary)]" />
+        <div className="flex gap-2 rounded-lg border border-amber-400/25 bg-amber-400/[0.06] p-3 text-sm text-amber-300">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
           <span>
             Backend chưa trả các key theo plan: {missingKeys.join(", ")}
           </span>
@@ -267,19 +268,14 @@ function buildGroupedConfigs(
   return grouped;
 }
 
-function EmptyState({ message }: { message: string }) {
-  return (
-    <div className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-8 text-center text-sm text-[var(--muted-foreground)]">
-      {message}
-    </div>
-  );
-}
-
 function LoadingState({ label }: { label: string }) {
   return (
-    <div className="flex min-h-64 items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--card)] p-8">
-      <div className="flex flex-col items-center gap-3 text-[var(--muted-foreground)]">
-        <Loader2 className="h-8 w-8 animate-spin text-[var(--primary)]" />
+    <div className="flex min-h-64 items-center justify-center rounded-lg border border-white/[0.06] bg-white/[0.02] p-8 font-sans-ui">
+      <div className="flex flex-col items-center gap-3 text-white/55">
+        <Loader2
+          className="h-8 w-8 animate-spin text-[#d4a843]"
+          aria-hidden="true"
+        />
         <p>{label}</p>
       </div>
     </div>
@@ -294,21 +290,18 @@ function ErrorState({
   onRetry: () => void;
 }) {
   return (
-    <div className="flex min-h-64 items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--card)] p-8">
+    <div className="flex min-h-64 items-center justify-center rounded-lg border border-white/[0.06] bg-white/[0.02] p-8 font-sans-ui">
       <div className="flex max-w-md flex-col items-center gap-3 text-center">
-        <AlertCircle className="h-9 w-9 text-[var(--primary)]" />
-        <p className="font-semibold text-[var(--foreground)]">
-          Không thể tải cấu hình
-        </p>
-        <p className="text-sm text-[var(--muted-foreground)]">{message}</p>
-        <button
-          type="button"
-          onClick={onRetry}
-          className="inline-flex h-10 items-center gap-2 rounded-md bg-[var(--primary)] px-4 text-sm font-medium text-[var(--primary-foreground)] hover:opacity-90"
-        >
-          <RefreshCw className="h-4 w-4" />
+        <AlertCircle
+          className="h-9 w-9 text-[#d4a843]"
+          aria-hidden="true"
+        />
+        <p className="font-semibold text-cream">Không thể tải cấu hình</p>
+        <p className="text-sm text-white/55">{message}</p>
+        <Button variant="primary" size="md" onClick={onRetry}>
+          <RefreshCw className="h-4 w-4" aria-hidden="true" />
           Thử lại
-        </button>
+        </Button>
       </div>
     </div>
   );
@@ -414,7 +407,9 @@ function AdminSystemConfig() {
       }
       if (configs.length === 0) {
         return (
-          <EmptyState message="Chưa có wallet config nào trong hệ thống." />
+          <EmptyState
+            title="Chưa có wallet config nào trong hệ thống."
+          />
         );
       }
       return walletGroups.map(({ group, configs: entries, missingKeys }) => (
@@ -443,7 +438,9 @@ function AdminSystemConfig() {
     }
     if (marketplaceConfigs.length === 0) {
       return (
-        <EmptyState message="Chưa có marketplace config nào trong hệ thống." />
+        <EmptyState
+          title="Chưa có marketplace config nào trong hệ thống."
+        />
       );
     }
     return marketplaceGroups.map(({ group, configs: entries, missingKeys }) => (
@@ -476,30 +473,21 @@ function AdminSystemConfig() {
 
   return (
     <div className="space-y-6 p-6 lg:p-8">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-        <div>
-          <h1 className="flex items-center gap-3 text-2xl font-bold text-[var(--foreground)]">
-            <Settings className="h-7 w-7 text-[var(--primary)]" />
-            System Config
-          </h1>
-          <p className="mt-1 text-sm text-[var(--muted-foreground)]">
-            Quản lý config theo ownership của từng service.
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={refreshActiveTab}
-          className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-[var(--border)] bg-[var(--card)] px-3 text-sm font-medium text-[var(--foreground)] hover:border-[var(--primary)]"
-        >
-          <RefreshCw className="h-4 w-4" />
-          Tải lại
-        </button>
-      </div>
+      <PageHeader
+        title="System config"
+        subtitle="Quản lý config theo ownership của từng service."
+        actions={
+          <Button variant="ghost" size="md" onClick={refreshActiveTab}>
+            <RefreshCw className="h-4 w-4" aria-hidden="true" />
+            Tải lại
+          </Button>
+        }
+      />
 
       <div
         role="tablist"
         aria-label="System config service tabs"
-        className="grid gap-2 rounded-lg border border-[var(--border)] bg-[var(--card)] p-2 sm:grid-cols-2"
+        className="grid gap-2 rounded-lg border border-white/[0.06] bg-white/[0.02] p-2 sm:grid-cols-2 font-sans-ui"
       >
         {tabs.map((tab) => {
           const Icon = tab.icon;
@@ -513,14 +501,19 @@ function AdminSystemConfig() {
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-3 rounded-md px-3 py-3 text-left transition ${
                 selected
-                  ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
-                  : "text-[var(--muted-foreground)] hover:bg-[rgba(255,255,255,0.06)] hover:text-[var(--foreground)]"
+                  ? "bg-white/[0.05] text-cream border-l-2 border-[#d4a843]"
+                  : "text-white/60 hover:bg-white/[0.03] hover:text-cream border-l-2 border-transparent"
               }`}
             >
-              <Icon className="h-5 w-5 shrink-0" />
+              <Icon
+                className={`h-5 w-5 shrink-0 ${
+                  selected ? "text-[#d4a843]" : ""
+                }`}
+                aria-hidden="true"
+              />
               <span className="min-w-0">
                 <span className="block font-semibold">{tab.label}</span>
-                <span className="block text-xs opacity-80">
+                <span className="block text-xs text-white/55">
                   {tab.description}
                 </span>
               </span>
@@ -529,37 +522,37 @@ function AdminSystemConfig() {
         })}
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-3">
-        <div className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-4">
-          <Database className="h-5 w-5 text-[var(--primary)]" />
-          <p className="mt-3 text-sm font-semibold text-[var(--foreground)]">
-            Service source
-          </p>
-          <p className="mt-1 text-xs text-[var(--muted-foreground)]">
+      <div className="grid gap-3 sm:grid-cols-3 font-sans-ui">
+        <SectionCard className="space-y-2">
+          <IconChip variant="info">
+            <Database className="h-4 w-4" aria-hidden="true" />
+          </IconChip>
+          <p className="text-sm font-semibold text-cream">Service source</p>
+          <p className="text-xs text-white/55">
             {activeTab === "wallet" ? "wallet-service" : "marketplace-service"}
           </p>
-        </div>
-        <div className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-4">
-          <ShieldCheck className="h-5 w-5 text-[var(--primary)]" />
-          <p className="mt-3 text-sm font-semibold text-[var(--foreground)]">
-            Admin only
-          </p>
-          <p className="mt-1 text-xs text-[var(--muted-foreground)]">
+        </SectionCard>
+        <SectionCard className="space-y-2">
+          <IconChip variant="success">
+            <ShieldCheck className="h-4 w-4" aria-hidden="true" />
+          </IconChip>
+          <p className="text-sm font-semibold text-cream">Admin only</p>
+          <p className="text-xs text-white/55">
             Các endpoint yêu cầu role ADMIN.
           </p>
-        </div>
-        <div className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-4">
-          <RefreshCw className="h-5 w-5 text-[var(--primary)]" />
-          <p className="mt-3 text-sm font-semibold text-[var(--foreground)]">
-            Cache
-          </p>
-          <p className="mt-1 text-xs text-[var(--muted-foreground)]">
+        </SectionCard>
+        <SectionCard className="space-y-2">
+          <IconChip variant="gold">
+            <RefreshCw className="h-4 w-4" aria-hidden="true" />
+          </IconChip>
+          <p className="text-sm font-semibold text-cream">Cache</p>
+          <p className="text-xs text-white/55">
             Một số service có thể đọc lại config theo cache nội bộ.
           </p>
-        </div>
+        </SectionCard>
       </div>
 
-      <div role="tabpanel" className="space-y-5">
+      <div role="tabpanel" className="space-y-5 font-sans-ui">
         {renderPanel()}
       </div>
     </div>

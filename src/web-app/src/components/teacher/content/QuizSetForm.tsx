@@ -90,7 +90,9 @@ function QuizSetForm({ initial, onSaved, onCancel }: QuizSetFormProps) {
     } catch (err) {
       console.error(err);
       showError(
-        isEditing ? "Không thể cập nhật Bộ đề Quiz." : "Không thể tạo Bộ đề Quiz.",
+        isEditing
+          ? "Không thể cập nhật Bộ đề Quiz."
+          : "Không thể tạo Bộ đề Quiz.",
       );
     } finally {
       setLoading(false);
@@ -98,7 +100,7 @@ function QuizSetForm({ initial, onSaved, onCancel }: QuizSetFormProps) {
   };
 
   return (
-    <div className="bg-[var(--card)] border border-[var(--border)] rounded-3xl p-8 max-w-4xl mx-auto shadow-2xl space-y-6">
+    <div className="bg-[var(--card)] backdrop-blur-xl border border-[var(--border)] rounded-3xl p-8 max-w-4xl mx-auto space-y-6">
       <div className="border-b border-[var(--border)] pb-4 flex justify-between items-center">
         <h2 className="text-xl font-bold text-[var(--foreground)]">
           {isEditing ? "Cập nhật Bộ đề Quiz" : "Tạo Bộ Đề Quiz Mới"}
@@ -156,7 +158,8 @@ function QuizSetForm({ initial, onSaved, onCancel }: QuizSetFormProps) {
           <p className="mt-1.5 text-xs text-[var(--muted-foreground)]">
             Để 0 nếu miễn phí. Khi bán trên Marketplace, giá phải từ{" "}
             <span className="font-semibold text-amber-400">{minPrice}</span> đến{" "}
-            <span className="font-semibold text-amber-400">{maxPrice}</span> coin.
+            <span className="font-semibold text-amber-400">{maxPrice}</span>{" "}
+            coin.
           </p>
         </div>
       </div>

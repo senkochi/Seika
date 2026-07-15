@@ -1,14 +1,20 @@
 function GridBackground() {
   return (
-    <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-      {/* Lớp nền chính (Linear Gradient của bạn) */}
-      <div className="absolute inset-0 bg-[var(--background)]" />
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {/* 1. Lớp background dot */}
+      <div className="absolute inset-0 bg-[radial-gradient(#4f4f4f2e_1px,transparent_1px)] bg-[size:24px_24px]"></div>
 
-      {/* Lớp Grid mờ từ mẫu */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#4f4f4f2e_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:14px_24px] -z-10" />
+      {/* 2. Glow màu Tím (Bên trái) - Sử dụng mix-blend-mode để hòa trộn màu cực đỉnh */}
+      <div
+        className="absolute left-[-10%] top-[-10%] h-[800px] w-[800px] rounded-full 
+      bg-[radial-gradient(circle,rgba(166,0,255,0.15)_0%,transparent_50%)] blur-[120px]"
+      ></div>
 
-      {/* Lớp ánh sáng Radial mờ từ mẫu (đã được tinh chỉnh để hợp với tone tím/tối) */}
-      <div className="absolute left-1/2 top-[-10%] h-[1000px] w-[1000px] -translate-x-1/2 rounded-full bg-[radial-gradient(circle_400px_at_50%_300px,rgba(255,255,255,0.05),transparent)] -z-10" />
+      {/* 3. Glow màu Hồng (Bên phải) */}
+      <div
+        className="absolute right-[-20%] top-[-10%] h-[600px] w-[600px] rounded-full 
+      bg-[radial-gradient(circle,rgba(166,0,255,0.15)_0%,transparent_50%)] blur-[80px]"
+      ></div>
     </div>
   );
 }

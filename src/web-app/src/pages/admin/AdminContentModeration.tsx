@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  ShieldCheck,
   Check,
   X,
   Loader2,
@@ -21,106 +20,33 @@ import {
   setProductsSize,
 } from "../../store/adminSlice";
 import { Pagination } from "../../components/ui/Pagination";
+import { PageHeader } from "../../components/ui/PageHeader";
+import { SectionCard } from "../../components/ui/SectionCard";
+import { StatusPill } from "../../components/ui/StatusPill";
+import { Button } from "../../components/ui/Button";
+import ConfirmModal from "../../components/ui/ConfirmModal";
 import { showError, showSuccess } from "../../components/toast/toastUtils";
 import type { PendingProduct } from "../../api/types";
 
 const currencyFormatter = new Intl.NumberFormat("vi-VN", {});
 
-function typeBadge(type: string) {
+function typeVariant(type: string): "info" | "success" {
+  return type.toUpperCase().includes("QUIZ") ? "info" : "success";
+}
+
+function TypeBadge({ type }: { type: string }) {
+  const variant = typeVariant(type);
   const upper = type.toUpperCase();
-  if (upper.includes("QUIZ")) {
-    return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-violet-500/20 px-2 py-1 text-xs font-medium text-violet-300">
-        <BookOpen className="h-3 w-3" />
-        Quiz
-      </span>
-    );
-  }
+  const isQuiz = upper.includes("QUIZ");
   return (
-    <span className="inline-flex items-center gap-1 rounded-full bg-sky-500/20 px-2 py-1 text-xs font-medium text-sky-300">
-      <Layers className="h-3 w-3" />
-      Flashcard
-    </span>
-  );
-}
-
-interface RejectModalProps {
-  open: boolean;
-  product: PendingProduct | null;
-  onClose: () => void;
-  onConfirm: (reason: string) => void;
-  isLoading: boolean;
-}
-
-function RejectModal({
-  open,
-  product,
-  onClose,
-  onConfirm,
-  isLoading,
-}: RejectModalProps) {
-  const [reason, setReason] = useState("");
-
-  useEffect(() => {
-    if (open) setReason("");
-  }, [open, product]);
-
-  if (!open || !product) return null;
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-      <div className="w-full max-w-md rounded-2xl bg-[var(--card)] border border-[var(--border)] shadow-2xl overflow-hidden">
-        <div className="flex items-center justify-between border-b border-[var(--border)] p-4">
-          <h3 className="flex items-center gap-2 text-lg font-semibold text-[var(--foreground)]">
-            <AlertTriangle className="h-5 w-5 text-rose-400" />
-            Từ chối sản phẩm
-          </h3>
-          <button
-            aria-label="Đóng"
-            onClick={onClose}
-            className="rounded-lg p-2 text-[var(--muted-foreground)] hover:bg-[var(--background)]"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
-        <div className="space-y-3 p-4">
-          <p className="text-sm text-[var(--muted-foreground)]">
-            Từ chối{" "}
-            <span className="font-semibold text-[var(--foreground)]">
-              {product.name}
-            </span>
-            ?
-          </p>
-          <textarea
-            value={reason}
-            onChange={(e) => setReason(e.target.value)}
-            rows={4}
-            placeholder="Lý do từ chối (bắt buộc, ≤500 ký tự)"
-            maxLength={500}
-            className="w-full resize-none px-4 py-3 bg-[rgba(255,255,255,0.06)] border border-[var(--border)] rounded-xl text-[var(--foreground)] placeholder-[var(--muted-foreground)] focus:outline-none focus:border-[var(--ring)]"
-          />
-          <p className="text-xs text-[var(--muted-foreground)]">
-            {reason.length}/500
-          </p>
-        </div>
-        <div className="flex justify-end gap-2 border-t border-[var(--border)] bg-[rgba(0,0,0,0.15)] p-4">
-          <button
-            onClick={onClose}
-            className="rounded-xl border border-[var(--border)] px-4 py-2 text-sm text-[var(--muted-foreground)] hover:bg-[var(--background)]"
-          >
-            Hủy
-          </button>
-          <button
-            onClick={() => onConfirm(reason.trim())}
-            disabled={isLoading || reason.trim().length === 0}
-            className="inline-flex items-center gap-2 rounded-xl bg-rose-500 px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
-          >
-            {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
-            Xác nhận từ chối
-          </button>
-        </div>
-      </div>
-    </div>
+    <StatusPill variant={variant}>
+      {isQuiz ? (
+        <BookOpen className="h-3 w-3 mr-1" aria-hidden="true" />
+      ) : (
+        <Layers className="h-3 w-3 mr-1" aria-hidden="true" />
+      )}
+      {isQuiz ? "Quiz" : "Flashcard"}
+    </StatusPill>
   );
 }
 
@@ -130,6 +56,8 @@ function AdminContentModeration() {
   const { products, mutationStatus } = useAppSelector((state) => state.admin);
 
   const [modalReject, setModalReject] = useState<PendingProduct | null>(null);
+  const [rejectReason, setRejectReason] = useState("");
+  const [rejectError, setRejectError] = useState<string | null>(null);
 
   useEffect(() => {
     void dispatch(
@@ -158,28 +86,47 @@ function AdminContentModeration() {
     }
   };
 
-  const handleReject = async (reason: string) => {
+  const openReject = (product: PendingProduct) => {
+    setRejectReason("");
+    setRejectError(null);
+    setModalReject(product);
+  };
+
+  const closeReject = () => {
+    setModalReject(null);
+    setRejectReason("");
+    setRejectError(null);
+  };
+
+  const handleReject = async () => {
     if (!modalReject) return;
+    if (rejectReason.trim().length === 0) {
+      setRejectError("Vui lòng nhập lý do từ chối.");
+      return;
+    }
     const result = await dispatch(
-      rejectAdminProduct({ productId: modalReject.id, reason }),
+      rejectAdminProduct({
+        productId: modalReject.id,
+        reason: rejectReason.trim(),
+      }),
     );
     if (rejectAdminProduct.rejected.match(result)) {
       showError((result.payload as string) ?? "Từ chối thất bại");
-    } else {
-      showSuccess(`Đã từ chối "${modalReject.name}"`);
-      setModalReject(null);
+      return;
     }
+    showSuccess(`Đã từ chối "${modalReject.name}"`);
+    closeReject();
   };
 
   const tableBody = useMemo(() => {
     if (products.status === "loading" && products.content.length === 0) {
       return (
         <tr>
-          <td
-            colSpan={6}
-            className="py-12 text-center text-[var(--muted-foreground)]"
-          >
-            <Loader2 className="mx-auto h-6 w-6 animate-spin" />
+          <td colSpan={6} className="py-12 text-center font-sans-ui text-white/55">
+            <Loader2
+              className="mx-auto h-6 w-6 animate-spin text-[#d4a843]"
+              aria-hidden="true"
+            />
           </td>
         </tr>
       );
@@ -187,7 +134,7 @@ function AdminContentModeration() {
     if (products.status === "failed") {
       return (
         <tr>
-          <td colSpan={6} className="py-12 text-center text-rose-400">
+          <td colSpan={6} className="py-12 text-center font-sans-ui text-red-300">
             {products.error ?? "Lỗi không xác định"}
           </td>
         </tr>
@@ -198,7 +145,7 @@ function AdminContentModeration() {
         <tr>
           <td
             colSpan={6}
-            className="py-12 text-center text-[var(--muted-foreground)]"
+            className="py-12 text-center font-sans-ui text-white/55"
           >
             Không có sản phẩm nào đang chờ duyệt.
           </td>
@@ -210,60 +157,73 @@ function AdminContentModeration() {
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
     );
     return sortedContent.map((p) => (
-      <tr key={p.id} className="hover:bg-[var(--background)] transition-colors">
-        <td className="py-3">
+      <tr
+        key={p.id}
+        className="border-b border-white/[0.04] hover:bg-white/[0.03] transition-colors"
+      >
+        <td className="py-3 pr-4">
           <button
+            type="button"
             onClick={() => handlePreview(p)}
-            className="font-medium text-[var(--foreground)] hover:text-[var(--primary)] transition-colors text-left flex items-center gap-1.5 group cursor-pointer"
+            className="font-sans-ui font-medium text-cream hover:text-[#d4a843] transition-colors text-left flex items-center gap-1.5 group cursor-pointer"
             title="Nhấp để xem trước"
           >
             <span>{p.name}</span>
-            <Eye className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity text-[var(--primary)] flex-shrink-0" />
+            <Eye
+              className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity text-[#d4a843] flex-shrink-0"
+              aria-hidden="true"
+            />
           </button>
           {p.description && (
-            <div className="mt-1 text-xs text-[var(--muted-foreground)] line-clamp-2 max-w-md">
+            <div className="mt-1 font-sans-ui text-xs text-white/55 line-clamp-2 max-w-md">
               {p.description}
             </div>
           )}
         </td>
-        <td className="py-3">{typeBadge(p.type)}</td>
-        <td className="py-3 font-mono text-xs text-[var(--muted-foreground)]">
+        <td className="py-3 pr-4">
+          <TypeBadge type={p.type} />
+        </td>
+        <td className="py-3 pr-4 font-mono text-xs text-white/55">
           {p.sellerUserId.length > 14
             ? `${p.sellerUserId.slice(0, 8)}…${p.sellerUserId.slice(-4)}`
             : p.sellerUserId}
         </td>
-        <td className="py-3 text-[var(--foreground)]">
+        <td className="py-3 pr-4 font-sans-ui text-cream tabular-nums">
           {currencyFormatter.format(p.price)} coin
         </td>
-        <td className="py-3 text-xs text-[var(--muted-foreground)]">
+        <td className="py-3 pr-4 font-sans-ui text-xs text-white/55">
           {new Date(p.createdAt).toLocaleString("vi-VN")}
         </td>
         <td className="py-3">
           <div className="flex justify-end gap-2">
-            <button
+            <Button
+              variant="ghost"
+              size="md"
               onClick={() => handlePreview(p)}
-              className="inline-flex items-center gap-1 rounded-lg border border-sky-500/30 bg-sky-500/10 px-3 py-1.5 text-xs font-medium text-sky-300 hover:bg-sky-500/20 transition-colors"
               title="Xem trước nội dung"
             >
-              <Eye className="h-3.5 w-3.5" />
+              <Eye className="h-3.5 w-3.5" aria-hidden="true" />
               Xem trước
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="ghost"
+              size="md"
               onClick={() => handleApprove(p)}
               disabled={isMutating}
-              className="inline-flex items-center gap-1 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-1.5 text-xs font-medium text-emerald-300 hover:bg-emerald-500/20 disabled:opacity-50"
             >
-              <Check className="h-3.5 w-3.5" />
+              <Check className="h-3.5 w-3.5" aria-hidden="true" />
               Duyệt
-            </button>
-            <button
-              onClick={() => setModalReject(p)}
+            </Button>
+            <Button
+              variant="ghost"
+              tone="danger"
+              size="md"
+              onClick={() => openReject(p)}
               disabled={isMutating}
-              className="inline-flex items-center gap-1 rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-1.5 text-xs font-medium text-rose-300 hover:bg-rose-500/20 disabled:opacity-50"
             >
-              <X className="h-3.5 w-3.5" />
+              <X className="h-3.5 w-3.5" aria-hidden="true" />
               Từ chối
-            </button>
+            </Button>
           </div>
         </td>
       </tr>
@@ -271,50 +231,43 @@ function AdminContentModeration() {
   }, [products, isMutating]);
 
   return (
-    <div className="space-y-6 p-6 lg:p-8">
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <div>
-          <h1 className="flex items-center gap-3 text-2xl font-bold text-[var(--foreground)]">
-            <ShieldCheck className="h-7 w-7 text-[var(--primary)]" />
-            Duyệt nội dung
-          </h1>
-          <p className="mt-1 text-sm text-[var(--muted-foreground)]">
-            Tổng: {currencyFormatter.format(products.totalElements)} sản phẩm
-            đang chờ duyệt
-          </p>
-        </div>
-        <button
-          onClick={() =>
-            dispatch(
-              fetchPendingProducts({
-                page: products.page,
-                size: products.size,
-              }),
-            )
-          }
-          className="inline-flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-sm font-medium text-[var(--foreground)] hover:border-[var(--primary)]"
-        >
-          <RefreshCw className="h-4 w-4" />
-          Tải lại
-        </button>
-      </div>
+    <div className="space-y-8 p-6 lg:p-8">
+      <PageHeader
+        title="Duyệt nội dung"
+        subtitle={`Tổng ${currencyFormatter.format(products.totalElements)} sản phẩm đang chờ duyệt.`}
+        actions={
+          <Button
+            variant="ghost"
+            size="md"
+            onClick={() =>
+              dispatch(
+                fetchPendingProducts({
+                  page: products.page,
+                  size: products.size,
+                }),
+              )
+            }
+          >
+            <RefreshCw className="h-4 w-4" aria-hidden="true" />
+            Tải lại
+          </Button>
+        }
+      />
 
-      <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-6 shadow-[0_20px_60px_rgba(10,10,20,0.28)]">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+      <SectionCard className="overflow-hidden p-0">
+        <div className="overflow-x-auto p-6">
+          <table className="w-full font-sans-ui text-sm">
             <thead>
-              <tr className="text-left text-[var(--muted-foreground)]">
-                <th className="pb-3 font-medium">Sản phẩm</th>
-                <th className="pb-3 font-medium">Loại</th>
-                <th className="pb-3 font-medium">Seller</th>
-                <th className="pb-3 font-medium">Giá</th>
-                <th className="pb-3 font-medium">Ngày tạo</th>
-                <th className="pb-3 font-medium text-right">Actions</th>
+              <tr className="text-left text-[10px] uppercase tracking-[0.12em] text-white/45 border-b border-white/[0.06]">
+                <th className="pb-3 pr-4 font-medium">Sản phẩm</th>
+                <th className="pb-3 pr-4 font-medium">Loại</th>
+                <th className="pb-3 pr-4 font-medium">Seller</th>
+                <th className="pb-3 pr-4 font-medium">Giá</th>
+                <th className="pb-3 pr-4 font-medium">Ngày tạo</th>
+                <th className="pb-3 font-medium text-right">Hành động</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[var(--border)]">
-              {tableBody}
-            </tbody>
+            <tbody>{tableBody}</tbody>
           </table>
         </div>
         <Pagination
@@ -325,15 +278,58 @@ function AdminContentModeration() {
           onPageChange={(page) => dispatch(setProductsPage(page))}
           onPageSizeChange={(size) => dispatch(setProductsSize(size))}
         />
-      </div>
+      </SectionCard>
 
-      <RejectModal
+      <ConfirmModal
         open={modalReject !== null}
-        product={modalReject}
-        onClose={() => setModalReject(null)}
+        onClose={closeReject}
         onConfirm={handleReject}
+        title="Từ chối sản phẩm"
+        icon={<AlertTriangle className="h-5 w-5 text-amber-300" aria-hidden="true" />}
+        confirmText="Xác nhận từ chối"
         isLoading={isMutating}
-      />
+        variant="danger"
+      >
+        <div className="space-y-3 font-sans-ui">
+          <p className="text-sm text-white/55">
+            Từ chối{" "}
+            <span className="font-medium text-cream">{modalReject?.name}</span>?
+          </p>
+          <div>
+            <label
+              htmlFor="reject-reason"
+              className="block font-sans-ui text-xs uppercase tracking-[0.12em] text-white/55 mb-2"
+            >
+              Lý do từ chối (bắt buộc)
+            </label>
+            <textarea
+              id="reject-reason"
+              value={rejectReason}
+              onChange={(e) => {
+                setRejectReason(e.target.value);
+                if (rejectError) setRejectError(null);
+              }}
+              rows={4}
+              placeholder="Nhập lý do từ chối (tối đa 500 ký tự)"
+              maxLength={500}
+              className={
+                rejectError
+                  ? "w-full resize-none rounded-xl border border-red-400/30 bg-red-400/[0.06] px-4 py-3 font-sans-ui text-base text-cream placeholder:text-white/35 focus:outline-none focus:border-red-400/60 transition-colors"
+                  : "w-full resize-none rounded-xl border border-white/[0.08] bg-white/[0.04] px-4 py-3 font-sans-ui text-base text-cream placeholder:text-white/35 focus:outline-none focus:border-[#d4a843]/50 transition-colors"
+              }
+            />
+            {rejectError ? (
+              <p className="mt-2 font-sans-ui text-xs text-red-300">
+                {rejectError}
+              </p>
+            ) : (
+              <p className="mt-2 font-sans-ui text-xs text-white/55 tabular-nums">
+                {rejectReason.length}/500
+              </p>
+            )}
+          </div>
+        </div>
+      </ConfirmModal>
     </div>
   );
 }

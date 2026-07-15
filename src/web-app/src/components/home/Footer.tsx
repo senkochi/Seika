@@ -3,8 +3,11 @@ import AnimatedContent from "../reactbit/AnimatedContent";
 
 export function Footer() {
   return (
-    <footer className="relative bg-[#0e0617] border-t border-white/[0.06] text-[#faf6ee]">
-      <div className="max-w-[1200px] mx-auto px-6 lg:px-10 py-20">
+    <footer className="relative bg-[var(--color-footer)] border-t border-white/[0.06] text-[#faf6ee] overflow-hidden">
+      {/* Background atmosphere — subtle footer glow */}
+      <div className="absolute inset-0 bg-glow-footer pointer-events-none" />
+
+      <div className="relative max-w-[1200px] mx-auto px-6 lg:px-10 py-20">
         <AnimatedContent>
           <div className="grid md:grid-cols-[1.5fr_1fr_1fr] gap-12 lg:gap-16 mb-16">
             {/* Brand column */}

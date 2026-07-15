@@ -1,8 +1,13 @@
-import { Store, RefreshCcw } from "lucide-react";
+import { Store, RefreshCcw, Coins } from "lucide-react";
 import { useEffect, useState } from "react";
 import { marketplaceApi, Product, walletService } from "@/api";
 import { useAppSelector } from "@/store/hooks";
 import { toast } from "sonner";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { SectionCard } from "@/components/ui/SectionCard";
+import { StatusPill } from "@/components/ui/StatusPill";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { Button } from "@/components/ui/Button";
 
 const ORDER_POLL_ATTEMPTS = 10;
 const ORDER_POLL_DELAY_MS = 700;
@@ -86,16 +91,12 @@ function Marketplace() {
       if (paidOrder) {
         toast.success(
           "Đã mua hàng thành công! Sản phẩm đã có trong Learning Hub.",
-          {
-            id: "buy-product",
-          },
+          { id: "buy-product" },
         );
       } else {
         toast.info(
           "Đơn hàng đang được xử lý. Vui lòng làm mới Learning Hub sau ít giây.",
-          {
-            id: "buy-product",
-          },
+          { id: "buy-product" },
         );
       }
     } catch (error: any) {
@@ -111,85 +112,99 @@ function Marketplace() {
   };
 
   return (
-    <div className="p-8">
-      {/* Header */}
-      <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-[var(--foreground)] mb-2">
-            Marketplace
-          </h1>
-          <p className="text-[var(--muted-foreground)]">
-            Power up your learning with exclusive items!
-          </p>
-        </div>
-        <button
-          onClick={fetchProducts}
-          className="inline-flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-sm font-medium text-[var(--foreground)] hover:border-[var(--primary)] transition-all"
-        >
-          <RefreshCcw className="h-4 w-4" /> Làm mới
-        </button>
-      </div>
+    <div className="space-y-8 p-6 lg:p-8">
+      <PageHeader
+        title="Marketplace"
+        subtitle="Khám phá các bộ thẻ và quiz do giáo viên trên hệ thống đăng bán."
+        actions={
+          <Button
+            variant="ghost"
+            size="md"
+            onClick={fetchProducts}
+            disabled={loading}
+          >
+            <RefreshCcw
+              className={`h-4 w-4 ${loading ? "animate-spin" : ""}`}
+              aria-hidden="true"
+            />
+            Làm mới
+          </Button>
+        }
+      />
 
-      {/* All Items */}
-      <div>
-        <div className="flex items-center gap-3 mb-6">
-          <Store className="w-8 h-8 text-[var(--primary)]" />
-          <h2 className="text-3xl font-black text-[var(--foreground)]">
-            All Items
+      <section>
+        <div className="flex items-center gap-2 mb-5">
+          <Store className="w-4 h-4 text-[#d4a843]" aria-hidden="true" />
+          <h2 className="font-sans-ui text-base font-semibold text-cream">
+            Tất cả sản phẩm
           </h2>
         </div>
 
         {loading ? (
-          <p>Loading items...</p>
+          <div className="font-sans-ui text-white/55 text-sm">
+            Đang tải sản phẩm…
+          </div>
         ) : products.length === 0 ? (
-          <p className="text-[var(--muted-foreground)]">
-            Chưa có sản phẩm nào trên chợ.
-          </p>
+          <EmptyState
+            icon={<Store className="w-5 h-5" aria-hidden="true" />}
+            title="Chưa có sản phẩm nào"
+            description="Marketplace hiện chưa có sản phẩm. Quay lại sau nhé."
+          />
         ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {products.map((item) => (
-              <div
-                key={item.id}
-                className="group relative bg-[var(--card)] border border-[var(--border)] rounded-2xl p-6 hover:border-[var(--primary)] transition-all overflow-hidden"
-              >
-                <div className="flex justify-between items-start mb-4">
-                  <div className="px-3 py-1 bg-[var(--primary)]/10 text-[var(--primary)] rounded-full text-xs font-bold uppercase tracking-wider">
-                    {item.type === "FLASHCARD" ? "Flashcards" : "Quiz"}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {products.map((item) => {
+              const isFlashcard = item.type === "FLASHCARD";
+              return (
+                <SectionCard
+                  key={item.id}
+                  className="flex flex-col h-full overflow-hidden"
+                >
+                  <div className="flex justify-between items-start mb-4">
+                    <StatusPill variant={isFlashcard ? "info" : "success"}>
+                      {isFlashcard ? "Flashcard" : "Quiz"}
+                    </StatusPill>
                   </div>
-                </div>
 
-                <div className="text-5xl mb-4 text-center">
-                  {item.type === "FLASHCARD" ? "📚" : "❓"}
-                </div>
-
-                <h3 className="text-xl font-bold text-white mb-2 text-center">
-                  {item.name}
-                </h3>
-                <p className="text-sm text-[var(--muted-foreground)] text-center mb-6 line-clamp-2">
-                  {item.description || "Chưa có mô tả"}
-                </p>
-
-                <div className="flex justify-between items-center mt-auto">
-                  <div className="flex items-center gap-2">
-                    <span className="text-2xl font-black text-amber-400">
-                      {item.price}
-                    </span>
-                    <span className="text-sm text-amber-500 font-bold uppercase">
-                      Coins
+                  <div className="aspect-[4/3] w-full rounded-xl bg-white/[0.03] border border-white/[0.06] grid place-items-center mb-4">
+                    <span aria-hidden="true" className="text-3xl">
+                      {isFlashcard ? "📚" : "❓"}
                     </span>
                   </div>
-                  <button
-                    onClick={() => handleBuy(item)}
-                    className="px-6 py-2 bg-[var(--primary)] hover:bg-[var(--primary)]/90 text-white rounded-xl font-bold transition-colors"
-                  >
-                    Buy
-                  </button>
-                </div>
-              </div>
-            ))}
+
+                  <h3 className="font-sans-ui text-base font-semibold text-cream mb-2 line-clamp-2">
+                    {item.name}
+                  </h3>
+                  <p className="font-sans-ui text-sm text-white/55 line-clamp-2 flex-1 mb-5">
+                    {item.description || "Chưa có mô tả"}
+                  </p>
+
+                  <div className="flex justify-between items-center mt-auto font-sans-ui">
+                    <div className="flex items-center gap-1.5">
+                      <Coins
+                        className="w-4 h-4 text-[#d4a843]"
+                        aria-hidden="true"
+                      />
+                      <span className="text-xl font-semibold text-cream tabular-nums">
+                        {item.price.toLocaleString("vi-VN")}
+                      </span>
+                      <span className="text-xs text-white/55 uppercase tracking-[0.12em]">
+                        Coins
+                      </span>
+                    </div>
+                    <Button
+                      variant="primary"
+                      size="md"
+                      onClick={() => handleBuy(item)}
+                    >
+                      Mua
+                    </Button>
+                  </div>
+                </SectionCard>
+              );
+            })}
           </div>
         )}
-      </div>
+      </section>
     </div>
   );
 }

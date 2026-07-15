@@ -11,7 +11,7 @@ interface StudentsCardProps {
 
 function StudentsCard({ entries, status }: StudentsCardProps) {
   return (
-    <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-6 shadow-[0_20px_60px_rgba(10,10,20,0.28)]">
+    <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] backdrop-blur-xl p-6">
       <h2 className="mb-4 text-lg font-semibold text-[var(--foreground)]">
         Học sinh đã mua
       </h2>
@@ -24,7 +24,7 @@ function StudentsCard({ entries, status }: StudentsCardProps) {
       ) : (
         <div className="max-h-[420px] overflow-y-auto">
           <table className="w-full text-sm">
-            <thead className="sticky top-0 bg-[var(--card)]">
+            <thead className="sticky top-0 bg-[var(--card)] backdrop-blur-md">
               <tr className="text-left text-[var(--muted-foreground)]">
                 <th className="pb-3 font-medium">Học sinh</th>
                 <th className="pb-3 font-medium">Sản phẩm</th>

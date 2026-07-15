@@ -1,6 +1,5 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import {
-  TrendingUp,
   DollarSign,
   ShieldAlert,
   RefreshCcw,
@@ -16,6 +15,13 @@ import type {
   AdminTransactionResponse,
 } from "../../api/types";
 import { Pagination } from "../../components/ui/Pagination";
+import { PageHeader } from "../../components/ui/PageHeader";
+import { SectionCard } from "../../components/ui/SectionCard";
+import { StatCard } from "../../components/ui/StatCard";
+import { IconChip } from "../../components/ui/IconChip";
+import { StatusPill } from "../../components/ui/StatusPill";
+import { EmptyState } from "../../components/ui/EmptyState";
+import { Button } from "../../components/ui/Button";
 
 const currencyFormatter = new Intl.NumberFormat("vi-VN", {
   style: "currency",
@@ -49,42 +55,28 @@ function formatDate(dateStr: string | undefined) {
   }
 }
 
-function StatCard({
-  label,
-  value,
-  subtitle,
-  icon: Icon,
-  accent,
+function FilterChip({
+  active,
+  onClick,
+  children,
 }: {
-  label: string;
-  value: string;
-  subtitle?: string;
-  icon: any;
-  accent: string;
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
 }) {
   return (
-    <div className="bg-[var(--card)] backdrop-blur-xl border border-[var(--border)] rounded-2xl p-6 shadow-[0_20px_60px_rgba(10,10,20,0.28)] hover:border-[var(--primary)] transition-all duration-300">
-      <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0">
-          <p className="text-[var(--muted-foreground)] text-sm font-medium">
-            {label}
-          </p>
-          <p className="mt-2 text-2xl font-bold text-[var(--foreground)] truncate">
-            {value}
-          </p>
-          {subtitle && (
-            <p className="mt-1 text-xs text-[var(--muted-foreground)] font-mono truncate">
-              {subtitle}
-            </p>
-          )}
-        </div>
-        <div
-          className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${accent} shadow-lg`}
-        >
-          <Icon className="h-6 w-6 text-white" />
-        </div>
-      </div>
-    </div>
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={
+        active
+          ? "px-3 py-1.5 rounded-full border border-[#d4a843]/30 bg-[#d4a843]/10 text-[#d4a843] text-xs font-sans-ui transition-colors"
+          : "px-3 py-1.5 rounded-full border border-white/[0.08] bg-white/[0.02] text-white/55 hover:text-cream text-xs font-sans-ui transition-colors"
+      }
+    >
+      {children}
+    </button>
   );
 }
 
@@ -132,10 +124,10 @@ export default function AdminRevenue() {
 
   if (loading && !stats) {
     return (
-      <div className="p-8 flex items-center justify-center min-h-[60vh]">
-        <div className="flex flex-col items-center gap-4 text-[var(--muted-foreground)]">
-          <Loader2 className="w-10 h-10 animate-spin text-[var(--primary)]" />
-          <p>Đang tải dữ liệu tài chính và doanh thu nền tảng...</p>
+      <div className="p-6 lg:p-8 flex items-center justify-center min-h-[60vh]">
+        <div className="flex flex-col items-center gap-4 text-white/55 font-sans-ui">
+          <Loader2 className="w-8 h-8 animate-spin text-[#d4a843]" aria-hidden="true" />
+          <p>Đang tải dữ liệu tài chính và doanh thu nền tảng…</p>
         </div>
       </div>
     );
@@ -143,155 +135,130 @@ export default function AdminRevenue() {
 
   if (error && !stats) {
     return (
-      <div className="p-8 flex items-center justify-center min-h-[60vh]">
-        <div className="flex flex-col items-center gap-4 text-center">
-          <div className="text-4xl">⚠️</div>
-          <p className="text-[var(--foreground)] font-bold text-lg">
-            Lỗi tải dữ liệu tài chính
-          </p>
-          <p className="text-[var(--muted-foreground)] text-sm max-w-md">
-            {error}
-          </p>
-          <button
-            onClick={() => void fetchData()}
-            className="inline-flex items-center gap-2 rounded-xl bg-[var(--primary)] px-4 py-2 text-sm font-medium text-[var(--primary-foreground)] hover:opacity-90 shadow-md transition-all"
-          >
-            <RefreshCcw className="h-4 w-4" /> Thử lại
-          </button>
-        </div>
+      <div className="p-6 lg:p-8">
+        <EmptyState
+          icon={<ShieldAlert className="w-5 h-5" aria-hidden="true" />}
+          title="Lỗi tải dữ liệu tài chính"
+          description={error}
+          action={
+            <Button variant="ghost" size="md" onClick={() => void fetchData()}>
+              <RefreshCcw className="w-4 h-4" aria-hidden="true" /> Thử lại
+            </Button>
+          }
+        />
       </div>
     );
   }
 
   return (
     <div className="space-y-8 p-6 lg:p-8">
-      {/* Header */}
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <div>
-          <h1 className="flex items-center gap-3 text-2xl font-bold text-[var(--foreground)]">
-            <TrendingUp className="h-7 w-7 text-[var(--primary)]" />
-            Quản lý Thu nhập & Tài chính Nền tảng
-          </h1>
-          <p className="mt-1 text-sm text-[var(--muted-foreground)]">
-            Theo dõi dòng tiền thực tế nạp/rút, lợi nhuận chênh lệch tỷ giá và
-            nợ phải trả tiềm năng của hệ thống.
-          </p>
-        </div>
-        <button
-          onClick={() => void fetchData()}
-          disabled={loading}
-          className="inline-flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--card)] px-4 py-2 text-sm font-medium text-[var(--foreground)] hover:border-[var(--primary)] shadow-sm transition-all disabled:opacity-50"
-        >
-          <RefreshCcw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />{" "}
-          Làm mới
-        </button>
-      </div>
+      <PageHeader
+        title="Quản lý Thu nhập & Tài chính Nền tảng"
+        subtitle="Theo dõi dòng tiền thực tế nạp/rút, lợi nhuận chênh lệch tỷ giá và nợ phải trả tiềm năng của hệ thống."
+        actions={
+          <Button
+            variant="ghost"
+            size="md"
+            onClick={() => void fetchData()}
+            disabled={loading}
+          >
+            <RefreshCcw
+              className={`w-4 h-4 ${loading ? "animate-spin" : ""}`}
+              aria-hidden="true"
+            />{" "}
+            Làm mới
+          </Button>
+        }
+      />
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
         <StatCard
           label="Tổng dòng tiền vào (Inflow)"
           value={formatCurrency(stats?.totalTopupVnd)}
-          subtitle={`${formatNumber(stats?.totalTopupCoins)} Coins đã nạp (${stats?.currentTopupRate ?? 100} ₫/Coin)`}
-          icon={ArrowUpRight}
-          accent="from-emerald-500 to-teal-600"
+          unit=""
+          icon={<ArrowUpRight className="w-4 h-4" aria-hidden="true" />}
+          iconVariant="success"
+          hint={`${formatNumber(stats?.totalTopupCoins)} Coins đã nạp (${stats?.currentTopupRate ?? 100} ₫/Coin)`}
         />
         <StatCard
           label="Tổng chi trả (Outflow)"
           value={formatCurrency(stats?.totalWithdrawalVnd)}
-          subtitle={`${formatNumber(stats?.totalWithdrawalCoins)} Coins đã rút (${stats?.currentWithdrawalRate ?? 90} ₫/Coin)`}
-          icon={ArrowDownRight}
-          accent="from-rose-500 to-pink-600"
+          icon={<ArrowDownRight className="w-4 h-4" aria-hidden="true" />}
+          iconVariant="danger"
+          hint={`${formatNumber(stats?.totalWithdrawalCoins)} Coins đã rút (${stats?.currentWithdrawalRate ?? 90} ₫/Coin)`}
         />
         <StatCard
-          label="Lợi nhuận ròng hiện tại (Net Revenue)"
+          label="Lợi nhuận ròng (Net)"
           value={formatCurrency(stats?.netRevenueVnd)}
-          subtitle="Chênh lệch thực tế thu vào trừ chi trả"
-          icon={DollarSign}
-          accent="from-blue-500 to-cyan-600"
+          icon={<DollarSign className="w-4 h-4" aria-hidden="true" />}
+          iconVariant="info"
+          hint="Chênh lệch thực tế thu vào trừ chi trả"
         />
         <StatCard
-          label="Nợ phải trả tiềm năng (Escrow Liability)"
+          label="Nợ phải trả tiềm năng"
           value={formatCurrency(stats?.potentialLiabilityVnd)}
-          subtitle={`${formatNumber(stats?.totalCoinCirculation)} Coins lưu hành × ${stats?.currentWithdrawalRate ?? 90} ₫`}
-          icon={ShieldAlert}
-          accent="from-amber-400 to-yellow-500"
+          icon={<ShieldAlert className="w-4 h-4" aria-hidden="true" />}
+          iconVariant="warning"
+          hint={`${formatNumber(stats?.totalCoinCirculation)} Coins lưu hành × ${stats?.currentWithdrawalRate ?? 90} ₫`}
         />
       </div>
 
       {/* Guaranteed Profit Banner */}
-      <div className="rounded-2xl border border-[var(--primary)]/30 bg-gradient-to-r from-[var(--primary)]/10 via-[var(--card)] to-[var(--card)] p-6 backdrop-blur-xl shadow-[0_20px_60px_rgba(10,10,20,0.28)] flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[var(--primary)] text-white shadow-lg">
-            <Coins className="h-6 w-6" />
-          </div>
-          <div>
-            <h3 className="text-lg font-bold text-[var(--foreground)]">
-              Lợi nhuận đảm bảo tối thiểu của nền tảng:{" "}
-              <span className="text-[var(--primary)]">
-                {formatCurrency(stats?.guaranteedProfitVnd)}
-              </span>
-            </h3>
-            <p className="text-sm text-[var(--muted-foreground)] mt-0.5">
+      <SectionCard>
+        <div className="flex flex-col md:flex-row items-start md:items-center gap-5">
+          <IconChip variant="gold" className="h-12 w-12 shrink-0">
+            <Coins className="w-5 h-5" aria-hidden="true" />
+          </IconChip>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3 className="font-sans-ui text-base font-semibold text-cream">
+                Lợi nhuận đảm bảo tối thiểu của nền tảng
+              </h3>
+              <StatusPill variant="success">Locked in</StatusPill>
+            </div>
+            <p className="font-sans-ui text-3xl font-semibold text-cream tabular-nums mt-2">
+              {formatCurrency(stats?.guaranteedProfitVnd)}
+            </p>
+            <p className="mt-1 text-sm text-white/55 font-sans-ui">
               Phần lợi nhuận chắc chắn thuộc về nền tảng từ chênh lệch tỷ giá
               Nạp - Rút (ngay cả khi toàn bộ user rút sạch Coin lưu hành).
             </p>
           </div>
         </div>
-      </div>
+      </SectionCard>
 
-      {/* Transactions Table Section */}
-      <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-6 shadow-[0_20px_60px_rgba(10,10,20,0.28)] space-y-6">
+      {/* Transactions Table */}
+      <SectionCard>
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h2 className="text-lg font-bold text-[var(--foreground)] flex items-center gap-2">
-              <FileText className="h-5 w-5 text-[var(--primary)]" />
+            <h2 className="font-sans-ui text-base font-semibold text-cream flex items-center gap-2">
+              <FileText className="w-4 h-4 text-[#d4a843]" aria-hidden="true" />
               Lịch sử đối soát dòng tiền toàn hệ thống
             </h2>
-            <p className="text-xs text-[var(--muted-foreground)] mt-0.5">
-              Sắp xếp từ mới nhất đến cũ nhất. Dùng bộ lọc để kiểm tra dòng tiền
-              vào và ra.
+            <p className="font-sans-ui text-xs text-white/55 mt-0.5">
+              Sắp xếp từ mới nhất đến cũ nhất. Dùng bộ lọc để kiểm tra dòng
+              tiền vào và ra.
             </p>
           </div>
 
-          <div className="flex items-center gap-2 bg-[var(--background)] p-1 rounded-xl border border-[var(--border)]">
-            <button
-              onClick={() => setFilterType("ALL")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                filterType === "ALL"
-                  ? "bg-[var(--primary)] text-[var(--primary-foreground)] shadow"
-                  : "text-[var(--muted-foreground)]"
-              }`}
-            >
+          <div className="flex items-center gap-2 flex-wrap">
+            <FilterChip active={filterType === "ALL"} onClick={() => setFilterType("ALL")}>
               Tất cả
-            </button>
-            <button
-              onClick={() => setFilterType("TOP_UP")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1 ${
-                filterType === "TOP_UP"
-                  ? "bg-emerald-600 text-white shadow"
-                  : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
-              }`}
-            >
-              <ArrowUpRight className="h-3.5 w-3.5" /> Nạp VNĐ
-            </button>
-            <button
-              onClick={() => setFilterType("CASH_OUT")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1 ${
-                filterType === "CASH_OUT"
-                  ? "bg-rose-600 text-white shadow"
-                  : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
-              }`}
-            >
-              <ArrowDownRight className="h-3.5 w-3.5" /> Rút VNĐ
-            </button>
+            </FilterChip>
+            <FilterChip active={filterType === "TOP_UP"} onClick={() => setFilterType("TOP_UP")}>
+              Nạp VNĐ
+            </FilterChip>
+            <FilterChip active={filterType === "CASH_OUT"} onClick={() => setFilterType("CASH_OUT")}>
+              Rút VNĐ
+            </FilterChip>
           </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
+        <div className="overflow-x-auto mt-4">
+          <table className="w-full text-left text-sm font-sans-ui">
             <thead>
-              <tr className="border-b border-[var(--border)] text-[var(--muted-foreground)] text-xs uppercase font-semibold">
+              <tr className="border-b border-white/[0.06] text-white/45 text-xs uppercase tracking-wider">
                 <th className="pb-3 pr-4">Thời gian</th>
                 <th className="pb-3 pr-4">User ID</th>
                 <th className="pb-3 pr-4">Loại giao dịch</th>
@@ -300,14 +267,14 @@ export default function AdminRevenue() {
                 <th className="pb-3">Mô tả</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[var(--border)]">
+            <tbody>
               {transactions.length === 0 ? (
                 <tr>
-                  <td
-                    colSpan={6}
-                    className="py-8 text-center text-[var(--muted-foreground)] text-sm"
-                  >
-                    Không có giao dịch nào phù hợp với bộ lọc hiện tại.
+                  <td colSpan={6}>
+                    <EmptyState
+                      title="Không có giao dịch nào"
+                      description="Thử đổi bộ lọc hoặc quay lại sau khi có hoạt động mới."
+                    />
                   </td>
                 </tr>
               ) : (
@@ -317,60 +284,50 @@ export default function AdminRevenue() {
                   const isReward =
                     tx.type === "REWARD" || tx.type === "DEPOSIT";
 
-                  let badgeColor = "bg-secondary text-secondary-foreground";
-                  let badgeLabel = tx.type;
+                  let pill: React.ReactNode = null;
                   if (isTopup) {
-                    badgeColor =
-                      "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20";
-                    badgeLabel = "NẠP TIỀN (INFLOW)";
+                    pill = <StatusPill variant="success">Nạp tiền</StatusPill>;
                   } else if (isCashout) {
-                    badgeColor =
-                      "bg-rose-500/10 text-rose-500 border border-rose-500/20";
-                    badgeLabel = "RÚT TIỀN (OUTFLOW)";
+                    pill = <StatusPill variant="danger">Rút tiền</StatusPill>;
                   } else if (isReward) {
-                    badgeColor =
-                      "bg-blue-500/10 text-blue-500 border border-blue-500/20";
-                    badgeLabel = "THU NHẬP / THƯỞNG";
+                    pill = <StatusPill variant="info">Thu nhập / Thưởng</StatusPill>;
+                  } else {
+                    pill = <StatusPill variant="neutral">{tx.type}</StatusPill>;
                   }
 
                   const coinSign = isTopup || isReward ? "+" : "-";
                   const coinColor =
-                    isTopup || isReward
-                      ? "text-emerald-500"
-                      : "text-rose-500 font-medium";
+                    isTopup || isReward ? "text-emerald-300" : "text-red-300";
 
                   return (
-                    <tr key={tx.id || Math.random().toString()}>
-                      <td className="py-3.5 pr-4 whitespace-nowrap text-xs text-[var(--muted-foreground)] font-mono">
+                    <tr
+                      key={tx.id || Math.random().toString()}
+                      className="border-b border-white/[0.04] hover:bg-white/[0.03] transition-colors"
+                    >
+                      <td className="py-3.5 pr-4 whitespace-nowrap text-xs text-white/55 font-mono">
                         {formatDate(tx.createdAt)}
                       </td>
                       <td
-                        className="py-3.5 pr-4 whitespace-nowrap font-mono text-xs text-[var(--foreground)] max-w-[120px] truncate"
+                        className="py-3.5 pr-4 whitespace-nowrap font-mono text-xs text-cream max-w-[120px] truncate"
                         title={tx.userId}
                       >
-                        {tx.userId ? `${tx.userId.substring(0, 8)}...` : "N/A"}
+                        {tx.userId ? `${tx.userId.substring(0, 8)}…` : "N/A"}
                       </td>
-                      <td className="py-3.5 pr-4 whitespace-nowrap">
-                        <span
-                          className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-semibold ${badgeColor}`}
-                        >
-                          {badgeLabel}
-                        </span>
-                      </td>
+                      <td className="py-3.5 pr-4 whitespace-nowrap">{pill}</td>
                       <td
-                        className={`py-3.5 pr-4 whitespace-nowrap text-right font-mono font-bold ${coinColor}`}
+                        className={`py-3.5 pr-4 whitespace-nowrap text-right font-mono font-medium tabular-nums ${coinColor}`}
                       >
                         {coinSign}
                         {formatNumber(Math.abs(tx.amount || 0))} Coins
                       </td>
-                      <td className="py-3.5 pr-4 whitespace-nowrap text-right font-mono font-semibold text-[var(--foreground)]">
+                      <td className="py-3.5 pr-4 whitespace-nowrap text-right font-mono text-cream tabular-nums">
                         {tx.amountVnd && tx.amountVnd > 0 ? (
                           <span
                             className={
                               isTopup
-                                ? "text-emerald-500"
+                                ? "text-emerald-300"
                                 : isCashout
-                                  ? "text-rose-500"
+                                  ? "text-red-300"
                                   : ""
                             }
                           >
@@ -378,13 +335,11 @@ export default function AdminRevenue() {
                             {formatCurrency(tx.amountVnd)}
                           </span>
                         ) : (
-                          <span className="text-[var(--muted-foreground)] text-xs">
-                            --
-                          </span>
+                          <span className="text-white/30 text-xs">—</span>
                         )}
                       </td>
                       <td
-                        className="py-3.5 text-xs text-[var(--foreground)] max-w-xs md:max-w-md truncate"
+                        className="py-3.5 text-xs text-white/75 max-w-xs md:max-w-md truncate"
                         title={tx.description}
                       >
                         {tx.description || "Không có mô tả"}
@@ -407,7 +362,7 @@ export default function AdminRevenue() {
             setCurrentPage(0);
           }}
         />
-      </div>
+      </SectionCard>
     </div>
   );
 }
