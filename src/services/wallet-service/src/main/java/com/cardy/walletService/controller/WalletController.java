@@ -47,6 +47,7 @@ public class WalletController {
     }
 
     @PostMapping("/withdraw")
+    @Deprecated(since = "teacher-tiered-economy-v3-phase5", forRemoval = false)
     public ResponseEntity<?> withdraw(@AuthenticationPrincipal Jwt jwt,
                                       @RequestBody TransactionReqDTO req){
         UUID userId = UUID.fromString(jwt.getClaim("userId"));
@@ -65,6 +66,7 @@ public class WalletController {
 
     @PostMapping("/deposit")
     @PreAuthorize("hasRole('ADMIN')")
+    @Deprecated(since = "teacher-tiered-economy-v3-phase5", forRemoval = false)
     public ResponseEntity<?> deposit(@AuthenticationPrincipal Jwt jwt,
                                      @RequestBody TransactionReqDTO req){
         UUID userId = UUID.fromString(jwt.getClaim("userId"));
@@ -73,6 +75,7 @@ public class WalletController {
     }
 
     @PostMapping("/history")
+    @Deprecated(since = "teacher-tiered-economy-v3-phase5", forRemoval = false)
     public ResponseEntity<?> getHistory(@AuthenticationPrincipal Jwt jwt){
         UUID userId = UUID.fromString(jwt.getClaim("userId"));
         return ResponseEntity.ok(walletService.getHistory(userId));

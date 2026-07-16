@@ -1,14 +1,19 @@
 package com.seika.marketplace_service.service;
 
 import com.seika.marketplace_service.config.RabbitMQConfig;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.seika.marketplace_service.entity.CollusionFlag;
+import com.seika.marketplace_service.entity.OutboxEvent;
 import com.seika.marketplace_service.entity.EscrowTransaction;
 import com.seika.marketplace_service.entity.Review;
 import com.seika.marketplace_service.entity.UserInventory;
 import com.seika.marketplace_service.enums.CollusionFlagStatus;
 import com.seika.marketplace_service.enums.ReviewStatus;
+import com.seika.marketplace_service.enums.OutboxStatus;
 import com.seika.marketplace_service.event.CollusionFlaggedEvent;
 import com.seika.marketplace_service.repository.CollusionFlagRepository;
+import com.seika.marketplace_service.repository.OutboxEventRepository;
 import com.seika.marketplace_service.repository.EscrowTransactionRepository;
 import com.seika.marketplace_service.repository.ReviewRepository;
 import com.seika.marketplace_service.repository.UserInventoryRepository;
@@ -37,7 +42,8 @@ public class CollusionFlagService {
     private final TeacherRatingService teacherRatingService;
     private final AdminActionLogService adminActionLogService;
     private final MarketplaceConfigService configService;
-    private final org.springframework.amqp.rabbit.core.RabbitTemplate rabbitTemplate;
+    private final ObjectMapper objectMapper;
+    private final OutboxEventRepository outboxEventRepository;
     private final EscrowTransactionRepository escrowRepository;
     private final UserInventoryRepository userInventoryRepository;
 
@@ -45,7 +51,8 @@ public class CollusionFlagService {
                                 ReviewRepository reviewRepository,
                                 TeacherRatingService teacherRatingService,
                                 AdminActionLogService adminActionLogService) {
-        this(collusionFlagRepository, reviewRepository, teacherRatingService, adminActionLogService, null, null, null, null);
+        this(collusionFlagRepository, reviewRepository, teacherRatingService, adminActionLogService,
+                null, null, null, null, null);
     }
 
     public CollusionFlagService(CollusionFlagRepository collusionFlagRepository,
@@ -53,9 +60,21 @@ public class CollusionFlagService {
                                 TeacherRatingService teacherRatingService,
                                 AdminActionLogService adminActionLogService,
                                 MarketplaceConfigService configService,
-                                org.springframework.amqp.rabbit.core.RabbitTemplate rabbitTemplate) {
+                                org.springframework.amqp.rabbit.core.RabbitTemplate ignoredRabbitTemplate) {
         this(collusionFlagRepository, reviewRepository, teacherRatingService, adminActionLogService,
-                configService, rabbitTemplate, null, null);
+                configService, null, null, null, null);
+    }
+
+    public CollusionFlagService(CollusionFlagRepository collusionFlagRepository,
+                                ReviewRepository reviewRepository,
+                                TeacherRatingService teacherRatingService,
+                                AdminActionLogService adminActionLogService,
+                                MarketplaceConfigService configService,
+                                org.springframework.amqp.rabbit.core.RabbitTemplate ignoredRabbitTemplate,
+                                EscrowTransactionRepository escrowRepository,
+                                UserInventoryRepository userInventoryRepository) {
+        this(collusionFlagRepository, reviewRepository, teacherRatingService, adminActionLogService,
+                configService, null, null, escrowRepository, userInventoryRepository);
     }
 
     @org.springframework.beans.factory.annotation.Autowired
@@ -63,24 +82,21 @@ public class CollusionFlagService {
                                 ReviewRepository reviewRepository,
                                 TeacherRatingService teacherRatingService,
                                 AdminActionLogService adminActionLogService,
-                                @org.springframework.beans.factory.annotation.Autowired(required = false)
                                 MarketplaceConfigService configService,
-                                @org.springframework.beans.factory.annotation.Autowired(required = false)
-                                org.springframework.amqp.rabbit.core.RabbitTemplate rabbitTemplate,
-                                @org.springframework.beans.factory.annotation.Autowired(required = false)
+                                ObjectMapper objectMapper,
+                                OutboxEventRepository outboxEventRepository,
                                 EscrowTransactionRepository escrowRepository,
-                                @org.springframework.beans.factory.annotation.Autowired(required = false)
                                 UserInventoryRepository userInventoryRepository) {
         this.collusionFlagRepository = collusionFlagRepository;
         this.reviewRepository = reviewRepository;
         this.teacherRatingService = teacherRatingService;
         this.adminActionLogService = adminActionLogService;
         this.configService = configService;
-        this.rabbitTemplate = rabbitTemplate;
+        this.objectMapper = objectMapper;
+        this.outboxEventRepository = outboxEventRepository;
         this.escrowRepository = escrowRepository;
         this.userInventoryRepository = userInventoryRepository;
     }
-
     public static int computeRiskScore(int txCount, BigDecimal promoRatio, BigDecimal noConsumeRatio,
                                        BigDecimal reciprocalRatio, boolean reviewVelocityAbnormal) {
         int score = 0;
@@ -347,28 +363,32 @@ public class CollusionFlagService {
     }
 
     private void publishEvent(CollusionFlag flag) {
-        if (rabbitTemplate != null) {
-            try {
-                CollusionFlaggedEvent event = CollusionFlaggedEvent.builder()
-                        .flagId(flag.getId())
-                        .teacherId(flag.getTeacherId())
-                        .buyerId(flag.getBuyerId())
-                        .riskScore(flag.getRiskScore())
-                        .status(flag.getStatus().name())
-                        .reason(flag.getAdminReason())
-                        .holdDays(resolveWashHoldDays())
-                        .build();
-                rabbitTemplate.convertAndSend(
-                        RabbitMQConfig.MARKETPLACE_EVENTS_EXCHANGE,
-                        RabbitMQConfig.COLLUSION_FLAGGED_ROUTING_KEY,
-                        event
-                );
-                log.info("Published CollusionFlaggedEvent for flagId {} status {}", flag.getId(), flag.getStatus());
-            } catch (Exception e) {
-                log.error("Failed to publish CollusionFlaggedEvent for flagId {}: {}", flag.getId(), e.getMessage());
-            }
+        if (outboxEventRepository == null || objectMapper == null) {
+            log.debug("Skipping CollusionFlaggedEvent outbox enqueue because outbox dependencies are not available for flagId={}", flag.getId());
+            return;
+        }
+
+        CollusionFlaggedEvent event = CollusionFlaggedEvent.builder()
+                .flagId(flag.getId())
+                .teacherId(flag.getTeacherId())
+                .buyerId(flag.getBuyerId())
+                .riskScore(flag.getRiskScore())
+                .status(flag.getStatus().name())
+                .reason(flag.getAdminReason())
+                .holdDays(resolveWashHoldDays())
+                .build();
+        try {
+            outboxEventRepository.save(OutboxEvent.builder()
+                    .aggregateType("CollusionFlag")
+                    .aggregateId(flag.getId())
+                    .eventType(RabbitMQConfig.COLLUSION_FLAGGED_ROUTING_KEY)
+                    .payload(objectMapper.writeValueAsString(event))
+                    .status(OutboxStatus.PENDING)
+                    .build());
+            log.info("Queued CollusionFlaggedEvent in outbox for flagId {} status {}", flag.getId(), flag.getStatus());
+        } catch (JsonProcessingException exception) {
+            throw new IllegalStateException("Failed to serialize collusion.flagged outbox payload", exception);
         }
     }
-
     private record Pair(String teacherId, String buyerId) {}
 }

@@ -1,5 +1,9 @@
 package com.seika.marketplace_service.processor;
 
+import com.seika.marketplace_service.config.RabbitMQConfig;
+import com.seika.marketplace_service.entity.OutboxEvent;
+import com.seika.marketplace_service.enums.OutboxStatus;
+import com.seika.marketplace_service.repository.OutboxEventRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -8,11 +12,6 @@ import org.springframework.stereotype.Component;
 
 import java.time.Instant;
 import java.util.List;
-
-import com.seika.marketplace_service.config.RabbitMQConfig;
-import com.seika.marketplace_service.entity.OutboxEvent;
-import com.seika.marketplace_service.enums.OutboxStatus;
-import com.seika.marketplace_service.repository.OutboxEventRepository;
 
 @Component
 @RequiredArgsConstructor
@@ -25,19 +24,15 @@ public class OutboxProcessor {
 
     @Scheduled(fixedDelayString = "${outbox.processor.delay-ms:3000}")
     public void publishOutboxEvents() {
-        // Fetch tối đa 50 outbox event có status PENDING hoặc FAILED, sắp xếp theo createdAt để đảm bảo thứ tự publish
         List<OutboxEvent> events = outboxEventRepository.findTop50ByStatusInOrderByCreatedAtAsc(
-            List.of(OutboxStatus.PENDING, OutboxStatus.FAILED)
-        );
+                List.of(OutboxStatus.PENDING, OutboxStatus.FAILED));
 
-        // Duyệt qua từng event và publish ra message broker, sau đó cập nhật lại status và thông tin lỗi nếu có
         for (OutboxEvent event : events) {
             try {
                 rabbitTemplate.convertAndSend(
-                    RabbitMQConfig.WALLET_COMMANDS_EXCHANGE,
-                    event.getEventType(),
-                    event.getPayload()
-                );
+                        resolveExchange(event.getEventType()),
+                        event.getEventType(),
+                        event.getPayload());
 
                 event.setStatus(OutboxStatus.SENT);
                 event.setPublishedAt(Instant.now());
@@ -51,6 +46,13 @@ public class OutboxProcessor {
                 log.error("Failed to publish outbox event id={}", event.getId(), exception);
             }
         }
+    }
+
+    private String resolveExchange(String eventType) {
+        if (eventType != null && eventType.startsWith("wallet.")) {
+            return RabbitMQConfig.WALLET_COMMANDS_EXCHANGE;
+        }
+        return RabbitMQConfig.MARKETPLACE_EVENTS_EXCHANGE;
     }
 
     private String truncateError(String message) {

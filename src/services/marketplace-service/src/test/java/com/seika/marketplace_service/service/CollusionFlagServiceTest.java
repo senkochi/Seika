@@ -83,14 +83,16 @@ class CollusionFlagServiceTest {
         org.mockito.Mockito.verifyNoMoreInteractions(logService);
     }
     @Test
-    void maliciousFlagPublishesConfiguredWashHoldDays() {
+    void maliciousFlagQueuesConfiguredWashHoldDaysInOutbox() throws Exception {
         com.seika.marketplace_service.repository.CollusionFlagRepository flagRepo = org.mockito.Mockito.mock(com.seika.marketplace_service.repository.CollusionFlagRepository.class);
         com.seika.marketplace_service.repository.ReviewRepository reviewRepo = org.mockito.Mockito.mock(com.seika.marketplace_service.repository.ReviewRepository.class);
+        com.seika.marketplace_service.repository.OutboxEventRepository outboxRepo = org.mockito.Mockito.mock(com.seika.marketplace_service.repository.OutboxEventRepository.class);
         TeacherRatingService ratingService = org.mockito.Mockito.mock(TeacherRatingService.class);
         AdminActionLogService logService = org.mockito.Mockito.mock(AdminActionLogService.class);
         MarketplaceConfigService configService = org.mockito.Mockito.mock(MarketplaceConfigService.class);
-        org.springframework.amqp.rabbit.core.RabbitTemplate rabbitTemplate = org.mockito.Mockito.mock(org.springframework.amqp.rabbit.core.RabbitTemplate.class);
-        CollusionFlagService service = new CollusionFlagService(flagRepo, reviewRepo, ratingService, logService, configService, rabbitTemplate);
+        com.fasterxml.jackson.databind.ObjectMapper objectMapper = new com.fasterxml.jackson.databind.ObjectMapper().findAndRegisterModules();
+        CollusionFlagService service = new CollusionFlagService(flagRepo, reviewRepo, ratingService, logService,
+                configService, objectMapper, outboxRepo, null, null);
 
         CollusionFlag flag = CollusionFlag.builder()
                 .id("FLAG2")
@@ -102,6 +104,8 @@ class CollusionFlagServiceTest {
         org.mockito.Mockito.when(flagRepo.findById("FLAG2")).thenReturn(java.util.Optional.of(flag));
         org.mockito.Mockito.when(flagRepo.save(org.mockito.ArgumentMatchers.any(CollusionFlag.class)))
                 .thenAnswer(inv -> inv.getArgument(0));
+        org.mockito.Mockito.when(outboxRepo.save(org.mockito.ArgumentMatchers.any(com.seika.marketplace_service.entity.OutboxEvent.class)))
+                .thenAnswer(inv -> inv.getArgument(0));
         org.mockito.Mockito.when(reviewRepo.findBySellerIdAndBuyerIdAndStatus(
                 "T1", "B1", com.seika.marketplace_service.enums.ReviewStatus.PENDING_RISK_REVIEW))
                 .thenReturn(java.util.List.of());
@@ -110,13 +114,19 @@ class CollusionFlagServiceTest {
 
         service.markMalicious("FLAG2", "admin1", "malicious abuse");
 
-        org.mockito.ArgumentCaptor<com.seika.marketplace_service.event.CollusionFlaggedEvent> captor =
-                org.mockito.ArgumentCaptor.forClass(com.seika.marketplace_service.event.CollusionFlaggedEvent.class);
-        org.mockito.Mockito.verify(rabbitTemplate).convertAndSend(
-                org.mockito.ArgumentMatchers.eq(com.seika.marketplace_service.config.RabbitMQConfig.MARKETPLACE_EVENTS_EXCHANGE),
-                org.mockito.ArgumentMatchers.eq(com.seika.marketplace_service.config.RabbitMQConfig.COLLUSION_FLAGGED_ROUTING_KEY),
-                captor.capture());
-        assertThat(captor.getValue().getHoldDays()).isEqualTo(14);
+        org.mockito.ArgumentCaptor<com.seika.marketplace_service.entity.OutboxEvent> captor =
+                org.mockito.ArgumentCaptor.forClass(com.seika.marketplace_service.entity.OutboxEvent.class);
+        org.mockito.Mockito.verify(outboxRepo).save(captor.capture());
+        com.seika.marketplace_service.entity.OutboxEvent outbox = captor.getValue();
+        assertThat(outbox.getAggregateType()).isEqualTo("CollusionFlag");
+        assertThat(outbox.getAggregateId()).isEqualTo("FLAG2");
+        assertThat(outbox.getEventType()).isEqualTo(com.seika.marketplace_service.config.RabbitMQConfig.COLLUSION_FLAGGED_ROUTING_KEY);
+        assertThat(outbox.getStatus()).isEqualTo(com.seika.marketplace_service.enums.OutboxStatus.PENDING);
+
+        com.seika.marketplace_service.event.CollusionFlaggedEvent payload =
+                objectMapper.readValue(outbox.getPayload(), com.seika.marketplace_service.event.CollusionFlaggedEvent.class);
+        assertThat(payload.getHoldDays()).isEqualTo(14);
+        assertThat(payload.getStatus()).isEqualTo("MALICIOUS");
     }
 
     @Test
