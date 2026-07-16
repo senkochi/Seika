@@ -14,6 +14,7 @@ import TransactionHistory from "../../components/teacher/wallet/TransactionHisto
 import CashOutForm from "../../components/teacher/wallet/CashOutForm";
 import CashOutConfirmModal from "../../components/teacher/wallet/CashOutConfirmModal";
 import SellerEscrowPanel from "../../components/teacher/wallet/SellerEscrowPanel";
+import WalletControlPanel from "../../components/teacher/wallet/WalletControlPanel";
 import { useWalletData } from "../../components/teacher/wallet/useWalletData";
 
 interface PendingCashOut {
@@ -31,6 +32,12 @@ function TeacherWallet() {
   const [loading, setLoading] = useState(false);
   const [escrows, setEscrows] = useState<EscrowTransaction[]>([]);
   const [escrowsLoading, setEscrowsLoading] = useState(false);
+
+  const cashOutDisabledReason = wallet.breakdown.frozen
+    ? "Ví đang bị freeze nên cash-out tạm thời bị chặn."
+    : wallet.holds.length > 0
+      ? "Ví đang có active hold nên cash-out tạm thời bị chặn."
+      : undefined;
 
   const loadEscrows = async () => {
     setEscrowsLoading(true);
@@ -97,12 +104,21 @@ function TeacherWallet() {
         <SellerEscrowPanel escrows={escrows} loading={escrowsLoading} />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+      <div className="mb-8">
+        <WalletControlPanel
+          frozen={wallet.breakdown.frozen}
+          holds={wallet.holds}
+          loading={wallet.loading}
+        />
+      </div>
+
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-5">
         <TransactionHistory history={wallet.history} loading={wallet.loading} />
 
         <CashOutForm
           withdrawableBalance={wallet.withdrawableBalance}
           onSubmit={(p) => setPending(p)}
+          disabledReason={cashOutDisabledReason}
         />
       </div>
 

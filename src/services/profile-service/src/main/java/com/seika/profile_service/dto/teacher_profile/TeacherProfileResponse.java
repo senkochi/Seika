@@ -3,6 +3,8 @@ package com.seika.profile_service.dto.teacher_profile;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
 
 @Getter
@@ -28,5 +30,11 @@ public class TeacherProfileResponse {
     int totalQuizCreated;
     int totalFlashcardsCreated;
     int totalStudentsReached;
-}
 
+    // --- Marketplace display mirror (marketplace-service remains source of truth) ---
+    String teacherTier;
+    BigDecimal teacherAverageRating;
+    long teacherValidReviewCount;
+    BigDecimal teacherTierFeePercent;
+    Instant teacherTierUpdatedAt;
+}

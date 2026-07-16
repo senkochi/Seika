@@ -17,11 +17,12 @@ function formatDate(value: string | null | undefined) {
 }
 
 function statusLabel(escrow: EscrowTransaction) {
-  if (escrow.needsAdminDecision) return "Needs admin";
-  if (escrow.creditRequestedAt && escrow.status === "HELD") return "Releasing";
-  if (escrow.status === "HELD") return "Held escrow";
-  if (escrow.status === "RELEASED") return "Released";
-  if (escrow.status === "REFUNDED") return "Refunded";
+  if (escrow.needsAdminDecision) return "Cần admin xử lý";
+  if (escrow.creditRequestedAt && escrow.status === "HELD")
+    return "Đang release";
+  if (escrow.status === "HELD") return "Đang chờ escrow";
+  if (escrow.status === "RELEASED") return "Đã release";
+  if (escrow.status === "REFUNDED") return "Đã hoàn tiền";
   return escrow.status;
 }
 
@@ -47,17 +48,20 @@ export default function SellerEscrowPanel({
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h2 className="flex items-center gap-2 text-xl font-bold text-[var(--foreground)]">
-            <ShieldCheck className="h-5 w-5 text-amber-400" />
-            Escrow pending release
+            <ShieldCheck
+              className="h-5 w-5 text-amber-400"
+              aria-hidden="true"
+            />
+            Đang chờ escrow
           </h2>
           <p className="mt-1 text-sm text-[var(--muted-foreground)]">
-            Marketplace earnings enter the wallet only after escrow release.
+            Doanh thu marketplace chỉ vào ví sau khi escrow được release.
           </p>
         </div>
         <div className="grid grid-cols-3 gap-3 text-sm">
           <div className="rounded-lg border border-[var(--border)] bg-[var(--second-card)] px-4 py-3">
             <p className="text-xs text-[var(--muted-foreground)]">
-              Dang cho escrow
+              Đang chờ escrow
             </p>
             <p className="font-mono text-lg font-bold text-[var(--foreground)]">
               {formatCoins(escrowPending)}
@@ -70,7 +74,7 @@ export default function SellerEscrowPanel({
             </p>
           </div>
           <div className="rounded-lg border border-amber-400/20 bg-amber-400/10 px-4 py-3">
-            <p className="text-xs text-amber-200">Can xu ly</p>
+            <p className="text-xs text-amber-200">Cần xử lý</p>
             <p className="font-mono text-lg font-bold text-amber-300">
               {decisionCount}
             </p>
@@ -80,7 +84,8 @@ export default function SellerEscrowPanel({
 
       {loading ? (
         <div className="flex items-center justify-center gap-2 py-12 text-[var(--muted-foreground)]">
-          <Loader2 className="h-5 w-5 animate-spin" /> Loading escrows...
+          <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />{" "}
+          Loading escrows...
         </div>
       ) : escrows.length === 0 ? (
         <div className="py-10 text-center text-sm text-[var(--muted-foreground)]">
@@ -119,9 +124,12 @@ export default function SellerEscrowPanel({
                       className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-semibold ${escrow.needsAdminDecision ? "border border-amber-400/30 bg-amber-400/10 text-amber-300" : "border border-emerald-400/20 bg-emerald-400/10 text-emerald-300"}`}
                     >
                       {escrow.needsAdminDecision ? (
-                        <AlertTriangle className="h-3.5 w-3.5" />
+                        <AlertTriangle
+                          className="h-3.5 w-3.5"
+                          aria-hidden="true"
+                        />
                       ) : (
-                        <Clock className="h-3.5 w-3.5" />
+                        <Clock className="h-3.5 w-3.5" aria-hidden="true" />
                       )}
                       {statusLabel(escrow)}
                     </span>

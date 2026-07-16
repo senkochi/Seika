@@ -1,12 +1,17 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { walletService, type WalletBalanceBreakdown } from "../../../api";
+import {
+  walletService,
+  type WalletBalanceBreakdown,
+  type WalletHold,
+} from "../../../api";
 import { EARN_TYPES, SPEND_TYPES, type Transaction } from "./types";
 
 interface WalletData {
   balance: number;
   breakdown: WalletBalanceBreakdown;
   history: Transaction[];
+  holds: WalletHold[];
   withdrawalRate: number;
   loading: boolean;
   totalEarned: number;
@@ -31,22 +36,26 @@ export function useWalletData(): WalletData {
   const [breakdown, setBreakdown] =
     useState<WalletBalanceBreakdown>(emptyBreakdown);
   const [history, setHistory] = useState<Transaction[]>([]);
+  const [holds, setHolds] = useState<WalletHold[]>([]);
   const [withdrawalRate, setWithdrawalRate] = useState<number>(90);
   const [loading, setLoading] = useState<boolean>(false);
 
   const reload = useCallback(async () => {
     setLoading(true);
     try {
-      const [breakdownRes, historyRes, configsRes] = await Promise.all([
-        walletService.getBalanceBreakdown().catch(async () => {
-          const fallback = await walletService.getBalance();
-          return { ...emptyBreakdown, balance: fallback.balance || 0 };
-        }),
-        walletService.getHistory(),
-        walletService.getConfigs().catch(() => []),
-      ]);
+      const [breakdownRes, historyRes, configsRes, holdsRes] =
+        await Promise.all([
+          walletService.getBalanceBreakdown().catch(async () => {
+            const fallback = await walletService.getBalance();
+            return { ...emptyBreakdown, balance: fallback.balance || 0 };
+          }),
+          walletService.getHistory(),
+          walletService.getConfigs().catch(() => []),
+          walletService.getMyHolds().catch(() => []),
+        ]);
 
       setBreakdown(breakdownRes);
+      setHolds(Array.isArray(holdsRes) ? holdsRes : []);
 
       if (Array.isArray(historyRes)) {
         const sorted = [...historyRes].sort(
@@ -76,6 +85,7 @@ export function useWalletData(): WalletData {
       console.error(err);
       setBreakdown(emptyBreakdown);
       setHistory([]);
+      setHolds([]);
     } finally {
       setLoading(false);
     }
@@ -111,6 +121,7 @@ export function useWalletData(): WalletData {
     balance: breakdown.balance,
     breakdown,
     history,
+    holds,
     withdrawalRate,
     loading,
     totalEarned,

@@ -16,6 +16,17 @@ export interface TopUpResponse {
   message: string;
 }
 
+export interface WalletHold {
+  id: string;
+  userId: string;
+  holdType: string;
+  reason?: string | null;
+  sourceFlagId?: string | null;
+  createdBy?: string | null;
+  expiresAt?: string | null;
+  active: boolean;
+  createdAt: string;
+}
 export interface WalletBalanceBreakdown {
   balance: number;
   bonusBalance: number;
@@ -81,6 +92,10 @@ export const walletService = {
     return normalizeBreakdown(response.data ?? {});
   },
 
+  getMyHolds: async (): Promise<WalletHold[]> => {
+    const response = await apiClient.get<WalletHold[]>("/wallet/holds/me");
+    return Array.isArray(response.data) ? response.data : [];
+  },
   getHistory: async (): Promise<TransactionResponse[]> => {
     // API POST /api/wallet/history (Theo dinh nghia Swagger o wallet.json la POST)
     const response =
