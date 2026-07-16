@@ -30,7 +30,8 @@ export const TextInput = forwardRef<HTMLInputElement, TextInputProps>(
     },
     ref,
   ) => {
-    const inputId = id ?? props.name ?? `input-${Math.random().toString(36).slice(2, 8)}`;
+    const inputId =
+      id ?? props.name ?? `input-${Math.random().toString(36).slice(2, 8)}`;
 
     return (
       <div className="w-full">
@@ -53,7 +54,7 @@ export const TextInput = forwardRef<HTMLInputElement, TextInputProps>(
           <div
             className={cn(
               "rounded-[calc(1rem-1px)] shadow-[inset_0_1px_1px_rgba(255,255,255,0.04)]",
-              "flex items-center bg-[var(--color-card-surface)]",
+              "flex items-center bg-[#1c0f2e]",
             )}
           >
             {leadingIcon && (

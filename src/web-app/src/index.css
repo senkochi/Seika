@@ -114,6 +114,29 @@
     outline-offset: 3px;
     border-radius: 4px;
   }
+  /*
+    Native select popups ignore parts of the Tailwind class stack on some
+    browsers/OSes. Keep option rows explicit so dark dashboard comboboxes do
+    not fall back to white popup backgrounds with pale text.
+  */
+  select {
+    color-scheme: dark;
+  }
+
+  select option,
+  select optgroup {
+    background-color: var(--color-bg-2);
+    color: var(--color-cream);
+  }
+
+  select option:checked {
+    background-color: var(--color-aubergine-3);
+    color: var(--color-cream);
+  }
+
+  select option:disabled {
+    color: rgba(250, 246, 238, 0.45);
+  }
 }
 
 /* ============================================================
@@ -144,9 +167,6 @@
     letter-spacing: 0.22em;
     font-weight: 500;
     color: rgba(212, 168, 67, 0.9);
-    border: 1px solid rgba(212, 168, 67, 0.25);
-    border-radius: 999px;
-    background-color: rgba(212, 168, 67, 0.06);
   }
 
   /* Hairline divider */
