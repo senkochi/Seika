@@ -1,11 +1,14 @@
 package com.seika.marketplace_service.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.seika.marketplace_service.config.RabbitMQConfig;
 import com.seika.marketplace_service.entity.EscrowTransaction;
 import com.seika.marketplace_service.entity.OrderItem;
 import com.seika.marketplace_service.entity.OutboxEvent;
+import com.seika.marketplace_service.entity.TeacherRating;
 import com.seika.marketplace_service.enums.EscrowState;
 import com.seika.marketplace_service.enums.EscrowStatus;
+import com.seika.marketplace_service.event.WalletCreditRequestedEvent;
 import com.seika.marketplace_service.event.WalletEscrowResultEvent;
 import com.seika.marketplace_service.event.WalletRefundRequestedEvent;
 import com.seika.marketplace_service.repository.EscrowTransactionRepository;
@@ -118,5 +121,57 @@ class EscrowServiceTest {
         assertThat(item.getEscrowState()).isEqualTo(EscrowState.PENDING_ADMIN_DECISION);
         assertThat(item.isEscrowFullyRefunded()).isFalse();
         verify(inventoryRepository, never()).save(any());
+    }
+    @Test
+    void adminForceReleaseSerializesCreditCommandWithApplicationObjectMapper() throws Exception {
+        EscrowTransactionRepository escrowRepository = mock(EscrowTransactionRepository.class);
+        OrderItemRepository orderItemRepository = mock(OrderItemRepository.class);
+        UserInventoryRepository inventoryRepository = mock(UserInventoryRepository.class);
+        OutboxEventRepository outboxRepository = mock(OutboxEventRepository.class);
+        MarketplaceConfigService configService = mock(MarketplaceConfigService.class);
+        TeacherRatingService ratingService = mock(TeacherRatingService.class);
+        ObjectMapper objectMapper = new RabbitMQConfig().objectMapper();
+        EscrowService service = new EscrowService(escrowRepository, orderItemRepository, inventoryRepository,
+                outboxRepository, configService, ratingService, objectMapper);
+
+        EscrowTransaction escrow = EscrowTransaction.builder()
+                .id("ESC-FORCE")
+                .orderId("ORDER-FORCE")
+                .orderItemId("ITEM-FORCE")
+                .buyerId("BUYER1")
+                .sellerId("SELLER1")
+                .productId("PRODUCT1")
+                .grossAmount(new BigDecimal("100"))
+                .paidBackedAmount(new BigDecimal("100"))
+                .promoBackedAmount(BigDecimal.ZERO)
+                .status(EscrowStatus.PENDING_ADMIN_DECISION)
+                .needsAdminDecision(true)
+                .releaseAt(Instant.now())
+                .build();
+        OrderItem item = OrderItem.builder().id("ITEM-FORCE").build();
+        when(escrowRepository.findByOrderItemId("ITEM-FORCE")).thenReturn(Optional.of(escrow));
+        when(orderItemRepository.findById("ITEM-FORCE")).thenReturn(Optional.of(item));
+        when(ratingService.getOrDefault("SELLER1")).thenReturn(TeacherRating.builder()
+                .teacherId("SELLER1")
+                .tierFeePercent(new BigDecimal("20"))
+                .build());
+        when(configService.getBigDecimal(MarketplaceConfigService.KEY_ESCROW_OPERATION_FEE_PERCENT, BigDecimal.ZERO))
+                .thenReturn(BigDecimal.ZERO);
+        when(outboxRepository.save(any(OutboxEvent.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(escrowRepository.save(any(EscrowTransaction.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        org.assertj.core.api.Assertions.assertThatCode(() ->
+                service.adminForceRelease("ITEM-FORCE", "admin-1", "manual release"))
+                .doesNotThrowAnyException();
+
+        ArgumentCaptor<OutboxEvent> outboxCaptor = ArgumentCaptor.forClass(OutboxEvent.class);
+        verify(outboxRepository).save(outboxCaptor.capture());
+        OutboxEvent outbox = outboxCaptor.getValue();
+        assertThat(outbox.getEventType()).isEqualTo(EscrowService.CREDIT_REQUESTED);
+        WalletCreditRequestedEvent event = objectMapper.readValue(outbox.getPayload(), WalletCreditRequestedEvent.class);
+        assertThat(event.getEscrowId()).isEqualTo("ESC-FORCE");
+        assertThat(event.getOccurredAt()).isNotNull();
+        assertThat(event.getTeacherWithdrawableAmount()).isEqualByComparingTo("80.00");
+        assertThat(escrow.getCreditRequestedAt()).isNotNull();
     }
 }
