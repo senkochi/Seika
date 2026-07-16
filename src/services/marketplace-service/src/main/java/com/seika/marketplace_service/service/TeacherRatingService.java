@@ -11,9 +11,9 @@ import com.seika.marketplace_service.event.TeacherTierUpdatedEvent;
 import com.seika.marketplace_service.repository.ProductRepository;
 import com.seika.marketplace_service.repository.ReviewRepository;
 import com.seika.marketplace_service.repository.TeacherRatingRepository;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,7 +25,6 @@ import java.util.Map;
 import java.util.UUID;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class TeacherRatingService {
     private static final String DEFAULT_TIER_CONSUME_RATE_MIN = "{\"SILVER\":0.35,\"GOLD\":0.50,\"ELITE\":0.65}";
@@ -50,6 +49,25 @@ public class TeacherRatingService {
                                 ObjectMapper objectMapper) {
         this(teacherRatingRepository, reviewRepository, productRepository, escrowTransactionRepository,
                 userInventoryRepository, rabbitTemplate, objectMapper, null);
+    }
+
+    @Autowired
+    public TeacherRatingService(TeacherRatingRepository teacherRatingRepository,
+                                ReviewRepository reviewRepository,
+                                ProductRepository productRepository,
+                                com.seika.marketplace_service.repository.EscrowTransactionRepository escrowTransactionRepository,
+                                com.seika.marketplace_service.repository.UserInventoryRepository userInventoryRepository,
+                                RabbitTemplate rabbitTemplate,
+                                ObjectMapper objectMapper,
+                                MarketplaceConfigService configService) {
+        this.teacherRatingRepository = teacherRatingRepository;
+        this.reviewRepository = reviewRepository;
+        this.productRepository = productRepository;
+        this.escrowTransactionRepository = escrowTransactionRepository;
+        this.userInventoryRepository = userInventoryRepository;
+        this.rabbitTemplate = rabbitTemplate;
+        this.objectMapper = objectMapper;
+        this.configService = configService;
     }
 
     @Transactional(readOnly = true)

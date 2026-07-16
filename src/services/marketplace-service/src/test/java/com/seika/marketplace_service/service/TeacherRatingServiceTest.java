@@ -2,13 +2,30 @@ package com.seika.marketplace_service.service;
 
 import com.seika.marketplace_service.enums.TeacherTier;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
+import java.lang.reflect.Constructor;
 import java.math.BigDecimal;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class TeacherRatingServiceTest {
     private final TeacherRatingService service = new TeacherRatingService(null, null, null, null, null, null, null, null);
+
+    @Test
+    void productionConstructorIsExplicitlyAutowired() throws NoSuchMethodException {
+        Constructor<TeacherRatingService> constructor = TeacherRatingService.class.getConstructor(
+                com.seika.marketplace_service.repository.TeacherRatingRepository.class,
+                com.seika.marketplace_service.repository.ReviewRepository.class,
+                com.seika.marketplace_service.repository.ProductRepository.class,
+                com.seika.marketplace_service.repository.EscrowTransactionRepository.class,
+                com.seika.marketplace_service.repository.UserInventoryRepository.class,
+                org.springframework.amqp.rabbit.core.RabbitTemplate.class,
+                com.fasterxml.jackson.databind.ObjectMapper.class,
+                MarketplaceConfigService.class);
+
+        assertThat(constructor.isAnnotationPresent(Autowired.class)).isTrue();
+    }
 
     @Test
     void calculatesPhase2TierFromRatingAndValidReviewCountOnly() {

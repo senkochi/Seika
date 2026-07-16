@@ -13,6 +13,14 @@ import type {
   UserAdminResponse,
 } from "../types";
 
+export type AdminCollusionFlagStatus =
+  | "SUSPICIOUS"
+  | "CONFIRMED"
+  | "MALICIOUS"
+  | "DISMISSED";
+
+export type AdminCollusionFlagFilter = AdminCollusionFlagStatus | "ALL";
+
 export interface AdminCollusionFlag {
   id: string;
   teacherId: string;
@@ -26,7 +34,7 @@ export interface AdminCollusionFlag {
   lookbackStart: string;
   lookbackEnd: string;
   lastEvaluatedAt: string;
-  status: string;
+  status: AdminCollusionFlagStatus;
   adminId?: string | null;
   adminReason?: string | null;
   resolvedAt?: string | null;
@@ -254,7 +262,7 @@ export const adminService = {
   },
 
   listCollusionFlags: async (
-    status?: string,
+    status?: AdminCollusionFlagFilter,
     page = 0,
     size = 20,
   ): Promise<AdminCollusionFlagsPage> => {

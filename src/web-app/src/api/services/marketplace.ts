@@ -17,6 +17,43 @@ export interface Product {
   createdAt: string;
 }
 
+export interface InventoryItem {
+  id: string;
+  userId: string;
+  productId: string;
+  productType: "FLASHCARD" | "QUIZ" | string;
+  referenceId: string;
+  orderId: string;
+  active: boolean;
+  acquiredAt?: string | null;
+  consumedAt?: string | null;
+  revokedAt?: string | null;
+  revocationReason?: string | null;
+  product?: Product | null;
+}
+
+export interface ReviewResponse {
+  id: string;
+  buyerId: string;
+  sellerId: string;
+  productId: string;
+  orderId: string;
+  rating: number;
+  comment?: string | null;
+  status:
+    | "VALID"
+    | "PENDING_RISK_REVIEW"
+    | "EXCLUDED_WASH"
+    | "DELETED_BY_ADMIN"
+    | string;
+  createdAt?: string | null;
+}
+
+export interface CreateReviewRequest {
+  productId: string;
+  rating: number;
+  comment?: string;
+}
 export interface TeacherRating {
   teacherId: string;
   averageRating: number;
@@ -86,12 +123,18 @@ export interface EscrowTransaction {
 export const marketplaceApi = {
   // Products
   getProducts: () => apiClient.get<Product[]>("/marketplace/products"),
+  getProductById: (productId: string) =>
+    apiClient.get<Product>(
+      `/marketplace/products/${encodeURIComponent(productId)}`,
+    ),
   getMyProducts: () =>
     apiClient.get<Product[]>("/marketplace/products/my-products"),
 
   // Inventory
   getMyInventory: () =>
     apiClient.get<Product[]>("/marketplace/inventory/my-items"),
+  getMyInventoryDetails: () =>
+    apiClient.get<InventoryItem[]>("/marketplace/inventory/my-items/detail"),
 
   // Orders
   createOrder: (userId: string, items: OrderItemRequest[]) =>
@@ -108,6 +151,14 @@ export const marketplaceApi = {
     apiClient.post<EscrowTransaction>(
       `/marketplace/escrows/${escrowId}/refund`,
     ),
+
+  // Reviews
+  getProductReviews: (productId: string) =>
+    apiClient.get<ReviewResponse[]>(
+      `/marketplace/products/${encodeURIComponent(productId)}/reviews`,
+    ),
+  submitReview: (request: CreateReviewRequest) =>
+    apiClient.post<ReviewResponse>("/marketplace/reviews", request),
 
   // Teacher rating / tier
   getTeacherRating: (teacherId: string) =>

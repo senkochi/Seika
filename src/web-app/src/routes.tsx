@@ -13,6 +13,7 @@ const NotFound = lazy(() => import("./pages/not-found/NotFound"));
 const DashboardHome = lazy(() => import("./pages/student/DashboardHome"));
 const LearningHub = lazy(() => import("./pages/student/LearningHub"));
 const Marketplace = lazy(() => import("./pages/student/Marketplace"));
+const ProductDetail = lazy(() => import("./pages/student/ProductDetail"));
 const Wallet = lazy(() => import("./pages/student/Wallet"));
 const StudentProfile = lazy(() => import("./pages/student/StudentProfile"));
 const StudentDashboardLayout = lazy(
@@ -101,6 +102,10 @@ const router = createBrowserRouter([
       {
         path: "marketplace",
         element: withLoader(<Marketplace />),
+      },
+      {
+        path: "marketplace/:id",
+        element: withLoader(<ProductDetail />),
       },
       {
         path: "wallet",

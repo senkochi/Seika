@@ -1,5 +1,6 @@
 package com.seika.marketplace_service.controller;
 
+import com.seika.marketplace_service.dto.InventoryItemResponse;
 import com.seika.marketplace_service.entity.Product;
 import com.seika.marketplace_service.entity.UserInventory;
 import com.seika.marketplace_service.repository.ProductRepository;
@@ -14,6 +15,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @RestController
@@ -34,6 +37,35 @@ public class InventoryController {
 
         List<Product> products = productRepository.findAllById(productIds);
         return ResponseEntity.ok(products);
+    }
+
+    @GetMapping("/my-items/detail")
+    public ResponseEntity<List<InventoryItemResponse>> getMyInventoryDetails(HttpServletRequest request) {
+        String userId = resolveUserId(request);
+        List<UserInventory> inventories = userInventoryRepository.findByUserIdAndActiveTrue(userId);
+        List<String> productIds = inventories.stream()
+                .map(UserInventory::getProductId)
+                .toList();
+        Map<String, Product> productsById = productRepository.findAllById(productIds).stream()
+                .collect(Collectors.toMap(Product::getId, Function.identity()));
+
+        List<InventoryItemResponse> response = inventories.stream()
+                .map(inventory -> InventoryItemResponse.builder()
+                        .id(inventory.getId())
+                        .userId(inventory.getUserId())
+                        .productId(inventory.getProductId())
+                        .productType(inventory.getProductType().name())
+                        .referenceId(inventory.getReferenceId())
+                        .orderId(inventory.getOrderId())
+                        .active(inventory.isActive())
+                        .acquiredAt(inventory.getAcquiredAt())
+                        .consumedAt(inventory.getConsumedAt())
+                        .revokedAt(inventory.getRevokedAt())
+                        .revocationReason(inventory.getRevocationReason())
+                        .product(productsById.get(inventory.getProductId()))
+                        .build())
+                .toList();
+        return ResponseEntity.ok(response);
     }
 
     private static String resolveUserId(HttpServletRequest request) {

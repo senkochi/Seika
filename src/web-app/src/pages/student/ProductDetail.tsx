@@ -1,0 +1,629 @@
+import {
+  ArrowLeft,
+  BookOpen,
+  Coins,
+  MessageSquare,
+  RefreshCcw,
+  ShieldCheck,
+  Star,
+  Target,
+  Undo2,
+} from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { toast } from "sonner";
+import {
+  marketplaceApi,
+  walletService,
+  type EscrowTransaction,
+  type InventoryItem,
+  type Product,
+  type ReviewResponse,
+} from "@/api";
+import { Button } from "@/components/ui/Button";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { SectionCard } from "@/components/ui/SectionCard";
+import { StatusPill } from "@/components/ui/StatusPill";
+import { useAppSelector } from "@/store/hooks";
+
+const ORDER_POLL_ATTEMPTS = 10;
+const ORDER_POLL_DELAY_MS = 700;
+
+const wait = (ms: number) =>
+  new Promise((resolve) => window.setTimeout(resolve, ms));
+
+async function waitForPaidOrder(orderId: string) {
+  for (let attempt = 0; attempt < ORDER_POLL_ATTEMPTS; attempt += 1) {
+    const response = await marketplaceApi.getOrder(orderId);
+    if (response.data.status === "PAID") return response.data;
+    if (response.data.status === "FAILED") {
+      throw new Error(
+        "Payment failed. Your coins were kept or will be restored by the system.",
+      );
+    }
+    await wait(ORDER_POLL_DELAY_MS);
+  }
+  return null;
+}
+
+function toNumber(value: unknown) {
+  return Number(value ?? 0) || 0;
+}
+
+function formatCoins(value: unknown) {
+  return toNumber(value).toLocaleString("vi-VN");
+}
+
+function formatDate(value?: string | null) {
+  if (!value) return "-";
+  return new Date(value).toLocaleDateString("vi-VN");
+}
+
+function productKind(product: Product) {
+  return product.type === "FLASHCARD"
+    ? { label: "Flashcard", icon: BookOpen, variant: "info" as const }
+    : { label: "Quiz", icon: Target, variant: "success" as const };
+}
+
+function tierVariant(tier?: string | null) {
+  if (tier === "ELITE" || tier === "GOLD") return "gold" as const;
+  if (tier === "SILVER") return "info" as const;
+  if (tier === "BRONZE") return "warning" as const;
+  return "neutral" as const;
+}
+
+function latestEscrowForProduct(
+  escrows: EscrowTransaction[],
+  productId: string,
+) {
+  return escrows
+    .filter((escrow) => escrow.productId === productId)
+    .sort(
+      (a, b) =>
+        new Date(b.createdAt ?? 0).getTime() -
+        new Date(a.createdAt ?? 0).getTime(),
+    )[0];
+}
+
+function canRequestSelfServiceRefund(
+  escrow: EscrowTransaction | undefined,
+  inventory: InventoryItem | undefined,
+) {
+  return Boolean(
+    escrow &&
+    escrow.status === "HELD" &&
+    !escrow.needsAdminDecision &&
+    !escrow.creditRequestedAt &&
+    !escrow.refundRequestedAt &&
+    !inventory?.consumedAt,
+  );
+}
+
+function refundHelpText(
+  escrow: EscrowTransaction | undefined,
+  inventory: InventoryItem | undefined,
+) {
+  if (!escrow) return "No escrow record was found for this product yet.";
+  if (inventory?.consumedAt) {
+    return "This content has already been opened. Refunds now require admin review.";
+  }
+  if (escrow.status === "REFUNDED")
+    return "This purchase has already been refunded.";
+  if (escrow.status === "RELEASED")
+    return "Escrow has already been released to the teacher.";
+  if (escrow.needsAdminDecision || escrow.status === "PENDING_ADMIN_DECISION") {
+    return "This purchase is already waiting for an admin decision.";
+  }
+  if (escrow.refundRequestedAt)
+    return "A refund request is already being processed.";
+  if (escrow.creditRequestedAt)
+    return "Escrow release is already being processed.";
+  return "You can request a self-service refund while escrow is held and the content has not been opened.";
+}
+
+function ProductDetail() {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const userId = useAppSelector((state) => state.userProfile.userId);
+  const [product, setProduct] = useState<Product | null>(null);
+  const [reviews, setReviews] = useState<ReviewResponse[]>([]);
+  const [inventory, setInventory] = useState<InventoryItem[]>([]);
+  const [escrows, setEscrows] = useState<EscrowTransaction[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [buying, setBuying] = useState(false);
+  const [refunding, setRefunding] = useState(false);
+  const [reviewSubmitting, setReviewSubmitting] = useState(false);
+  const [rating, setRating] = useState(5);
+  const [comment, setComment] = useState("");
+  const [error, setError] = useState<string | null>(null);
+
+  const load = useCallback(async () => {
+    if (!id) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const [
+        productResponse,
+        reviewResponse,
+        inventoryResponse,
+        escrowResponse,
+      ] = await Promise.all([
+        marketplaceApi.getProductById(id),
+        marketplaceApi.getProductReviews(id),
+        marketplaceApi
+          .getMyInventoryDetails()
+          .catch(() => ({ data: [] as InventoryItem[] })),
+        marketplaceApi
+          .getMyEscrows()
+          .catch(() => ({ data: [] as EscrowTransaction[] })),
+      ]);
+      setProduct(productResponse.data);
+      setReviews(reviewResponse.data ?? []);
+      setInventory(inventoryResponse.data ?? []);
+      setEscrows(escrowResponse.data ?? []);
+    } catch (err) {
+      console.error(err);
+      setError("This product is unavailable or no longer published.");
+    } finally {
+      setLoading(false);
+    }
+  }, [id]);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  const ownedInventory = useMemo(
+    () =>
+      inventory.find((item) => item.productId === product?.id && item.active),
+    [inventory, product?.id],
+  );
+  const owned = Boolean(ownedInventory);
+  const escrow = useMemo(
+    () => (product ? latestEscrowForProduct(escrows, product.id) : undefined),
+    [escrows, product],
+  );
+  const canRefund = canRequestSelfServiceRefund(escrow, ownedInventory);
+
+  const handleBuy = async () => {
+    if (!product) return;
+    if (!userId) {
+      toast.error("Please sign in before buying.");
+      return;
+    }
+    setBuying(true);
+    try {
+      toast.loading("Checking wallet balance...", { id: "buy-product-detail" });
+      const balance = await walletService.getBalance();
+      const currentBalance = toNumber(balance.balance);
+      if (currentBalance < toNumber(product.price)) {
+        toast.error(
+          `Not enough coins. You need ${formatCoins(product.price)} coins, current balance is ${formatCoins(currentBalance)}.`,
+          { id: "buy-product-detail" },
+        );
+        return;
+      }
+
+      toast.loading("Creating order...", { id: "buy-product-detail" });
+      const order = await marketplaceApi.createOrder(userId, [
+        {
+          productId: product.id,
+          productType: product.type,
+          referenceId: product.referenceId,
+          productName: product.name,
+          unitPrice: toNumber(product.price),
+          quantity: 1,
+          sellerUserId: product.sellerUserId,
+        },
+      ]);
+      toast.loading("Confirming payment...", { id: "buy-product-detail" });
+      await waitForPaidOrder(order.data.id);
+      toast.success("Purchase complete. The product is now in Learning Hub.", {
+        id: "buy-product-detail",
+      });
+      await load();
+    } catch (err: any) {
+      console.error(err);
+      toast.error(
+        err.response?.data?.message ||
+          err.response?.data?.error ||
+          err.message ||
+          "Purchase failed.",
+        { id: "buy-product-detail" },
+      );
+    } finally {
+      setBuying(false);
+    }
+  };
+
+  const handleRefund = async () => {
+    if (!escrow || !canRefund) return;
+    setRefunding(true);
+    try {
+      await marketplaceApi.requestRefund(escrow.id);
+      toast.success(
+        "Refund request sent. The product will be revoked after wallet confirmation.",
+      );
+      await load();
+    } catch (err: any) {
+      console.error(err);
+      toast.error(
+        err.response?.data?.message ||
+          err.response?.data?.error ||
+          err.message ||
+          "Refund request failed.",
+      );
+    } finally {
+      setRefunding(false);
+    }
+  };
+
+  const handleSubmitReview = async (
+    event: React.FormEvent<HTMLFormElement>,
+  ) => {
+    event.preventDefault();
+    if (!product || !owned) return;
+    setReviewSubmitting(true);
+    try {
+      const response = await marketplaceApi.submitReview({
+        productId: product.id,
+        rating,
+        comment: comment.trim(),
+      });
+      setComment("");
+      setRating(5);
+      await load();
+      if (response.data.status === "PENDING_RISK_REVIEW") {
+        toast.info("Review received and waiting for risk review.");
+      } else {
+        toast.success("Review submitted.");
+      }
+    } catch (err: any) {
+      console.error(err);
+      toast.error(
+        err.response?.data?.message ||
+          err.response?.data?.error ||
+          err.message ||
+          "Review submit failed.",
+      );
+    } finally {
+      setReviewSubmitting(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="p-6 lg:p-8 font-sans-ui text-sm text-white/55">
+        Loading product...
+      </div>
+    );
+  }
+
+  if (error || !product) {
+    return (
+      <div className="space-y-6 p-6 lg:p-8">
+        <Button variant="ghost" size="md" onClick={() => navigate(-1)}>
+          <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+          Back
+        </Button>
+        <EmptyState
+          icon={<BookOpen className="w-5 h-5" aria-hidden="true" />}
+          title="Product unavailable"
+          description={error ?? "This product cannot be opened."}
+          action={
+            <Button
+              variant="primary"
+              size="md"
+              onClick={() => navigate("/student/dashboard/marketplace")}
+            >
+              Return to Marketplace
+            </Button>
+          }
+        />
+      </div>
+    );
+  }
+
+  const kind = productKind(product);
+  const KindIcon = kind.icon;
+  const targetPath =
+    product.type === "FLASHCARD"
+      ? `/student/dashboard/flashcard/${product.referenceId}`
+      : `/student/dashboard/quiz/${product.referenceId}`;
+
+  return (
+    <div className="space-y-8 p-6 lg:p-8">
+      <PageHeader
+        title={product.name}
+        subtitle={
+          product.description || "Study material from the Seika marketplace."
+        }
+        actions={
+          <Button
+            variant="ghost"
+            size="md"
+            onClick={() => navigate("/student/dashboard/marketplace")}
+          >
+            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+            Marketplace
+          </Button>
+        }
+      />
+
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,1.6fr)_minmax(320px,0.9fr)]">
+        <SectionCard className="space-y-6">
+          <div className="flex flex-wrap items-center gap-2">
+            <StatusPill
+              variant={kind.variant}
+              icon={<KindIcon className="h-3.5 w-3.5" />}
+            >
+              {kind.label}
+            </StatusPill>
+            <StatusPill
+              variant={tierVariant(product.teacherTier)}
+              icon={<ShieldCheck className="h-3.5 w-3.5" />}
+            >
+              {product.teacherTier ?? "NEWBIE"}
+            </StatusPill>
+            {owned && <StatusPill variant="success">Owned</StatusPill>}
+          </div>
+
+          <div className="aspect-[16/9] w-full rounded-2xl border border-white/[0.06] bg-white/[0.03] grid place-items-center">
+            <KindIcon
+              className="h-16 w-16 text-[#d4a843]"
+              strokeWidth={1.5}
+              aria-hidden="true"
+            />
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-3">
+            <div>
+              <p className="text-xs uppercase tracking-[0.16em] text-white/40">
+                Price
+              </p>
+              <p className="mt-1 flex items-center gap-2 text-2xl font-semibold text-cream tabular-nums">
+                <Coins className="h-5 w-5 text-[#d4a843]" aria-hidden="true" />
+                {formatCoins(product.price)}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs uppercase tracking-[0.16em] text-white/40">
+                Teacher
+              </p>
+              <p className="mt-1 text-base font-medium text-cream">
+                {product.teacherDisplayName || product.sellerUserId}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs uppercase tracking-[0.16em] text-white/40">
+                Rating
+              </p>
+              <p className="mt-1 text-base font-medium text-cream">
+                {toNumber(product.teacherAverageRating).toFixed(1)} / 5
+                <span className="ml-2 text-sm text-white/45">
+                  ({product.teacherValidReviewCount ?? 0})
+                </span>
+              </p>
+            </div>
+          </div>
+        </SectionCard>
+
+        <SectionCard className="space-y-5">
+          <div>
+            <h2 className="font-sans-ui text-base font-semibold text-cream">
+              Actions
+            </h2>
+            <p className="mt-1 text-sm text-white/55">
+              Buy, open owned content, or request a refund while escrow is still
+              held.
+            </p>
+          </div>
+
+          {owned ? (
+            <Button
+              variant="primary"
+              size="md"
+              className="w-full"
+              onClick={() => navigate(targetPath)}
+            >
+              Open in Learning Hub
+            </Button>
+          ) : (
+            <Button
+              variant="primary"
+              size="md"
+              className="w-full"
+              onClick={handleBuy}
+              loading={buying}
+            >
+              Buy for {formatCoins(product.price)} coins
+            </Button>
+          )}
+
+          <div className="rounded-xl border border-white/[0.06] bg-white/[0.025] p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="font-sans-ui text-sm font-medium text-cream">
+                  Escrow refund
+                </p>
+                <p className="mt-1 text-sm text-white/50">
+                  {refundHelpText(escrow, ownedInventory)}
+                </p>
+              </div>
+              {escrow && (
+                <StatusPill variant="neutral">{escrow.status}</StatusPill>
+              )}
+            </div>
+            {canRefund && (
+              <Button
+                variant="ghost"
+                size="md"
+                tone="danger"
+                className="mt-4 w-full"
+                onClick={handleRefund}
+                loading={refunding}
+              >
+                <Undo2 className="h-4 w-4" aria-hidden="true" />
+                Request refund
+              </Button>
+            )}
+          </div>
+
+          <Button
+            variant="ghost"
+            size="md"
+            className="w-full"
+            onClick={load}
+            disabled={loading}
+          >
+            <RefreshCcw className="h-4 w-4" aria-hidden="true" />
+            Refresh status
+          </Button>
+        </SectionCard>
+      </div>
+
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(320px,0.8fr)]">
+        <SectionCard className="space-y-5">
+          <div className="flex items-center gap-2">
+            <MessageSquare
+              className="h-4 w-4 text-[#d4a843]"
+              aria-hidden="true"
+            />
+            <h2 className="font-sans-ui text-base font-semibold text-cream">
+              Reviews
+            </h2>
+          </div>
+
+          {reviews.length === 0 ? (
+            <EmptyState
+              icon={<MessageSquare className="w-5 h-5" aria-hidden="true" />}
+              title="No reviews yet"
+              description="Verified buyers can leave a review after purchase."
+            />
+          ) : (
+            <div className="space-y-3">
+              {reviews.map((review) => (
+                <article
+                  key={review.id}
+                  className="rounded-xl border border-white/[0.06] bg-white/[0.025] p-4"
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div
+                      className="flex items-center gap-1 text-[#d4a843]"
+                      aria-label={`${review.rating} out of 5 stars`}
+                    >
+                      {Array.from({ length: 5 }).map((_, index) => (
+                        <Star
+                          key={index}
+                          className={`h-4 w-4 ${
+                            index < review.rating
+                              ? "fill-current"
+                              : "opacity-30"
+                          }`}
+                          aria-hidden="true"
+                        />
+                      ))}
+                    </div>
+                    <span className="text-xs text-white/45">
+                      {formatDate(review.createdAt)}
+                    </span>
+                  </div>
+                  {review.comment && (
+                    <p className="mt-3 text-sm leading-6 text-white/70">
+                      {review.comment}
+                    </p>
+                  )}
+                </article>
+              ))}
+            </div>
+          )}
+        </SectionCard>
+
+        <SectionCard className="space-y-5">
+          <div>
+            <h2 className="font-sans-ui text-base font-semibold text-cream">
+              Write a review
+            </h2>
+            <p className="mt-1 text-sm text-white/55">
+              Only active verified purchases can submit a review.
+            </p>
+          </div>
+
+          {!owned ? (
+            <EmptyState
+              icon={<ShieldCheck className="w-5 h-5" aria-hidden="true" />}
+              title="Purchase required"
+              description="Buy this product first to unlock review submission."
+            />
+          ) : (
+            <form className="space-y-4" onSubmit={handleSubmitReview}>
+              <div>
+                <span className="block text-sm font-medium text-cream">
+                  Rating
+                </span>
+                <div
+                  className="mt-2 flex gap-1"
+                  role="group"
+                  aria-label="Choose rating"
+                >
+                  {Array.from({ length: 5 }).map((_, index) => {
+                    const value = index + 1;
+                    const active = value <= rating;
+                    return (
+                      <button
+                        key={value}
+                        type="button"
+                        aria-label={`${value} star rating`}
+                        className={`rounded-full p-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d4a843] ${
+                          active
+                            ? "text-[#d4a843]"
+                            : "text-white/25 hover:text-white/55"
+                        }`}
+                        onClick={() => setRating(value)}
+                      >
+                        <Star
+                          className={`h-5 w-5 ${active ? "fill-current" : ""}`}
+                          aria-hidden="true"
+                        />
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div>
+                <label
+                  htmlFor="review-comment"
+                  className="text-sm font-medium text-cream"
+                >
+                  Comment
+                </label>
+                <textarea
+                  id="review-comment"
+                  value={comment}
+                  onChange={(event) => setComment(event.target.value)}
+                  rows={4}
+                  className="mt-2 w-full rounded-xl border border-white/[0.08] bg-white/[0.04] px-4 py-3 text-sm text-cream outline-none focus:border-[#d4a843]/50"
+                  placeholder="Share what worked well for your study session."
+                />
+              </div>
+
+              <Button
+                type="submit"
+                variant="primary"
+                size="md"
+                className="w-full"
+                loading={reviewSubmitting}
+              >
+                Submit review
+              </Button>
+            </form>
+          )}
+        </SectionCard>
+      </div>
+    </div>
+  );
+}
+
+export default ProductDetail;

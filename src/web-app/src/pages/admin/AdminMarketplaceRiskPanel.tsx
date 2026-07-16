@@ -15,6 +15,7 @@ import { getApiErrorMessage } from "../../api/errors";
 import {
   adminService,
   type AdminCollusionFlag,
+  type AdminCollusionFlagFilter,
   type CollusionAction,
 } from "../../api/services/admin";
 import type { EscrowTransaction } from "../../api/services/marketplace";
@@ -85,7 +86,8 @@ export default function AdminMarketplaceRiskPanel() {
   const [escrowFilter, setEscrowFilter] = useState<EscrowFilter>("HELD");
   const [escrows, setEscrows] = useState<EscrowTransaction[]>([]);
   const [flags, setFlags] = useState<AdminCollusionFlag[]>([]);
-  const [flagStatus, setFlagStatus] = useState("OPEN");
+  const [flagStatus, setFlagStatus] =
+    useState<AdminCollusionFlagFilter>("SUSPICIOUS");
   const [loading, setLoading] = useState(false);
   const [actingId, setActingId] = useState<string | null>(null);
 
@@ -315,7 +317,10 @@ export default function AdminMarketplaceRiskPanel() {
           <SectionCard className="overflow-hidden p-0">
             {loading ? (
               <div className="flex min-h-64 items-center justify-center gap-2 font-sans-ui text-white/55 p-10">
-                <Loader2 className="h-5 w-5 animate-spin text-[#d4a843]" aria-hidden="true" />
+                <Loader2
+                  className="h-5 w-5 animate-spin text-[#d4a843]"
+                  aria-hidden="true"
+                />
                 Đang tải escrow…
               </div>
             ) : escrows.length === 0 ? (
@@ -397,7 +402,11 @@ export default function AdminMarketplaceRiskPanel() {
                                 disabled={!canAct || actingId === escrow.id}
                                 className="inline-flex items-center gap-1 rounded-md border border-emerald-400/25 bg-emerald-400/10 px-2 py-1.5 font-sans-ui text-xs font-medium text-emerald-300 hover:bg-emerald-400/15 disabled:cursor-not-allowed disabled:opacity-40 transition-colors"
                               >
-                                <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" /> Release
+                                <CheckCircle2
+                                  className="h-3.5 w-3.5"
+                                  aria-hidden="true"
+                                />{" "}
+                                Release
                               </button>
                               <button
                                 type="button"
@@ -407,7 +416,11 @@ export default function AdminMarketplaceRiskPanel() {
                                 disabled={!canAct || actingId === escrow.id}
                                 className="inline-flex items-center gap-1 rounded-md border border-red-400/25 bg-red-400/10 px-2 py-1.5 font-sans-ui text-xs font-medium text-red-300 hover:bg-red-400/15 disabled:cursor-not-allowed disabled:opacity-40 transition-colors"
                               >
-                                <XCircle className="h-3.5 w-3.5" aria-hidden="true" /> Refund
+                                <XCircle
+                                  className="h-3.5 w-3.5"
+                                  aria-hidden="true"
+                                />{" "}
+                                Refund
                               </button>
                               <button
                                 type="button"
@@ -420,7 +433,11 @@ export default function AdminMarketplaceRiskPanel() {
                                 }
                                 className="inline-flex items-center gap-1 rounded-md border border-white/[0.06] bg-white/[0.02] px-2 py-1.5 font-sans-ui text-xs font-medium text-cream hover:bg-white/[0.04] disabled:cursor-not-allowed disabled:opacity-40 transition-colors"
                               >
-                                <Clock className="h-3.5 w-3.5" aria-hidden="true" /> Hold
+                                <Clock
+                                  className="h-3.5 w-3.5"
+                                  aria-hidden="true"
+                                />{" "}
+                                Hold
                               </button>
                             </div>
                           </td>
@@ -447,10 +464,12 @@ export default function AdminMarketplaceRiskPanel() {
               </div>
               <select
                 value={flagStatus}
-                onChange={(event) => setFlagStatus(event.target.value)}
+                onChange={(event) =>
+                  setFlagStatus(event.target.value as AdminCollusionFlagFilter)
+                }
                 className="h-10 rounded-lg border border-white/[0.06] bg-white/[0.04] px-3 font-sans-ui text-sm text-cream focus:outline-none focus:border-[#d4a843]/50 transition-colors"
               >
-                <option value="OPEN">OPEN</option>
+                <option value="SUSPICIOUS">SUSPICIOUS</option>
                 <option value="CONFIRMED">CONFIRMED</option>
                 <option value="MALICIOUS">MALICIOUS</option>
                 <option value="DISMISSED">DISMISSED</option>
@@ -460,7 +479,10 @@ export default function AdminMarketplaceRiskPanel() {
             <div className="max-h-[34rem] overflow-y-auto pr-1 custom-scrollbar">
               {loading ? (
                 <div className="flex min-h-40 items-center justify-center gap-2 font-sans-ui text-white/55 py-10">
-                  <Loader2 className="h-5 w-5 animate-spin text-[#d4a843]" aria-hidden="true" />
+                  <Loader2
+                    className="h-5 w-5 animate-spin text-[#d4a843]"
+                    aria-hidden="true"
+                  />
                   Đang tải cờ…
                 </div>
               ) : flags.length === 0 ? (
@@ -486,14 +508,15 @@ export default function AdminMarketplaceRiskPanel() {
                             {formatDate(flag.createdAt)}
                           </p>
                           <p className="mt-2 text-xs text-white/55 tabular-nums">
-                            Promo {(flag.promoBackedRatio * 100).toFixed(0)}% · No consume{" "}
-                            {(flag.noConsumeRatio * 100).toFixed(0)}% · Reciprocal{" "}
+                            Promo {(flag.promoBackedRatio * 100).toFixed(0)}% ·
+                            No consume {(flag.noConsumeRatio * 100).toFixed(0)}%
+                            · Reciprocal{" "}
                             {(flag.reciprocalRatio * 100).toFixed(0)}%
                           </p>
                         </div>
                         <StatusPill
                           variant={
-                            flag.status === "OPEN"
+                            flag.status === "SUSPICIOUS"
                               ? "warning"
                               : flag.status === "CONFIRMED"
                                 ? "info"
@@ -505,7 +528,7 @@ export default function AdminMarketplaceRiskPanel() {
                           {flag.status}
                         </StatusPill>
                       </div>
-                      {flag.status === "OPEN" && (
+                      {flag.status === "SUSPICIOUS" && (
                         <div className="mt-4 flex flex-wrap gap-2">
                           <Button
                             variant="ghost"
@@ -557,10 +580,10 @@ export default function AdminMarketplaceRiskPanel() {
                 </h2>
                 <p className="mt-2 text-sm leading-6 text-white/55">
                   Admin giờ có thể truy vết lineage escrow, force-release các
-                  hàng đang giữ để dev test, hoàn tiền các giao dịch chưa xử
-                  lý, và rà soát cờ collusion. Báo cáo doanh thu vẫn phụ
-                  thuộc ledger của wallet-service và nên tách khỏi phần
-                  promo sink accounting.
+                  hàng đang giữ để dev test, hoàn tiền các giao dịch chưa xử lý,
+                  và rà soát cờ collusion. Báo cáo doanh thu vẫn phụ thuộc
+                  ledger của wallet-service và nên tách khỏi phần promo sink
+                  accounting.
                 </p>
                 <Button
                   variant="ghost"
