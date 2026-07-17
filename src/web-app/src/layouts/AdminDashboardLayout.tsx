@@ -27,6 +27,7 @@ import {
   markAllAsRead,
 } from "../store/notificationSlice";
 import { formatDistanceToNow } from "date-fns";
+import LanguageSwitcher from "../components/i18n/LanguageSwitcher";
 import { StatusPill } from "../components/ui/StatusPill";
 
 function AdminDashboardLayout() {
@@ -205,7 +206,10 @@ function AdminDashboardLayout() {
           <div className="flex items-center justify-between">
             <div className="flex-1 max-w-xl">
               <div className="relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" aria-hidden="true" />
+                <Search
+                  className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40"
+                  aria-hidden="true"
+                />
                 <input
                   type="text"
                   placeholder="Search users, configs..."
@@ -215,6 +219,7 @@ function AdminDashboardLayout() {
             </div>
 
             <div className="flex items-center gap-4">
+              <LanguageSwitcher />
               <div ref={notificationsRef} className="relative">
                 <button
                   type="button"
@@ -323,7 +328,10 @@ function AdminDashboardLayout() {
                   <div className="text-left">
                     <p className="text-cream text-sm font-sans-ui font-medium flex items-center gap-1.5">
                       {displayName}
-                      <Shield className="w-3.5 h-3.5 text-white/55" aria-hidden="true" />
+                      <Shield
+                        className="w-3.5 h-3.5 text-white/55"
+                        aria-hidden="true"
+                      />
                     </p>
                     <p className="text-white/45 text-xs font-sans-ui">
                       Administrator Account

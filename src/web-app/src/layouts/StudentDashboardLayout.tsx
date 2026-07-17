@@ -26,6 +26,7 @@ import {
   markAllAsRead,
 } from "../store/notificationSlice";
 import { formatDistanceToNow } from "date-fns";
+import LanguageSwitcher from "../components/i18n/LanguageSwitcher";
 
 function StudentDashboardLayout() {
   const navigate = useNavigate();
@@ -224,6 +225,7 @@ function StudentDashboardLayout() {
 
             {/* Right Actions */}
             <div className="flex items-center gap-4">
+              <LanguageSwitcher />
               <div ref={notificationsRef} className="relative">
                 <button
                   type="button"
