@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import {
   DollarSign,
   ShieldAlert,
@@ -49,6 +50,7 @@ function FilterChip({
 }
 
 export default function AdminRevenue() {
+  const { t } = useTranslation("admin");
   const formatNum = useFormatNumber();
   const formatDt = useFormatDate();
   const formatCurrency = (value: number | undefined | null) =>
@@ -100,7 +102,7 @@ export default function AdminRevenue() {
       setStats(statsData);
       setTransactions(txData);
     } catch (err: any) {
-      setError(err?.message || "Không thể tải dữ liệu thống kê tài chính.");
+      setError(err?.message || t("revenue.error.default"));
     } finally {
       setLoading(false);
     }
@@ -118,7 +120,7 @@ export default function AdminRevenue() {
             className="w-8 h-8 animate-spin text-[#d4a843]"
             aria-hidden="true"
           />
-          <p>Đang tải dữ liệu tài chính và doanh thu nền tảng…</p>
+          <p>{t("revenue.loading")}</p>
         </div>
       </div>
     );
@@ -129,11 +131,12 @@ export default function AdminRevenue() {
       <div className="p-6 lg:p-8">
         <EmptyState
           icon={<ShieldAlert className="w-5 h-5" aria-hidden="true" />}
-          title="Lỗi tải dữ liệu tài chính"
+          title={t("revenue.error.title")}
           description={error}
           action={
             <Button variant="ghost" size="md" onClick={() => void fetchData()}>
-              <RefreshCcw className="w-4 h-4" aria-hidden="true" /> Thử lại
+              <RefreshCcw className="w-4 h-4" aria-hidden="true" />{" "}
+              {t("revenue.error.retry")}
             </Button>
           }
         />
@@ -144,8 +147,8 @@ export default function AdminRevenue() {
   return (
     <div className="space-y-8 p-6 lg:p-8">
       <PageHeader
-        title="Quản lý Thu nhập & Tài chính Nền tảng"
-        subtitle="Theo dõi dòng tiền thực tế nạp/rút, lợi nhuận chênh lệch tỷ giá và nợ phải trả tiềm năng của hệ thống."
+        title={t("revenue.title")}
+        subtitle={t("revenue.subtitle")}
         actions={
           <Button
             variant="ghost"
@@ -157,7 +160,7 @@ export default function AdminRevenue() {
               className={`w-4 h-4 ${loading ? "animate-spin" : ""}`}
               aria-hidden="true"
             />{" "}
-            Làm mới
+            {t("revenue.refresh")}
           </Button>
         }
       />
@@ -165,33 +168,44 @@ export default function AdminRevenue() {
       {/* KPI Cards */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
         <StatCard
-          label="Tổng dòng tiền vào (Inflow)"
+          label={t("revenue.kpi.inflow.label")}
           value={formatCurrency(stats?.totalTopupVnd)}
           unit=""
           icon={<ArrowUpRight className="w-4 h-4" aria-hidden="true" />}
           iconVariant="success"
-          hint={`${formatNumber(stats?.totalTopupCoins)} Coins đã nạp (${stats?.currentTopupRate ?? 100} ₫/Coin)`}
+          hint={t("revenue.kpi.inflow.hint", {
+            coins: formatNumber(stats?.totalTopupCoins),
+            rate: stats?.currentTopupRate ?? 100,
+          })}
         />
         <StatCard
-          label="Tổng chi trả (Outflow)"
+          label={t("revenue.kpi.outflow.label")}
           value={formatCurrency(stats?.totalWithdrawalVnd)}
           icon={<ArrowDownRight className="w-4 h-4" aria-hidden="true" />}
           iconVariant="danger"
-          hint={`${formatNumber(stats?.totalWithdrawalCoins)} Coins đã rút (${stats?.currentWithdrawalRate ?? 90} ₫/Coin)`}
+          hint={t("revenue.kpi.outflow.hint", {
+            coins: formatNumber(stats?.totalWithdrawalCoins),
+            rate: stats?.currentWithdrawalRate ?? 90,
+          })}
         />
         <StatCard
-          label="Doanh thu phí paid-backed"
+          label={t("revenue.kpi.paidBacked.label")}
           value={formatCurrency(stats?.realRevenueVnd)}
           icon={<DollarSign className="w-4 h-4" aria-hidden="true" />}
           iconVariant="info"
-          hint={`${formatNumber(stats?.paidBackedFeeCoins)} paid-backed fee Coins`}
+          hint={t("revenue.kpi.paidBacked.hint", {
+            coins: formatNumber(stats?.paidBackedFeeCoins),
+          })}
         />
         <StatCard
-          label="Nợ cash-out hiện tại"
+          label={t("revenue.kpi.liability.label")}
           value={formatCurrency(stats?.cashOutLiabilityVnd)}
           icon={<ShieldAlert className="w-4 h-4" aria-hidden="true" />}
           iconVariant="warning"
-          hint={`${formatNumber(stats?.withdrawableCoinCirculation)} Coins lưu hành × ${stats?.currentWithdrawalRate ?? 90} ₫`}
+          hint={t("revenue.kpi.liability.hint", {
+            coins: formatNumber(stats?.withdrawableCoinCirculation),
+            rate: stats?.currentWithdrawalRate ?? 90,
+          })}
         />
       </div>
 
@@ -204,16 +218,17 @@ export default function AdminRevenue() {
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <h3 className="font-sans-ui text-base font-semibold text-cream">
-                Lợi nhuận đảm bảo tối thiểu của nền tảng
+                {t("revenue.guaranteedProfit.title")}
               </h3>
-              <StatusPill variant="success">Locked in</StatusPill>
+              <StatusPill variant="success">
+                {t("revenue.guaranteedProfit.badge")}
+              </StatusPill>
             </div>
             <p className="font-sans-ui text-3xl font-semibold text-cream tabular-nums mt-2">
               {formatCurrency(stats?.guaranteedProfitVnd)}
             </p>
             <p className="mt-1 text-sm text-white/55 font-sans-ui">
-              Phần lợi nhuận chắc chắn thuộc về nền tảng từ chênh lệch tỷ giá
-              Nạp - Rút (ngay cả khi toàn bộ user rút sạch Coin lưu hành).
+              {t("revenue.guaranteedProfit.subtitle")}
             </p>
           </div>
         </div>
@@ -225,11 +240,10 @@ export default function AdminRevenue() {
           <div>
             <h2 className="font-sans-ui text-base font-semibold text-cream flex items-center gap-2">
               <FileText className="w-4 h-4 text-[#d4a843]" aria-hidden="true" />
-              Lịch sử đối soát dòng tiền toàn hệ thống
+              {t("revenue.transactions.title")}
             </h2>
             <p className="font-sans-ui text-xs text-white/55 mt-0.5">
-              Sắp xếp từ mới nhất đến cũ nhất. Dùng bộ lọc để kiểm tra dòng tiền
-              vào và ra.
+              {t("revenue.transactions.subtitle")}
             </p>
           </div>
 
@@ -238,19 +252,19 @@ export default function AdminRevenue() {
               active={filterType === "ALL"}
               onClick={() => setFilterType("ALL")}
             >
-              Tất cả
+              {t("revenue.transactions.filter.all")}
             </FilterChip>
             <FilterChip
               active={filterType === "TOP_UP"}
               onClick={() => setFilterType("TOP_UP")}
             >
-              Nạp VNĐ
+              {t("revenue.transactions.filter.topUp")}
             </FilterChip>
             <FilterChip
               active={filterType === "CASH_OUT"}
               onClick={() => setFilterType("CASH_OUT")}
             >
-              Rút VNĐ
+              {t("revenue.transactions.filter.cashOut")}
             </FilterChip>
           </div>
         </div>
@@ -259,12 +273,24 @@ export default function AdminRevenue() {
           <table className="w-full text-left text-sm font-sans-ui">
             <thead>
               <tr className="border-b border-white/[0.06] text-white/45 text-xs uppercase tracking-wider">
-                <th className="pb-3 pr-4">Thời gian</th>
-                <th className="pb-3 pr-4">User ID</th>
-                <th className="pb-3 pr-4">Loại giao dịch</th>
-                <th className="pb-3 pr-4 text-right">Biến động Coin</th>
-                <th className="pb-3 pr-4 text-right">Quy đổi VNĐ</th>
-                <th className="pb-3">Mô tả</th>
+                <th className="pb-3 pr-4">
+                  {t("revenue.transactions.headers.time")}
+                </th>
+                <th className="pb-3 pr-4">
+                  {t("revenue.transactions.headers.userId")}
+                </th>
+                <th className="pb-3 pr-4">
+                  {t("revenue.transactions.headers.type")}
+                </th>
+                <th className="pb-3 pr-4 text-right">
+                  {t("revenue.transactions.headers.coinChange")}
+                </th>
+                <th className="pb-3 pr-4 text-right">
+                  {t("revenue.transactions.headers.vnd")}
+                </th>
+                <th className="pb-3">
+                  {t("revenue.transactions.headers.desc")}
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -272,8 +298,8 @@ export default function AdminRevenue() {
                 <tr>
                   <td colSpan={6}>
                     <EmptyState
-                      title="Không có giao dịch nào"
-                      description="Thử đổi bộ lọc hoặc quay lại sau khi có hoạt động mới."
+                      title={t("revenue.transactions.empty.title")}
+                      description={t("revenue.transactions.empty.desc")}
                     />
                   </td>
                 </tr>
@@ -286,12 +312,22 @@ export default function AdminRevenue() {
 
                   let pill: React.ReactNode = null;
                   if (isTopup) {
-                    pill = <StatusPill variant="success">Nạp tiền</StatusPill>;
+                    pill = (
+                      <StatusPill variant="success">
+                        {t("revenue.transactions.type.topUp")}
+                      </StatusPill>
+                    );
                   } else if (isCashout) {
-                    pill = <StatusPill variant="danger">Rút tiền</StatusPill>;
+                    pill = (
+                      <StatusPill variant="danger">
+                        {t("revenue.transactions.type.cashOut")}
+                      </StatusPill>
+                    );
                   } else if (isReward) {
                     pill = (
-                      <StatusPill variant="info">Thu nhập / Thưởng</StatusPill>
+                      <StatusPill variant="info">
+                        {t("revenue.transactions.type.reward")}
+                      </StatusPill>
                     );
                   } else {
                     pill = <StatusPill variant="neutral">{tx.type}</StatusPill>;
@@ -344,7 +380,7 @@ export default function AdminRevenue() {
                         className="py-3.5 text-xs text-white/75 max-w-xs md:max-w-md truncate"
                         title={tx.description}
                       >
-                        {tx.description || "Không có mô tả"}
+                        {tx.description || t("revenue.transactions.noDesc")}
                       </td>
                     </tr>
                   );

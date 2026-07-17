@@ -1,1 +1,374 @@
-{}
+{
+  "dashboard": {
+    "title": "Admin dashboard",
+    "subtitle": "System overview: users, pending content and circulating coins.",
+    "loading": "Loading admin dashboard…",
+    "error": {
+      "title": "Unable to load dashboard",
+      "description": "An unknown error occurred.",
+      "retry": "Retry"
+    },
+    "refresh": "Refresh",
+    "manageRevenue": "Manage Revenue",
+    "stats": {
+      "totalTeachers": "Total Teachers",
+      "totalStudents": "Total Students",
+      "pendingProducts": "Pending Products",
+      "circulation": "Coin Circulation"
+    },
+    "section": {
+      "title": "Users by Role"
+    },
+    "chart": {
+      "teacher": "Teachers",
+      "student": "Students",
+      "locked": "Locked"
+    }
+  },
+  "revenue": {
+    "title": "Revenue & Platform Finance Management",
+    "subtitle": "Track real cash flow, exchange-rate profit and potential liabilities.",
+    "loading": "Loading financial data and platform revenue…",
+    "error": {
+      "title": "Failed to load financial data",
+      "default": "Unable to load financial statistics data.",
+      "retry": "Retry"
+    },
+    "refresh": "Refresh",
+    "kpi": {
+      "inflow": {
+        "label": "Total Inflow",
+        "hint": "{{coins}} Coins topped up ({{rate}} ₫/Coin)"
+      },
+      "outflow": {
+        "label": "Total Outflow",
+        "hint": "{{coins}} Coins withdrawn ({{rate}} ₫/Coin)"
+      },
+      "paidBacked": {
+        "label": "Paid-backed Fee Revenue",
+        "hint": "{{coins}} paid-backed fee Coins"
+      },
+      "liability": {
+        "label": "Current Cash-out Liability",
+        "hint": "{{coins}} Circulating Coins × {{rate}} ₫"
+      }
+    },
+    "guaranteedProfit": {
+      "title": "Minimum Guaranteed Platform Profit",
+      "badge": "Locked in",
+      "subtitle": "Profit guaranteed to the platform from exchange-rate differences (even if all users cash out)."
+    },
+    "transactions": {
+      "title": "System-wide Transaction History",
+      "subtitle": "Sorted newest to oldest. Use filters to inspect inflow and outflow.",
+      "filter": {
+        "all": "All",
+        "topUp": "Top-up VND",
+        "cashOut": "Cash-out VND"
+      },
+      "headers": {
+        "time": "Time",
+        "userId": "User ID",
+        "type": "Transaction Type",
+        "coinChange": "Coin Change",
+        "vnd": "VND Equivalent",
+        "desc": "Description"
+      },
+      "empty": {
+        "title": "No transactions found",
+        "desc": "Try changing the filter or return later when new activity occurs."
+      },
+      "type": {
+        "topUp": "Top-up",
+        "cashOut": "Cash-out",
+        "reward": "Income / Reward"
+      },
+      "noDesc": "No description"
+    }
+  },
+  "moderation": {
+    "title": "Content Moderation",
+    "subtitle": "Total {{count}} items pending review.",
+    "reload": "Reload",
+    "preview": "Preview",
+    "approve": "Approve",
+    "reject": "Reject",
+    "badge": {
+      "quiz": "Quiz",
+      "flashcard": "Flashcard"
+    },
+    "error": {
+      "unknown": "Unknown error",
+      "approve": "Approval failed",
+      "reject": "Rejection failed",
+      "reasonRequired": "Please enter a rejection reason."
+    },
+    "success": {
+      "approve": "Approved \"{{name}}\"",
+      "reject": "Rejected \"{{name}}\""
+    },
+    "table": {
+      "headers": {
+        "product": "Product",
+        "type": "Type",
+        "seller": "Seller",
+        "price": "Price",
+        "created": "Created At",
+        "actions": "Actions"
+      },
+      "empty": "No items pending review."
+    },
+    "rejectModal": {
+      "title": "Reject Product",
+      "confirm": "Confirm Rejection",
+      "desc": "Reject \"{{name}}\"?",
+      "reasonLabel": "Rejection Reason (required)",
+      "reasonPlaceholder": "Enter rejection reason (max 500 characters)"
+    }
+  },
+  "users": {
+    "title": "User Management",
+    "subtitle": "Total {{count}} users",
+    "filter": {
+      "all": "All roles",
+      "student": "Student",
+      "teacher": "Teacher",
+      "admin": "Admin"
+    },
+    "reload": "Reload",
+    "table": {
+      "empty": "No users found.",
+      "headers": {
+        "username": "Username",
+        "role": "Role",
+        "status": "Status",
+        "userId": "User ID",
+        "actions": "Actions"
+      }
+    },
+    "status": {
+      "active": "Active",
+      "locked": "Locked"
+    },
+    "actions": {
+      "lock": "Lock",
+      "unlock": "Unlock",
+      "changeRole": "Change Role",
+      "reset": "Reset",
+      "protected": "Protected"
+    },
+    "changeRoleModal": {
+      "title": "Change Role",
+      "confirm": "Confirm",
+      "desc": "Change role for {{username}}. Current:",
+      "newRole": "New Role"
+    },
+    "resetModal": {
+      "title": "Reset Password",
+      "confirm": "Confirm Reset",
+      "info": "Reset password for {{username}}.",
+      "detail": "A new random password will be generated and will not be stored in plaintext. The user must contact admin via another channel (email/phone) to receive it."
+    },
+    "error": {
+      "action": "Action failed",
+      "changeRole": "Role change failed",
+      "reset": "Password reset failed"
+    },
+    "success": {
+      "lock": "Locked {{username}}",
+      "unlock": "Unlocked {{username}}",
+      "changeRole": "Changed role of {{username}} → {{role}}",
+      "resetPassword": "Reset password for {{username}}"
+    }
+  },
+  "common": {
+    "loading": "Loading…",
+    "error": "Unknown error",
+    "retry": "Retry"
+  },
+  "systemConfig": {
+    "title": "System config",
+    "subtitle": "Manage configs by service ownership.",
+    "reload": "Reload",
+    "tabs": {
+      "wallet": {
+        "label": "Wallet",
+        "desc": "{{count}} config"
+      },
+      "marketplace": {
+        "label": "Marketplace",
+        "desc": "{{count}} config"
+      }
+    },
+    "cards": {
+      "source": {
+        "label": "Service source"
+      },
+      "adminOnly": {
+        "label": "Admin only",
+        "desc": "Endpoints requiring ADMIN role."
+      },
+      "cache": {
+        "label": "Cache",
+        "desc": "Some services reload configs from internal cache."
+      }
+    },
+    "loading": {
+      "wallet": "Loading wallet configurations...",
+      "marketplace": "Loading marketplace configurations..."
+    },
+    "error": {
+      "title": "Cannot load configuration",
+      "retry": "Retry",
+      "defaultMarketplace": "Cannot load marketplace configuration."
+    },
+    "empty": {
+      "wallet": "No wallet config in the system yet.",
+      "marketplace": "No marketplace config in the system yet."
+    },
+    "row": {
+      "updated": "Updated: {{date}}",
+      "by": " by {{user}}",
+      "save": "Save"
+    },
+    "missingKeys": "Backend has not returned keys from plan: {{keys}}",
+    "groups": {
+      "wallet": {
+        "exchange": {
+          "title": "Exchange",
+          "desc": "Coin top-up and withdrawal exchange rates."
+        },
+        "initial": {
+          "title": "Initial Coins",
+          "desc": "Default coins when creating a new wallet."
+        },
+        "cashout": {
+          "title": "Cash-out",
+          "desc": "Minimum conditions when a teacher withdraws coin."
+        }
+      },
+      "marketplace": {
+        "escrow": {
+          "title": "Escrow",
+          "desc": "Escrow hold time and pilot operation fee."
+        },
+        "tierFee": {
+          "title": "Tier fee",
+          "desc": "Platform fee by teacher tier."
+        },
+        "tierThresholds": {
+          "title": "Tier thresholds",
+          "desc": "Rating, review count thresholds and Phase 3 metrics."
+        },
+        "riskReview": {
+          "title": "Risk review",
+          "desc": "Collusion detection and cash-out hold settings."
+        }
+      },
+      "other": {
+        "title": "Other",
+        "desc": "Configs not grouped in UI yet."
+      }
+    },
+    "toast": {
+      "error": {
+        "updateFailed": "Update failed"
+      },
+      "success": {
+        "saved": "Saved {{key}}"
+      }
+    }
+  },
+  "marketplaceOps": {
+    "title": "Marketplace Ops",
+    "subtitle": "Release escrow, refund, and review collusion flags by tiered economy.",
+    "refresh": "Refresh",
+    "tabs": {
+      "escrow": {
+        "label": "Escrow ledger",
+        "desc": "Release and refund"
+      },
+      "risk": {
+        "label": "Risk review",
+        "desc": "Collusion flags and holds"
+      }
+    },
+    "stats": {
+      "heldGross": {
+        "label": "Held gross",
+        "hint": "Total value currently held in escrow"
+      },
+      "paidBacked": {
+        "label": "Paid-backed",
+        "hint": "Withdrawable cash flow"
+      },
+      "promoBacked": {
+        "label": "Promo-backed",
+        "hint": "App-only or sink cash flow"
+      },
+      "needsAdmin": {
+        "label": "Needs admin",
+        "hint": "Queue pending admin decision"
+      }
+    },
+    "escrowSection": {
+      "title": "Escrow transactions",
+      "desc": "Use Force release to test without waiting for hold days to expire.",
+      "loading": "Loading escrow ledger…",
+      "empty": {
+        "title": "No escrows match filter",
+        "desc": "Try selecting another status or refresh."
+      }
+    },
+    "table": {
+      "headers": {
+        "product": "Product",
+        "status": "Status",
+        "gross": "Gross",
+        "paid": "Paid",
+        "promo": "Promo",
+        "releaseAt": "Release at",
+        "parties": "Parties",
+        "actions": "Actions"
+      },
+      "actions": {
+        "release": "Release",
+        "refund": "Refund",
+        "hold": "Hold"
+      }
+    },
+    "riskSection": {
+      "title": "Collusion flags",
+      "desc": "Review suspicious buyer–seller pairs.",
+      "loading": "Loading flags…",
+      "empty": {
+        "title": "No flags match filter",
+        "desc": "Try changing filter status or refresh."
+      },
+      "actions": {
+        "confirm": "Confirm",
+        "malicious": "Malicious",
+        "dismiss": "Dismiss"
+      }
+    },
+    "coverage": {
+      "title": "Plan v3 coverage",
+      "desc": "Admin can now trace escrow lineage, force-release held items for dev testing, refund unprocessed transactions, and review collusion flags. Revenue reporting still relies on wallet-service ledger and should be separate from promo sink accounting.",
+      "backButton": "Back to escrow ledger"
+    },
+    "prompt": {
+      "decisionReason": "Decision reason:",
+      "riskReason": "Risk action reason:"
+    },
+    "error": {
+      "loadEscrows": "Cannot load escrow ledger.",
+      "loadFlags": "Cannot load collusion flags.",
+      "updateEscrow": "Cannot update escrow.",
+      "updateFlag": "Cannot update collusion flag."
+    },
+    "success": {
+      "escrowUpdated": "Escrow decision updated.",
+      "flagUpdated": "Collusion flag updated."
+    }
+  }
+}

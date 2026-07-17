@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   Check,
   X,
@@ -34,6 +35,7 @@ function typeVariant(type: string): "info" | "success" {
 }
 
 function TypeBadge({ type }: { type: string }) {
+  const { t } = useTranslation("admin");
   const variant = typeVariant(type);
   const upper = type.toUpperCase();
   const isQuiz = upper.includes("QUIZ");
@@ -44,12 +46,13 @@ function TypeBadge({ type }: { type: string }) {
       ) : (
         <Layers className="h-3 w-3 mr-1" aria-hidden="true" />
       )}
-      {isQuiz ? "Quiz" : "Flashcard"}
+      {isQuiz ? t("moderation.badge.quiz") : t("moderation.badge.flashcard")}
     </StatusPill>
   );
 }
 
 function AdminContentModeration() {
+  const { t } = useTranslation("admin");
   const formatDate = useFormatDate();
   const formatNumber = useFormatNumber();
   const dispatch = useAppDispatch();
@@ -81,9 +84,9 @@ function AdminContentModeration() {
   const handleApprove = async (product: PendingProduct) => {
     const result = await dispatch(approveAdminProduct(product.id));
     if (approveAdminProduct.rejected.match(result)) {
-      showError((result.payload as string) ?? "Duyệt thất bại");
+      showError((result.payload as string) ?? t("moderation.error.approve"));
     } else {
-      showSuccess(`Đã duyệt "${product.name}"`);
+      showSuccess(t("moderation.success.approve", { name: product.name }));
     }
   };
 
@@ -102,7 +105,7 @@ function AdminContentModeration() {
   const handleReject = async () => {
     if (!modalReject) return;
     if (rejectReason.trim().length === 0) {
-      setRejectError("Vui lòng nhập lý do từ chối.");
+      setRejectError(t("moderation.error.reasonRequired"));
       return;
     }
     const result = await dispatch(
@@ -112,10 +115,10 @@ function AdminContentModeration() {
       }),
     );
     if (rejectAdminProduct.rejected.match(result)) {
-      showError((result.payload as string) ?? "Từ chối thất bại");
+      showError((result.payload as string) ?? t("moderation.error.reject"));
       return;
     }
-    showSuccess(`Đã từ chối "${modalReject.name}"`);
+    showSuccess(t("moderation.success.reject", { name: modalReject.name }));
     closeReject();
   };
 
@@ -142,7 +145,7 @@ function AdminContentModeration() {
             colSpan={6}
             className="py-12 text-center font-sans-ui text-red-300"
           >
-            {products.error ?? "Lỗi không xác định"}
+            {products.error ?? t("moderation.error.unknown")}
           </td>
         </tr>
       );
@@ -154,7 +157,7 @@ function AdminContentModeration() {
             colSpan={6}
             className="py-12 text-center font-sans-ui text-white/55"
           >
-            Không có sản phẩm nào đang chờ duyệt.
+            {t("moderation.table.empty")}
           </td>
         </tr>
       );
@@ -210,7 +213,7 @@ function AdminContentModeration() {
               title="Xem trước nội dung"
             >
               <Eye className="h-3.5 w-3.5" aria-hidden="true" />
-              Xem trước
+              {t("moderation.preview")}
             </Button>
             <Button
               variant="ghost"
@@ -219,7 +222,7 @@ function AdminContentModeration() {
               disabled={isMutating}
             >
               <Check className="h-3.5 w-3.5" aria-hidden="true" />
-              Duyệt
+              {t("moderation.approve")}
             </Button>
             <Button
               variant="ghost"
@@ -229,19 +232,21 @@ function AdminContentModeration() {
               disabled={isMutating}
             >
               <X className="h-3.5 w-3.5" aria-hidden="true" />
-              Từ chối
+              {t("moderation.reject")}
             </Button>
           </div>
         </td>
       </tr>
     ));
-  }, [products, isMutating]);
+  }, [products, isMutating, t]);
 
   return (
     <div className="space-y-8 p-6 lg:p-8">
       <PageHeader
-        title="Duyệt nội dung"
-        subtitle={`Tổng ${formatNumber(products.totalElements)} sản phẩm đang chờ duyệt.`}
+        title={t("moderation.title")}
+        subtitle={t("moderation.subtitle", {
+          count: formatNumber(products.totalElements),
+        })}
         actions={
           <Button
             variant="ghost"
@@ -256,7 +261,7 @@ function AdminContentModeration() {
             }
           >
             <RefreshCw className="h-4 w-4" aria-hidden="true" />
-            Tải lại
+            {t("moderation.reload")}
           </Button>
         }
       />
@@ -266,12 +271,24 @@ function AdminContentModeration() {
           <table className="w-full font-sans-ui text-sm">
             <thead>
               <tr className="text-left text-[10px] uppercase tracking-[0.12em] text-white/45 border-b border-white/[0.06]">
-                <th className="pb-3 pr-4 font-medium">Sản phẩm</th>
-                <th className="pb-3 pr-4 font-medium">Loại</th>
-                <th className="pb-3 pr-4 font-medium">Seller</th>
-                <th className="pb-3 pr-4 font-medium">Giá</th>
-                <th className="pb-3 pr-4 font-medium">Ngày tạo</th>
-                <th className="pb-3 font-medium text-right">Hành động</th>
+                <th className="pb-3 pr-4 font-medium">
+                  {t("moderation.table.headers.product")}
+                </th>
+                <th className="pb-3 pr-4 font-medium">
+                  {t("moderation.table.headers.type")}
+                </th>
+                <th className="pb-3 pr-4 font-medium">
+                  {t("moderation.table.headers.seller")}
+                </th>
+                <th className="pb-3 pr-4 font-medium">
+                  {t("moderation.table.headers.price")}
+                </th>
+                <th className="pb-3 pr-4 font-medium">
+                  {t("moderation.table.headers.created")}
+                </th>
+                <th className="pb-3 font-medium text-right">
+                  {t("moderation.table.headers.actions")}
+                </th>
               </tr>
             </thead>
             <tbody>{tableBody}</tbody>
@@ -291,28 +308,27 @@ function AdminContentModeration() {
         open={modalReject !== null}
         onClose={closeReject}
         onConfirm={handleReject}
-        title="Từ chối sản phẩm"
+        title={t("moderation.rejectModal.title")}
         icon={
           <AlertTriangle
             className="h-5 w-5 text-amber-300"
             aria-hidden="true"
           />
         }
-        confirmText="Xác nhận từ chối"
+        confirmText={t("moderation.rejectModal.confirm")}
         isLoading={isMutating}
         variant="danger"
       >
         <div className="space-y-3 font-sans-ui">
           <p className="text-sm text-white/55">
-            Từ chối{" "}
-            <span className="font-medium text-cream">{modalReject?.name}</span>?
+            {t("moderation.rejectModal.desc", { name: modalReject?.name })}
           </p>
           <div>
             <label
               htmlFor="reject-reason"
               className="block font-sans-ui text-xs uppercase tracking-[0.12em] text-white/55 mb-2"
             >
-              Lý do từ chối (bắt buộc)
+              {t("moderation.rejectModal.reasonLabel")}
             </label>
             <textarea
               id="reject-reason"
@@ -322,7 +338,7 @@ function AdminContentModeration() {
                 if (rejectError) setRejectError(null);
               }}
               rows={4}
-              placeholder="Nhập lý do từ chối (tối đa 500 ký tự)"
+              placeholder={t("moderation.rejectModal.reasonPlaceholder")}
               maxLength={500}
               className={
                 rejectError

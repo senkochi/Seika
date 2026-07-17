@@ -1,4 +1,5 @@
 import { Lock, RefreshCw, Unlock } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import type { UserAdminResponse } from "../../../api/types";
 import { Button } from "../../ui/Button";
@@ -19,8 +20,7 @@ function roleVariant(role: string) {
   return "info" as const;
 }
 
-const compactBtn =
-  "!h-8 !px-3 !text-xs gap-1.5 rounded-full";
+const compactBtn = "!h-8 !px-3 !text-xs gap-1.5 rounded-full";
 
 function UsersTableRow({
   user,
@@ -29,6 +29,7 @@ function UsersTableRow({
   onChangeRole,
   onResetPassword,
 }: UsersTableRowProps) {
+  const { t } = useTranslation("admin");
   const isAdmin = user.roles.some((r) => r.toUpperCase() === "ADMIN");
 
   return (
@@ -47,7 +48,7 @@ function UsersTableRow({
       </td>
       <td className="py-3 pr-4">
         <StatusPill variant={user.enabled ? "success" : "neutral"}>
-          {user.enabled ? "Active" : "Locked"}
+          {user.enabled ? t("users.status.active") : t("users.status.locked")}
         </StatusPill>
       </td>
       <td className="py-3 pr-4 font-mono text-xs text-white/55 tabular-nums">
@@ -71,7 +72,9 @@ function UsersTableRow({
                 ) : (
                   <Unlock className="h-3.5 w-3.5" aria-hidden="true" />
                 )}
-                {user.enabled ? "Khóa" : "Mở"}
+                {user.enabled
+                  ? t("users.actions.lock")
+                  : t("users.actions.unlock")}
               </Button>
               <Button
                 variant="ghost"
@@ -81,7 +84,7 @@ function UsersTableRow({
                 disabled={isMutating}
               >
                 <RefreshCw className="h-3.5 w-3.5" aria-hidden="true" />
-                Đổi role
+                {t("users.actions.changeRole")}
               </Button>
               <Button
                 variant="ghost"
@@ -91,12 +94,12 @@ function UsersTableRow({
                 onClick={() => onResetPassword(user)}
                 disabled={isMutating}
               >
-                Reset
+                {t("users.actions.reset")}
               </Button>
             </>
           ) : (
             <span className="font-sans-ui text-xs italic text-white/45">
-              Protected
+              {t("users.actions.protected")}
             </span>
           )}
         </div>

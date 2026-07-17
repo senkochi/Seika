@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   AlertTriangle,
   CheckCircle2,
@@ -74,6 +75,7 @@ function escrowStatusVariant(status: string) {
 }
 
 export default function AdminMarketplaceRiskPanel() {
+  const { t } = useTranslation("admin");
   const formatNum = useFormatNumber();
   const formatDt = useFormatDate();
   const formatCoins = (value: number | null | undefined) =>
@@ -97,12 +99,14 @@ export default function AdminMarketplaceRiskPanel() {
       const rows = await adminService.listEscrows(escrowFilter);
       setEscrows(rows);
     } catch (error) {
-      showError(getApiErrorMessage(error, "Cannot load escrow ledger."));
+      showError(
+        getApiErrorMessage(error, t("marketplaceOps.error.loadEscrows")),
+      );
       setEscrows([]);
     } finally {
       setLoading(false);
     }
-  }, [escrowFilter]);
+  }, [escrowFilter, t]);
 
   const loadFlags = useCallback(async () => {
     setLoading(true);
@@ -110,12 +114,12 @@ export default function AdminMarketplaceRiskPanel() {
       const page = await adminService.listCollusionFlags(flagStatus, 0, 20);
       setFlags(page.content);
     } catch (error) {
-      showError(getApiErrorMessage(error, "Cannot load collusion flags."));
+      showError(getApiErrorMessage(error, t("marketplaceOps.error.loadFlags")));
       setFlags([]);
     } finally {
       setLoading(false);
     }
-  }, [flagStatus]);
+  }, [flagStatus, t]);
 
   useEffect(() => {
     if (activeTab === "escrow") {
@@ -143,7 +147,10 @@ export default function AdminMarketplaceRiskPanel() {
   ) => {
     const defaultReason =
       action === "force-release" ? "admin_test_release" : `admin_${action}`;
-    const reason = window.prompt("Decision reason:", defaultReason);
+    const reason = window.prompt(
+      t("marketplaceOps.prompt.decisionReason"),
+      defaultReason,
+    );
     if (!reason?.trim()) return;
     setActingId(escrow.id);
     try {
@@ -152,10 +159,12 @@ export default function AdminMarketplaceRiskPanel() {
         action,
         reason.trim(),
       );
-      showSuccess("Escrow decision updated.");
+      showSuccess(t("marketplaceOps.success.escrowUpdated"));
       await loadEscrows();
     } catch (error) {
-      showError(getApiErrorMessage(error, "Cannot update escrow."));
+      showError(
+        getApiErrorMessage(error, t("marketplaceOps.error.updateEscrow")),
+      );
     } finally {
       setActingId(null);
     }
@@ -165,15 +174,20 @@ export default function AdminMarketplaceRiskPanel() {
     flag: AdminCollusionFlag,
     action: CollusionAction,
   ) => {
-    const reason = window.prompt("Risk action reason:", action.toLowerCase());
+    const reason = window.prompt(
+      t("marketplaceOps.prompt.riskReason"),
+      action.toLowerCase(),
+    );
     if (!reason?.trim()) return;
     setActingId(flag.id);
     try {
       await adminService.takeCollusionAction(flag.id, action, reason.trim());
-      showSuccess("Collusion flag updated.");
+      showSuccess(t("marketplaceOps.success.flagUpdated"));
       await loadFlags();
     } catch (error) {
-      showError(getApiErrorMessage(error, "Cannot update collusion flag."));
+      showError(
+        getApiErrorMessage(error, t("marketplaceOps.error.updateFlag")),
+      );
     } finally {
       setActingId(null);
     }
@@ -182,8 +196,8 @@ export default function AdminMarketplaceRiskPanel() {
   return (
     <div className="space-y-8 p-6 lg:p-8">
       <PageHeader
-        title="Marketplace Ops"
-        subtitle="Giải phóng escrow, hoàn tiền và rà soát collusion theo tiered economy."
+        title={t("marketplaceOps.title")}
+        subtitle={t("marketplaceOps.subtitle")}
         actions={
           <Button
             variant="ghost"
@@ -198,7 +212,7 @@ export default function AdminMarketplaceRiskPanel() {
             ) : (
               <RefreshCw className="h-4 w-4" aria-hidden="true" />
             )}
-            Làm mới
+            {t("marketplaceOps.refresh")}
           </Button>
         }
       />
@@ -227,9 +241,11 @@ export default function AdminMarketplaceRiskPanel() {
             aria-hidden="true"
           />
           <span>
-            <span className="block font-medium">Escrow ledger</span>
+            <span className="block font-medium">
+              {t("marketplaceOps.tabs.escrow.label")}
+            </span>
             <span className="block text-xs text-white/55">
-              Giải phóng và hoàn tiền
+              {t("marketplaceOps.tabs.escrow.desc")}
             </span>
           </span>
         </button>
@@ -251,9 +267,11 @@ export default function AdminMarketplaceRiskPanel() {
             aria-hidden="true"
           />
           <span>
-            <span className="block font-medium">Risk review</span>
+            <span className="block font-medium">
+              {t("marketplaceOps.tabs.risk.label")}
+            </span>
             <span className="block text-xs text-white/55">
-              Cờ collusion và hold
+              {t("marketplaceOps.tabs.risk.desc")}
             </span>
           </span>
         </button>
@@ -263,29 +281,29 @@ export default function AdminMarketplaceRiskPanel() {
         <div className="space-y-6">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
             <StatCard
-              label="Held gross"
+              label={t("marketplaceOps.stats.heldGross.label")}
               value={`${formatCoins(summary.heldGross)}`}
               unit="Coins"
-              hint="Tổng giá trị còn kẹt trong escrow"
+              hint={t("marketplaceOps.stats.heldGross.hint")}
             />
             <StatCard
-              label="Paid-backed"
+              label={t("marketplaceOps.stats.paidBacked.label")}
               value={`${formatCoins(summary.paidBacked)}`}
               unit="Coins"
-              hint="Dòng tiền có thể rút được"
+              hint={t("marketplaceOps.stats.paidBacked.hint")}
               iconVariant="success"
             />
             <StatCard
-              label="Promo-backed"
+              label={t("marketplaceOps.stats.promoBacked.label")}
               value={`${formatCoins(summary.promoBacked)}`}
               unit="Coins"
-              hint="Dòng app-only hoặc sink"
+              hint={t("marketplaceOps.stats.promoBacked.hint")}
               iconVariant="warning"
             />
             <StatCard
-              label="Needs admin"
+              label={t("marketplaceOps.stats.needsAdmin.label")}
               value={String(summary.decisions)}
-              hint="Hàng chờ admin xử lý"
+              hint={t("marketplaceOps.stats.needsAdmin.hint")}
               iconVariant="danger"
             />
           </div>
@@ -293,10 +311,10 @@ export default function AdminMarketplaceRiskPanel() {
           <SectionCard className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h2 className="font-sans-ui text-base font-semibold text-cream">
-                Escrow transactions
+                {t("marketplaceOps.escrowSection.title")}
               </h2>
               <p className="font-sans-ui text-sm text-white/55 mt-1">
-                Dùng Force release để test mà không cần chờ hết hold days.
+                {t("marketplaceOps.escrowSection.desc")}
               </p>
             </div>
             <select
@@ -321,13 +339,13 @@ export default function AdminMarketplaceRiskPanel() {
                   className="h-5 w-5 animate-spin text-[#d4a843]"
                   aria-hidden="true"
                 />
-                Đang tải escrow…
+                {t("marketplaceOps.escrowSection.loading")}
               </div>
             ) : escrows.length === 0 ? (
               <div className="p-10">
                 <EmptyState
-                  title="Không có escrow nào khớp filter"
-                  description="Thử đổi trạng thái khác hoặc làm mới."
+                  title={t("marketplaceOps.escrowSection.empty.title")}
+                  description={t("marketplaceOps.escrowSection.empty.desc")}
                 />
               </div>
             ) : (
@@ -335,14 +353,30 @@ export default function AdminMarketplaceRiskPanel() {
                 <table className="w-full min-w-[980px] text-left font-sans-ui text-sm">
                   <thead className="border-b border-white/[0.06] text-[10px] uppercase tracking-[0.12em] text-white/45">
                     <tr>
-                      <th className="px-4 py-3">Sản phẩm</th>
-                      <th className="px-4 py-3">Trạng thái</th>
-                      <th className="px-4 py-3 text-right">Gross</th>
-                      <th className="px-4 py-3 text-right">Paid</th>
-                      <th className="px-4 py-3 text-right">Promo</th>
-                      <th className="px-4 py-3">Release at</th>
-                      <th className="px-4 py-3">Parties</th>
-                      <th className="px-4 py-3 text-right">Hành động</th>
+                      <th className="px-4 py-3">
+                        {t("marketplaceOps.table.headers.product")}
+                      </th>
+                      <th className="px-4 py-3">
+                        {t("marketplaceOps.table.headers.status")}
+                      </th>
+                      <th className="px-4 py-3 text-right">
+                        {t("marketplaceOps.table.headers.gross")}
+                      </th>
+                      <th className="px-4 py-3 text-right">
+                        {t("marketplaceOps.table.headers.paid")}
+                      </th>
+                      <th className="px-4 py-3 text-right">
+                        {t("marketplaceOps.table.headers.promo")}
+                      </th>
+                      <th className="px-4 py-3">
+                        {t("marketplaceOps.table.headers.releaseAt")}
+                      </th>
+                      <th className="px-4 py-3">
+                        {t("marketplaceOps.table.headers.parties")}
+                      </th>
+                      <th className="px-4 py-3 text-right">
+                        {t("marketplaceOps.table.headers.actions")}
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
@@ -406,7 +440,7 @@ export default function AdminMarketplaceRiskPanel() {
                                   className="h-3.5 w-3.5"
                                   aria-hidden="true"
                                 />{" "}
-                                Release
+                                {t("marketplaceOps.table.actions.release")}
                               </button>
                               <button
                                 type="button"
@@ -420,7 +454,7 @@ export default function AdminMarketplaceRiskPanel() {
                                   className="h-3.5 w-3.5"
                                   aria-hidden="true"
                                 />{" "}
-                                Refund
+                                {t("marketplaceOps.table.actions.refund")}
                               </button>
                               <button
                                 type="button"
@@ -437,7 +471,7 @@ export default function AdminMarketplaceRiskPanel() {
                                   className="h-3.5 w-3.5"
                                   aria-hidden="true"
                                 />{" "}
-                                Hold
+                                {t("marketplaceOps.table.actions.hold")}
                               </button>
                             </div>
                           </td>
@@ -456,10 +490,10 @@ export default function AdminMarketplaceRiskPanel() {
             <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h2 className="font-sans-ui text-base font-semibold text-cream">
-                  Cờ collusion
+                  {t("marketplaceOps.riskSection.title")}
                 </h2>
                 <p className="font-sans-ui text-sm text-white/55 mt-1">
-                  Rà soát các cặp buyer–seller có dấu hiệu bất thường.
+                  {t("marketplaceOps.riskSection.desc")}
                 </p>
               </div>
               <select
@@ -483,12 +517,12 @@ export default function AdminMarketplaceRiskPanel() {
                     className="h-5 w-5 animate-spin text-[#d4a843]"
                     aria-hidden="true"
                   />
-                  Đang tải cờ…
+                  {t("marketplaceOps.riskSection.loading")}
                 </div>
               ) : flags.length === 0 ? (
                 <EmptyState
-                  title="Không có cờ nào khớp filter"
-                  description="Thử đổi trạng thái hoặc làm mới."
+                  title={t("marketplaceOps.riskSection.empty.title")}
+                  description={t("marketplaceOps.riskSection.empty.desc")}
                 />
               ) : (
                 <div className="space-y-3 font-sans-ui">
@@ -538,7 +572,7 @@ export default function AdminMarketplaceRiskPanel() {
                             }
                             disabled={actingId === flag.id}
                           >
-                            Confirm
+                            {t("marketplaceOps.riskSection.actions.confirm")}
                           </Button>
                           <Button
                             variant="ghost"
@@ -549,7 +583,7 @@ export default function AdminMarketplaceRiskPanel() {
                             }
                             disabled={actingId === flag.id}
                           >
-                            Malicious
+                            {t("marketplaceOps.riskSection.actions.malicious")}
                           </Button>
                           <Button
                             variant="ghost"
@@ -557,7 +591,7 @@ export default function AdminMarketplaceRiskPanel() {
                             onClick={() => void actOnFlag(flag, "DISMISS")}
                             disabled={actingId === flag.id}
                           >
-                            Dismiss
+                            {t("marketplaceOps.riskSection.actions.dismiss")}
                           </Button>
                         </div>
                       )}
@@ -576,14 +610,10 @@ export default function AdminMarketplaceRiskPanel() {
               />
               <div>
                 <h2 className="font-sans-ui text-base font-semibold text-cream">
-                  Plan v3 coverage
+                  {t("marketplaceOps.coverage.title")}
                 </h2>
                 <p className="mt-2 text-sm leading-6 text-white/55">
-                  Admin giờ có thể truy vết lineage escrow, force-release các
-                  hàng đang giữ để dev test, hoàn tiền các giao dịch chưa xử lý,
-                  và rà soát cờ collusion. Báo cáo doanh thu vẫn phụ thuộc
-                  ledger của wallet-service và nên tách khỏi phần promo sink
-                  accounting.
+                  {t("marketplaceOps.coverage.desc")}
                 </p>
                 <Button
                   variant="ghost"
@@ -592,7 +622,7 @@ export default function AdminMarketplaceRiskPanel() {
                   onClick={() => setActiveTab("escrow")}
                 >
                   <RotateCcw className="h-4 w-4" aria-hidden="true" />
-                  Quay lại escrow ledger
+                  {t("marketplaceOps.coverage.backButton")}
                 </Button>
               </div>
             </div>

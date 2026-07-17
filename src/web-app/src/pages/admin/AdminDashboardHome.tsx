@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import {
   BarChart3,
@@ -37,13 +38,14 @@ function LoadingState() {
           className="w-8 h-8 animate-spin text-[#d4a843]"
           aria-hidden="true"
         />
-        <p>Đang tải dashboard admin…</p>
+        <p>{t("dashboard.loading")}</p>
       </div>
     </div>
   );
 }
 
 function AdminDashboardHome() {
+  const { t } = useTranslation("admin");
   const formatNum = useFormatNumber();
   const formatNumber = (value: number | undefined | null) =>
     formatNum(value ?? 0);
@@ -66,8 +68,8 @@ function AdminDashboardHome() {
       <div className="p-6 lg:p-8">
         <EmptyState
           icon={<ShieldAlert className="w-5 h-5" aria-hidden="true" />}
-          title="Không thể tải dashboard"
-          description={dashboardError ?? "Đã xảy ra lỗi không xác định."}
+          title={t("dashboard.error.title")}
+          description={dashboardError ?? t("dashboard.error.description")}
           action={
             <Button
               variant="ghost"
@@ -95,16 +97,16 @@ function AdminDashboardHome() {
     d?.pendingProducts === -1 ? "N/A" : formatNumber(d?.pendingProducts ?? 0);
 
   const chartData = [
-    { name: "Giáo viên", value: d?.totalTeachers ?? 0 },
-    { name: "Học sinh", value: d?.totalStudents ?? 0 },
-    { name: "Bị khóa", value: d?.totalDisabledUsers ?? 0 },
+    { name: t("dashboard.chart.teacher"), value: d?.totalTeachers ?? 0 },
+    { name: t("dashboard.chart.student"), value: d?.totalStudents ?? 0 },
+    { name: t("dashboard.chart.locked"), value: d?.totalDisabledUsers ?? 0 },
   ];
 
   return (
     <div className="space-y-8 p-6 lg:p-8">
       <PageHeader
-        title="Admin dashboard"
-        subtitle="Tổng quan hệ thống: người dùng, nội dung chờ duyệt và coin lưu hành."
+        title={t("dashboard.title")}
+        subtitle={t("dashboard.subtitle")}
         actions={
           <div className="flex items-center gap-3">
             <Button
@@ -113,7 +115,7 @@ function AdminDashboardHome() {
               onClick={() => navigate("/admin/dashboard/revenue")}
             >
               <TrendingUp className="h-4 w-4" aria-hidden="true" />
-              Quản lý thu nhập
+              {t("dashboard.manageRevenue")}
             </Button>
             <Button
               variant="primary"
@@ -121,7 +123,7 @@ function AdminDashboardHome() {
               onClick={() => dispatch(fetchAdminDashboard())}
             >
               <RefreshCcw className="h-4 w-4" aria-hidden="true" />
-              Làm mới
+              {t("dashboard.error.retry")}
             </Button>
           </div>
         }
@@ -129,25 +131,25 @@ function AdminDashboardHome() {
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
         <StatCard
-          label="Tổng giáo viên"
+          label={t("dashboard.stats.totalTeachers")}
           value={formatNumber(d?.totalTeachers ?? 0)}
           icon={<Users className="w-4 h-4" aria-hidden="true" />}
           iconVariant="gold"
         />
         <StatCard
-          label="Tổng học sinh"
+          label={t("dashboard.stats.totalStudents")}
           value={formatNumber(d?.totalStudents ?? 0)}
           icon={<Users className="w-4 h-4" aria-hidden="true" />}
           iconVariant="info"
         />
         <StatCard
-          label="Sản phẩm chờ duyệt"
+          label={t("dashboard.stats.pendingProducts")}
           value={pendingDisplay}
           icon={<Package className="w-4 h-4" aria-hidden="true" />}
           iconVariant="danger"
         />
         <StatCard
-          label="Coin lưu hành"
+          label={t("dashboard.stats.circulation")}
           value={circulationDisplay}
           icon={<WalletIcon className="w-4 h-4" aria-hidden="true" />}
           iconVariant="success"
@@ -157,7 +159,7 @@ function AdminDashboardHome() {
       <SectionCard>
         <h2 className="font-sans-ui text-base font-semibold text-cream mb-4 flex items-center gap-2">
           <BarChart3 className="w-4 h-4 text-[#d4a843]" aria-hidden="true" />
-          Người dùng theo vai trò
+          {t("dashboard.section.title")}
         </h2>
         <div className="h-[300px] w-full">
           <ResponsiveContainer width="100%" height="100%">

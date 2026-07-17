@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import {
@@ -23,6 +24,7 @@ import ChangeRoleModal from "../../components/admin/users/ChangeRoleModal";
 import ResetPasswordModal from "../../components/admin/users/ResetPasswordModal";
 
 function AdminUsers() {
+  const { t } = useTranslation("admin");
   const dispatch = useAppDispatch();
   const { users, mutationStatus } = useAppSelector((state) => state.admin);
 
@@ -47,19 +49,27 @@ function AdminUsers() {
     const action = user.enabled ? lockAdminUser : unlockAdminUser;
     const result = await dispatch(action(user.id));
     if (action.rejected.match(result)) {
-      showError((result.payload as string) ?? "Thao tác thất bại");
+      showError((result.payload as string) ?? t("users.error.action"));
     } else {
-      showSuccess(user.enabled ? `Đã khóa ${user.username}` : `Đã mở khóa ${user.username}`);
+      showSuccess(
+        user.enabled
+          ? t("users.success.lock", { username: user.username })
+          : t("users.success.unlock", { username: user.username }),
+      );
     }
   };
 
   const handleChangeRole = async (role: "STUDENT" | "TEACHER") => {
     if (!modalRole) return;
-    const result = await dispatch(changeAdminUserRole({ userId: modalRole.id, role }));
+    const result = await dispatch(
+      changeAdminUserRole({ userId: modalRole.id, role }),
+    );
     if (changeAdminUserRole.rejected.match(result)) {
-      showError((result.payload as string) ?? "Đổi role thất bại");
+      showError((result.payload as string) ?? t("users.error.changeRole"));
     } else {
-      showSuccess(`Đã đổi role của ${modalRole.username} → ${role}`);
+      showSuccess(
+        t("users.success.changeRole", { username: modalRole.username, role }),
+      );
       setModalRole(null);
     }
   };
@@ -68,9 +78,11 @@ function AdminUsers() {
     if (!modalReset) return;
     const result = await dispatch(resetAdminUserPassword(modalReset.id));
     if (resetAdminUserPassword.rejected.match(result)) {
-      showError((result.payload as string) ?? "Reset thất bại");
+      showError((result.payload as string) ?? t("users.error.reset"));
     } else {
-      showSuccess(`Đã reset mật khẩu cho ${modalReset.username}`);
+      showSuccess(
+        t("users.success.resetPassword", { username: modalReset.username }),
+      );
       setModalReset(null);
     }
   };
@@ -92,7 +104,7 @@ function AdminUsers() {
         <div className="overflow-x-auto p-6">
           <UsersTable
             loading={isLoading}
-            error={isFailed ? (users.error ?? "Lỗi không xác định") : null}
+            error={isFailed ? (users.error ?? t("common.error")) : null}
             empty={users.content.length === 0}
             hasRows={users.content.length > 0}
           >

@@ -1,1 +1,374 @@
-{}
+{
+  "dashboard": {
+    "title": "Admin dashboard",
+    "subtitle": "Tổng quan hệ thống: người dùng, nội dung chờ duyệt và coin lưu hành.",
+    "loading": "Đang tải dashboard admin…",
+    "error": {
+      "title": "Không thể tải dashboard",
+      "description": "Đã xảy ra lỗi không xác định.",
+      "retry": "Thử lại"
+    },
+    "refresh": "Làm mới",
+    "manageRevenue": "Quản lý thu nhập",
+    "stats": {
+      "totalTeachers": "Tổng giáo viên",
+      "totalStudents": "Tổng học sinh",
+      "pendingProducts": "Sản phẩm chờ duyệt",
+      "circulation": "Coin lưu hành"
+    },
+    "section": {
+      "title": "Người dùng theo vai trò"
+    },
+    "chart": {
+      "teacher": "Giáo viên",
+      "student": "Học sinh",
+      "locked": "Bị khóa"
+    }
+  },
+  "revenue": {
+    "title": "Quản lý Thu nhập & Tài chính Nền tảng",
+    "subtitle": "Theo dõi dòng tiền thực tế nạp/rút, lợi nhuận chênh lệch tỷ giá và nợ phải trả tiềm năng của hệ thống.",
+    "loading": "Đang tải dữ liệu tài chính và doanh thu nền tảng…",
+    "error": {
+      "title": "Lỗi tải dữ liệu tài chính",
+      "default": "Không thể tải dữ liệu thống kê tài chính.",
+      "retry": "Thử lại"
+    },
+    "refresh": "Làm mới",
+    "kpi": {
+      "inflow": {
+        "label": "Tổng dòng tiền vào (Inflow)",
+        "hint": "{{coins}} Coins đã nạp ({{rate}} ₫/Coin)"
+      },
+      "outflow": {
+        "label": "Tổng chi trả (Outflow)",
+        "hint": "{{coins}} Coins đã rút ({{rate}} ₫/Coin)"
+      },
+      "paidBacked": {
+        "label": "Doanh thu phí paid-backed",
+        "hint": "{{coins}} paid-backed fee Coins"
+      },
+      "liability": {
+        "label": "Nợ cash-out hiện tại",
+        "hint": "{{coins}} Coins lưu hành × {{rate}} ₫"
+      }
+    },
+    "guaranteedProfit": {
+      "title": "Lợi nhuận đảm bảo tối thiểu của nền tảng",
+      "badge": "Locked in",
+      "subtitle": "Phần lợi nhuận chắc chắn thuộc về nền tảng từ chênh lệch tỷ giá Nạp - Rút (ngay cả khi toàn bộ user rút sạch Coin lưu hành)."
+    },
+    "transactions": {
+      "title": "Lịch sử đối soát dòng tiền toàn hệ thống",
+      "subtitle": "Sắp xếp từ mới nhất đến cũ nhất. Dùng bộ lọc để kiểm tra dòng tiền vào và ra.",
+      "filter": {
+        "all": "Tất cả",
+        "topUp": "Nạp VNĐ",
+        "cashOut": "Rút VNĐ"
+      },
+      "headers": {
+        "time": "Thời gian",
+        "userId": "User ID",
+        "type": "Loại giao dịch",
+        "coinChange": "Biến động Coin",
+        "vnd": "Quy đổi VNĐ",
+        "desc": "Mô tả"
+      },
+      "empty": {
+        "title": "Không có giao dịch nào",
+        "desc": "Thử đổi bộ lọc hoặc quay lại sau khi có hoạt động mới."
+      },
+      "type": {
+        "topUp": "Nạp tiền",
+        "cashOut": "Rút tiền",
+        "reward": "Thu nhập / Thưởng"
+      },
+      "noDesc": "Không có mô tả"
+    }
+  },
+  "moderation": {
+    "title": "Duyệt nội dung",
+    "subtitle": "Tổng {{count}} sản phẩm đang chờ duyệt.",
+    "reload": "Tải lại",
+    "preview": "Xem trước",
+    "approve": "Duyệt",
+    "reject": "Từ chối",
+    "badge": {
+      "quiz": "Quiz",
+      "flashcard": "Flashcard"
+    },
+    "error": {
+      "unknown": "Lỗi không xác định",
+      "approve": "Duyệt thất bại",
+      "reject": "Từ chối thất bại",
+      "reasonRequired": "Vui lòng nhập lý do từ chối."
+    },
+    "success": {
+      "approve": "Đã duyệt \"{{name}}\"",
+      "reject": "Đã từ chối \"{{name}}\""
+    },
+    "table": {
+      "headers": {
+        "product": "Sản phẩm",
+        "type": "Loại",
+        "seller": "Seller",
+        "price": "Giá",
+        "created": "Ngày tạo",
+        "actions": "Hành động"
+      },
+      "empty": "Không có sản phẩm nào đang chờ duyệt."
+    },
+    "rejectModal": {
+      "title": "Từ chối sản phẩm",
+      "confirm": "Xác nhận từ chối",
+      "desc": "Từ chối \"{{name}}\"?",
+      "reasonLabel": "Lý do từ chối (bắt buộc)",
+      "reasonPlaceholder": "Nhập lý do từ chối (tối đa 500 ký tự)"
+    }
+  },
+  "users": {
+    "title": "Quản lý người dùng",
+    "subtitle": "Tổng {{count}} user",
+    "filter": {
+      "all": "Tất cả role",
+      "student": "Student",
+      "teacher": "Teacher",
+      "admin": "Admin"
+    },
+    "reload": "Tải lại",
+    "table": {
+      "empty": "Không có user nào.",
+      "headers": {
+        "username": "Username",
+        "role": "Role",
+        "status": "Trạng thái",
+        "userId": "User ID",
+        "actions": "Hành động"
+      }
+    },
+    "status": {
+      "active": "Active",
+      "locked": "Locked"
+    },
+    "actions": {
+      "lock": "Khóa",
+      "unlock": "Mở",
+      "changeRole": "Đổi role",
+      "reset": "Reset",
+      "protected": "Protected"
+    },
+    "changeRoleModal": {
+      "title": "Đổi role",
+      "confirm": "Xác nhận",
+      "desc": "Đổi role cho {{username}}. Hiện tại:",
+      "newRole": "Role mới"
+    },
+    "resetModal": {
+      "title": "Reset mật khẩu",
+      "confirm": "Xác nhận reset",
+      "info": "Reset mật khẩu cho {{username}}.",
+      "detail": "Mật khẩu mới sẽ được random và không khả dụng trên hệ thống. User cần liên hệ admin qua kênh khác (email/điện thoại) để nhận lại mật khẩu."
+    },
+    "error": {
+      "action": "Thao tác thất bại",
+      "changeRole": "Đổi role thất bại",
+      "reset": "Reset thất bại"
+    },
+    "success": {
+      "lock": "Đã khóa {{username}}",
+      "unlock": "Đã mở khóa {{username}}",
+      "changeRole": "Đã đổi role của {{username}} → {{role}}",
+      "resetPassword": "Đã reset mật khẩu cho {{username}}"
+    }
+  },
+  "common": {
+    "loading": "Đang tải…",
+    "error": "Lỗi không xác định",
+    "retry": "Thử lại"
+  },
+  "systemConfig": {
+    "title": "System config",
+    "subtitle": "Quản lý config theo ownership của từng service.",
+    "reload": "Tải lại",
+    "tabs": {
+      "wallet": {
+        "label": "Wallet",
+        "desc": "{{count}} config"
+      },
+      "marketplace": {
+        "label": "Marketplace",
+        "desc": "{{count}} config"
+      }
+    },
+    "cards": {
+      "source": {
+        "label": "Service source"
+      },
+      "adminOnly": {
+        "label": "Admin only",
+        "desc": "Các endpoint yêu cầu role ADMIN."
+      },
+      "cache": {
+        "label": "Cache",
+        "desc": "Một số service có thể đọc lại config theo cache nội bộ."
+      }
+    },
+    "loading": {
+      "wallet": "Đang tải cấu hình wallet...",
+      "marketplace": "Đang tải cấu hình marketplace..."
+    },
+    "error": {
+      "title": "Không thể tải cấu hình",
+      "retry": "Thử lại",
+      "defaultMarketplace": "Không thể tải cấu hình marketplace."
+    },
+    "empty": {
+      "wallet": "Chưa có wallet config nào trong hệ thống.",
+      "marketplace": "Chưa có marketplace config nào trong hệ thống."
+    },
+    "row": {
+      "updated": "Cập nhật: {{date}}",
+      "by": " bởi {{user}}",
+      "save": "Lưu"
+    },
+    "missingKeys": "Backend chưa trả các key theo plan: {{keys}}",
+    "groups": {
+      "wallet": {
+        "exchange": {
+          "title": "Quy đổi",
+          "desc": "Tỷ giá nạp và rút coin."
+        },
+        "initial": {
+          "title": "Coin khởi tạo",
+          "desc": "Số coin mặc định khi tạo ví mới."
+        },
+        "cashout": {
+          "title": "Cash-out",
+          "desc": "Điều kiện tối thiểu khi teacher rút coin."
+        }
+      },
+      "marketplace": {
+        "escrow": {
+          "title": "Escrow",
+          "desc": "Thời gian giữ escrow và phí vận hành pilot."
+        },
+        "tierFee": {
+          "title": "Tier fee",
+          "desc": "Phí platform theo teacher tier."
+        },
+        "tierThresholds": {
+          "title": "Tier thresholds",
+          "desc": "Ngưỡng rating, review count và metric Phase 3."
+        },
+        "riskReview": {
+          "title": "Risk review",
+          "desc": "Cấu hình phát hiện collusion và cash-out hold."
+        }
+      },
+      "other": {
+        "title": "Khác",
+        "desc": "Các config chưa được phân nhóm trong UI."
+      }
+    },
+    "toast": {
+      "error": {
+        "updateFailed": "Cập nhật thất bại"
+      },
+      "success": {
+        "saved": "Đã lưu {{key}}"
+      }
+    }
+  },
+  "marketplaceOps": {
+    "title": "Marketplace Ops",
+    "subtitle": "Giải phóng escrow, hoàn tiền và rà soát collusion theo tiered economy.",
+    "refresh": "Làm mới",
+    "tabs": {
+      "escrow": {
+        "label": "Escrow ledger",
+        "desc": "Giải phóng và hoàn tiền"
+      },
+      "risk": {
+        "label": "Risk review",
+        "desc": "Cờ collusion và hold"
+      }
+    },
+    "stats": {
+      "heldGross": {
+        "label": "Held gross",
+        "hint": "Tổng giá trị còn kẹt trong escrow"
+      },
+      "paidBacked": {
+        "label": "Paid-backed",
+        "hint": "Dòng tiền có thể rút được"
+      },
+      "promoBacked": {
+        "label": "Promo-backed",
+        "hint": "Dòng app-only hoặc sink"
+      },
+      "needsAdmin": {
+        "label": "Needs admin",
+        "hint": "Hàng chờ admin xử lý"
+      }
+    },
+    "escrowSection": {
+      "title": "Escrow transactions",
+      "desc": "Dùng Force release để test mà không cần chờ hết hold days.",
+      "loading": "Đang tải escrow…",
+      "empty": {
+        "title": "Không có escrow nào khớp filter",
+        "desc": "Thử đổi trạng thái khác hoặc làm mới."
+      }
+    },
+    "table": {
+      "headers": {
+        "product": "Sản phẩm",
+        "status": "Trạng thái",
+        "gross": "Gross",
+        "paid": "Paid",
+        "promo": "Promo",
+        "releaseAt": "Release at",
+        "parties": "Parties",
+        "actions": "Hành động"
+      },
+      "actions": {
+        "release": "Release",
+        "refund": "Refund",
+        "hold": "Hold"
+      }
+    },
+    "riskSection": {
+      "title": "Cờ collusion",
+      "desc": "Rà soát các cặp buyer–seller có dấu hiệu bất thường.",
+      "loading": "Đang tải cờ…",
+      "empty": {
+        "title": "Không có cờ nào khớp filter",
+        "desc": "Thử đổi trạng thái hoặc làm mới."
+      },
+      "actions": {
+        "confirm": "Confirm",
+        "malicious": "Malicious",
+        "dismiss": "Dismiss"
+      }
+    },
+    "coverage": {
+      "title": "Plan v3 coverage",
+      "desc": "Admin giờ có thể truy vết lineage escrow, force-release các hàng đang giữ để dev test, hoàn tiền các giao dịch chưa xử lý, và rà soát cờ collusion. Báo cáo doanh thu vẫn phụ thuộc ledger của wallet-service và nên tách khỏi phần promo sink accounting.",
+      "backButton": "Quay lại escrow ledger"
+    },
+    "prompt": {
+      "decisionReason": "Decision reason:",
+      "riskReason": "Risk action reason:"
+    },
+    "error": {
+      "loadEscrows": "Cannot load escrow ledger.",
+      "loadFlags": "Cannot load collusion flags.",
+      "updateEscrow": "Cannot update escrow.",
+      "updateFlag": "Cannot update collusion flag."
+    },
+    "success": {
+      "escrowUpdated": "Escrow decision updated.",
+      "flagUpdated": "Collusion flag updated."
+    }
+  }
+}

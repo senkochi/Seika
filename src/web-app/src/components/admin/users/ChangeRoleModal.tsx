@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { RefreshCw } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import type { UserAdminResponse } from "../../../api/types";
 import ConfirmModal from "../../ui/ConfirmModal";
@@ -27,6 +28,7 @@ function ChangeRoleModal({
   onConfirm,
   isLoading,
 }: ChangeRoleModalProps) {
+  const { t } = useTranslation("admin");
   const [role, setRole] = useState<"STUDENT" | "TEACHER">("STUDENT");
 
   useEffect(() => {
@@ -43,8 +45,8 @@ function ChangeRoleModal({
       open={open && user !== null}
       onClose={onClose}
       onConfirm={() => onConfirm(role)}
-      title="Đổi role"
-      confirmText="Xác nhận"
+      title={t("users.changeRoleModal.title")}
+      confirmText={t("users.changeRoleModal.confirm")}
       isLoading={isLoading}
       variant="primary"
       icon={<RefreshCw className="h-5 w-5" aria-hidden="true" />}
@@ -52,9 +54,7 @@ function ChangeRoleModal({
       {user && (
         <div className="space-y-4 font-sans-ui">
           <p className="text-sm text-white/55">
-            Đổi role cho{" "}
-            <span className="font-semibold text-cream">{user.username}</span>.
-            Hiện tại:
+            {t("users.changeRoleModal.desc", { username: user.username })}
           </p>
           <div className="flex flex-wrap gap-1.5">
             {user.roles.map((r) => (
@@ -68,14 +68,12 @@ function ChangeRoleModal({
               htmlFor="change-role-select"
               className="block font-sans-ui text-xs uppercase tracking-[0.12em] text-white/55"
             >
-              Role mới
+              {t("users.changeRoleModal.newRole")}
             </label>
             <select
               id="change-role-select"
               value={role}
-              onChange={(e) =>
-                setRole(e.target.value as "STUDENT" | "TEACHER")
-              }
+              onChange={(e) => setRole(e.target.value as "STUDENT" | "TEACHER")}
               className="w-full rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 py-2 font-sans-ui text-sm text-cream focus:border-[#d4a843]/50 focus:outline-none transition-colors"
             >
               <option value="STUDENT" className="bg-[#1c0f2e] text-cream">

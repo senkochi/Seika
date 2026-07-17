@@ -1,4 +1,5 @@
 import { RefreshCw } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { PageHeader } from "../../ui/PageHeader";
 import { Button } from "../../ui/Button";
@@ -24,19 +25,28 @@ function UsersHeader({
   onFilterChange,
   onReload,
 }: UsersHeaderProps) {
+  const { t } = useTranslation("admin");
   const formatNumber = useFormatNumber();
+
+  const roleFilters = [
+    { value: "", label: t("users.filter.all") },
+    { value: "STUDENT", label: t("users.filter.student") },
+    { value: "TEACHER", label: t("users.filter.teacher") },
+    { value: "ADMIN", label: t("users.filter.admin") },
+  ];
+
   return (
     <PageHeader
-      title="Quản lý người dùng"
-      subtitle={`Tổng ${formatNumber(totalElements)} user`}
+      title={t("users.title")}
+      subtitle={t("users.subtitle", { count: formatNumber(totalElements) })}
       actions={
         <div className="flex flex-wrap items-center gap-2">
           <div
             role="group"
-            aria-label="Lọc theo role"
+            aria-label="Filter by role"
             className="flex items-center gap-1 rounded-full border border-white/[0.08] bg-white/[0.02] p-1"
           >
-            {ROLE_FILTERS.map((opt) => {
+            {roleFilters.map((opt) => {
               const active = filterRole === opt.value;
               return (
                 <button
@@ -57,7 +67,7 @@ function UsersHeader({
           </div>
           <Button variant="ghost" size="md" onClick={onReload}>
             <RefreshCw className="h-4 w-4" aria-hidden="true" />
-            Tải lại
+            {t("users.reload")}
           </Button>
         </div>
       }

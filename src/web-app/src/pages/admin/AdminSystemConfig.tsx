@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   AlertCircle,
   Check,
@@ -106,6 +107,7 @@ function ConfigRow({
   ) => void;
   isSaving: boolean;
 }) {
+  const { t } = useTranslation("admin");
   const formatDate = useFormatDate();
   const [draft, setDraft] = useState(entry.value);
   const [isDirty, setIsDirty] = useState(false);
@@ -158,8 +160,12 @@ function ConfigRow({
           />
         )}
         <div className="mt-2 min-h-4 font-sans-ui text-xs text-white/55">
-          {updatedAt && <span>Cập nhật: {updatedAt}</span>}
-          {entry.updatedBy && <span> bởi {entry.updatedBy}</span>}
+          {updatedAt && (
+            <span>{t("systemConfig.row.updated", { date: updatedAt })}</span>
+          )}
+          {entry.updatedBy && (
+            <span>{t("systemConfig.row.by", { user: entry.updatedBy })}</span>
+          )}
         </div>
       </div>
       <Button
@@ -176,7 +182,7 @@ function ConfigRow({
         ) : (
           <Check className="h-4 w-4" aria-hidden="true" />
         )}
-        Lưu
+        {t("systemConfig.row.save")}
       </Button>
     </SectionCard>
   );
@@ -201,23 +207,62 @@ function ConfigSection({
     value: string,
   ) => void;
 }) {
+  const { t } = useTranslation("admin");
   if (configs.length === 0 && missingKeys.length === 0) {
     return null;
   }
+
+  const groupKeyMap: Record<string, { title: string; desc: string }> = {
+    "Quy đổi": {
+      title: t("systemConfig.groups.wallet.exchange.title"),
+      desc: t("systemConfig.groups.wallet.exchange.desc"),
+    },
+    "Coin khởi tạo": {
+      title: t("systemConfig.groups.wallet.initial.title"),
+      desc: t("systemConfig.groups.wallet.initial.desc"),
+    },
+    "Cash-out": {
+      title: t("systemConfig.groups.wallet.cashout.title"),
+      desc: t("systemConfig.groups.wallet.cashout.desc"),
+    },
+    Escrow: {
+      title: t("systemConfig.groups.marketplace.escrow.title"),
+      desc: t("systemConfig.groups.marketplace.escrow.desc"),
+    },
+    "Tier fee": {
+      title: t("systemConfig.groups.marketplace.tierFee.title"),
+      desc: t("systemConfig.groups.marketplace.tierFee.desc"),
+    },
+    "Tier thresholds": {
+      title: t("systemConfig.groups.marketplace.tierThresholds.title"),
+      desc: t("systemConfig.groups.marketplace.tierThresholds.desc"),
+    },
+    "Risk review": {
+      title: t("systemConfig.groups.marketplace.riskReview.title"),
+      desc: t("systemConfig.groups.marketplace.riskReview.desc"),
+    },
+    Khác: {
+      title: t("systemConfig.groups.other.title"),
+      desc: t("systemConfig.groups.other.desc"),
+    },
+  };
+
+  const translatedTitle = groupKeyMap[group.title]?.title || group.title;
+  const translatedDesc = groupKeyMap[group.title]?.desc || group.description;
 
   return (
     <section className="space-y-3 border-t border-white/[0.06] pt-5 font-sans-ui">
       <div>
         <h2 className="font-sans-ui text-base font-semibold text-cream">
-          {group.title}
+          {translatedTitle}
         </h2>
-        <p className="mt-1 text-sm text-white/55">{group.description}</p>
+        <p className="mt-1 text-sm text-white/55">{translatedDesc}</p>
       </div>
       {missingKeys.length > 0 && (
         <div className="flex gap-2 rounded-lg border border-amber-400/25 bg-amber-400/[0.06] p-3 text-sm text-amber-300">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
           <span>
-            Backend chưa trả các key theo plan: {missingKeys.join(", ")}
+            {t("systemConfig.missingKeys", { keys: missingKeys.join(", ") })}
           </span>
         </div>
       )}
@@ -289,15 +334,18 @@ function ErrorState({
   message: string | null;
   onRetry: () => void;
 }) {
+  const { t } = useTranslation("admin");
   return (
     <div className="flex min-h-64 items-center justify-center rounded-lg border border-white/[0.06] bg-white/[0.02] p-8 font-sans-ui">
       <div className="flex max-w-md flex-col items-center gap-3 text-center">
         <AlertCircle className="h-9 w-9 text-[#d4a843]" aria-hidden="true" />
-        <p className="font-semibold text-cream">Không thể tải cấu hình</p>
+        <p className="font-semibold text-cream">
+          {t("systemConfig.error.title")}
+        </p>
         <p className="text-sm text-white/55">{message}</p>
         <Button variant="primary" size="md" onClick={onRetry}>
           <RefreshCw className="h-4 w-4" aria-hidden="true" />
-          Thử lại
+          {t("systemConfig.error.retry")}
         </Button>
       </div>
     </div>
@@ -305,6 +353,7 @@ function ErrorState({
 }
 
 function AdminSystemConfig() {
+  const { t } = useTranslation("admin");
   const dispatch = useAppDispatch();
   const { configs, configsStatus, configsError } = useAppSelector(
     (state) => state.admin,
@@ -328,10 +377,10 @@ function AdminSystemConfig() {
     } catch (error) {
       setMarketplaceStatus("failed");
       setMarketplaceError(
-        getApiErrorMessage(error, "Không thể tải cấu hình marketplace."),
+        getApiErrorMessage(error, t("systemConfig.error.defaultMarketplace")),
       );
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     void dispatch(fetchAdminConfigs());
@@ -360,7 +409,10 @@ function AdminSystemConfig() {
           updateAdminConfig({ key: entry.key, value }),
         );
         if (updateAdminConfig.rejected.match(result)) {
-          showError((result.payload as string) ?? "Cập nhật thất bại");
+          showError(
+            (result.payload as string) ??
+              t("systemConfig.toast.error.updateFailed"),
+          );
           return;
         }
       } else {
@@ -373,9 +425,11 @@ function AdminSystemConfig() {
           ),
         );
       }
-      showSuccess(`Đã lưu ${entry.key}`);
+      showSuccess(t("systemConfig.toast.success.saved", { key: entry.key }));
     } catch (error) {
-      showError(getApiErrorMessage(error, "Cập nhật thất bại"));
+      showError(
+        getApiErrorMessage(error, t("systemConfig.toast.error.updateFailed")),
+      );
     } finally {
       setSavingKey(null);
     }
@@ -392,7 +446,7 @@ function AdminSystemConfig() {
   const renderPanel = () => {
     if (activeTab === "wallet") {
       if (configsStatus === "loading" && configs.length === 0) {
-        return <LoadingState label="Đang tải cấu hình wallet..." />;
+        return <LoadingState label={t("systemConfig.loading.wallet")} />;
       }
       if (configsStatus === "failed" && configs.length === 0) {
         return (
@@ -403,7 +457,7 @@ function AdminSystemConfig() {
         );
       }
       if (configs.length === 0) {
-        return <EmptyState title="Chưa có wallet config nào trong hệ thống." />;
+        return <EmptyState title={t("systemConfig.empty.wallet")} />;
       }
       return walletGroups.map(({ group, configs: entries, missingKeys }) => (
         <ConfigSection
@@ -419,7 +473,7 @@ function AdminSystemConfig() {
     }
 
     if (marketplaceStatus === "loading" && marketplaceConfigs.length === 0) {
-      return <LoadingState label="Đang tải cấu hình marketplace..." />;
+      return <LoadingState label={t("systemConfig.loading.marketplace")} />;
     }
     if (marketplaceStatus === "failed" && marketplaceConfigs.length === 0) {
       return (
@@ -430,9 +484,7 @@ function AdminSystemConfig() {
       );
     }
     if (marketplaceConfigs.length === 0) {
-      return (
-        <EmptyState title="Chưa có marketplace config nào trong hệ thống." />
-      );
+      return <EmptyState title={t("systemConfig.empty.marketplace")} />;
     }
     return marketplaceGroups.map(({ group, configs: entries, missingKeys }) => (
       <ConfigSection
@@ -450,14 +502,18 @@ function AdminSystemConfig() {
   const tabs = [
     {
       id: "wallet" as const,
-      label: "Wallet",
-      description: `${configs.length} config`,
+      label: t("systemConfig.tabs.wallet.label"),
+      description: t("systemConfig.tabs.wallet.desc", {
+        count: configs.length,
+      }),
       icon: Coins,
     },
     {
       id: "marketplace" as const,
-      label: "Marketplace",
-      description: `${marketplaceConfigs.length} config`,
+      label: t("systemConfig.tabs.marketplace.label"),
+      description: t("systemConfig.tabs.marketplace.desc", {
+        count: marketplaceConfigs.length,
+      }),
       icon: Store,
     },
   ];
@@ -465,12 +521,12 @@ function AdminSystemConfig() {
   return (
     <div className="space-y-6 p-6 lg:p-8">
       <PageHeader
-        title="System config"
-        subtitle="Quản lý config theo ownership của từng service."
+        title={t("systemConfig.title")}
+        subtitle={t("systemConfig.subtitle")}
         actions={
           <Button variant="ghost" size="md" onClick={refreshActiveTab}>
             <RefreshCw className="h-4 w-4" aria-hidden="true" />
-            Tải lại
+            {t("systemConfig.reload")}
           </Button>
         }
       />
@@ -518,7 +574,9 @@ function AdminSystemConfig() {
           <IconChip variant="info">
             <Database className="h-4 w-4" aria-hidden="true" />
           </IconChip>
-          <p className="text-sm font-semibold text-cream">Service source</p>
+          <p className="text-sm font-semibold text-cream">
+            {t("systemConfig.cards.source.label")}
+          </p>
           <p className="text-xs text-white/55">
             {activeTab === "wallet" ? "wallet-service" : "marketplace-service"}
           </p>
@@ -527,18 +585,22 @@ function AdminSystemConfig() {
           <IconChip variant="success">
             <ShieldCheck className="h-4 w-4" aria-hidden="true" />
           </IconChip>
-          <p className="text-sm font-semibold text-cream">Admin only</p>
+          <p className="text-sm font-semibold text-cream">
+            {t("systemConfig.cards.adminOnly.label")}
+          </p>
           <p className="text-xs text-white/55">
-            Các endpoint yêu cầu role ADMIN.
+            {t("systemConfig.cards.adminOnly.desc")}
           </p>
         </SectionCard>
         <SectionCard className="space-y-2">
           <IconChip variant="gold">
             <RefreshCw className="h-4 w-4" aria-hidden="true" />
           </IconChip>
-          <p className="text-sm font-semibold text-cream">Cache</p>
+          <p className="text-sm font-semibold text-cream">
+            {t("systemConfig.cards.cache.label")}
+          </p>
           <p className="text-xs text-white/55">
-            Một số service có thể đọc lại config theo cache nội bộ.
+            {t("systemConfig.cards.cache.desc")}
           </p>
         </SectionCard>
       </div>

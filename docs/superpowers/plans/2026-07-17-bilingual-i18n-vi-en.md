@@ -7,6 +7,7 @@
 **Architecture:** Add `i18next` + `react-i18next`. New `uiSlice.language` in Redux mirrored to `localStorage`. Init in `main.tsx` before render, sync React to i18next via `useTranslation`. Translation files split by namespace (`common`, `auth`, `wallet`, `marketplace`, `learning`, `profile`, `teacher`, `admin`, `errors`, `toasts`). Migrate every hardcoded VN/EN string in components and pages to `t(...)` calls; update toast call-sites to pass translated strings. Replace hardcoded `"vi-VN"` formatters with the active locale. Add `<LanguageSwitcher>` to the three dashboard layouts (Student/Teacher/Admin).
 
 **Tech Stack:**
+
 - Frontend: Vite 6 + React 19 + TypeScript 5.9 + Redux Toolkit 2 + MUI 7 + Tailwind 4 + Radix UI + react-router 7 + sonner 2
 - i18n: `i18next` + `react-i18next` (chosen; no existing i18n library in repo)
 - Path alias: `@/*` → `src/*` (already configured in both `vite.config.ts` and `tsconfig.app.json`)
@@ -86,6 +87,7 @@ src/web-app/
 ### Task 1: Install i18next + react-i18next
 
 **Files:**
+
 - Modify: `/home/cuongnh/Projects/Seika/src/web-app/package.json`
 - (No test file — verify by `npm run typecheck` succeeding after install.)
 
@@ -94,11 +96,13 @@ src/web-app/
 - [ ] **Step 1: Install dependencies**
 
 Run:
+
 ```bash
 cd /home/cuongnh/Projects/Seika/src/web-app && npm install --legacy-peer-deps i18next@^24.2.3 react-i18next@^15.4.1
 ```
 
 Use `--legacy-peer-deps` (mandatory per `CLAUDE.md` for the web-app). The exact versions below are confirmed compatible with React 19:
+
 - `i18next@^24.2.3`
 - `react-i18next@^15.4.1`
 
@@ -107,11 +111,13 @@ Expected: command exits 0. `node_modules/i18next/package.json` and `node_modules
 - [ ] **Step 2: Verify `package.json` recorded the deps**
 
 Run:
+
 ```bash
 grep -E '"i18next"|"react-i18next"' /home/cuongnh/Projects/Seika/src/web-app/package.json
 ```
 
 Expected output (versions may differ slightly, but both keys must appear):
+
 ```
     "i18next": "^24.2.3",
     "react-i18next": "^15.4.1",
@@ -120,6 +126,7 @@ Expected output (versions may differ slightly, but both keys must appear):
 - [ ] **Step 3: Verify build still passes**
 
 Run:
+
 ```bash
 cd /home/cuongnh/Projects/Seika/src/web-app && npm run typecheck && npm run lint && npm run build
 ```
@@ -135,6 +142,7 @@ Leave `package.json` and `package-lock.json` un-staged.
 ### Task 2: i18n core — config, locales scaffolding, uiSlice, hook, init
 
 **Files:**
+
 - Create: `/home/cuongnh/Projects/Seika/src/web-app/src/i18n/config.ts`
 - Create: `/home/cuongnh/Projects/Seika/src/web-app/src/i18n/index.ts`
 - Create: `/home/cuongnh/Projects/Seika/src/web-app/src/i18n/locales/vi/common.json`
@@ -154,6 +162,7 @@ Leave `package.json` and `package-lock.json` un-staged.
 - Modify: `/home/cuongnh/Projects/Seika/src/web-app/src/main.tsx` (import `./i18n` for side-effect before render)
 
 **Interfaces:**
+
 - `uiSlice.state.language: SupportedLanguage` (`"vi" | "en"`).
 - `uiSlice.actions.setLanguage(lang: SupportedLanguage)`.
 - `useActiveLocale(): SupportedLanguage` — selector hook reading `state.ui.language`.
@@ -186,7 +195,9 @@ export type Namespace = (typeof NAMESPACES)[number];
 
 export const UI_LANGUAGE_STORAGE_KEY = "seika.ui.language";
 
-export const isSupportedLanguage = (value: unknown): value is SupportedLanguage =>
+export const isSupportedLanguage = (
+  value: unknown,
+): value is SupportedLanguage =>
   typeof value === "string" &&
   (SUPPORTED_LANGUAGES as readonly string[]).includes(value);
 
@@ -294,7 +305,9 @@ void i18n.use(initReactI18next).init({
  * Change the active language and persist it. Call this from anywhere —
  * typically from a Redux action's middleware or directly from the LanguageSwitcher.
  */
-export const changeLanguage = async (lang: SupportedLanguage): Promise<void> => {
+export const changeLanguage = async (
+  lang: SupportedLanguage,
+): Promise<void> => {
   await i18n.changeLanguage(lang);
   if (typeof window !== "undefined") {
     window.localStorage.setItem("seika.ui.language", lang);
@@ -423,6 +436,7 @@ createRoot(document.getElementById("root")!).render(
 - [ ] **Step 6: Verify**
 
 Run:
+
 ```bash
 cd /home/cuongnh/Projects/Seika/src/web-app && npm run typecheck && npm run lint && npm run build
 ```
@@ -438,12 +452,14 @@ Leave every new/modified file un-staged.
 ### Task 3: LanguageSwitcher component + wire into three dashboard layouts
 
 **Files:**
+
 - Create: `/home/cuongnh/Projects/Seika/src/web-app/src/components/i18n/LanguageSwitcher.tsx`
 - Modify: `/home/cuongnh/Projects/Seika/src/web-app/src/layouts/StudentDashboardLayout.tsx`
 - Modify: `/home/cuongnh/Projects/Seika/src/web-app/src/layouts/TeacherDashboardLayout.tsx`
 - Modify: `/home/cuongnh/Projects/Seika/src/web-app/src/layouts/AdminDashboardLayout.tsx`
 
 **Interfaces:**
+
 - `<LanguageSwitcher />` (no props) — renders a small dropdown that switches `uiSlice.language` and calls `changeLanguage()`.
 - Imported by the three dashboard layouts and placed in the right-side header action group, just before the `<Bell>` (notifications) icon (which is at line ~227 in `StudentDashboardLayout.tsx`).
 
@@ -550,6 +566,7 @@ In `/home/cuongnh/Projects/Seika/src/web-app/src/layouts/StudentDashboardLayout.
 Same two edits. Locate the equivalent "Right Actions" container (the `<div className="flex items-center gap-4">` that wraps the notifications button) and insert `<LanguageSwitcher />` before it.
 
 Add the import line at the top of the file (near the existing `import { formatDistanceToNow } from "date-fns";`):
+
 ```tsx
 import LanguageSwitcher from "../components/i18n/LanguageSwitcher";
 ```
@@ -561,6 +578,7 @@ Same two edits as Step 3.
 - [ ] **Step 5: Verify**
 
 Run:
+
 ```bash
 cd /home/cuongnh/Projects/Seika/src/web-app && npm run typecheck && npm run lint && npm run build
 ```
@@ -578,6 +596,7 @@ Leave all changes un-staged.
 ### Task 4: Migrate student pages (`Marketplace`, `Wallet`, `FlashcardDetail`, `LearningHub`, `StudentProfile`, `QuizDetail`) to `t(...)`
 
 **Files:**
+
 - Modify: `/home/cuongnh/Projects/Seika/src/web-app/src/pages/student/Marketplace.tsx` (290 lines, 16+ VN strings)
 - Modify: `/home/cuongnh/Projects/Seika/src/web-app/src/pages/student/Wallet.tsx` (474 lines, 38+ VN strings)
 - Modify: `/home/cuongnh/Projects/Seika/src/web-app/src/pages/student/FlashcardDetail.tsx` (29+ VN strings)
@@ -603,22 +622,22 @@ This task is large because each file has many strings. The pattern is the same f
 
 Re-read `/home/cuongnh/Projects/Seika/src/web-app/src/pages/student/LearningHub.tsx`. The user-facing strings to migrate are:
 
-| File line | Hardcoded VN | New key |
-|---|---|---|
-| 27 | `"Đã sở hữu"` | `learning.productCard.ownedBadge` |
-| 41 | `"Chưa có mô tả"` | `learning.productCard.noDescription` |
-| 78 | `"Trung tâm học tập"` | `learning.hub.title` |
-| 79 | `"Chọn bộ thẻ hoặc bài quiz đã mua và bắt đầu ôn luyện."` | `learning.hub.subtitle` |
-| 91 | `"Làm mới"` | `common.actions.refresh` |
-| 98 | `"Đang tải kho nội dung…"` | `learning.hub.loading` |
-| 110 | `"Bộ flashcard"` | `learning.hub.flashcardSection` |
-| 117 | `"Chưa có bộ flashcard nào"` | `learning.emptyState.flashcard.title` |
-| 118 | `"Mua bộ thẻ từ Marketplace để bắt đầu học."` | `learning.emptyState.flashcard.description` |
-| 128 | `"Học ngay"` | `learning.productCard.studyFlashcard` |
-| 144 | `"Quiz"` | `learning.hub.quizSection` |
-| 151 | `"Chưa có bộ quiz nào"` | `learning.emptyState.quiz.title` |
-| 153 | `"Mua bài quiz từ Marketplace để bắt đầu luyện tập."` | `learning.emptyState.quiz.description` |
-| 163 | `"Làm quiz"` | `learning.productCard.takeQuiz` |
+| File line | Hardcoded VN                                              | New key                                     |
+| --------- | --------------------------------------------------------- | ------------------------------------------- |
+| 27        | `"Đã sở hữu"`                                             | `learning.productCard.ownedBadge`           |
+| 41        | `"Chưa có mô tả"`                                         | `learning.productCard.noDescription`        |
+| 78        | `"Trung tâm học tập"`                                     | `learning.hub.title`                        |
+| 79        | `"Chọn bộ thẻ hoặc bài quiz đã mua và bắt đầu ôn luyện."` | `learning.hub.subtitle`                     |
+| 91        | `"Làm mới"`                                               | `common.actions.refresh`                    |
+| 98        | `"Đang tải kho nội dung…"`                                | `learning.hub.loading`                      |
+| 110       | `"Bộ flashcard"`                                          | `learning.hub.flashcardSection`             |
+| 117       | `"Chưa có bộ flashcard nào"`                              | `learning.emptyState.flashcard.title`       |
+| 118       | `"Mua bộ thẻ từ Marketplace để bắt đầu học."`             | `learning.emptyState.flashcard.description` |
+| 128       | `"Học ngay"`                                              | `learning.productCard.studyFlashcard`       |
+| 144       | `"Quiz"`                                                  | `learning.hub.quizSection`                  |
+| 151       | `"Chưa có bộ quiz nào"`                                   | `learning.emptyState.quiz.title`            |
+| 153       | `"Mua bài quiz từ Marketplace để bắt đầu luyện tập."`     | `learning.emptyState.quiz.description`      |
+| 163       | `"Làm quiz"`                                              | `learning.productCard.takeQuiz`             |
 
 - [ ] **Step 2: Write the `vi/learning.json` and `en/learning.json` content for these keys**
 
@@ -685,6 +704,7 @@ Replace `/home/cuongnh/Projects/Seika/src/web-app/src/i18n/locales/en/learning.j
 Also extend `vi/common.json` (key `actions.refresh`) — open the file (currently `{ "languageSwitcher.label": "..." }`) and add the action key:
 
 `/home/cuongnh/Projects/Seika/src/web-app/src/i18n/locales/vi/common.json`:
+
 ```json
 {
   "languageSwitcher.label": "Ngôn ngữ",
@@ -695,6 +715,7 @@ Also extend `vi/common.json` (key `actions.refresh`) — open the file (currentl
 ```
 
 `/home/cuongnh/Projects/Seika/src/web-app/src/i18n/locales/en/common.json`:
+
 ```json
 {
   "languageSwitcher.label": "Language",
@@ -708,21 +729,21 @@ Also extend `vi/common.json` (key `actions.refresh`) — open the file (currentl
 
 Edit `/home/cuongnh/Projects/Seika/src/web-app/src/pages/student/LearningHub.tsx`. Apply each replacement below using the Edit tool (each `old_string` must be unique in the file):
 
-| Find | Replace with |
-|---|---|
-| `import { BookOpen, Target, RefreshCcw } from "lucide-react";` (top of file) | `import { BookOpen, Target, RefreshCcw } from "lucide-react";\nimport { useTranslation } from "react-i18next";` |
-| `function ProductCard({` | `const { t } = useTranslation("learning");\n\nfunction ProductCard({` |
-| `>Đã sở hữu</StatusPill>` | `>{t("productCard.ownedBadge")}</StatusPill>` |
-| `{description || "Chưa có mô tả"}` | `{description || t("productCard.noDescription")}` |
-| `title="Trung tâm học tập"\n        subtitle="Chọn bộ thẻ hoặc bài quiz đã mua và bắt đầu ôn luyện."` | `title={t("hub.title")}\n        subtitle={t("hub.subtitle")}` |
-| `Làm mới` | `{t("common:actions.refresh")}` |
-| `Đang tải kho nội dung…` | `{t("hub.loading")}` |
-| `Bộ flashcard` | `{t("hub.flashcardSection")}` |
-| `title="Chưa có bộ flashcard nào"\n                description="Mua bộ thẻ từ Marketplace để bắt đầu học."` | `title={t("emptyState.flashcard.title")}\n                description={t("emptyState.flashcard.description")}` |
-| `ctaLabel="Học ngay"` | `ctaLabel={t("productCard.studyFlashcard")}` |
-| `Quiz` (line 144 inside `<h2>`) | `{t("hub.quizSection")}` |
-| `title="Chưa có bộ quiz nào"\n                description="Mua bài quiz từ Marketplace để bắt đầu luyện tập."` | `title={t("emptyState.quiz.title")}\n                description={t("emptyState.quiz.description")}` |
-| `ctaLabel="Làm quiz"` | `ctaLabel={t("productCard.takeQuiz")}` |
+| Find                                                                                                           | Replace with                                                                                                    |
+| -------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- | ----------------- | ------------- | --- | -------------------------------- |
+| `import { BookOpen, Target, RefreshCcw } from "lucide-react";` (top of file)                                   | `import { BookOpen, Target, RefreshCcw } from "lucide-react";\nimport { useTranslation } from "react-i18next";` |
+| `function ProductCard({`                                                                                       | `const { t } = useTranslation("learning");\n\nfunction ProductCard({`                                           |
+| `>Đã sở hữu</StatusPill>`                                                                                      | `>{t("productCard.ownedBadge")}</StatusPill>`                                                                   |
+| `{description                                                                                                  |                                                                                                                 | "Chưa có mô tả"}` | `{description |     | t("productCard.noDescription")}` |
+| `title="Trung tâm học tập"\n        subtitle="Chọn bộ thẻ hoặc bài quiz đã mua và bắt đầu ôn luyện."`          | `title={t("hub.title")}\n        subtitle={t("hub.subtitle")}`                                                  |
+| `Làm mới`                                                                                                      | `{t("common:actions.refresh")}`                                                                                 |
+| `Đang tải kho nội dung…`                                                                                       | `{t("hub.loading")}`                                                                                            |
+| `Bộ flashcard`                                                                                                 | `{t("hub.flashcardSection")}`                                                                                   |
+| `title="Chưa có bộ flashcard nào"\n                description="Mua bộ thẻ từ Marketplace để bắt đầu học."`    | `title={t("emptyState.flashcard.title")}\n                description={t("emptyState.flashcard.description")}`  |
+| `ctaLabel="Học ngay"`                                                                                          | `ctaLabel={t("productCard.studyFlashcard")}`                                                                    |
+| `Quiz` (line 144 inside `<h2>`)                                                                                | `{t("hub.quizSection")}`                                                                                        |
+| `title="Chưa có bộ quiz nào"\n                description="Mua bài quiz từ Marketplace để bắt đầu luyện tập."` | `title={t("emptyState.quiz.title")}\n                description={t("emptyState.quiz.description")}`            |
+| `ctaLabel="Làm quiz"`                                                                                          | `ctaLabel={t("productCard.takeQuiz")}`                                                                          |
 
 After all edits, the file should import `useTranslation` and call `const { t } = useTranslation("learning");` once at the top of the component. No remaining hardcoded Vietnamese strings from the table above.
 
@@ -743,6 +764,7 @@ Namespace `learning`, `profile`, `learning` (QuizDetail shares with LearningHub 
 - [ ] **Step 7: Verify**
 
 Run:
+
 ```bash
 cd /home/cuongnh/Projects/Seika/src/web-app && npm run typecheck && npm run lint && npm run build
 ```
@@ -760,6 +782,7 @@ Leave all changes un-staged.
 ### Task 5: Toast migration + locale-aware formatter helper
 
 **Files:**
+
 - Create: `/home/cuongnh/Projects/Seika/src/web-app/src/utils/format.ts` (helper `formatNumber`, `formatDate`, `formatRelativeTime` that take the active locale)
 - Modify: `/home/cuongnh/Projects/Seika/src/web-app/src/i18n/locales/vi/toasts.json` (add keys for every `showX("...")` call enumerated in Step 3)
 - Modify: `/home/cuongnh/Projects/Seika/src/web-app/src/i18n/locales/en/toasts.json` (English mirror)
@@ -769,6 +792,7 @@ Leave all changes un-staged.
 - Modify every component file that emits a toast — listed under Step 3
 
 **Interfaces:**
+
 - `formatNumber(value: number, options?: Intl.NumberFormatOptions): string` — uses `useActiveLocale()` from inside the hook caller; consumers must call it from a React component (it's a hook wrapper).
 - `formatDate(value: Date | string, options?: Intl.DateTimeFormatOptions): string` — same constraint.
 - `formatRelativeTime(value: Date | string): string` — uses `date-fns/formatDistanceToNow` with a locale param tied to active language.
@@ -874,6 +898,7 @@ showError(t("teacher.wallet.amountInvalid"));
 ```
 
 Add to `vi/toasts.json` (extend the existing `{}` file):
+
 ```json
 {
   "teacher": {
@@ -887,6 +912,7 @@ Add to `vi/toasts.json` (extend the existing `{}` file):
 ```
 
 Add to `en/toasts.json`:
+
 ```json
 {
   "teacher": {
@@ -927,6 +953,7 @@ If the existing `getApiErrorMessage` lives in `src/api/errors.ts` already, chang
 Populate `vi/errors.json` and `en/errors.json` with canonical keys:
 
 `/home/cuongnh/Projects/Seika/src/web-app/src/i18n/locales/vi/errors.json`:
+
 ```json
 {
   "api": {
@@ -941,6 +968,7 @@ Populate `vi/errors.json` and `en/errors.json` with canonical keys:
 ```
 
 `/home/cuongnh/Projects/Seika/src/web-app/src/i18n/locales/en/errors.json`:
+
 ```json
 {
   "api": {
@@ -957,6 +985,7 @@ Populate `vi/errors.json` and `en/errors.json` with canonical keys:
 - [ ] **Step 5: Verify**
 
 Run:
+
 ```bash
 cd /home/cuongnh/Projects/Seika/src/web-app && npm run typecheck && npm run lint && npm run build
 ```
@@ -974,6 +1003,7 @@ Leave all changes un-staged.
 ### Task 6: Migrate teacher pages and components
 
 **Files:**
+
 - Modify: every page in `/home/cuongnh/Projects/Seika/src/web-app/src/pages/teacher/`
 - Modify: every component in `/home/cuongnh/Projects/Seika/src/web-app/src/components/teacher/` (forms, statistics, dashboard, wallet, content, profile)
 - Modify: `/home/cuongnh/Projects/Seika/src/web-app/src/i18n/locales/vi/teacher.json`
@@ -986,6 +1016,7 @@ Leave all changes un-staged.
 - [ ] **Step 1: Enumerate teacher strings**
 
 For every file under `src/pages/teacher/` and `src/components/teacher/`, read it and tabulate each user-facing string into a shared `teacher.<section>.<key>` namespace. Use sub-sections:
+
 - `teacher.dashboard.*` — `TeacherDashboardHome`, `RevenueChartCard`, `LevelProgressCard`, `RecentIncomesList`, `OverviewStatsGrid`.
 - `teacher.statistics.*` — `Statistics`, `OverviewStatsGrid`, anything else in `pages/teacher/Statistics.tsx`.
 - `teacher.content.flashcardSet.*`, `teacher.content.quizSet.*`, `teacher.content.quizQuestion.*` — form labels.
@@ -999,6 +1030,7 @@ After enumeration, fill `vi/teacher.json` and `en/teacher.json` (and extend `wal
 - [ ] **Step 3: Edit each teacher file**
 
 For every file, apply the same pattern as Task 4:
+
 1. Add `import { useTranslation } from "react-i18next";` at the top.
 2. Inside the component body (and any nested helpers that produce JSX), call `const { t } = useTranslation("teacher");` (and `useTranslation("wallet")` if it consumes wallet strings too — call both hooks at top level).
 3. Replace each literal string with `t("<namespace>.<key>")`. Use `t("wallet:...")` syntax only when the namespace is explicit; default `useTranslation("teacher")` means most calls are `t("<key>")`.
@@ -1007,6 +1039,7 @@ For every file, apply the same pattern as Task 4:
 - [ ] **Step 4: Verify**
 
 Run:
+
 ```bash
 cd /home/cuongnh/Projects/Seika/src/web-app && npm run typecheck && npm run lint && npm run build
 ```
@@ -1024,6 +1057,7 @@ Leave all changes un-staged.
 ### Task 7: Migrate admin pages and components
 
 **Files:**
+
 - Modify: every page in `/home/cuongnh/Projects/Seika/src/web-app/src/pages/admin/`
 - Modify: every component in `/home/cuongnh/Projects/Seika/src/web-app/src/components/admin/`
 - Modify: `/home/cuongnh/Projects/Seika/src/web-app/src/i18n/locales/vi/admin.json`
@@ -1031,9 +1065,10 @@ Leave all changes un-staged.
 
 **Interfaces:** Same pattern as Tasks 4 and 6.
 
-- [ ] **Step 1: Enumerate admin strings**
+- [x] **Step 1: Enumerate admin strings**
 
 For every file under `src/pages/admin/` and `src/components/admin/`, read it and tabulate each user-facing string into the `admin.<section>.<key>` namespace. Sections:
+
 - `admin.dashboard.*` — `AdminDashboardHome`.
 - `admin.users.*` — `AdminUsers`, `UsersHeader`.
 - `admin.moderation.*` — `AdminContentModeration`.
@@ -1042,17 +1077,18 @@ For every file under `src/pages/admin/` and `src/components/admin/`, read it and
 - `admin.system.*` — `AdminSystemConfig`.
 - `admin.common.*` — labels shared across multiple admin pages (e.g. "Tìm kiếm" = "Search", "Lưu" = "Save").
 
-- [ ] **Step 2: Populate the JSON files**
+- [x] **Step 2: Populate the JSON files**
 
 After enumeration, fill `vi/admin.json` and `en/admin.json`. Keep VN copy as-is. Use neutral English for `en/admin.json`.
 
-- [ ] **Step 3: Edit each admin file**
+- [x] **Step 3: Edit each admin file**
 
 Same pattern: add `useTranslation` import + `const { t } = useTranslation("admin");` at top of each component, replace literals with `t("<key>")`. For admin pages that also show wallet or statistics data, call both hooks (`useTranslation("admin")` and `useTranslation("wallet")` or `useTranslation("teacher")`).
 
-- [ ] **Step 4: Verify**
+- [x] **Step 4: Verify**
 
 Run:
+
 ```bash
 cd /home/cuongnh/Projects/Seika/src/web-app && npm run typecheck && npm run lint && npm run build
 ```
@@ -1061,7 +1097,7 @@ Expected: each command exits 0.
 
 Manual check: `npm run dev`. Visit `/admin/dashboard/*`. Toggle language. All admin pages should render in the active language. Test moderation actions, user actions, risk panel actions — toasts should appear in the active language.
 
-- [ ] **Step 5: DO NOT COMMIT**
+- [x] **Step 5: DO NOT COMMIT**
 
 Leave all changes un-staged.
 
@@ -1070,6 +1106,7 @@ Leave all changes un-staged.
 ### Task 8: Migrate shared UI components and any remaining strings
 
 **Files:**
+
 - Modify: every file in `/home/cuongnh/Projects/Seika/src/web-app/src/components/ui/` that contains user-facing strings (likely: `ConfirmModal.tsx`, `EmptyState.tsx` callers use props — verify, `Pagination.tsx`, `sonner.tsx` if it has aria labels)
 - Modify: `/home/cuongnh/Projects/Seika/src/web-app/src/components/auth/*` (Login, Register, RegistrationBox, etc.)
 - Modify: `/home/cuongnh/Projects/Seika/src/web-app/src/pages/Home.tsx` (landing page)
@@ -1083,6 +1120,7 @@ Leave all changes un-staged.
 - [ ] **Step 1: Inventory remaining hardcoded strings**
 
 Run from the repo root:
+
 ```bash
 cd /home/cuongnh/Projects/Seika/src/web-app && \
   grep -rE '"[A-ZÀ-ỹ][^"]{2,}"' src/components/ui src/components/auth src/pages/Home.tsx --include="*.tsx" --include="*.ts" -n | \
@@ -1094,6 +1132,7 @@ Any line returned with a string longer than 2 chars that is not a CSS class or i
 - [ ] **Step 2: Populate `vi/common.json` and `en/common.json`**
 
 Add keys for shared UI copy. Suggested initial keys (extend as needed):
+
 ```json
 {
   "languageSwitcher.label": "Ngôn ngữ",
@@ -1131,6 +1170,7 @@ Mirror in `en/common.json` with English equivalents.
 - [ ] **Step 3: Populate `vi/auth.json` and `en/auth.json`**
 
 Add keys for login/register form labels, placeholders, validation messages. Examples:
+
 ```json
 {
   "login": {
@@ -1162,6 +1202,7 @@ Same pattern as before — add `useTranslation`, call `const { t } = useTranslat
 - [ ] **Step 5: Verify**
 
 Run:
+
 ```bash
 cd /home/cuongnh/Projects/Seika/src/web-app && npm run typecheck && npm run lint && npm run build
 ```
@@ -1179,6 +1220,7 @@ Leave all changes un-staged.
 ### Task 9: Final sweep — find missed strings + smoke test
 
 **Files:**
+
 - (Read-only) audit scripts via `grep`
 - Modify any remaining file that still has hardcoded user-facing strings
 
@@ -1187,6 +1229,7 @@ Leave all changes un-staged.
 - [ ] **Step 1: Run a final grep audit**
 
 Run from the repo root:
+
 ```bash
 cd /home/cuongnh/Projects/Seika/src/web-app && \
   grep -rnE '"[A-ZÀ-ỹ][^"]{2,}"' src --include="*.tsx" --include="*.ts" | \
@@ -1195,6 +1238,7 @@ cd /home/cuongnh/Projects/Seika/src/web-app && \
 ```
 
 Inspect the output. For each remaining hardcoded string that is user-facing (not a CSS class, import path, or literal constant), decide:
+
 - Migrate if user-facing (add to JSON, replace with `t(...)`).
 - Leave if it's a literal used by external systems (e.g. a routing path, a Redux action type, an API key).
 
@@ -1205,6 +1249,7 @@ For each item flagged in Step 1, apply the same pattern as Tasks 4-8. Add to the
 - [ ] **Step 3: Verify the verify gate passes**
 
 Run:
+
 ```bash
 cd /home/cuongnh/Projects/Seika/src/web-app && npm run typecheck && npm run lint && npm run build
 ```
@@ -1214,11 +1259,13 @@ Expected: each command exits 0. Build output ends with `✓ built in <N>s`. No E
 - [ ] **Step 4: Manual smoke test — full app bilingual tour**
 
 Run:
+
 ```bash
 cd /home/cuongnh/Projects/Seika/src/web-app && npm run dev
 ```
 
 Click through every page:
+
 - `/` (landing)
 - `/auth/login`, `/auth/register`
 - `/student/dashboard/*` — home, learning hub, marketplace, wallet, profile, flashcard detail, quiz detail
@@ -1226,6 +1273,7 @@ Click through every page:
 - `/admin/dashboard/*` — home, users, content moderation, marketplace risk, revenue, system config
 
 Toggle language to English at every page. Confirm:
+
 - All UI strings swap to English.
 - All toast messages swap to English.
 - All number / date formatting respects the active locale.
@@ -1237,6 +1285,7 @@ If any page has untranslated strings, fix them now (add to JSON, replace in comp
 - [ ] **Step 5: Confirm zero un-staged commits**
 
 Run:
+
 ```bash
 cd /home/cuongnh/Projects/Seika && git status --short | wc -l
 ```
