@@ -1,1 +1,28 @@
-{}
+{
+  "header": {
+    "title": "Marketplace",
+    "subtitle": "Khám phá các bộ thẻ và quiz do giáo viên trên hệ thống đăng bán."
+  },
+  "list": {
+    "title": "Tất cả sản phẩm",
+    "loading": "Đang tải sản phẩm…"
+  },
+  "emptyState": {
+    "title": "Chưa có sản phẩm nào",
+    "description": "Marketplace hiện chưa có sản phẩm. Quay lại sau nhé."
+  },
+  "product": {
+    "noDescription": "Chưa có mô tả"
+  },
+  "toast": {
+    "loginRequired": "Vui lòng đăng nhập để mua hàng",
+    "checkingBalance": "Đang kiểm tra số dư...",
+    "insufficientBalance": "Số dư không đủ! Bạn cần {{price}} Coins nhưng hiện tại chỉ có {{balance}} Coins.",
+    "creatingOrder": "Đang tạo đơn hàng...",
+    "verifyingPayment": "Đang xác nhận thanh toán...",
+    "buySuccess": "Đã mua hàng thành công! Sản phẩm đã có trong Learning Hub.",
+    "buyPending": "Đơn hàng đang được xử lý. Vui lòng làm mới Learning Hub sau ít giây.",
+    "paymentFailed": "Thanh toán thất bại. Coin đã được giữ nguyên hoặc sẽ được hoàn theo hệ thống.",
+    "buyFailed": "Mua hàng thất bại"
+  }
+}

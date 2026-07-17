@@ -1,1 +1,75 @@
-{}
+{
+  "hub": {
+    "title": "Trung tâm học tập",
+    "subtitle": "Chọn bộ thẻ hoặc bài quiz đã mua và bắt đầu ôn luyện.",
+    "loading": "Đang tải kho nội dung…",
+    "flashcardSection": "Bộ flashcard",
+    "quizSection": "Quiz"
+  },
+  "productCard": {
+    "ownedBadge": "Đã sở hữu",
+    "noDescription": "Chưa có mô tả",
+    "studyFlashcard": "Học ngay",
+    "takeQuiz": "Làm quiz"
+  },
+  "emptyState": {
+    "flashcard": {
+      "title": "Chưa có bộ flashcard nào",
+      "description": "Mua bộ thẻ từ Marketplace để bắt đầu học."
+    },
+    "quiz": {
+      "title": "Chưa có bộ quiz nào",
+      "description": "Mua bài quiz từ Marketplace để bắt đầu luyện tập."
+    }
+  },
+  "sessionCommon": {
+    "backToModeration": "Quay lại trang duyệt",
+    "adminPreview": "Chế độ xem trước dành cho Admin (Admin Preview Mode)",
+    "backToLearningHub": "Về Learning Hub",
+    "completedBadge": "Đã hoàn thành",
+    "needsPracticeBadge": "Cần luyện thêm",
+    "xpGained": "XP gained",
+    "coinsEarned": "Coins earned"
+  },
+  "flashcardDetail": {
+    "loading": "Đang tải flashcard…",
+    "notFound": "Không tìm thấy flashcard.",
+    "exitSession": "Thoát phiên",
+    "progressCard": "Card {{current}} / {{total}}",
+    "ariaReveal": "Hiện câu hỏi",
+    "ariaFlip": "Lật thẻ để xem đáp án",
+    "frontLabel": "Mặt trước",
+    "speakTitle": "Nghe phát âm",
+    "clickToFlip": "Nhấp thẻ để lật",
+    "backLabel": "Mặt sau",
+    "clickToQuestion": "Nhấp thẻ để xem câu hỏi",
+    "shortcutFlip": "lật thẻ",
+    "shortcutAnswer": "ôn lại / đã nhớ",
+    "actionReview": "Ôn lại (1)",
+    "actionMastered": "Đã nhớ (2)",
+    "actionFlipAnswer": "Lật thẻ để xem đáp án",
+    "completedTitle": "Hoàn thành bộ thẻ!",
+    "completedDesc": "Bạn vừa hoàn thành phiên học \"{{title}}\".",
+    "cooldownNotice": "Đang trong thời gian chờ (cooldown 1 ngày). Bạn sẽ đủ điều kiện nhận XP/Coin tiếp theo sau: {{time}}",
+    "oneDay": "1 ngày",
+    "masteryScore": "{{correct}} / {{total}} thẻ",
+    "masteryPercentage": "{{percent}}% đúng",
+    "studyAgain": "Học lại"
+  },
+  "quizDetail": {
+    "loading": "Đang tải quiz…",
+    "notFound": "Không tìm thấy quiz.",
+    "exitSession": "Thoát quiz",
+    "progressQuestion": "Câu {{current}} / {{total}}",
+    "checkAnswer": "Kiểm tra đáp án",
+    "nextQuestion": "Câu tiếp theo",
+    "finishQuiz": "Hoàn thành quiz",
+    "completedTitle": "Hoàn thành quiz!",
+    "completedDesc": "Bạn vừa hoàn thành phiên \"{{title}}\".",
+    "alreadyCompletedNotice": "Chỉ nhận thưởng Quiz trong lần hoàn thành đầu tiên. Bạn đã làm bài này rồi.",
+    "minScoreNotice": "Bạn cần đạt tối thiểu 70% độ chính xác để nhận Coin & XP (hiện tại: {{percentage}}%).",
+    "accuracyScore": "{{correct}} / {{total}} đúng",
+    "accuracyPercentage": "{{percent}}% độ chính xác",
+    "tryAgain": "Làm lại"
+  }
+}

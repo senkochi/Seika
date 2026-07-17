@@ -1,1 +1,38 @@
-{}
+{
+  "toast": {
+    "updateSuccess": "Profile updated.",
+    "updateError": "Failed to update profile. Please try again."
+  },
+  "loading": "Loading profile…",
+  "errorTitle": "Could not load profile",
+  "retryBtn": "Try again",
+  "header": {
+    "title": "Profile",
+    "subtitle": "Update your personal information and profile picture."
+  },
+  "card": {
+    "studentProfile": "Student profile",
+    "username": "Username",
+    "usernameHint": "Keep this information synchronized with your account.",
+    "accountInfo": "Account Information",
+    "userId": "User ID",
+    "dob": "Date of Birth",
+    "gender": "Gender"
+  },
+  "gender": {
+    "Male": "Male",
+    "Female": "Female",
+    "Other": "Other"
+  },
+  "form": {
+    "title": "Update Profile",
+    "fullName": "Full Name",
+    "fullNamePlaceholder": "Your full name",
+    "dob": "Date of Birth",
+    "gender": "Gender",
+    "avatarUrl": "Profile Picture URL",
+    "avatarPlaceholder": "https://example.com/avatar.jpg",
+    "saving": "Saving…",
+    "saveBtn": "Save Changes"
+  }
+}

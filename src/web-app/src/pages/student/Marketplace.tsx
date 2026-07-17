@@ -18,6 +18,8 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { SectionCard } from "@/components/ui/SectionCard";
 import { StatusPill } from "@/components/ui/StatusPill";
 import { useAppSelector } from "@/store/hooks";
+import { useTranslation } from "react-i18next";
+import { useActiveLocale } from "@/hooks/useActiveLocale";
 
 const ORDER_POLL_ATTEMPTS = 10;
 const ORDER_POLL_DELAY_MS = 700;
@@ -25,14 +27,12 @@ const ORDER_POLL_DELAY_MS = 700;
 const wait = (ms: number) =>
   new Promise((resolve) => window.setTimeout(resolve, ms));
 
-async function waitForPaidOrder(orderId: string) {
+async function waitForPaidOrder(orderId: string, t: (key: string) => string) {
   for (let attempt = 0; attempt < ORDER_POLL_ATTEMPTS; attempt += 1) {
     const response = await marketplaceApi.getOrder(orderId);
     if (response.data.status === "PAID") return response.data;
     if (response.data.status === "FAILED") {
-      throw new Error(
-        "Thanh toán thất bại. Coin đã được giữ nguyên hoặc sẽ được hoàn theo hệ thống.",
-      );
+      throw new Error(t("marketplace:toast.paymentFailed"));
     }
     await wait(ORDER_POLL_DELAY_MS);
   }
@@ -50,13 +50,23 @@ function tierVariant(tier?: string | null) {
   return "neutral" as const;
 }
 
-function productKind(product: Product) {
+function productKind(product: Product, t: (key: string) => string) {
   return product.type === "FLASHCARD"
-    ? { label: "Flashcard", icon: BookOpen, variant: "info" as const }
-    : { label: "Quiz", icon: Target, variant: "success" as const };
+    ? {
+        label: t("marketplace:type.flashcard"),
+        icon: BookOpen,
+        variant: "info" as const,
+      }
+    : {
+        label: t("marketplace:type.quiz"),
+        icon: Target,
+        variant: "success" as const,
+      };
 }
 
 function Marketplace() {
+  const { t } = useTranslation(["marketplace", "common"]);
+  const locale = useActiveLocale();
   const navigate = useNavigate();
   const userId = useAppSelector((state) => state.userProfile.userId);
   const [products, setProducts] = useState<Product[]>([]);
@@ -69,7 +79,7 @@ function Marketplace() {
       setProducts(res.data);
     } catch (error) {
       console.error("Failed to fetch products", error);
-      toast.error("Failed to load marketplace products.");
+      toast.error(t("marketplace:toast.fetchFailed"));
     } finally {
       setLoading(false);
     }
@@ -82,24 +92,33 @@ function Marketplace() {
   const handleBuy = async (product: Product) => {
     try {
       if (!userId) {
-        toast.error("Vui lòng đăng nhập để mua hàng");
+        toast.error(t("marketplace:toast.loginRequired"));
         return;
       }
 
-      toast.loading("Đang kiểm tra số dư...", { id: "buy-product" });
+      toast.loading(t("marketplace:toast.checkingBalance"), {
+        id: "buy-product",
+      });
       const balanceRes = await walletService.getBalance();
       const currentBalance = toNumber(balanceRes.balance);
       const price = toNumber(product.price);
 
       if (currentBalance < price) {
         toast.error(
-          `Số dư không đủ! Bạn cần ${price.toLocaleString("vi-VN")} Coins nhưng hiện tại chỉ có ${currentBalance.toLocaleString("vi-VN")} Coins.`,
+          t("marketplace:toast.insufficientBalance", {
+            price: price.toLocaleString(locale === "vi" ? "vi-VN" : "en-US"),
+            balance: currentBalance.toLocaleString(
+              locale === "vi" ? "vi-VN" : "en-US",
+            ),
+          }),
           { id: "buy-product" },
         );
         return;
       }
 
-      toast.loading("Đang tạo đơn hàng...", { id: "buy-product" });
+      toast.loading(t("marketplace:toast.creatingOrder"), {
+        id: "buy-product",
+      });
       const orderResponse = await marketplaceApi.createOrder(userId, [
         {
           productId: product.id,
@@ -112,24 +131,20 @@ function Marketplace() {
         },
       ]);
 
-      toast.loading("Đang xác nhận thanh toán...", { id: "buy-product" });
-      const paidOrder = await waitForPaidOrder(orderResponse.data.id);
+      toast.loading(t("marketplace:toast.verifyingPayment"), {
+        id: "buy-product",
+      });
+      const paidOrder = await waitForPaidOrder(orderResponse.data.id, t);
       await fetchProducts();
 
       if (paidOrder) {
-        toast.success(
-          "Đã mua hàng thành công! Sản phẩm đã có trong Learning Hub.",
-          {
-            id: "buy-product",
-          },
-        );
+        toast.success(t("marketplace:toast.buySuccess"), {
+          id: "buy-product",
+        });
       } else {
-        toast.info(
-          "Đơn hàng đang được xử lý. Vui lòng làm mới Learning Hub sau ít giây.",
-          {
-            id: "buy-product",
-          },
-        );
+        toast.info(t("marketplace:toast.buyPending"), {
+          id: "buy-product",
+        });
       }
     } catch (error: any) {
       console.error(error);
@@ -137,7 +152,7 @@ function Marketplace() {
         error.response?.data?.message ||
         error.response?.data?.error ||
         error.message ||
-        "Mua hàng thất bại";
+        t("marketplace:toast.buyFailed");
       toast.error(errorMessage, { id: "buy-product" });
       void fetchProducts();
     }
@@ -146,8 +161,8 @@ function Marketplace() {
   return (
     <div className="space-y-8 p-6 lg:p-8">
       <PageHeader
-        title="Marketplace"
-        subtitle="Khám phá các bộ thẻ và quiz do giáo viên trên hệ thống đăng bán."
+        title={t("marketplace:header.title")}
+        subtitle={t("marketplace:header.subtitle")}
         actions={
           <Button
             variant="ghost"
@@ -159,7 +174,7 @@ function Marketplace() {
               className={`h-4 w-4 ${loading ? "animate-spin" : ""}`}
               aria-hidden="true"
             />
-            Làm mới
+            {t("common:actions.refresh")}
           </Button>
         }
       />
@@ -168,24 +183,24 @@ function Marketplace() {
         <div className="flex items-center gap-2 mb-5">
           <Store className="w-4 h-4 text-[#d4a843]" aria-hidden="true" />
           <h2 className="font-sans-ui text-base font-semibold text-cream">
-            Tất cả sản phẩm
+            {t("marketplace:list.title")}
           </h2>
         </div>
 
         {loading ? (
           <div className="font-sans-ui text-white/55 text-sm">
-            Đang tải sản phẩm…
+            {t("marketplace:list.loading")}
           </div>
         ) : products.length === 0 ? (
           <EmptyState
             icon={<Store className="w-5 h-5" aria-hidden="true" />}
-            title="Chưa có sản phẩm nào"
-            description="Marketplace hiện chưa có sản phẩm. Quay lại sau nhé."
+            title={t("marketplace:emptyState.title")}
+            description={t("marketplace:emptyState.description")}
           />
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {products.map((item) => {
-              const kind = productKind(item);
+              const kind = productKind(item, t);
               const KindIcon = kind.icon;
               const price = toNumber(item.price);
               return (
@@ -204,7 +219,7 @@ function Marketplace() {
                       variant={tierVariant(item.teacherTier)}
                       icon={<ShieldCheck className="h-3.5 w-3.5" />}
                     >
-                      {item.teacherTier ?? "NEWBIE"}
+                      {item.teacherTier ?? t("marketplace:tier.newbie")}
                     </StatusPill>
                   </div>
 
@@ -220,12 +235,12 @@ function Marketplace() {
                     {item.name}
                   </h3>
                   <p className="font-sans-ui text-sm text-white/55 line-clamp-2 flex-1 mb-4">
-                    {item.description || "Chưa có mô tả"}
+                    {item.description || t("marketplace:product.noDescription")}
                   </p>
 
                   <div className="mb-5 rounded-xl border border-white/[0.06] bg-white/[0.025] p-3 font-sans-ui">
                     <p className="text-xs uppercase tracking-[0.14em] text-white/40">
-                      Teacher
+                      {t("marketplace:label.teacher")}
                     </p>
                     <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
                       <span className="text-sm font-medium text-cream line-clamp-1">
@@ -251,10 +266,12 @@ function Marketplace() {
                         aria-hidden="true"
                       />
                       <span className="text-xl font-semibold text-cream tabular-nums">
-                        {price.toLocaleString("vi-VN")}
+                        {price.toLocaleString(
+                          locale === "vi" ? "vi-VN" : "en-US",
+                        )}
                       </span>
                       <span className="text-xs text-white/55 uppercase tracking-[0.12em]">
-                        Coins
+                        {t("marketplace:label.coins")}
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
@@ -266,14 +283,14 @@ function Marketplace() {
                         }
                       >
                         <Eye className="h-4 w-4" aria-hidden="true" />
-                        Details
+                        {t("marketplace:action.details")}
                       </Button>
                       <Button
                         variant="primary"
                         size="md"
                         onClick={() => handleBuy(item)}
                       >
-                        Buy
+                        {t("marketplace:action.buy")}
                       </Button>
                     </div>
                   </div>

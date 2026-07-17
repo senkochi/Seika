@@ -1,1 +1,44 @@
-{}
+{
+  "header": {
+    "title": "Marketplace",
+    "subtitle": "Explore flashcard decks and quizzes published by teachers on the platform."
+  },
+  "list": {
+    "title": "All products",
+    "loading": "Loading products…"
+  },
+  "emptyState": {
+    "title": "No products available yet",
+    "description": "The Marketplace has no products at the moment. Please check back later."
+  },
+  "product": {
+    "noDescription": "No description yet."
+  },
+  "type": {
+    "flashcard": "Flashcard",
+    "quiz": "Quiz"
+  },
+  "tier": {
+    "newbie": "NEWBIE"
+  },
+  "label": {
+    "teacher": "Teacher",
+    "coins": "Coins"
+  },
+  "action": {
+    "details": "Details",
+    "buy": "Buy"
+  },
+  "toast": {
+    "fetchFailed": "Failed to load marketplace products.",
+    "loginRequired": "Please log in to purchase",
+    "checkingBalance": "Checking balance...",
+    "insufficientBalance": "Insufficient balance! You need {{price}} Coins but currently only have {{balance}} Coins.",
+    "creatingOrder": "Creating order...",
+    "verifyingPayment": "Verifying payment...",
+    "buySuccess": "Purchase successful! The product is now in your Learning Hub.",
+    "buyPending": "Order processing. Please refresh your Learning Hub in a few seconds.",
+    "paymentFailed": "Payment failed. Your Coins remain unchanged or will be refunded automatically.",
+    "buyFailed": "Purchase failed"
+  }
+}

@@ -1,3 +1,6 @@
 {
-  "languageSwitcher.label": "Ngôn ngữ"
+  "languageSwitcher.label": "Ngôn ngữ",
+  "actions": {
+    "refresh": "Làm mới"
+  }
 }

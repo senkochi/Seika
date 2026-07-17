@@ -1,5 +1,11 @@
 import { useEffect, useState } from "react";
-import { AlertCircle, CalendarDays, ImageUp, Loader2, RefreshCcw } from "lucide-react";
+import {
+  AlertCircle,
+  CalendarDays,
+  ImageUp,
+  Loader2,
+  RefreshCcw,
+} from "lucide-react";
 
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { fetchCurrentUserProfile } from "../../store/userProfileSlice";
@@ -8,8 +14,13 @@ import { showSuccess, showError } from "../../components/toast/toastUtils";
 import { Button } from "../../components/ui/Button";
 import { PageHeader } from "../../components/ui/PageHeader";
 import { SectionCard } from "../../components/ui/SectionCard";
+import { useTranslation } from "react-i18next";
+import { useActiveLocale } from "../../hooks/useActiveLocale";
 
 function StudentProfile() {
+  const { t } = useTranslation(["profile", "common"]);
+  const locale = useActiveLocale();
+  const dateLocale = locale === "vi" ? "vi-VN" : "en-US";
   const dispatch = useAppDispatch();
   const {
     status,
@@ -50,7 +61,7 @@ function StudentProfile() {
 
   const formatDate = (value: string) => {
     if (!value) return "—";
-    return new Intl.DateTimeFormat("en-US", {
+    return new Intl.DateTimeFormat(dateLocale, {
       year: "numeric",
       month: "long",
       day: "2-digit",
@@ -67,10 +78,10 @@ function StudentProfile() {
         userId,
         ...formData,
       });
-      showSuccess("Đã cập nhật hồ sơ.");
+      showSuccess(t("profile:toast.updateSuccess"));
       dispatch(fetchCurrentUserProfile());
     } catch (err) {
-      showError("Cập nhật hồ sơ thất bại. Vui lòng thử lại.");
+      showError(t("profile:toast.updateError"));
       console.error(err);
     } finally {
       setIsUpdating(false);
@@ -85,7 +96,7 @@ function StudentProfile() {
             className="w-10 h-10 animate-spin text-[#d4a843]"
             aria-hidden="true"
           />
-          <p>Đang tải hồ sơ…</p>
+          <p>{t("profile:loading")}</p>
         </div>
       </div>
     );
@@ -95,21 +106,16 @@ function StudentProfile() {
     return (
       <div className="p-8 flex items-center justify-center min-h-[60dvh] font-sans-ui">
         <div className="flex flex-col items-center gap-3 text-center">
-          <AlertCircle
-            className="h-9 w-9 text-[#d4a843]"
-            aria-hidden="true"
-          />
-          <p className="font-semibold text-cream">Không thể tải hồ sơ</p>
-          {error && (
-            <p className="max-w-md text-sm text-white/55">{error}</p>
-          )}
+          <AlertCircle className="h-9 w-9 text-[#d4a843]" aria-hidden="true" />
+          <p className="font-semibold text-cream">{t("profile:errorTitle")}</p>
+          {error && <p className="max-w-md text-sm text-white/55">{error}</p>}
           <Button
             variant="primary"
             size="md"
             onClick={() => dispatch(fetchCurrentUserProfile())}
             className="mt-2"
           >
-            Thử lại
+            {t("profile:retryBtn")}
           </Button>
         </div>
       </div>
@@ -119,8 +125,8 @@ function StudentProfile() {
   return (
     <div className="space-y-8 p-6 lg:p-8 font-sans-ui">
       <PageHeader
-        title="Hồ sơ"
-        subtitle="Cập nhật thông tin cá nhân và ảnh đại diện."
+        title={t("profile:header.title")}
+        subtitle={t("profile:header.subtitle")}
         actions={
           <Button
             variant="ghost"
@@ -128,7 +134,7 @@ function StudentProfile() {
             onClick={() => dispatch(fetchCurrentUserProfile())}
           >
             <RefreshCcw className="h-4 w-4" aria-hidden="true" />
-            Làm mới
+            {t("common:actions.refresh")}
           </Button>
         }
       />
@@ -150,7 +156,7 @@ function StudentProfile() {
               )}
               <div className="min-w-0">
                 <p className="font-sans-ui text-xs uppercase tracking-[0.12em] text-white/45">
-                  Student profile
+                  {t("profile:card.studentProfile")}
                 </p>
                 <h2 className="font-sans-ui text-xl font-semibold text-cream truncate">
                   {formData.fullName || username || "—"}
@@ -160,25 +166,25 @@ function StudentProfile() {
 
             <div className="space-y-2 border-t border-white/[0.06] pt-4">
               <p className="font-sans-ui text-xs uppercase tracking-[0.12em] text-white/45">
-                Username
+                {t("profile:card.username")}
               </p>
               <p className="font-sans-ui text-sm font-medium text-cream break-all">
                 {username ?? "—"}
               </p>
               <p className="font-sans-ui text-xs text-white/55">
-                Giữ thông tin này đồng bộ với tài khoản của bạn.
+                {t("profile:card.usernameHint")}
               </p>
             </div>
           </SectionCard>
 
           <SectionCard className="space-y-4">
             <h3 className="font-sans-ui text-base font-semibold text-cream">
-              Thông tin tài khoản
+              {t("profile:card.accountInfo")}
             </h3>
             <div className="space-y-3 font-sans-ui text-sm">
               <div>
                 <p className="text-xs uppercase tracking-[0.12em] text-white/45 mb-1">
-                  User ID
+                  {t("profile:card.userId")}
                 </p>
                 <p className="font-mono text-xs text-cream break-all">
                   {userId ?? "—"}
@@ -186,7 +192,7 @@ function StudentProfile() {
               </div>
               <div>
                 <p className="text-xs uppercase tracking-[0.12em] text-white/45 mb-1">
-                  Ngày sinh
+                  {t("profile:card.dob")}
                 </p>
                 <p className="font-medium text-cream">
                   {formData.dateOfBirth
@@ -196,10 +202,14 @@ function StudentProfile() {
               </div>
               <div>
                 <p className="text-xs uppercase tracking-[0.12em] text-white/45 mb-1">
-                  Giới tính
+                  {t("profile:card.gender")}
                 </p>
                 <p className="font-medium text-cream">
-                  {formData.gender || "—"}
+                  {formData.gender
+                    ? t(`profile:gender.${formData.gender}`, {
+                        defaultValue: formData.gender,
+                      })
+                    : "—"}
                 </p>
               </div>
             </div>
@@ -214,14 +224,14 @@ function StudentProfile() {
                 aria-hidden="true"
               />
               <h2 className="font-sans-ui text-lg font-semibold text-cream">
-                Cập nhật hồ sơ
+                {t("profile:form.title")}
               </h2>
             </div>
 
             <div className="grid gap-5 md:grid-cols-2">
               <label className="space-y-2 md:col-span-1">
                 <span className="font-sans-ui text-xs uppercase tracking-[0.12em] text-white/45">
-                  Username
+                  {t("profile:card.username")}
                 </span>
                 <input
                   type="text"
@@ -233,7 +243,7 @@ function StudentProfile() {
 
               <label className="space-y-2 md:col-span-1">
                 <span className="font-sans-ui text-xs uppercase tracking-[0.12em] text-white/45">
-                  Họ và tên
+                  {t("profile:form.fullName")}
                 </span>
                 <input
                   type="text"
@@ -242,19 +252,22 @@ function StudentProfile() {
                     setFormData({ ...formData, fullName: event.target.value })
                   }
                   className="w-full rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 py-2 font-sans-ui text-sm text-cream outline-none placeholder:text-white/35 focus:border-[#d4a843]/50 transition-colors"
-                  placeholder="Họ và tên của bạn"
+                  placeholder={t("profile:form.fullNamePlaceholder")}
                 />
               </label>
 
               <label className="space-y-2">
                 <span className="font-sans-ui text-xs uppercase tracking-[0.12em] text-white/45">
-                  Ngày sinh
+                  {t("profile:form.dob")}
                 </span>
                 <input
                   type="date"
                   value={formData.dateOfBirth}
                   onChange={(event) =>
-                    setFormData({ ...formData, dateOfBirth: event.target.value })
+                    setFormData({
+                      ...formData,
+                      dateOfBirth: event.target.value,
+                    })
                   }
                   className="w-full rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 py-2 font-sans-ui text-sm text-cream outline-none focus:border-[#d4a843]/50 transition-colors"
                 />
@@ -262,7 +275,7 @@ function StudentProfile() {
 
               <label className="space-y-2">
                 <span className="font-sans-ui text-xs uppercase tracking-[0.12em] text-white/45">
-                  Giới tính
+                  {t("profile:form.gender")}
                 </span>
                 <select
                   value={formData.gender}
@@ -272,20 +285,20 @@ function StudentProfile() {
                   className="w-full rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 py-2 font-sans-ui text-sm text-cream outline-none focus:border-[#d4a843]/50 transition-colors"
                 >
                   <option value="Male" className="bg-[#1c0f2e] text-cream">
-                    Male
+                    {t("profile:gender.Male")}
                   </option>
                   <option value="Female" className="bg-[#1c0f2e] text-cream">
-                    Female
+                    {t("profile:gender.Female")}
                   </option>
                   <option value="Other" className="bg-[#1c0f2e] text-cream">
-                    Other
+                    {t("profile:gender.Other")}
                   </option>
                 </select>
               </label>
 
               <label className="space-y-2 md:col-span-2">
                 <span className="font-sans-ui text-xs uppercase tracking-[0.12em] text-white/45">
-                  URL ảnh đại diện
+                  {t("profile:form.avatarUrl")}
                 </span>
                 <div className="relative">
                   <ImageUp
@@ -302,7 +315,7 @@ function StudentProfile() {
                       })
                     }
                     className="w-full rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 py-2 pl-10 font-sans-ui text-sm text-cream outline-none placeholder:text-white/35 focus:border-[#d4a843]/50 transition-colors"
-                    placeholder="https://example.com/avatar.jpg"
+                    placeholder={t("profile:form.avatarPlaceholder")}
                   />
                 </div>
               </label>
@@ -315,7 +328,9 @@ function StudentProfile() {
                 type="submit"
                 disabled={isUpdating}
               >
-                {isUpdating ? "Đang lưu…" : "Lưu thay đổi"}
+                {isUpdating
+                  ? t("profile:form.saving")
+                  : t("profile:form.saveBtn")}
               </Button>
             </div>
           </SectionCard>

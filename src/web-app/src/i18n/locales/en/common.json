@@ -1,3 +1,6 @@
 {
-  "languageSwitcher.label": "Language"
+  "languageSwitcher.label": "Language",
+  "actions": {
+    "refresh": "Refresh"
+  }
 }

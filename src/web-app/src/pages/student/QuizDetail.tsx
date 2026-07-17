@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/Button";
 import { IconChip } from "@/components/ui/IconChip";
 import { StatusPill } from "@/components/ui/StatusPill";
 import { SectionCard } from "@/components/ui/SectionCard";
+import { useTranslation } from "react-i18next";
 
 // Import custom quiz components
 import MultipleChoiceQuiz from "@/components/student/quiz/MultipleChoiceQuiz";
@@ -26,6 +27,7 @@ import ReorderQuiz from "@/components/student/quiz/ReorderQuiz";
 import FillInBlankQuiz from "@/components/student/quiz/FillInBlankQuiz";
 
 export default function QuizDetail() {
+  const { t } = useTranslation(["learning", "common"]);
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const location = useLocation();
@@ -205,7 +207,9 @@ export default function QuizDetail() {
   if (loading) {
     return (
       <div className="relative isolate min-h-[100dvh] w-full flex items-center justify-center bg-[#15091e]">
-        <p className="font-sans-ui text-white/55">Đang tải quiz…</p>
+        <p className="font-sans-ui text-white/55">
+          {t("learning:quizDetail.loading")}
+        </p>
       </div>
     );
   }
@@ -213,7 +217,9 @@ export default function QuizDetail() {
   if (!quizSet || questions.length === 0) {
     return (
       <div className="relative isolate min-h-[100dvh] w-full flex items-center justify-center bg-[#15091e]">
-        <p className="font-sans-ui text-white/55">Không tìm thấy quiz.</p>
+        <p className="font-sans-ui text-white/55">
+          {t("learning:quizDetail.notFound")}
+        </p>
       </div>
     );
   }
@@ -229,7 +235,11 @@ export default function QuizDetail() {
           className="flex items-center gap-2 font-sans-ui text-sm font-medium text-white/55 hover:text-cream bg-white/[0.02] hover:bg-white/[0.04] border border-white/[0.06] px-4 py-2.5 rounded-lg transition-colors"
         >
           <ArrowLeft className="w-4 h-4" aria-hidden="true" />
-          <span>{isAdmin ? "Quay lại trang duyệt" : "Thoát quiz"}</span>
+          <span>
+            {isAdmin
+              ? t("learning:sessionCommon.backToModeration")
+              : t("learning:quizDetail.exitSession")}
+          </span>
         </button>
 
         <div className="text-center hidden md:block">
@@ -249,13 +259,13 @@ export default function QuizDetail() {
         <div className="relative z-10 bg-sky-400/10 border-b border-sky-400/25 px-8 py-3 flex items-center justify-between text-sky-200">
           <div className="flex items-center gap-2 font-sans-ui text-sm font-medium">
             <ShieldCheck className="w-4 h-4 text-sky-300" aria-hidden="true" />
-            <span>Chế độ xem trước dành cho Admin (Admin Preview Mode)</span>
+            <span>{t("learning:sessionCommon.adminPreview")}</span>
           </div>
           <button
             onClick={() => navigate("/admin/dashboard/moderation")}
             className="rounded-md bg-sky-400/20 px-3 py-1.5 font-sans-ui text-xs font-medium text-sky-200 hover:bg-sky-400/30 transition-colors"
           >
-            Quay lại trang duyệt
+            {t("learning:sessionCommon.backToModeration")}
           </button>
         </div>
       )}
@@ -268,8 +278,14 @@ export default function QuizDetail() {
             <div className="w-full">
               <div className="flex justify-between items-center font-sans-ui text-xs text-white/55 mb-2">
                 <span className="flex items-center gap-1.5 tabular-nums">
-                  <Target className="w-4 h-4 text-[#d4a843]" aria-hidden="true" />
-                  Câu {currentIndex + 1} / {questions.length}
+                  <Target
+                    className="w-4 h-4 text-[#d4a843]"
+                    aria-hidden="true"
+                  />
+                  {t("learning:quizDetail.progressQuestion", {
+                    current: currentIndex + 1,
+                    total: questions.length,
+                  })}
                 </span>
                 <span className="tabular-nums text-[#d4a843]">
                   {Math.round((currentIndex / questions.length) * 100)}%
@@ -339,7 +355,7 @@ export default function QuizDetail() {
                   onClick={handleCheckAnswer}
                   className="w-full md:w-auto md:px-12"
                 >
-                  Kiểm tra đáp án
+                  {t("learning:quizDetail.checkAnswer")}
                 </Button>
               ) : (
                 <Button
@@ -349,8 +365,8 @@ export default function QuizDetail() {
                   className="w-full md:w-auto md:px-12"
                 >
                   {currentIndex + 1 < questions.length
-                    ? "Câu tiếp theo"
-                    : "Hoàn thành quiz"}
+                    ? t("learning:quizDetail.nextQuestion")
+                    : t("learning:quizDetail.finishQuiz")}
                 </Button>
               )}
             </div>
@@ -364,19 +380,19 @@ export default function QuizDetail() {
               </IconChip>
               <div>
                 <StatusPill
-                  variant={
-                    accuracyPercentage >= 70 ? "success" : "warning"
-                  }
+                  variant={accuracyPercentage >= 70 ? "success" : "warning"}
                 >
                   {accuracyPercentage >= 70
-                    ? "Đã hoàn thành"
-                    : "Cần luyện thêm"}
+                    ? t("learning:sessionCommon.completedBadge")
+                    : t("learning:sessionCommon.needsPracticeBadge")}
                 </StatusPill>
                 <h2 className="font-sans-ui text-2xl font-semibold text-cream mt-3 tracking-tight">
-                  Hoàn thành quiz!
+                  {t("learning:quizDetail.completedTitle")}
                 </h2>
                 <p className="font-sans-ui text-sm text-white/55 mt-2">
-                  Bạn vừa hoàn thành phiên "{quizSet.title}".
+                  {t("learning:quizDetail.completedDesc", {
+                    title: quizSet.title,
+                  })}
                 </p>
               </div>
             </div>
@@ -385,7 +401,7 @@ export default function QuizDetail() {
             <div className="mt-6 bg-white/[0.02] border border-white/[0.06] rounded-xl p-6 grid grid-cols-2 gap-6 font-sans-ui">
               <div className="text-center border-r border-white/[0.06]">
                 <p className="text-[10px] text-white/45 uppercase tracking-[0.12em] mb-1">
-                  XP gained
+                  {t("learning:sessionCommon.xpGained")}
                 </p>
                 <div className="flex items-center justify-center gap-1 text-cream">
                   <Zap className="w-4 h-4 text-[#d4a843]" aria-hidden="true" />
@@ -396,7 +412,7 @@ export default function QuizDetail() {
               </div>
               <div className="text-center">
                 <p className="text-[10px] text-white/45 uppercase tracking-[0.12em] mb-1">
-                  Coins earned
+                  {t("learning:sessionCommon.coinsEarned")}
                 </p>
                 <div className="flex items-center justify-center gap-1 text-cream">
                   <span className="text-2xl font-semibold tabular-nums">
@@ -407,15 +423,15 @@ export default function QuizDetail() {
 
               {rewardStatus && !rewardStatus.eligible && (
                 <div className="col-span-2 px-4 py-3 bg-amber-400/10 border border-amber-400/25 text-amber-300 rounded-lg text-xs text-center">
-                  Chỉ nhận thưởng Quiz trong lần hoàn thành đầu tiên. Bạn đã
-                  làm bài này rồi.
+                  {t("learning:quizDetail.alreadyCompletedNotice")}
                 </div>
               )}
 
               {rewardStatus?.eligible && accuracyPercentage < 70 && (
                 <div className="col-span-2 px-4 py-3 bg-red-400/10 border border-red-400/25 text-red-300 rounded-lg text-xs text-center">
-                  Bạn cần đạt tối thiểu 70% độ chính xác để nhận Coin & XP
-                  (hiện tại: {accuracyPercentage}%).
+                  {t("learning:quizDetail.minScoreNotice", {
+                    percentage: accuracyPercentage,
+                  })}
                 </div>
               )}
 
@@ -424,10 +440,15 @@ export default function QuizDetail() {
                   Accuracy score
                 </p>
                 <p className="text-xl font-semibold text-cream tabular-nums">
-                  {correctCount} / {questions.length} đúng
+                  {t("learning:quizDetail.accuracyScore", {
+                    correct: correctCount,
+                    total: questions.length,
+                  })}
                 </p>
                 <p className="text-xs text-white/55 mt-1 tabular-nums">
-                  {accuracyPercentage}% độ chính xác
+                  {t("learning:quizDetail.accuracyPercentage", {
+                    percent: accuracyPercentage,
+                  })}
                 </p>
               </div>
             </div>
@@ -440,7 +461,9 @@ export default function QuizDetail() {
                 className="w-full"
                 onClick={() => navigate(backPath)}
               >
-                {isAdmin ? "Quay lại trang duyệt" : "Về Learning Hub"}
+                {isAdmin
+                  ? t("learning:sessionCommon.backToModeration")
+                  : t("learning:sessionCommon.backToLearningHub")}
               </Button>
 
               <Button
@@ -450,7 +473,7 @@ export default function QuizDetail() {
                 onClick={handleReset}
               >
                 <RotateCcw className="w-4 h-4" aria-hidden="true" />
-                Làm lại
+                {t("learning:quizDetail.tryAgain")}
               </Button>
             </div>
           </SectionCard>

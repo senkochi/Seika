@@ -12,6 +12,8 @@ import {
 import { walletService } from "../../api";
 import { showError, showSuccess } from "../../components/toast/toastUtils";
 import { useAppSelector } from "../../store/hooks";
+import { useTranslation } from "react-i18next";
+import { useActiveLocale } from "../../hooks/useActiveLocale";
 import ConfirmModal from "../../components/ui/ConfirmModal";
 import { PageHeader } from "../../components/ui/PageHeader";
 import { SectionCard } from "../../components/ui/SectionCard";
@@ -29,11 +31,14 @@ interface Transaction {
   createdAt: string;
 }
 
-function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleString("vi-VN");
+function formatDate(dateStr: string, locale = "vi-VN") {
+  return new Date(dateStr).toLocaleString(locale);
 }
 
 function Wallet() {
+  const { t } = useTranslation(["wallet", "common"]);
+  const locale = useActiveLocale();
+  const dateLocale = locale === "vi" ? "vi-VN" : "en-US";
   const { currentStreak } = useAppSelector((state) => state.userProfile);
   const [balance, setBalance] = useState<number>(0);
   const [history, setHistory] = useState<Transaction[]>([]);
@@ -87,7 +92,7 @@ function Wallet() {
       }
     } catch (err) {
       console.error(err);
-      showError("Could not retrieve wallet details.");
+      showError(t("wallet:toast.retrieveFailed"));
       setBalance(0);
       setHistory([]);
     } finally {
@@ -103,18 +108,20 @@ function Wallet() {
     e.preventDefault();
     const amountVnd = parseInt(topUpAmount, 10);
     if (isNaN(amountVnd) || amountVnd <= 0) {
-      showError("Số tiền nạp không hợp lệ!");
+      showError(t("wallet:toast.invalidAmount"));
       return;
     }
     if (amountVnd < 1000) {
-      showError("Số tiền nạp tối thiểu là 1,000 VNĐ!");
+      showError(t("wallet:toast.minAmount"));
       return;
     }
 
     const calculatedCoins = Math.floor(amountVnd / topUpRate);
     if (calculatedCoins <= 0) {
       showError(
-        `Số tiền nạp không đủ để đổi 1 Coin (Tỷ giá: ${topUpRate.toLocaleString("vi-VN")} VNĐ/Coin)!`,
+        t("wallet:toast.insufficientRate", {
+          rate: topUpRate.toLocaleString(dateLocale),
+        }),
       );
       return;
     }
@@ -127,12 +134,17 @@ function Wallet() {
     setLoadingTopUp(true);
     try {
       const res = await walletService.topUp({ amountVnd });
-      showSuccess(res.message || `Nạp thành công ${res.coinsReceived} Coin!`);
+      showSuccess(
+        res.message ||
+          t("wallet:toast.topUpSuccess", {
+            coins: res.coinsReceived,
+          }),
+      );
       setTopUpAmount("");
       setShowConfirmModal(false);
       fetchWalletData();
     } catch (err: any) {
-      showError(err.response?.data?.message || "Lỗi khi nạp tiền!");
+      showError(err.response?.data?.message || t("wallet:toast.topUpError"));
     } finally {
       setLoadingTopUp(false);
     }
@@ -166,8 +178,8 @@ function Wallet() {
   return (
     <div className="space-y-8 p-6 lg:p-8">
       <PageHeader
-        title="Ví của tôi"
-        subtitle="Quản lý Coin, kiểm tra số dư và nạp thêm để mở khóa khóa học & quiz."
+        title={t("wallet:header.title")}
+        subtitle={t("wallet:header.subtitle")}
         actions={
           <Button
             variant="ghost"
@@ -179,7 +191,7 @@ function Wallet() {
               className={`w-4 h-4 ${loading ? "animate-spin" : ""}`}
               aria-hidden="true"
             />{" "}
-            Làm mới
+            {t("common:actions.refresh")}
           </Button>
         }
       />
@@ -193,27 +205,33 @@ function Wallet() {
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
           <div>
             <p className="font-sans-ui text-xs uppercase tracking-[0.12em] text-white/45">
-              Số dư hiện tại
+              {t("wallet:balance.label")}
             </p>
             <p className="mt-3 font-sans-ui text-4xl font-semibold text-cream tabular-nums">
-              {loading ? "…" : balance.toLocaleString("vi-VN")}
+              {loading ? "…" : balance.toLocaleString(dateLocale)}
               <span className="ml-2 text-base font-medium text-[#d4a843]">
-                Coins
+                {t("wallet:balance.coins")}
               </span>
             </p>
             <div className="mt-3 flex items-center gap-2">
-              <StatusPill variant="gold">Đang hoạt động</StatusPill>
+              <StatusPill variant="gold">
+                {t("wallet:balance.statusActive")}
+              </StatusPill>
               <span className="font-sans-ui text-xs text-white/55">
-                {topUpRate.toLocaleString("vi-VN")} VNĐ / Coin
+                {t("wallet:balance.rateText", {
+                  rate: topUpRate.toLocaleString(dateLocale),
+                })}
               </span>
             </div>
           </div>
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="md">
-              <Coins className="w-4 h-4" aria-hidden="true" /> Rút Coin
+              <Coins className="w-4 h-4" aria-hidden="true" />{" "}
+              {t("wallet:actions.withdraw")}
             </Button>
             <Button variant="primary" size="md">
-              <PlusCircle className="w-4 h-4" aria-hidden="true" /> Nạp Coin
+              <PlusCircle className="w-4 h-4" aria-hidden="true" />{" "}
+              {t("wallet:actions.topUp")}
             </Button>
           </div>
         </div>
@@ -222,23 +240,23 @@ function Wallet() {
       {/* Quick stats grid */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <StatCard
-          label="Tổng thu nhập / Nạp"
-          value={`+${totalEarned.toLocaleString("vi-VN")}`}
-          unit="Coins"
+          label={t("wallet:stats.earned")}
+          value={`+${totalEarned.toLocaleString(dateLocale)}`}
+          unit={t("wallet:balance.coins")}
           icon={<TrendingUp className="w-4 h-4" aria-hidden="true" />}
           iconVariant="success"
         />
         <StatCard
-          label="Tổng chi tiêu"
-          value={`-${totalSpent.toLocaleString("vi-VN")}`}
-          unit="Coins"
+          label={t("wallet:stats.spent")}
+          value={`-${totalSpent.toLocaleString(dateLocale)}`}
+          unit={t("wallet:balance.coins")}
           icon={<TrendingDown className="w-4 h-4" aria-hidden="true" />}
           iconVariant="danger"
         />
         <StatCard
-          label="Chuỗi ngày học"
+          label={t("wallet:stats.streak")}
           value={`${currentStreak ?? 0}`}
-          unit="ngày"
+          unit={t("wallet:stats.daysUnit")}
           icon={<Zap className="w-4 h-4" aria-hidden="true" />}
           iconVariant="warning"
         />
@@ -252,19 +270,22 @@ function Wallet() {
             <IconChip variant="muted" className="h-8 w-8">
               <Coins className="w-4 h-4" aria-hidden="true" />
             </IconChip>
-            Lịch sử giao dịch
+            {t("wallet:history.title")}
           </h2>
 
           {loading ? (
             <div className="flex flex-col items-center justify-center py-16 text-white/55 gap-2 font-sans-ui">
-              <Loader2 className="w-8 h-8 animate-spin text-[#d4a843]" aria-hidden="true" />
-              <p className="text-sm">Đang tải giao dịch…</p>
+              <Loader2
+                className="w-8 h-8 animate-spin text-[#d4a843]"
+                aria-hidden="true"
+              />
+              <p className="text-sm">{t("wallet:history.loading")}</p>
             </div>
           ) : history.length === 0 ? (
             <EmptyState
               icon={<Coins className="w-5 h-5" aria-hidden="true" />}
-              title="Chưa có giao dịch nào"
-              description="Lịch sử nạp, rút và thưởng Coin của bạn sẽ hiển thị tại đây."
+              title={t("wallet:history.emptyTitle")}
+              description={t("wallet:history.emptyDesc")}
             />
           ) : (
             <div className="space-y-3 max-h-[28rem] overflow-y-auto pr-2 custom-scrollbar">
@@ -293,7 +314,7 @@ function Wallet() {
                         </p>
                       </div>
                       <p className="font-sans-ui text-xs text-white/55 mt-1">
-                        {formatDate(tx.createdAt)}
+                        {formatDate(tx.createdAt, dateLocale)}
                       </p>
                     </div>
                     <div
@@ -302,7 +323,8 @@ function Wallet() {
                       }`}
                     >
                       {isEarn ? "+" : "-"}
-                      {Math.abs(tx.amount).toLocaleString("vi-VN")} Coins
+                      {Math.abs(tx.amount).toLocaleString(dateLocale)}{" "}
+                      {t("wallet:history.coinsUnit")}
                     </div>
                   </div>
                 );
@@ -315,13 +337,13 @@ function Wallet() {
         <SectionCard className="lg:col-span-2 h-fit">
           <h2 className="font-sans-ui text-base font-semibold text-cream flex items-center gap-2 mb-5">
             <PlusCircle className="w-4 h-4 text-[#d4a843]" aria-hidden="true" />
-            Nạp Coin
+            {t("wallet:topUpForm.title")}
           </h2>
 
           <form onSubmit={handleTopUp} className="space-y-5">
             <div>
               <label className="block font-sans-ui text-sm text-white/55 mb-2">
-                Số tiền cần nạp (VNĐ)
+                {t("wallet:topUpForm.amountLabel")}
               </label>
               <div className="relative">
                 <CreditCard
@@ -333,7 +355,7 @@ function Wallet() {
                   required
                   min={1000}
                   step={1000}
-                  placeholder="vd. 20,000"
+                  placeholder={t("wallet:topUpForm.amountPlaceholder")}
                   value={topUpAmount}
                   onChange={(e) => setTopUpAmount(e.target.value)}
                   className="w-full pl-10 pr-4 py-3 bg-white/[0.04] border border-white/[0.08] rounded-xl text-cream font-mono text-base focus:outline-none focus:border-[#d4a843]/50 transition-colors placeholder:text-white/35"
@@ -356,7 +378,8 @@ function Wallet() {
                           : "py-2 px-3 rounded-xl text-xs font-sans-ui font-medium border border-white/[0.08] bg-white/[0.02] text-white/55 hover:text-cream transition-colors"
                       }
                     >
-                      {amt.toLocaleString("vi-VN")} đ
+                      {amt.toLocaleString(dateLocale)}{" "}
+                      {t("wallet:topUpForm.quickUnit")}
                     </button>
                   );
                 })}
@@ -371,38 +394,46 @@ function Wallet() {
                 </IconChip>
                 <div>
                   <p className="font-sans-ui text-xs text-white/55">
-                    Bạn sẽ nhận
+                    {t("wallet:topUpForm.receiveLabel")}
                   </p>
                   <p className="font-sans-ui text-lg font-semibold text-cream tabular-nums">
-                    {estimatedCoins.toLocaleString("vi-VN")}{" "}
+                    {estimatedCoins.toLocaleString(dateLocale)}{" "}
                     <span className="text-sm font-medium text-[#d4a843]">
-                      Coin
+                      {t("wallet:topUpForm.receiveUnit")}
                     </span>
                   </p>
                 </div>
               </div>
               <div className="text-right">
                 <p className="font-sans-ui text-[11px] text-white/55">
-                  Tỷ giá
+                  {t("wallet:topUpForm.rateLabel")}
                 </p>
                 <p className="font-sans-ui text-xs font-mono font-medium text-cream">
-                  {topUpRate.toLocaleString("vi-VN")} đ/Coin
+                  {t("wallet:topUpForm.rateValue", {
+                    rate: topUpRate.toLocaleString(dateLocale),
+                  })}
                 </p>
               </div>
             </div>
 
             <div>
               <label className="block font-sans-ui text-sm text-white/55 mb-2">
-                Phương thức thanh toán (Demo)
+                {t("wallet:topUpForm.methodLabel")}
               </label>
               <select
                 value={paymentMethod}
                 onChange={(e) => setPaymentMethod(e.target.value)}
                 className="w-full px-4 py-3 bg-white/[0.04] border border-white/[0.08] rounded-xl text-cream focus:outline-none focus:border-[#d4a843]/50 transition-colors"
               >
-                <option value="VNPay Simulator">VNPay (Demo)</option>
-                <option value="Momo Simulator">Momo Wallet (Demo)</option>
-                <option value="Bank Transfer Demo">Bank Transfer (Demo)</option>
+                <option value="VNPay Simulator">
+                  {t("wallet:topUpForm.vnpay")}
+                </option>
+                <option value="Momo Simulator">
+                  {t("wallet:topUpForm.momo")}
+                </option>
+                <option value="Bank Transfer Demo">
+                  {t("wallet:topUpForm.bankTransfer")}
+                </option>
               </select>
             </div>
 
@@ -415,11 +446,14 @@ function Wallet() {
                 disabled={loadingTopUp || parsedAmount < 1000}
               >
                 {loadingTopUp ? (
-                  <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
+                  <Loader2
+                    className="w-4 h-4 animate-spin"
+                    aria-hidden="true"
+                  />
                 ) : (
                   <PlusCircle className="w-4 h-4" aria-hidden="true" />
                 )}
-                Xác nhận nạp (Demo)
+                {t("wallet:topUpForm.submitBtn")}
               </Button>
             </div>
           </form>
@@ -431,38 +465,50 @@ function Wallet() {
         open={showConfirmModal}
         onClose={() => !loadingTopUp && setShowConfirmModal(false)}
         onConfirm={executeTopUp}
-        title="Xác nhận Nạp Coin (Demo)"
+        title={t("wallet:confirmModal.title")}
         icon={<PlusCircle className="w-5 h-5 text-[#d4a843]" />}
-        confirmText="Xác nhận nạp"
+        confirmText={t("wallet:confirmModal.confirmText")}
         isLoading={loadingTopUp}
       >
         <div className="space-y-3 font-sans-ui">
           <p className="text-sm text-white/55">
-            Vui lòng kiểm tra lại thông tin giao dịch nạp Coin bên dưới:
+            {t("wallet:confirmModal.hint")}
           </p>
           <div className="bg-white/[0.02] p-4 rounded-xl space-y-2.5 border border-white/[0.06] text-sm">
             <div className="flex justify-between">
-              <span className="text-white/55">Số tiền thanh toán:</span>
+              <span className="text-white/55">
+                {t("wallet:confirmModal.amountLabel")}
+              </span>
               <span className="font-semibold text-cream tabular-nums">
-                {parsedAmount.toLocaleString("vi-VN")} VNĐ
+                {t("wallet:confirmModal.amountValue", {
+                  amount: parsedAmount.toLocaleString(dateLocale),
+                })}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-white/55">Phương thức:</span>
+              <span className="text-white/55">
+                {t("wallet:confirmModal.methodLabel")}
+              </span>
               <span className="font-semibold text-cream">{paymentMethod}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-white/55">Tỷ giá quy đổi:</span>
+              <span className="text-white/55">
+                {t("wallet:confirmModal.rateLabel")}
+              </span>
               <span className="font-mono text-[#d4a843] font-semibold">
-                {topUpRate.toLocaleString("vi-VN")} VNĐ / Coin
+                {t("wallet:confirmModal.rateValue", {
+                  rate: topUpRate.toLocaleString(dateLocale),
+                })}
               </span>
             </div>
             <div className="border-t border-white/[0.06] pt-2 flex justify-between items-center">
               <span className="text-white/55 font-semibold">
-                Bạn sẽ nhận ngay:
+                {t("wallet:confirmModal.receiveLabel")}
               </span>
               <span className="text-lg font-semibold text-emerald-300 tabular-nums">
-                +{estimatedCoins.toLocaleString("vi-VN")} Coin
+                {t("wallet:confirmModal.receiveValue", {
+                  coins: estimatedCoins.toLocaleString(dateLocale),
+                })}
               </span>
             </div>
           </div>

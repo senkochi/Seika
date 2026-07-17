@@ -1,1 +1,64 @@
-{}
+{
+  "header": {
+    "title": "Ví của tôi",
+    "subtitle": "Quản lý Coin, kiểm tra số dư và nạp thêm để mở khóa khóa học & quiz."
+  },
+  "balance": {
+    "label": "Số dư hiện tại",
+    "coins": "Coins",
+    "statusActive": "Đang hoạt động",
+    "rateText": "{{rate}} VNĐ / Coin"
+  },
+  "actions": {
+    "withdraw": "Rút Coin",
+    "topUp": "Nạp Coin"
+  },
+  "stats": {
+    "earned": "Tổng thu nhập / Nạp",
+    "spent": "Tổng chi tiêu",
+    "streak": "Chuỗi ngày học",
+    "daysUnit": "ngày"
+  },
+  "history": {
+    "title": "Lịch sử giao dịch",
+    "loading": "Đang tải giao dịch…",
+    "emptyTitle": "Chưa có giao dịch nào",
+    "emptyDesc": "Lịch sử nạp, rút và thưởng Coin của bạn sẽ hiển thị tại đây.",
+    "coinsUnit": "Coins"
+  },
+  "topUpForm": {
+    "title": "Nạp Coin",
+    "amountLabel": "Số tiền cần nạp (VNĐ)",
+    "amountPlaceholder": "vd. 20,000",
+    "quickUnit": "đ",
+    "receiveLabel": "Bạn sẽ nhận",
+    "receiveUnit": "Coin",
+    "rateLabel": "Tỷ giá",
+    "rateValue": "{{rate}} đ/Coin",
+    "methodLabel": "Phương thức thanh toán (Demo)",
+    "vnpay": "VNPay (Demo)",
+    "momo": "Momo Wallet (Demo)",
+    "bankTransfer": "Bank Transfer (Demo)",
+    "submitBtn": "Xác nhận nạp (Demo)"
+  },
+  "confirmModal": {
+    "title": "Xác nhận Nạp Coin (Demo)",
+    "confirmText": "Xác nhận nạp",
+    "hint": "Vui lòng kiểm tra lại thông tin giao dịch nạp Coin bên dưới:",
+    "amountLabel": "Số tiền thanh toán:",
+    "amountValue": "{{amount}} VNĐ",
+    "methodLabel": "Phương thức:",
+    "rateLabel": "Tỷ giá quy đổi:",
+    "rateValue": "{{rate}} VNĐ / Coin",
+    "receiveLabel": "Bạn sẽ nhận ngay:",
+    "receiveValue": "+{{coins}} Coin"
+  },
+  "toast": {
+    "retrieveFailed": "Không thể tải thông tin ví.",
+    "invalidAmount": "Số tiền nạp không hợp lệ!",
+    "minAmount": "Số tiền nạp tối thiểu là 1,000 VNĐ!",
+    "insufficientRate": "Số tiền nạp không đủ để đổi 1 Coin (Tỷ giá: {{rate}} VNĐ/Coin)!",
+    "topUpSuccess": "Nạp thành công {{coins}} Coin!",
+    "topUpError": "Lỗi khi nạp tiền!"
+  }
+}

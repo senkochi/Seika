@@ -21,8 +21,13 @@ import { Button } from "@/components/ui/Button";
 import { IconChip } from "@/components/ui/IconChip";
 import { StatusPill } from "@/components/ui/StatusPill";
 import { SectionCard } from "@/components/ui/SectionCard";
+import { useTranslation } from "react-i18next";
+import { useActiveLocale } from "@/hooks/useActiveLocale";
 
 function FlashcardDetail() {
+  const { t } = useTranslation(["learning", "common"]);
+  const locale = useActiveLocale();
+  const dateLocale = locale === "vi" ? "vi-VN" : "en-US";
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const location = useLocation();
@@ -153,7 +158,9 @@ function FlashcardDetail() {
   if (loading) {
     return (
       <div className="relative isolate min-h-[100dvh] w-full flex items-center justify-center bg-[#15091e]">
-        <p className="font-sans-ui text-white/55">Đang tải flashcard…</p>
+        <p className="font-sans-ui text-white/55">
+          {t("learning:flashcardDetail.loading")}
+        </p>
       </div>
     );
   }
@@ -161,7 +168,9 @@ function FlashcardDetail() {
   if (!deck || cards.length === 0) {
     return (
       <div className="relative isolate min-h-[100dvh] w-full flex items-center justify-center bg-[#15091e]">
-        <p className="font-sans-ui text-white/55">Không tìm thấy flashcard.</p>
+        <p className="font-sans-ui text-white/55">
+          {t("learning:flashcardDetail.notFound")}
+        </p>
       </div>
     );
   }
@@ -197,7 +206,11 @@ function FlashcardDetail() {
           className="flex items-center gap-2 font-sans-ui text-sm font-medium text-white/55 hover:text-cream bg-white/[0.02] hover:bg-white/[0.04] border border-white/[0.06] px-4 py-2.5 rounded-lg transition-colors"
         >
           <ArrowLeft className="w-4 h-4" aria-hidden="true" />
-          <span>{isAdmin ? "Quay lại trang duyệt" : "Thoát phiên"}</span>
+          <span>
+            {isAdmin
+              ? t("learning:sessionCommon.backToModeration")
+              : t("learning:flashcardDetail.exitSession")}
+          </span>
         </button>
 
         <div className="text-center hidden md:block">
@@ -217,13 +230,13 @@ function FlashcardDetail() {
         <div className="relative z-10 bg-sky-400/10 border-b border-sky-400/25 px-8 py-3 flex items-center justify-between text-sky-200">
           <div className="flex items-center gap-2 font-sans-ui text-sm font-medium">
             <ShieldCheck className="w-4 h-4 text-sky-300" aria-hidden="true" />
-            <span>Chế độ xem trước dành cho Admin (Admin Preview Mode)</span>
+            <span>{t("learning:sessionCommon.adminPreview")}</span>
           </div>
           <button
             onClick={() => navigate("/admin/dashboard/moderation")}
             className="rounded-md bg-sky-400/20 px-3 py-1.5 font-sans-ui text-xs font-medium text-sky-200 hover:bg-sky-400/30 transition-colors"
           >
-            Quay lại trang duyệt
+            {t("learning:sessionCommon.backToModeration")}
           </button>
         </div>
       )}
@@ -236,7 +249,10 @@ function FlashcardDetail() {
             <div className="w-full">
               <div className="flex justify-between items-center font-sans-ui text-xs text-white/55 mb-2">
                 <span className="tabular-nums">
-                  Card {currentIndex + 1} / {cards.length}
+                  {t("learning:flashcardDetail.progressCard", {
+                    current: currentIndex + 1,
+                    total: cards.length,
+                  })}
                 </span>
                 <span className="tabular-nums text-[#d4a843]">
                   {Math.round((currentIndex / cards.length) * 100)}%
@@ -257,7 +273,9 @@ function FlashcardDetail() {
               style={{ perspective: "1000px" }}
               role="button"
               aria-label={
-                isFlipped ? "Hiện câu hỏi" : "Lật thẻ để xem đáp án"
+                isFlipped
+                  ? t("learning:flashcardDetail.ariaReveal")
+                  : t("learning:flashcardDetail.ariaFlip")
               }
             >
               <div
@@ -270,7 +288,7 @@ function FlashcardDetail() {
                   style={cardFaceStyle}
                 >
                   <div className="flex justify-between items-center font-sans-ui text-[10px] text-white/45 uppercase tracking-[0.12em]">
-                    <span>Mặt trước</span>
+                    <span>{t("learning:flashcardDetail.frontLabel")}</span>
                     <span>{deck.title}</span>
                   </div>
 
@@ -283,15 +301,15 @@ function FlashcardDetail() {
                         handleSpeak(e, cards[currentIndex].frontSide)
                       }
                       className="p-3 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-white/65 hover:text-cream rounded-full transition-colors flex items-center justify-center"
-                      title="Nghe phát âm"
-                      aria-label="Nghe phát âm"
+                      title={t("learning:flashcardDetail.speakTitle")}
+                      aria-label={t("learning:flashcardDetail.speakTitle")}
                     >
                       <Volume2 className="w-5 h-5" aria-hidden="true" />
                     </button>
                   </div>
 
                   <div className="font-sans-ui text-xs text-white/45 flex items-center justify-center gap-1.5">
-                    <span>Nhấp thẻ để lật</span>
+                    <span>{t("learning:flashcardDetail.clickToFlip")}</span>
                     <RotateCcw className="w-3.5 h-3.5" aria-hidden="true" />
                   </div>
                 </div>
@@ -302,7 +320,7 @@ function FlashcardDetail() {
                   style={cardBackStyle}
                 >
                   <div className="flex justify-between items-center font-sans-ui text-[10px] text-white/45 uppercase tracking-[0.12em]">
-                    <span>Mặt sau</span>
+                    <span>{t("learning:flashcardDetail.backLabel")}</span>
                     <span className="text-[#d4a843] tracking-widest">
                       Answer revealed
                     </span>
@@ -317,8 +335,8 @@ function FlashcardDetail() {
                         handleSpeak(e, cards[currentIndex].backSide)
                       }
                       className="p-3 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-white/65 hover:text-cream rounded-full transition-colors flex items-center justify-center"
-                      title="Nghe phát âm"
-                      aria-label="Nghe phát âm"
+                      title={t("learning:flashcardDetail.speakTitle")}
+                      aria-label={t("learning:flashcardDetail.speakTitle")}
                     >
                       <Volume2 className="w-5 h-5" aria-hidden="true" />
                     </button>
@@ -327,7 +345,9 @@ function FlashcardDetail() {
                   <div className="flex items-center justify-between w-full">
                     <div />
                     <div className="font-sans-ui text-xs text-white/45 flex items-center justify-center gap-1.5">
-                      <span>Nhấp thẻ để xem câu hỏi</span>
+                      <span>
+                        {t("learning:flashcardDetail.clickToQuestion")}
+                      </span>
                       <RotateCcw className="w-3.5 h-3.5" aria-hidden="true" />
                     </div>
                   </div>
@@ -339,8 +359,10 @@ function FlashcardDetail() {
             <div className="flex items-center gap-2 font-sans-ui text-xs text-white/55 bg-white/[0.02] px-4 py-2.5 rounded-full border border-white/[0.06]">
               <Keyboard className="w-4 h-4 text-[#d4a843]" aria-hidden="true" />
               <span>
-                <strong>Space</strong>: lật thẻ ·{" "}
-                <strong>← / →</strong>: ôn lại / đã nhớ
+                <strong>Space</strong>:{" "}
+                {t("learning:flashcardDetail.shortcutFlip")} ·{" "}
+                <strong>← / →</strong>:{" "}
+                {t("learning:flashcardDetail.shortcutAnswer")}
               </span>
             </div>
 
@@ -356,7 +378,7 @@ function FlashcardDetail() {
                     onClick={() => handleAnswer(false)}
                   >
                     <X className="w-4 h-4" aria-hidden="true" />
-                    Ôn lại (1)
+                    {t("learning:flashcardDetail.actionReview")}
                   </Button>
                   <Button
                     variant="primary"
@@ -365,7 +387,7 @@ function FlashcardDetail() {
                     onClick={() => handleAnswer(true)}
                   >
                     <Check className="w-4 h-4" aria-hidden="true" />
-                    Đã nhớ (2)
+                    {t("learning:flashcardDetail.actionMastered")}
                   </Button>
                 </>
               ) : (
@@ -376,7 +398,7 @@ function FlashcardDetail() {
                   onClick={() => setIsFlipped(true)}
                 >
                   <RotateCcw className="w-4 h-4" aria-hidden="true" />
-                  Lật thẻ để xem đáp án
+                  {t("learning:flashcardDetail.actionFlipAnswer")}
                 </Button>
               )}
             </div>
@@ -389,12 +411,16 @@ function FlashcardDetail() {
                 <Trophy className="w-5 h-5" aria-hidden="true" />
               </IconChip>
               <div>
-                <StatusPill variant="success">Đã hoàn thành</StatusPill>
+                <StatusPill variant="success">
+                  {t("learning:sessionCommon.completedBadge")}
+                </StatusPill>
                 <h2 className="font-sans-ui text-2xl font-semibold text-cream mt-3 tracking-tight">
-                  Hoàn thành bộ thẻ!
+                  {t("learning:flashcardDetail.completedTitle")}
                 </h2>
                 <p className="font-sans-ui text-sm text-white/55 mt-2">
-                  Bạn vừa hoàn thành phiên học "{deck.title}".
+                  {t("learning:flashcardDetail.completedDesc", {
+                    title: deck.title,
+                  })}
                 </p>
               </div>
             </div>
@@ -403,7 +429,7 @@ function FlashcardDetail() {
             <div className="mt-6 bg-white/[0.02] border border-white/[0.06] rounded-xl p-6 grid grid-cols-2 gap-6 font-sans-ui">
               <div className="text-center border-r border-white/[0.06]">
                 <p className="text-[10px] text-white/45 uppercase tracking-[0.12em] mb-1">
-                  XP gained
+                  {t("learning:sessionCommon.xpGained")}
                 </p>
                 <div className="flex items-center justify-center gap-1 text-cream">
                   <Zap className="w-4 h-4 text-[#d4a843]" aria-hidden="true" />
@@ -414,7 +440,7 @@ function FlashcardDetail() {
               </div>
               <div className="text-center">
                 <p className="text-[10px] text-white/45 uppercase tracking-[0.12em] mb-1">
-                  Coins earned
+                  {t("learning:sessionCommon.coinsEarned")}
                 </p>
                 <div className="flex items-center justify-center gap-1 text-cream">
                   <span className="text-2xl font-semibold tabular-nums">
@@ -425,13 +451,13 @@ function FlashcardDetail() {
 
               {rewardStatus && !rewardStatus.eligible && (
                 <div className="col-span-2 px-4 py-3 bg-amber-400/10 border border-amber-400/25 text-amber-300 rounded-lg text-xs text-center">
-                  Đang trong thời gian chờ (cooldown 1 ngày). Bạn sẽ đủ điều
-                  kiện nhận XP/Coin tiếp theo sau:{" "}
-                  {rewardStatus.nextEligibleAt
-                    ? new Date(rewardStatus.nextEligibleAt).toLocaleString(
-                        "vi-VN",
-                      )
-                    : "1 ngày"}
+                  {t("learning:flashcardDetail.cooldownNotice", {
+                    time: rewardStatus.nextEligibleAt
+                      ? new Date(rewardStatus.nextEligibleAt).toLocaleString(
+                          dateLocale,
+                        )
+                      : t("learning:flashcardDetail.oneDay"),
+                  })}
                 </div>
               )}
 
@@ -440,10 +466,15 @@ function FlashcardDetail() {
                   Mastery score
                 </p>
                 <p className="text-xl font-semibold text-cream tabular-nums">
-                  {correctCount} / {cards.length} thẻ
+                  {t("learning:flashcardDetail.masteryScore", {
+                    correct: correctCount,
+                    total: cards.length,
+                  })}
                 </p>
                 <p className="text-xs text-white/55 mt-1 tabular-nums">
-                  {masteredPercentage}% đúng
+                  {t("learning:flashcardDetail.masteryPercentage", {
+                    percent: masteredPercentage,
+                  })}
                 </p>
               </div>
             </div>
@@ -456,7 +487,9 @@ function FlashcardDetail() {
                 className="w-full"
                 onClick={() => navigate(backPath)}
               >
-                {isAdmin ? "Quay lại trang duyệt" : "Về Learning Hub"}
+                {isAdmin
+                  ? t("learning:sessionCommon.backToModeration")
+                  : t("learning:sessionCommon.backToLearningHub")}
               </Button>
 
               <Button
@@ -466,7 +499,7 @@ function FlashcardDetail() {
                 onClick={handleReset}
               >
                 <RotateCcw className="w-4 h-4" aria-hidden="true" />
-                Học lại
+                {t("learning:flashcardDetail.studyAgain")}
               </Button>
             </div>
           </SectionCard>

@@ -1,1 +1,64 @@
-{}
+{
+  "header": {
+    "title": "My Wallet",
+    "subtitle": "Manage Coins, check your balance, and top up to unlock courses & quizzes."
+  },
+  "balance": {
+    "label": "Current Balance",
+    "coins": "Coins",
+    "statusActive": "Active",
+    "rateText": "{{rate}} VND / Coin"
+  },
+  "actions": {
+    "withdraw": "Withdraw Coins",
+    "topUp": "Top Up Coins"
+  },
+  "stats": {
+    "earned": "Total Earned / Top-up",
+    "spent": "Total Spent",
+    "streak": "Study Streak",
+    "daysUnit": "days"
+  },
+  "history": {
+    "title": "Transaction History",
+    "loading": "Loading transactions…",
+    "emptyTitle": "No transactions yet",
+    "emptyDesc": "Your top-up, withdrawal, and reward history will appear here.",
+    "coinsUnit": "Coins"
+  },
+  "topUpForm": {
+    "title": "Top Up Coins",
+    "amountLabel": "Amount to top up (VND)",
+    "amountPlaceholder": "e.g. 20,000",
+    "quickUnit": "VND",
+    "receiveLabel": "You will receive",
+    "receiveUnit": "Coins",
+    "rateLabel": "Rate",
+    "rateValue": "{{rate}} VND/Coin",
+    "methodLabel": "Payment Method (Demo)",
+    "vnpay": "VNPay (Demo)",
+    "momo": "Momo Wallet (Demo)",
+    "bankTransfer": "Bank Transfer (Demo)",
+    "submitBtn": "Confirm Top Up (Demo)"
+  },
+  "confirmModal": {
+    "title": "Confirm Top Up (Demo)",
+    "confirmText": "Confirm Top Up",
+    "hint": "Please double-check the top-up transaction details below:",
+    "amountLabel": "Payment amount:",
+    "amountValue": "{{amount}} VND",
+    "methodLabel": "Method:",
+    "rateLabel": "Exchange rate:",
+    "rateValue": "{{rate}} VND / Coin",
+    "receiveLabel": "You will immediately receive:",
+    "receiveValue": "+{{coins}} Coins"
+  },
+  "toast": {
+    "retrieveFailed": "Could not retrieve wallet details.",
+    "invalidAmount": "Invalid top-up amount!",
+    "minAmount": "Minimum top-up amount is 1,000 VND!",
+    "insufficientRate": "Amount is not enough for 1 Coin (Rate: {{rate}} VND/Coin)!",
+    "topUpSuccess": "Successfully topped up {{coins}} Coins!",
+    "topUpError": "Error topping up money!"
+  }
+}
