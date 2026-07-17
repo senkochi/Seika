@@ -138,7 +138,23 @@
       "missionBadge": "Our mission",
       "missionText1": "Make education feel less like a",
       "missionHighlight": "chore",
-      "missionText2": "and more like a game worth coming back to."
+      "missionText2": "and more like a game worth coming back to.",
+      "members": {
+        "cuong": {
+          "role": "Software Engineer",
+          "bio": "Loves building things that make people laugh while they learn. Refuses to ship a boring onboarding flow."
+        },
+        "dat": {
+          "role": "Software Engineer",
+          "bio": "Full-stack developer who treats every state transition like a small piece of choreography. Gamer by night."
+        }
+      },
+      "mission": {
+        "badge": "Our mission",
+        "title1": "Make education feel less like a",
+        "titleHighlight": "chore",
+        "title2": "and more like a game worth coming back to."
+      }
     },
     "contact": {
       "badge": "Get in touch",
@@ -154,10 +170,24 @@
         "messagePlaceholder": "What's on your mind?",
         "submit": "Send message"
       },
+      "nameLabel": "Your name",
+      "namePlaceholder": "Nguyễn Văn A",
+      "emailLabel": "Email",
+      "emailPlaceholder": "you@example.com",
+      "messageLabel": "Message",
+      "messagePlaceholder": "What's on your mind?",
+      "submitButton": "Send message",
       "replyTime": "We typically reply within a day. Sometimes faster — sometimes with a fix you didn't know you needed.",
+      "quote": "We typically reply within a day. Sometimes faster — sometimes with a fix you didn't know you needed.",
       "writeDirectly": "Write us directly",
       "hours": "Mon–Fri, 9am–6pm ICT",
-      "address": "Long Biên, Hà Nội"
+      "address": "Long Biên, Hà Nội",
+      "info": {
+        "writeDirectly": "Write us directly",
+        "hours": "Mon–Fri, 9am–6pm ICT",
+        "address1": "Long Biên,",
+        "address2": "Hà Nội"
+      }
     },
     "footer": {
       "tagline": "Quizzes, flashcards, and a coin economy for learners who want education to feel less like a chore.",
@@ -166,7 +196,17 @@
       "privacyPolicy": "Privacy policy",
       "termsOfService": "Terms of service",
       "cookiePolicy": "Cookie policy",
-      "copyright": "© 2026 Seika. Crafted with care in Hà Nội."
+      "copyright": "© 2026 Seika. Crafted with care in Hà Nội.",
+      "build": "Built with React, TypeScript & i18next.",
+      "columns": {
+        "contact": "Contact",
+        "legal": "Legal"
+      },
+      "links": {
+        "privacy": "Privacy policy",
+        "terms": "Terms of service",
+        "cookies": "Cookie policy"
+      }
     }
   },
   "notFound": {

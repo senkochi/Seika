@@ -138,7 +138,23 @@
       "missionBadge": "Sứ mệnh của chúng tôi",
       "missionText1": "Biến giáo dục bớt giống như một",
       "missionHighlight": "nghĩa vụ",
-      "missionText2": "và giống như một trò chơi hấp dẫn khiến bạn luôn muốn quay lại."
+      "missionText2": "và giống như một trò chơi hấp dẫn khiến bạn luôn muốn quay lại.",
+      "members": {
+        "cuong": {
+          "role": "Kỹ sư phần mềm",
+          "bio": "Yêu thích việc xây dựng những sản phẩm mang lại tiếng cười trong khi học. Từ chối phát hành một quy trình hướng dẫn tẻ nhạt."
+        },
+        "dat": {
+          "role": "Kỹ sư phần mềm",
+          "bio": "Lập trình viên full-stack, người coi mỗi chuyển đổi trạng thái như một tác phẩm nghệ thuật thu nhỏ. Game thủ về đêm."
+        }
+      },
+      "mission": {
+        "badge": "Sứ mệnh của chúng tôi",
+        "title1": "Biến giáo dục bớt giống như một",
+        "titleHighlight": "nghĩa vụ",
+        "title2": "và giống như một trò chơi hấp dẫn khiến bạn luôn muốn quay lại."
+      }
     },
     "contact": {
       "badge": "Liên hệ",
@@ -154,10 +170,24 @@
         "messagePlaceholder": "Bạn đang suy nghĩ điều gì?",
         "submit": "Gửi tin nhắn"
       },
+      "nameLabel": "Tên của bạn",
+      "namePlaceholder": "Nguyễn Văn A",
+      "emailLabel": "Email",
+      "emailPlaceholder": "you@example.com",
+      "messageLabel": "Tin nhắn",
+      "messagePlaceholder": "Bạn đang suy nghĩ điều gì?",
+      "submitButton": "Gửi tin nhắn",
       "replyTime": "Chúng tôi thường trả lời trong vòng một ngày. Đôi khi nhanh hơn — đôi khi đi kèm bản sửa lỗi mà bạn không hề biết là mình cần.",
+      "quote": "Chúng tôi thường trả lời trong vòng một ngày. Đôi khi nhanh hơn — đôi khi đi kèm bản sửa lỗi mà bạn không hề biết là mình cần.",
       "writeDirectly": "Gửi email trực tiếp",
       "hours": "Thứ 2 – Thứ 6, 9h – 18h ICT",
-      "address": "Long Biên, Hà Nội"
+      "address": "Long Biên, Hà Nội",
+      "info": {
+        "writeDirectly": "Gửi email trực tiếp",
+        "hours": "Thứ 2 – Thứ 6, 9h – 18h ICT",
+        "address1": "Long Biên,",
+        "address2": "Hà Nội"
+      }
     },
     "footer": {
       "tagline": "Câu hỏi kiểm tra, thẻ ghi nhớ và hệ thống kinh tế tiền xu dành cho những học viên muốn việc học bớt tẻ nhạt.",
@@ -166,7 +196,17 @@
       "privacyPolicy": "Chính sách bảo mật",
       "termsOfService": "Điều khoản dịch vụ",
       "cookiePolicy": "Chính sách cookie",
-      "copyright": "© 2026 Seika. Được chế tác với tất cả tâm huyết tại Hà Nội."
+      "copyright": "© 2026 Seika. Được chế tác với tất cả tâm huyết tại Hà Nội.",
+      "build": "Được xây dựng với React, TypeScript & i18next.",
+      "columns": {
+        "contact": "Liên hệ",
+        "legal": "Pháp lý"
+      },
+      "links": {
+        "privacy": "Chính sách bảo mật",
+        "terms": "Điều khoản dịch vụ",
+        "cookies": "Chính sách cookie"
+      }
     }
   },
   "notFound": {
