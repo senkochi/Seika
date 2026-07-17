@@ -4,6 +4,7 @@ import {
   ChevronsLeft,
   ChevronsRight,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useFormatNumber } from "../../utils/format";
 
 interface PaginationProps {
@@ -32,6 +33,7 @@ export function Pagination({
   pageSizeOptions = [10, 20, 50, 100],
   className = "",
 }: PaginationProps) {
+  const { t } = useTranslation("common");
   const formatNumber = useFormatNumber();
   if (totalPages <= 1 && !totalElements) return null;
 
@@ -84,20 +86,17 @@ export function Pagination({
       <div className="flex items-center gap-4">
         {totalElements !== undefined && (
           <div>
-            Hiển thị{" "}
-            <span className="font-semibold text-cream">{startItem}</span> -{" "}
-            <span className="font-semibold text-cream">{endItem}</span> trên
-            tổng số{" "}
-            <span className="font-semibold text-cream">
-              {formatNumber(totalElements)}
-            </span>{" "}
-            kết quả
+            {t("pagination.showing", {
+              start: startItem,
+              end: endItem,
+              total: formatNumber(totalElements),
+            })}
           </div>
         )}
 
         {onPageSizeChange && (
           <div className="flex items-center gap-2">
-            <span>Hiển thị:</span>
+            <span>{t("pagination.perPageLabel")}</span>
             <select
               value={pageSize}
               onChange={(e) => onPageSizeChange(Number(e.target.value))}
@@ -109,7 +108,7 @@ export function Pagination({
                   value={size}
                   className="bg-[#1c0f2e] text-cream"
                 >
-                  {size} / trang
+                  {t("pagination.perPage", { size })}
                 </option>
               ))}
             </select>
@@ -122,8 +121,8 @@ export function Pagination({
           <button
             onClick={() => onPageChange(0)}
             disabled={currentPage === 0}
-            title="Trang đầu"
-            aria-label="Trang đầu"
+            title={t("pagination.firstPage")}
+            aria-label={t("pagination.firstPage")}
             className={`${btnBase} bg-white/[0.02] border-white/[0.08] text-white/65 hover:bg-white/[0.06] hover:text-cream disabled:opacity-30 disabled:pointer-events-none`}
           >
             <ChevronsLeft className="h-3.5 w-3.5" />
@@ -131,8 +130,8 @@ export function Pagination({
           <button
             onClick={() => onPageChange(currentPage - 1)}
             disabled={currentPage === 0}
-            title="Trang trước"
-            aria-label="Trang trước"
+            title={t("pagination.previousPage")}
+            aria-label={t("pagination.previousPage")}
             className={`${btnBase} bg-white/[0.02] border-white/[0.08] text-white/65 hover:bg-white/[0.06] hover:text-cream disabled:opacity-30 disabled:pointer-events-none`}
           >
             <ChevronLeft className="h-3.5 w-3.5" />
@@ -158,7 +157,7 @@ export function Pagination({
                   key={page}
                   onClick={() => onPageChange(page)}
                   aria-current={isCurrent ? "page" : undefined}
-                  aria-label={`Trang ${page + 1}`}
+                  aria-label={t("pagination.pageNumber", { page: page + 1 })}
                   className={
                     isCurrent
                       ? `${btnBase} bg-[#d4a843]/10 border-[#d4a843]/30 text-[#d4a843]`
@@ -174,8 +173,8 @@ export function Pagination({
           <button
             onClick={() => onPageChange(currentPage + 1)}
             disabled={currentPage >= totalPages - 1}
-            title="Trang sau"
-            aria-label="Trang sau"
+            title={t("pagination.nextPage")}
+            aria-label={t("pagination.nextPage")}
             className={`${btnBase} bg-white/[0.02] border-white/[0.08] text-white/65 hover:bg-white/[0.06] hover:text-cream disabled:opacity-30 disabled:pointer-events-none`}
           >
             <ChevronRight className="h-3.5 w-3.5" />
@@ -183,8 +182,8 @@ export function Pagination({
           <button
             onClick={() => onPageChange(totalPages - 1)}
             disabled={currentPage >= totalPages - 1}
-            title="Trang cuối"
-            aria-label="Trang cuối"
+            title={t("pagination.lastPage")}
+            aria-label={t("pagination.lastPage")}
             className={`${btnBase} bg-white/[0.02] border-white/[0.08] text-white/65 hover:bg-white/[0.06] hover:text-cream disabled:opacity-30 disabled:pointer-events-none`}
           >
             <ChevronsRight className="h-3.5 w-3.5" />

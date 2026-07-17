@@ -1,23 +1,25 @@
 import { LuFacebook } from "react-icons/lu";
 import { LuTwitter } from "react-icons/lu";
 import { LuInstagram } from "react-icons/lu";
+import { useTranslation } from "react-i18next";
 import MemberCard from "./MemberCard";
 import AnimatedContent from "../reactbit/AnimatedContent";
 import { Images } from "../../assets/images";
 import { cn } from "../ui/utils";
 
 export function About() {
+  const { t } = useTranslation("common");
   const teamMembers = [
     {
       name: "Nguyễn Hùng Cường",
-      role: "Software Engineer",
-      bio: "Loves building things that make people laugh while they learn. Refuses to ship a boring onboarding flow.",
+      role: t("landing.about.members.cuong.role"),
+      bio: t("landing.about.members.cuong.bio"),
       image: Images.NijiKaMember,
     },
     {
       name: "Hồ Minh Đạt",
-      role: "Software Engineer",
-      bio: "Full-stack developer who treats every state transition like a small piece of choreography. Gamer by night.",
+      role: t("landing.about.members.dat.role"),
+      bio: t("landing.about.members.dat.bio"),
       image: Images.SenkoMember,
     },
   ];
@@ -36,21 +38,20 @@ export function About() {
           <div className="max-w-3xl mb-24">
             <span className="eyebrow">
               <span className="inline-block w-1 h-1 rounded-full bg-[#d4a843]" />
-              The team
+              {t("landing.about.badge")}
             </span>
             <h2
               className="mt-6 font-display font-medium text-[#faf6ee] text-4xl md:text-5xl lg:text-6xl leading-[1.02] tracking-[-0.025em]"
               style={{ textWrap: "balance" as const }}
             >
-              Built by students,{" "}
+              {t("landing.about.title1")}{" "}
               <span className="italic font-display font-light text-[#d4a843]">
-                for
+                {t("landing.about.titleHighlight")}
               </span>{" "}
-              students.
+              {t("landing.about.title2")}
             </h2>
             <p className="mt-5 text-lg text-[#faf6ee]/65 max-w-xl">
-              Two engineers who thought studying didn't have to feel like a
-              chore, and decided to do something about it.
+              {t("landing.about.description")}
             </p>
           </div>
         </AnimatedContent>
@@ -115,15 +116,17 @@ export function About() {
                 )}
               >
                 <span className="absolute top-8 left-8 text-[11px] uppercase tracking-[0.22em] text-[#d4a843] font-medium">
-                  Our mission
+                  {t("landing.about.mission.badge")}
                 </span>
                 <p
                   className="mt-12 font-display text-3xl md:text-4xl lg:text-5xl text-[#1c0f2e] leading-[1.1] tracking-[-0.02em]"
                   style={{ textWrap: "balance" as const }}
                 >
-                  Make education feel less like a{" "}
-                  <span className="italic font-light">chore</span> and more like
-                  a game worth coming back to.
+                  {t("landing.about.mission.title1")}{" "}
+                  <span className="italic font-light">
+                    {t("landing.about.mission.titleHighlight")}
+                  </span>{" "}
+                  {t("landing.about.mission.title2")}
                 </p>
                 <div className="mt-10 flex items-center gap-3 text-sm text-[#1c0f2e]/65">
                   <span className="inline-block w-8 h-px bg-[#1c0f2e]/30" />

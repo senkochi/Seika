@@ -1,5 +1,6 @@
 import { GraduationCap, User } from "lucide-react";
 import type { Dispatch, SetStateAction } from "react";
+import { useTranslation } from "react-i18next";
 import { RegisterData } from "./types";
 import { cn } from "../ui/utils";
 
@@ -9,14 +10,16 @@ interface RoleStepProps {
 }
 
 export default function RoleStep({ formData, setFormData }: RoleStepProps) {
+  const { t } = useTranslation("auth");
+
   return (
     <div className="space-y-6">
       <div className="text-center mb-2">
         <h2 className="font-display text-2xl text-[#faf6ee] tracking-[-0.015em]">
-          How will you be using Seika?
+          {t("roleStep.title")}
         </h2>
         <p className="mt-2 text-sm text-[#faf6ee]/60">
-          Pick one — you can always switch roles later.
+          {t("roleStep.subtitle")}
         </p>
       </div>
 
@@ -24,19 +27,17 @@ export default function RoleStep({ formData, setFormData }: RoleStepProps) {
         <RoleCard
           selected={formData.role === "STUDENT"}
           onClick={() => setFormData({ ...formData, role: "STUDENT" })}
-          icon={
-            <GraduationCap className="w-5 h-5" strokeWidth={1.5} />
-          }
-          title="Student"
-          description="Learn, compete, earn rewards"
+          icon={<GraduationCap className="w-5 h-5" strokeWidth={1.5} />}
+          title={t("roleStep.studentTitle")}
+          description={t("roleStep.studentDesc")}
         />
 
         <RoleCard
           selected={formData.role === "TEACHER"}
           onClick={() => setFormData({ ...formData, role: "TEACHER" })}
           icon={<User className="w-5 h-5" strokeWidth={1.5} />}
-          title="Teacher"
-          description="Build quizzes, track cohorts"
+          title={t("roleStep.teacherTitle")}
+          description={t("roleStep.teacherDesc")}
         />
       </div>
     </div>

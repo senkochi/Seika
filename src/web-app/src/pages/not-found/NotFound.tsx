@@ -1,8 +1,10 @@
 import { useLocation, Link } from "react-router-dom";
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "../../components/ui/Button";
 
 const NotFound = () => {
+  const { t } = useTranslation("common");
   const location = useLocation();
 
   useEffect(() => {
@@ -25,7 +27,7 @@ const NotFound = () => {
 
             <span className="eyebrow">
               <span className="inline-block w-1 h-1 rounded-full bg-[#d4a843]" />
-              404 · Off the map
+              {t("notFound.eyebrow")}
             </span>
 
             <h1
@@ -36,26 +38,22 @@ const NotFound = () => {
             </h1>
 
             <h2 className="mt-2 font-display text-2xl sm:text-3xl text-[#faf6ee] tracking-[-0.02em]">
-              Page not found.
+              {t("notFound.title")}
             </h2>
 
             <p className="mt-4 text-[#faf6ee]/65 max-w-md mx-auto leading-relaxed">
-              The path{" "}
-              <span className="font-mono text-[#d4a843] text-sm px-2 py-0.5 rounded-md bg-[#d4a843]/10">
-                {location.pathname}
-              </span>{" "}
-              doesn't lead anywhere we know about.
+              {t("notFound.description", { path: location.pathname })}
             </p>
 
             <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-3">
               <Link to="/">
                 <Button variant="primary" size="lg" trailing>
-                  Back to home
+                  {t("notFound.backHome")}
                 </Button>
               </Link>
               <Link to="/contact">
                 <Button variant="ghost" size="lg">
-                  Contact support
+                  {t("notFound.contactSupport")}
                 </Button>
               </Link>
             </div>
@@ -63,19 +61,19 @@ const NotFound = () => {
             <div className="hairline mt-12" />
 
             <p className="mt-8 text-xs text-[#faf6ee]/40">
-              Lost? Try the{" "}
+              {t("notFound.lostPrefix")}{" "}
               <Link
                 to="/"
                 className="text-[#d4a843] hover:text-[#f1e4c0] underline-offset-4 hover:underline transition-colors"
               >
-                homepage
+                {t("notFound.lostHome")}
               </Link>{" "}
-              or{" "}
+              {t("notFound.lostOr")}{" "}
               <Link
                 to="/auth/login"
                 className="text-[#d4a843] hover:text-[#f1e4c0] underline-offset-4 hover:underline transition-colors"
               >
-                sign in
+                {t("notFound.lostSignIn")}
               </Link>
               .
             </p>

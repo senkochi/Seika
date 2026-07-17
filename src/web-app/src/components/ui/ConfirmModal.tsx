@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import { X, Loader2, AlertCircle } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Button } from "./Button";
 
 export interface ConfirmModalProps {
@@ -29,12 +30,15 @@ export default function ConfirmModal({
   onConfirm,
   title,
   children,
-  confirmText = "Xác nhận",
-  cancelText = "Hủy",
+  confirmText,
+  cancelText,
   isLoading = false,
   variant = "primary",
   icon,
 }: ConfirmModalProps) {
+  const { t } = useTranslation("common");
+  const resolvedConfirmText = confirmText ?? t("actions.confirm");
+  const resolvedCancelText = cancelText ?? t("actions.cancel");
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape" && !isLoading) {
@@ -79,7 +83,7 @@ export default function ConfirmModal({
           </div>
           <button
             type="button"
-            aria-label="Đóng"
+            aria-label={t("actions.close")}
             onClick={onClose}
             disabled={isLoading}
             className="rounded-lg p-1.5 text-white/45 hover:bg-white/[0.06] hover:text-[#faf6ee] transition-colors disabled:opacity-50"
@@ -99,7 +103,7 @@ export default function ConfirmModal({
             onClick={onClose}
             disabled={isLoading}
           >
-            {cancelText}
+            {resolvedCancelText}
           </Button>
           <Button
             variant="ghost"
@@ -109,7 +113,7 @@ export default function ConfirmModal({
             disabled={isLoading}
           >
             {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
-            {confirmText}
+            {resolvedConfirmText}
           </Button>
         </div>
       </div>

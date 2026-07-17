@@ -1,7 +1,9 @@
+import { useTranslation } from "react-i18next";
 import { Logo } from "../logo/Logo";
 import AnimatedContent from "../reactbit/AnimatedContent";
 
 export function Footer() {
+  const { t } = useTranslation("common");
   return (
     <footer className="relative bg-[var(--color-footer)] border-t border-white/[0.06] text-[#faf6ee] overflow-hidden">
       {/* Background atmosphere — subtle footer glow */}
@@ -17,8 +19,7 @@ export function Footer() {
                 textClassName="text-lg font-display font-medium tracking-tight text-[#faf6ee]"
               />
               <p className="mt-5 text-sm text-[#faf6ee]/55 leading-relaxed max-w-sm">
-                Quizzes, flashcards, and a coin economy for learners who want
-                education to feel less like a chore.
+                {t("landing.footer.tagline")}
               </p>
               <div className="mt-6 flex items-center gap-2">
                 <SocialIcon label="Facebook">
@@ -36,7 +37,7 @@ export function Footer() {
             {/* Contact column */}
             <div>
               <p className="text-[10px] uppercase tracking-[0.25em] text-[#d4a843]/60 mb-5">
-                Contact
+                {t("landing.footer.columns.contact")}
               </p>
               <ul className="space-y-3 text-sm text-[#faf6ee]/65">
                 <li>hello@seika.edu</li>
@@ -48,7 +49,7 @@ export function Footer() {
             {/* Legal column */}
             <div>
               <p className="text-[10px] uppercase tracking-[0.25em] text-[#d4a843]/60 mb-5">
-                Legal
+                {t("landing.footer.columns.legal")}
               </p>
               <ul className="space-y-3 text-sm text-[#faf6ee]/65">
                 <li>
@@ -56,7 +57,7 @@ export function Footer() {
                     href="#"
                     className="hover:text-[#faf6ee] transition-colors duration-300 ease-soft"
                   >
-                    Privacy policy
+                    {t("landing.footer.links.privacy")}
                   </a>
                 </li>
                 <li>
@@ -64,7 +65,7 @@ export function Footer() {
                     href="#"
                     className="hover:text-[#faf6ee] transition-colors duration-300 ease-soft"
                   >
-                    Terms of service
+                    {t("landing.footer.links.terms")}
                   </a>
                 </li>
                 <li>
@@ -72,7 +73,7 @@ export function Footer() {
                     href="#"
                     className="hover:text-[#faf6ee] transition-colors duration-300 ease-soft"
                   >
-                    Cookie policy
+                    {t("landing.footer.links.cookies")}
                   </a>
                 </li>
               </ul>
@@ -83,10 +84,10 @@ export function Footer() {
 
           <div className="mt-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <p className="text-xs text-[#faf6ee]/45">
-              © 2026 Seika. Crafted with care in Hà Nội.
+              {t("landing.footer.copyright")}
             </p>
             <p className="text-xs text-[#faf6ee]/45 font-tabular">
-              v1.0 · build a8f8b20
+              {t("landing.footer.build")}
             </p>
           </div>
         </AnimatedContent>

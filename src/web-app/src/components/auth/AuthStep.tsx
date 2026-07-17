@@ -1,5 +1,6 @@
 import { type Dispatch, type SetStateAction, useState } from "react";
 import { Eye, EyeOff, Lock, User } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { RegisterData } from "./types";
 import { TextInput } from "../ui/Input";
 
@@ -24,6 +25,7 @@ export default function AuthStep({
   errors = {},
   setErrors = () => {},
 }: AuthStepProps) {
+  const { t } = useTranslation("auth");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
@@ -35,21 +37,21 @@ export default function AuthStep({
     <div className="space-y-6">
       <div className="text-center mb-2">
         <h2 className="font-display text-2xl text-[#faf6ee] tracking-[-0.015em]">
-          Last step — your credentials
+          {t("authStep.title")}
         </h2>
         <p className="mt-2 text-sm text-[#faf6ee]/60">
-          Choose how you'll sign in.
+          {t("authStep.subtitle")}
         </p>
       </div>
 
       <div className="space-y-5">
         <TextInput
-          label="Username"
+          label={t("authStep.usernameLabel")}
           value={formData.username}
           onChange={(e) =>
             setFormData({ ...formData, username: e.target.value })
           }
-          placeholder="your.username"
+          placeholder={t("authStep.usernamePlaceholder")}
           error={errors.username}
           onClearError={() => clearError("username")}
           leadingIcon={<User className="w-4 h-4" strokeWidth={1.5} />}
@@ -57,27 +59,27 @@ export default function AuthStep({
         />
 
         <TextInput
-          label="Password"
+          label={t("authStep.passwordLabel")}
           type={showPassword ? "text" : "password"}
           value={formData.password}
           onChange={(e) =>
             setFormData({ ...formData, password: e.target.value })
           }
-          placeholder="At least 8 characters"
+          placeholder={t("authStep.passwordPlaceholder")}
           error={errors.password}
           onClearError={() => clearError("password")}
-          hint={
-            !errors.password
-              ? "Use 8+ characters with a mix of letters and numbers."
-              : undefined
-          }
+          hint={!errors.password ? t("authStep.passwordHint") : undefined}
           leadingIcon={<Lock className="w-4 h-4" strokeWidth={1.5} />}
           trailing={
             <button
               type="button"
               onClick={() => setShowPassword((v) => !v)}
               className="w-9 h-9 rounded-full hover:bg-white/[0.06] flex items-center justify-center transition-colors"
-              aria-label={showPassword ? "Hide password" : "Show password"}
+              aria-label={
+                showPassword
+                  ? t("authStep.hidePassword")
+                  : t("authStep.showPassword")
+              }
             >
               {showPassword ? (
                 <EyeOff className="w-4 h-4" strokeWidth={1.5} />
@@ -90,11 +92,11 @@ export default function AuthStep({
         />
 
         <TextInput
-          label="Confirm password"
+          label={t("authStep.confirmPasswordLabel")}
           type={showConfirm ? "text" : "password"}
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
-          placeholder="Re-enter password"
+          placeholder={t("authStep.confirmPasswordPlaceholder")}
           error={errors.confirmPassword}
           onClearError={() => clearError("confirmPassword")}
           leadingIcon={<Lock className="w-4 h-4" strokeWidth={1.5} />}
@@ -104,7 +106,9 @@ export default function AuthStep({
               onClick={() => setShowConfirm((v) => !v)}
               className="w-9 h-9 rounded-full hover:bg-white/[0.06] flex items-center justify-center transition-colors"
               aria-label={
-                showConfirm ? "Hide confirm password" : "Show confirm password"
+                showConfirm
+                  ? t("authStep.hideConfirmPassword")
+                  : t("authStep.showConfirmPassword")
               }
             >
               {showConfirm ? (

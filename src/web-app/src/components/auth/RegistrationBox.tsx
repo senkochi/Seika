@@ -1,5 +1,6 @@
 import { type Dispatch, type SetStateAction, useState } from "react";
 import { ArrowLeft, ArrowRight } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import RoleStep from "./RoleStep";
 import PersonalStep from "./PersonalStep";
 import AuthStep from "./AuthStep";
@@ -31,6 +32,8 @@ export default function RegistrationBox({
   onSubmit,
   isSubmitting = false,
 }: RegistrationBoxProps) {
+  const { t: tAuth } = useTranslation("auth");
+  const { t: tCommon } = useTranslation("common");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [errors, setErrors] = useState<StepErrors>({});
 
@@ -38,32 +41,32 @@ export default function RegistrationBox({
     const newErrors: StepErrors = {};
 
     if (currentStep === 1 && !formData.role) {
-      newErrors.role = "Please select your role.";
+      newErrors.role = tAuth("validation.roleRequired");
     }
 
     if (currentStep === 2) {
       if (!formData.fullname.trim()) {
-        newErrors.fullname = "Full name is required.";
+        newErrors.fullname = tAuth("validation.fullnameRequired");
       }
       if (!formData.dateOfBirth) {
-        newErrors.dateOfBirth = "Date of birth is required.";
+        newErrors.dateOfBirth = tAuth("validation.dobRequired");
       }
       if (!formData.gender) {
-        newErrors.gender = "Please select your gender.";
+        newErrors.gender = tAuth("validation.genderRequired");
       }
     }
 
     if (currentStep === 3) {
       if (!formData.username.trim()) {
-        newErrors.username = "Username is required.";
+        newErrors.username = tAuth("validation.usernameRequired");
       }
       if (!formData.password) {
-        newErrors.password = "Password is required.";
+        newErrors.password = tAuth("validation.passwordRequired");
       }
       if (!confirmPassword) {
-        newErrors.confirmPassword = "Please confirm your password.";
+        newErrors.confirmPassword = tAuth("validation.confirmPasswordRequired");
       } else if (formData.password !== confirmPassword) {
-        newErrors.confirmPassword = "Passwords do not match.";
+        newErrors.confirmPassword = tAuth("validation.passwordMismatch");
       }
     }
 
@@ -98,10 +101,7 @@ export default function RegistrationBox({
 
       <div className="px-8 sm:px-10 lg:px-12 py-8 min-h-[380px]">
         {currentStep === 1 && (
-          <RoleStep
-            formData={formData}
-            setFormData={setFormData}
-          />
+          <RoleStep formData={formData} setFormData={setFormData} />
         )}
         {currentStep === 2 && (
           <PersonalStep
@@ -142,12 +142,14 @@ export default function RegistrationBox({
           className="inline-flex items-center gap-2 text-sm text-[#faf6ee]/55 hover:text-[#faf6ee] transition-colors duration-300 ease-soft"
         >
           <ArrowLeft className="w-4 h-4" strokeWidth={1.5} />
-          {currentStep === 1 ? "Back home" : "Back"}
+          {currentStep === 1
+            ? tCommon("actions.backHome")
+            : tCommon("actions.back")}
         </button>
 
         {currentStep < 3 ? (
           <Button variant="primary" trailing onClick={handleNext}>
-            Continue
+            {tCommon("actions.continue")}
             <ArrowRight className="w-4 h-4" strokeWidth={1.8} />
           </Button>
         ) : (
@@ -157,7 +159,9 @@ export default function RegistrationBox({
             loading={isSubmitting}
             onClick={handleSubmit}
           >
-            {isSubmitting ? "Creating..." : "Create account"}
+            {isSubmitting
+              ? tAuth("register.creatingAccountButton")
+              : tAuth("register.createAccountButton")}
           </Button>
         )}
       </div>

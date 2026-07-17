@@ -245,7 +245,7 @@ function AdminContentModeration() {
       <PageHeader
         title={t("moderation.title")}
         subtitle={t("moderation.subtitle", {
-          count: formatNumber(products.totalElements),
+          count: products.totalElements,
         })}
         actions={
           <Button

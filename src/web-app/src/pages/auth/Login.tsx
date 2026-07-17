@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Eye, EyeOff, Lock, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 import { showError, showSuccess } from "../../components/toast/toastUtils";
 import { login } from "../../store/authSlice";
@@ -10,6 +11,7 @@ import { Button } from "../../components/ui/Button";
 import { TextInput } from "../../components/ui/Input";
 
 export default function Login() {
+  const { t } = useTranslation("auth");
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const isSubmitting = useAppSelector(
@@ -30,10 +32,10 @@ export default function Login() {
     const newErrors: typeof errors = {};
 
     if (!formData.username.trim()) {
-      newErrors.username = "Username is required.";
+      newErrors.username = t("validation.usernameRequired");
     }
     if (!formData.password) {
-      newErrors.password = "Password is required.";
+      newErrors.password = t("validation.passwordRequired");
     }
 
     setErrors(newErrors);
@@ -62,11 +64,12 @@ export default function Login() {
           }),
         ).unwrap();
 
-        showSuccess("Logged in successfully.");
+        showSuccess(t("toasts.loginSuccess"));
 
         const isAdmin = authState.roles.some(
           (role) =>
-            role.toUpperCase() === "ROLE_ADMIN" || role.toUpperCase() === "ADMIN",
+            role.toUpperCase() === "ROLE_ADMIN" ||
+            role.toUpperCase() === "ADMIN",
         );
         const isTeacher = authState.roles.some(
           (role) =>
@@ -82,11 +85,11 @@ export default function Login() {
         );
       } catch (error) {
         showError(
-          typeof error === "string" ? error : "Login failed. Please try again.",
+          typeof error === "string" ? error : t("validation.loginFailed"),
         );
       }
     } else {
-      showError(Object.values(newErrors)[0] || "Please fill in all fields.");
+      showError(Object.values(newErrors)[0] || t("validation.fillAllFields"));
     }
   };
 
@@ -96,20 +99,18 @@ export default function Login() {
         <header className="space-y-3">
           <span className="eyebrow">
             <span className="inline-block w-1 h-1 rounded-full bg-[#d4a843]" />
-            Sign in
+            {t("login.eyebrow")}
           </span>
           <h1
             className="font-display font-medium text-[#faf6ee] text-4xl lg:text-5xl leading-[1.02] tracking-[-0.025em]"
             style={{ textWrap: "balance" as const }}
           >
-            Welcome{" "}
+            {t("login.title1")}{" "}
             <span className="italic font-display font-light text-[#d4a843]">
-              back.
+              {t("login.titleHighlight")}
             </span>
           </h1>
-          <p className="text-[#faf6ee]/65">
-            Pick up where you left off.
-          </p>
+          <p className="text-[#faf6ee]/65">{t("login.subtitle")}</p>
         </header>
 
         <form
@@ -120,39 +121,39 @@ export default function Login() {
           }}
         >
           <TextInput
-            label="Username"
+            label={t("login.usernameLabel")}
             value={formData.username}
             onChange={(e) =>
               setFormData({ ...formData, username: e.target.value })
             }
-            placeholder="your.username"
+            placeholder={t("login.usernamePlaceholder")}
             error={errors.username}
             onClearError={() => clearError("username")}
-            leadingIcon={
-              <User className="w-4 h-4" strokeWidth={1.5} />
-            }
+            leadingIcon={<User className="w-4 h-4" strokeWidth={1.5} />}
             autoComplete="username"
           />
 
           <TextInput
-            label="Password"
+            label={t("login.passwordLabel")}
             type={showPassword ? "text" : "password"}
             value={formData.password}
             onChange={(e) =>
               setFormData({ ...formData, password: e.target.value })
             }
-            placeholder="••••••••"
+            placeholder={t("login.passwordPlaceholder")}
             error={errors.password}
             onClearError={() => clearError("password")}
-            leadingIcon={
-              <Lock className="w-4 h-4" strokeWidth={1.5} />
-            }
+            leadingIcon={<Lock className="w-4 h-4" strokeWidth={1.5} />}
             trailing={
               <button
                 type="button"
                 onClick={() => setShowPassword((v) => !v)}
                 className="w-9 h-9 rounded-full hover:bg-white/[0.06] flex items-center justify-center transition-colors"
-                aria-label={showPassword ? "Hide password" : "Show password"}
+                aria-label={
+                  showPassword
+                    ? t("login.hidePassword")
+                    : t("login.showPassword")
+                }
               >
                 {showPassword ? (
                   <EyeOff className="w-4 h-4" strokeWidth={1.5} />
@@ -196,7 +197,7 @@ export default function Login() {
               type="button"
               className="text-[#d4a843] hover:text-[#f1e4c0] font-medium transition-colors"
             >
-              Forgot password?
+              {t("login.forgotPassword")}
             </button>
           </div>
 
@@ -209,7 +210,9 @@ export default function Login() {
               loading={isSubmitting}
               className="w-full"
             >
-              {isSubmitting ? "Signing in..." : "Sign in"}
+              {isSubmitting
+                ? t("login.submittingButton")
+                : t("login.submitButton")}
             </Button>
           </div>
         </form>
@@ -217,13 +220,13 @@ export default function Login() {
         <div className="hairline" />
 
         <p className="text-sm text-center text-[#faf6ee]/65">
-          New here?{" "}
+          {t("login.newHere")}{" "}
           <button
             type="button"
             onClick={() => navigate("/auth/register")}
             className="text-[#d4a843] hover:text-[#f1e4c0] font-medium transition-colors"
           >
-            Create an account
+            {t("login.createAccountLink")}
           </button>
         </p>
       </div>

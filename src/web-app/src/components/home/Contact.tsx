@@ -1,9 +1,11 @@
 import { useState, type FormEvent } from "react";
 import { Mail, Phone, MapPin, ArrowUpRight } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import AnimatedContent from "../reactbit/AnimatedContent";
 import { Button } from "../ui/Button";
 
 export function Contact() {
+  const { t } = useTranslation("common");
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -30,19 +32,19 @@ export function Contact() {
           <div className="mb-16 max-w-2xl">
             <span className="eyebrow !text-[#1c0f2e]/70 !border-[#1c0f2e]/15 !bg-[var(--color-ink)]/[0.04]">
               <span className="inline-block w-1 h-1 rounded-full bg-[#d4a843]" />
-              Get in touch
+              {t("landing.contact.badge")}
             </span>
             <h2
               className="mt-6 font-display font-medium text-[#1c0f2e] text-4xl md:text-5xl lg:text-6xl leading-[1.02] tracking-[-0.025em]"
               style={{ textWrap: "balance" as const }}
             >
-              Tell us what's{" "}
+              {t("landing.contact.title1")}{" "}
               <span className="italic font-display font-light text-[#a37f2a]">
-                on your mind.
+                {t("landing.contact.titleHighlight")}
               </span>
             </h2>
             <p className="mt-5 text-lg text-[#1c0f2e]/65">
-              A bug, a feature request, or just a hello — we read every message.
+              {t("landing.contact.description")}
             </p>
           </div>
         </AnimatedContent>
@@ -52,40 +54,40 @@ export function Contact() {
           <AnimatedContent>
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid sm:grid-cols-2 gap-6">
-                <FieldRow label="Your name">
+                <FieldRow label={t("landing.contact.nameLabel")}>
                   <input
                     type="text"
                     value={formData.name}
                     onChange={(e) =>
                       setFormData({ ...formData, name: e.target.value })
                     }
-                    placeholder="Nguyễn Văn A"
+                    placeholder={t("landing.contact.namePlaceholder")}
                     required
                     className="w-full h-14 px-5 rounded-2xl bg-white border border-[#1c0f2e]/10 text-[#1c0f2e] placeholder:text-[#1c0f2e]/35 text-base font-medium focus:outline-none focus:border-[#d4a843] focus:ring-2 focus:ring-[#d4a843]/25 transition-all duration-300 ease-soft"
                   />
                 </FieldRow>
 
-                <FieldRow label="Email">
+                <FieldRow label={t("landing.contact.emailLabel")}>
                   <input
                     type="email"
                     value={formData.email}
                     onChange={(e) =>
                       setFormData({ ...formData, email: e.target.value })
                     }
-                    placeholder="you@example.com"
+                    placeholder={t("landing.contact.emailPlaceholder")}
                     required
                     className="w-full h-14 px-5 rounded-2xl bg-white border border-[#1c0f2e]/10 text-[#1c0f2e] placeholder:text-[#1c0f2e]/35 text-base font-medium focus:outline-none focus:border-[#d4a843] focus:ring-2 focus:ring-[#d4a843]/25 transition-all duration-300 ease-soft"
                   />
                 </FieldRow>
               </div>
 
-              <FieldRow label="Message">
+              <FieldRow label={t("landing.contact.messageLabel")}>
                 <textarea
                   value={formData.message}
                   onChange={(e) =>
                     setFormData({ ...formData, message: e.target.value })
                   }
-                  placeholder="What's on your mind?"
+                  placeholder={t("landing.contact.messagePlaceholder")}
                   rows={5}
                   required
                   className="w-full px-5 py-4 rounded-2xl bg-white border border-[#1c0f2e]/10 text-[#1c0f2e] placeholder:text-[#1c0f2e]/35 text-base font-medium focus:outline-none focus:border-[#d4a843] focus:ring-2 focus:ring-[#d4a843]/25 resize-none transition-all duration-300 ease-soft"
@@ -94,7 +96,7 @@ export function Contact() {
 
               <div className="pt-2">
                 <Button variant="primary" size="lg" trailing type="submit">
-                  Send message
+                  {t("landing.contact.submitButton")}
                 </Button>
               </div>
             </form>
@@ -107,8 +109,7 @@ export function Contact() {
                 className="font-display text-2xl lg:text-3xl text-[#1c0f2e]/80 leading-snug tracking-[-0.015em]"
                 style={{ textWrap: "balance" as const }}
               >
-                We typically reply within a day. Sometimes faster — sometimes
-                with a fix you didn't know you needed.
+                {t("landing.contact.quote")}
               </p>
 
               <div className="hairline-warm" />
@@ -122,12 +123,12 @@ export function Contact() {
                 <ContactRow
                   icon={<Phone className="w-4 h-4" strokeWidth={1.5} />}
                   primary="+84 28 3520 1234"
-                  secondary="Mon–Fri, 9am–6pm ICT"
+                  secondary={t("landing.contact.info.hours")}
                 />
                 <ContactRow
                   icon={<MapPin className="w-4 h-4" strokeWidth={1.5} />}
-                  primary="227 Nguyễn Văn Cừ"
-                  secondary="Long Biên, Hà Nội"
+                  primary={t("landing.contact.info.address1")}
+                  secondary={t("landing.contact.info.address2")}
                 />
               </ul>
 
@@ -136,7 +137,7 @@ export function Contact() {
                 className="group inline-flex items-center gap-2 text-sm font-medium text-[#1c0f2e] hover:text-[#a37f2a] transition-colors duration-300 ease-soft"
               >
                 <span className="underline-offset-4 group-hover:underline">
-                  Write us directly
+                  {t("landing.contact.info.writeDirectly")}
                 </span>
                 <ArrowUpRight
                   className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-300 ease-spring"

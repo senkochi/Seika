@@ -1,18 +1,13 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Logo } from "../logo/Logo";
 import { useAppSelector } from "../../store/hooks";
 import { cn } from "../ui/utils";
 import { Button } from "../ui/Button";
 
-const NAV_LINKS = [
-  { label: "Home", href: "#home" },
-  { label: "Features", href: "#features" },
-  { label: "About", href: "#about" },
-  { label: "Contact", href: "#contact" },
-];
-
 export function Navbar() {
+  const { t } = useTranslation("common");
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const { accessToken, roles } = useAppSelector((state) => state.auth);
@@ -23,6 +18,13 @@ export function Navbar() {
         role.toUpperCase() === "TEACHER",
     ) ?? false;
   const dashboardPath = isTeacher ? "/teacher/dashboard" : "/student/dashboard";
+
+  const navLinks = [
+    { label: t("landing.navbar.links.home"), href: "#home" },
+    { label: t("landing.navbar.links.features"), href: "#features" },
+    { label: t("landing.navbar.links.about"), href: "#about" },
+    { label: t("landing.navbar.links.contact"), href: "#contact" },
+  ];
 
   return (
     <>
@@ -43,7 +45,7 @@ export function Navbar() {
             />
 
             <div className="hidden md:flex items-center gap-1">
-              {NAV_LINKS.map((link) => (
+              {navLinks.map((link) => (
                 <a
                   key={link.href}
                   href={link.href}
@@ -66,7 +68,7 @@ export function Navbar() {
                   trailing
                   onClick={() => navigate(dashboardPath)}
                 >
-                  Dashboard
+                  {t("landing.navbar.dashboard")}
                 </Button>
               ) : (
                 <>
@@ -75,7 +77,7 @@ export function Navbar() {
                     onClick={() => navigate("/auth/login")}
                     className="px-4 h-10 text-sm font-medium text-[#faf6ee]/75 hover:text-[#faf6ee] transition-colors duration-300 ease-soft rounded-full"
                   >
-                    Sign in
+                    {t("landing.navbar.signIn")}
                   </button>
                   <Button
                     variant="primary"
@@ -83,7 +85,7 @@ export function Navbar() {
                     trailing
                     onClick={() => navigate("/auth/register")}
                   >
-                    Get started
+                    {t("landing.navbar.getStarted")}
                   </Button>
                 </>
               )}
@@ -92,7 +94,11 @@ export function Navbar() {
             {/* Hamburger morphs to X */}
             <button
               type="button"
-              aria-label={open ? "Close menu" : "Open menu"}
+              aria-label={
+                open
+                  ? t("landing.navbar.closeMenu")
+                  : t("landing.navbar.openMenu")
+              }
               onClick={() => setOpen((v) => !v)}
               className="md:hidden relative w-10 h-10 rounded-full bg-white/[0.04] border border-white/[0.06] flex items-center justify-center"
             >
@@ -125,7 +131,7 @@ export function Navbar() {
         <div className="absolute inset-0 bg-[var(--color-header)]/92 backdrop-blur-3xl" />
         <div className="relative h-full flex flex-col items-center justify-center gap-10 px-6 pt-24">
           <div className="flex flex-col items-center gap-6">
-            {NAV_LINKS.map((link, i) => (
+            {navLinks.map((link, i) => (
               <a
                 key={link.href}
                 href={link.href}
@@ -163,7 +169,7 @@ export function Navbar() {
                   navigate(dashboardPath);
                 }}
               >
-                Dashboard
+                {t("landing.navbar.dashboard")}
               </Button>
             ) : (
               <>
@@ -175,7 +181,7 @@ export function Navbar() {
                   }}
                   className="w-full h-12 rounded-full border border-white/[0.12] text-[#faf6ee] font-medium hover:bg-white/[0.04] transition-colors"
                 >
-                  Sign in
+                  {t("landing.navbar.signIn")}
                 </button>
                 <Button
                   variant="primary"
@@ -187,7 +193,7 @@ export function Navbar() {
                     navigate("/auth/register");
                   }}
                 >
-                  Get started
+                  {t("landing.navbar.getStarted")}
                 </Button>
               </>
             )}

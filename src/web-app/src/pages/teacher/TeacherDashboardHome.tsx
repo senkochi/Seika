@@ -107,7 +107,7 @@ function TeacherDashboardHome() {
     },
     {
       label: t("stats.contentPublished"),
-      value: t("stats.itemsCount", { count: formatNumber(contentPublished) }),
+      value: t("stats.itemsCount", { count: contentPublished }),
       trend: t("stats.overall"),
       icon: BookOpen,
       variant: "success",

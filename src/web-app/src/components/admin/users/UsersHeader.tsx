@@ -3,7 +3,6 @@ import { useTranslation } from "react-i18next";
 
 import { PageHeader } from "../../ui/PageHeader";
 import { Button } from "../../ui/Button";
-import { useFormatNumber } from "../../../utils/format";
 
 interface UsersHeaderProps {
   totalElements: number;
@@ -12,13 +11,6 @@ interface UsersHeaderProps {
   onReload: () => void;
 }
 
-const ROLE_FILTERS = [
-  { value: "", label: "Tất cả role" },
-  { value: "STUDENT", label: "Student" },
-  { value: "TEACHER", label: "Teacher" },
-  { value: "ADMIN", label: "Admin" },
-] as const;
-
 function UsersHeader({
   totalElements,
   filterRole,
@@ -26,7 +18,6 @@ function UsersHeader({
   onReload,
 }: UsersHeaderProps) {
   const { t } = useTranslation("admin");
-  const formatNumber = useFormatNumber();
 
   const roleFilters = [
     { value: "", label: t("users.filter.all") },
@@ -38,7 +29,7 @@ function UsersHeader({
   return (
     <PageHeader
       title={t("users.title")}
-      subtitle={t("users.subtitle", { count: formatNumber(totalElements) })}
+      subtitle={t("users.subtitle", { count: totalElements })}
       actions={
         <div className="flex flex-wrap items-center gap-2">
           <div

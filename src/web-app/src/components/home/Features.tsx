@@ -1,4 +1,5 @@
 import { Trophy, Bell, Brain, Store, CreditCard, Layers } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Images } from "../../assets/images";
 import AnimatedContent from "../reactbit/AnimatedContent";
 import { SocialProof } from "./SocialProof";
@@ -80,6 +81,7 @@ function IconChip({
    ---------------------------------------------------------- */
 
 export function Features() {
+  const { t } = useTranslation("common");
   return (
     <section id="features" className="relative py-32 lg:py-40 overflow-hidden">
       {/* Background atmosphere — seamless continuation from Hero */}
@@ -91,21 +93,20 @@ export function Features() {
           <div className="mb-20 max-w-3xl">
             <span className="eyebrow">
               <span className="inline-block w-1 h-1 rounded-full bg-[#d4a843]" />
-              Capabilities
+              {t("landing.features.badge")}
             </span>
             <h2
               className="mt-6 font-display font-medium text-[#faf6ee] text-4xl md:text-5xl lg:text-6xl leading-[1.02] tracking-[-0.025em]"
               style={{ textWrap: "balance" as const }}
             >
-              A platform built for{" "}
+              {t("landing.features.title1")}{" "}
               <span className="italic font-display font-light text-[#d4a843]">
-                two
+                {t("landing.features.titleHighlight")}
               </span>{" "}
-              roles.
+              {t("landing.features.title2")}
             </h2>
             <p className="mt-5 text-lg text-[#faf6ee]/65 max-w-xl">
-              Whether you're running a class of forty or studying alone at
-              midnight, the same tools stay sharp.
+              {t("landing.features.description")}
             </p>
           </div>
         </AnimatedContent>
@@ -132,15 +133,14 @@ export function Features() {
                   </IconChip>
                   <div>
                     <p className="text-[11px] uppercase tracking-[0.18em] text-[#d4a843]/80">
-                      Library
+                      {t("landing.features.flashcards.badge")}
                     </p>
                     <h3 className="mt-2 font-display text-3xl lg:text-4xl text-[#faf6ee]">
-                      Flashcard decks that stick.
+                      {t("landing.features.flashcards.title")}
                     </h3>
                   </div>
                   <p className="text-[#faf6ee]/65 leading-relaxed max-w-md">
-                    Build personal decks or browse public collections. Spaced
-                    repetition remembers what you forgot so you don't have to.
+                    {t("landing.features.flashcards.desc")}
                   </p>
                 </div>
                 <div className="mt-auto -mx-px -mb-px overflow-hidden rounded-b-[calc(2rem-0.375rem)]">
@@ -161,15 +161,14 @@ export function Features() {
                 </IconChip>
                 <div>
                   <p className="text-[11px] uppercase tracking-[0.18em] text-[#d4a843]/80">
-                    Assessment
+                    {t("landing.features.quizzes.badge")}
                   </p>
                   <h3 className="mt-2 font-display text-3xl text-[#faf6ee]">
-                    Smart quizzes, instantly graded.
+                    {t("landing.features.quizzes.title")}
                   </h3>
                 </div>
                 <p className="text-[#faf6ee]/65 leading-relaxed">
-                  Instant scoring, detailed breakdowns, and a progress map that
-                  actually shows you where to go next.
+                  {t("landing.features.quizzes.desc")}
                 </p>
               </div>
             </BezelCard>
@@ -182,27 +181,28 @@ export function Features() {
                 </IconChip>
                 <div>
                   <p className="text-[11px] uppercase tracking-[0.18em] text-[#d4a843]">
-                    Marketplace
+                    {t("landing.features.marketplace.badge")}
                   </p>
                   <h3 className="mt-2 font-display text-3xl text-[#faf6ee]">
-                    Spend coins on real study material.
+                    {t("landing.features.marketplace.title")}
                   </h3>
                 </div>
                 <p className="text-[#faf6ee]/70 leading-relaxed">
-                  Premium quiz packs and flashcard decks from educators
-                  worldwide, priced in the coins you've already earned.
+                  {t("landing.features.marketplace.desc")}
                 </p>
                 <div className="flex flex-wrap gap-2 mt-auto">
-                  {["Premium packs", "Expert decks", "Study guides"].map(
-                    (tag) => (
-                      <span
-                        key={tag}
-                        className="px-3 py-1.5 rounded-full text-xs font-medium text-[#faf6ee]/85 bg-white/[0.06] border border-white/[0.08]"
-                      >
-                        {tag}
-                      </span>
-                    ),
-                  )}
+                  {[
+                    t("landing.features.marketplace.tags.premium"),
+                    t("landing.features.marketplace.tags.expert"),
+                    t("landing.features.marketplace.tags.studyGuides"),
+                  ].map((tag) => (
+                    <span
+                      key={tag}
+                      className="px-3 py-1.5 rounded-full text-xs font-medium text-[#faf6ee]/85 bg-white/[0.06] border border-white/[0.08]"
+                    >
+                      {tag}
+                    </span>
+                  ))}
                 </div>
               </div>
             </BezelCard>
@@ -216,16 +216,14 @@ export function Features() {
                   </IconChip>
                   <div>
                     <p className="text-[11px] uppercase tracking-[0.18em] text-[#d4a843]/80">
-                      Rewards
+                      {t("landing.features.rewards.badge")}
                     </p>
                     <h3 className="mt-2 font-display text-3xl text-[#faf6ee]">
-                      Learning pays off. Literally.
+                      {t("landing.features.rewards.title")}
                     </h3>
                   </div>
                   <p className="text-[#faf6ee]/65 leading-relaxed max-w-md">
-                    Every completed quiz drops coins into your wallet. Spend
-                    them in the marketplace, or save them up for the premium
-                    pack you've been eyeing.
+                    {t("landing.features.rewards.desc")}
                   </p>
                 </div>
                 <div className="font-display font-tabular text-6xl text-[#faf6ee]/10 leading-none">
@@ -242,15 +240,14 @@ export function Features() {
                 </IconChip>
                 <div>
                   <p className="text-[11px] uppercase tracking-[0.18em] text-[#d4a843]/80">
-                    Compete
+                    {t("landing.features.leaderboards.badge")}
                   </p>
                   <h3 className="mt-2 font-display text-2xl text-[#faf6ee]">
-                    Leaderboards that actually update.
+                    {t("landing.features.leaderboards.title")}
                   </h3>
                 </div>
                 <p className="text-[#faf6ee]/65 leading-relaxed text-sm">
-                  Real-time rankings across your cohort, school, and the wider
-                  community.
+                  {t("landing.features.leaderboards.desc")}
                 </p>
               </div>
             </BezelCard>
@@ -263,15 +260,14 @@ export function Features() {
                 </IconChip>
                 <div className="flex-1">
                   <p className="text-[11px] uppercase tracking-[0.18em] text-[#d4a843]/80">
-                    Stay in the loop
+                    {t("landing.features.notifications.badge")}
                   </p>
                   <h3 className="mt-2 font-display text-2xl lg:text-3xl text-[#faf6ee]">
-                    Notifications tuned to what you care about.
+                    {t("landing.features.notifications.title")}
                   </h3>
                 </div>
                 <p className="text-[#faf6ee]/65 leading-relaxed md:max-w-xs">
-                  New content drops, quiz results, milestone unlocks — without
-                  the noise.
+                  {t("landing.features.notifications.desc")}
                 </p>
               </div>
             </BezelCard>

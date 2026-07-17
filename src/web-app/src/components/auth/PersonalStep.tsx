@@ -1,4 +1,5 @@
 import { type Dispatch, type SetStateAction } from "react";
+import { useTranslation } from "react-i18next";
 import { RegisterData } from "./types";
 import { TextInput } from "../ui/Input";
 import { cn } from "../ui/utils";
@@ -14,48 +15,49 @@ interface PersonalStepProps {
   setErrors?: (errors: any) => void;
 }
 
-const GENDERS = [
-  { value: "male", label: "Male" },
-  { value: "female", label: "Female" },
-  { value: "other", label: "Other" },
-] as const;
-
 export default function PersonalStep({
   formData,
   setFormData,
   errors = {},
   setErrors = () => {},
 }: PersonalStepProps) {
+  const { t } = useTranslation("auth");
   const clearError = (field: keyof typeof errors) => {
     setErrors({ [field]: undefined });
   };
+
+  const genders = [
+    { value: "male", label: t("personalStep.genderOptions.male") },
+    { value: "female", label: t("personalStep.genderOptions.female") },
+    { value: "other", label: t("personalStep.genderOptions.other") },
+  ] as const;
 
   return (
     <div className="space-y-6">
       <div className="text-center mb-2">
         <h2 className="font-display text-2xl text-[#faf6ee] tracking-[-0.015em]">
-          A little about you
+          {t("personalStep.title")}
         </h2>
         <p className="mt-2 text-sm text-[#faf6ee]/60">
-          We'll use this to set up your profile.
+          {t("personalStep.subtitle")}
         </p>
       </div>
 
       <div className="space-y-5">
         <TextInput
-          label="Full name"
+          label={t("personalStep.fullnameLabel")}
           value={formData.fullname}
           onChange={(e) =>
             setFormData({ ...formData, fullname: e.target.value })
           }
-          placeholder="Nguyễn Văn A"
+          placeholder={t("personalStep.fullnamePlaceholder")}
           error={errors.fullname}
           onClearError={() => clearError("fullname")}
           autoComplete="name"
         />
 
         <TextInput
-          label="Date of birth"
+          label={t("personalStep.dobLabel")}
           type="date"
           value={formData.dateOfBirth}
           onChange={(e) =>
@@ -67,10 +69,10 @@ export default function PersonalStep({
 
         <div>
           <label className="block mb-2 text-[11px] uppercase tracking-[0.18em] font-medium text-[#d4a843]/80">
-            Gender
+            {t("personalStep.genderLabel")}
           </label>
           <div className="grid grid-cols-3 gap-3">
-            {GENDERS.map((g) => {
+            {genders.map((g) => {
               const selected = formData.gender === g.value;
               return (
                 <button

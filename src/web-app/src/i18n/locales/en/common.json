@@ -1,6 +1,158 @@
 {
   "languageSwitcher.label": "Language",
   "actions": {
-    "refresh": "Refresh"
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "close": "Close",
+    "refresh": "Refresh",
+    "backHome": "Back home",
+    "back": "Back",
+    "continue": "Continue"
+  },
+  "pagination": {
+    "showing": "Showing {{start}} - {{end}} of {{total}} results",
+    "perPageLabel": "Per page:",
+    "perPage": "{{size}} / page",
+    "firstPage": "First page",
+    "previousPage": "Previous page",
+    "nextPage": "Next page",
+    "lastPage": "Last page",
+    "pageNumber": "Page {{page}}"
+  },
+  "landing": {
+    "navbar": {
+      "links": {
+        "home": "Home",
+        "features": "Features",
+        "about": "About",
+        "contact": "Contact"
+      },
+      "dashboard": "Dashboard",
+      "signIn": "Sign in",
+      "getStarted": "Get started",
+      "openMenu": "Open menu",
+      "closeMenu": "Close menu"
+    },
+    "hero": {
+      "badge": "Now in beta",
+      "title1": "Learn by playing.",
+      "titleHighlight": "Master",
+      "title2": "by doing.",
+      "description": "Seika turns study material into something you actually want to open. Quizzes, flashcards, and a coin economy that pays you back for paying attention.",
+      "openDashboard": "Open dashboard",
+      "startLearning": "Start learning",
+      "seeInside": "See what's inside",
+      "stats": {
+        "activeLearners": "Active learners",
+        "verifiedEducators": "Verified educators",
+        "completionRate": "Completion rate"
+      },
+      "chip": {
+        "label": "Earned today",
+        "xp": "XP"
+      }
+    },
+    "features": {
+      "badge": "Capabilities",
+      "title1": "A platform built for",
+      "titleHighlight": "two",
+      "title2": "roles.",
+      "description": "Whether you're running a class of forty or studying alone at midnight, the same tools stay sharp.",
+      "socialProofTitle": "Trusted in classrooms across Vietnam",
+      "socialProofDesc1": "of partner schools report measurable retention gains within a single semester.",
+      "flashcards": {
+        "badge": "Library",
+        "title": "Flashcard decks that stick.",
+        "desc": "Build personal decks or browse public collections. Spaced repetition remembers what you forgot so you don't have to."
+      },
+      "quizzes": {
+        "badge": "Assessment",
+        "title": "Smart quizzes, instantly graded.",
+        "desc": "Instant scoring, detailed breakdowns, and a progress map that actually shows you where to go next."
+      },
+      "marketplace": {
+        "badge": "Marketplace",
+        "title": "Spend coins on real study material.",
+        "desc": "Premium quiz packs and flashcard decks from educators worldwide, priced in the coins you've already earned.",
+        "tags": {
+          "premium": "Premium packs",
+          "expert": "Expert decks",
+          "studyGuides": "Study guides"
+        }
+      },
+      "rewards": {
+        "badge": "Rewards",
+        "title": "Learning pays off. Literally.",
+        "desc": "Every completed quiz drops coins into your wallet. Spend them in the marketplace, or save them up for the premium pack you've been eyeing."
+      },
+      "leaderboards": {
+        "badge": "Compete",
+        "title": "Leaderboards that actually update.",
+        "desc": "Real-time rankings across your cohort, school, and the wider community."
+      },
+      "notifications": {
+        "badge": "Stay in the loop",
+        "title": "Notifications tuned to what you care about.",
+        "desc": "New content drops, quiz results, milestone unlocks — without the noise."
+      }
+    },
+    "about": {
+      "badge": "The team",
+      "title1": "Built by students,",
+      "titleHighlight": "for",
+      "title2": "students.",
+      "description": "Two engineers who thought studying didn't have to feel like a chore, and decided to do something about it.",
+      "cuongRole": "Software Engineer",
+      "cuongBio": "Loves building things that make people laugh while they learn. Refuses to ship a boring onboarding flow.",
+      "datRole": "Software Engineer",
+      "datBio": "Full-stack developer who treats every state transition like a small piece of choreography. Gamer by night.",
+      "missionBadge": "Our mission",
+      "missionText1": "Make education feel less like a",
+      "missionHighlight": "chore",
+      "missionText2": "and more like a game worth coming back to."
+    },
+    "contact": {
+      "badge": "Get in touch",
+      "title1": "Tell us what's",
+      "titleHighlight": "on your mind.",
+      "description": "A bug, a feature request, or just a hello — we read every message.",
+      "form": {
+        "nameLabel": "Your name",
+        "namePlaceholder": "Nguyễn Văn A",
+        "emailLabel": "Email",
+        "emailPlaceholder": "you@example.com",
+        "messageLabel": "Message",
+        "messagePlaceholder": "What's on your mind?",
+        "submit": "Send message"
+      },
+      "replyTime": "We typically reply within a day. Sometimes faster — sometimes with a fix you didn't know you needed.",
+      "writeDirectly": "Write us directly",
+      "hours": "Mon–Fri, 9am–6pm ICT",
+      "address": "Long Biên, Hà Nội"
+    },
+    "footer": {
+      "tagline": "Quizzes, flashcards, and a coin economy for learners who want education to feel less like a chore.",
+      "contactHeader": "Contact",
+      "legalHeader": "Legal",
+      "privacyPolicy": "Privacy policy",
+      "termsOfService": "Terms of service",
+      "cookiePolicy": "Cookie policy",
+      "copyright": "© 2026 Seika. Crafted with care in Hà Nội."
+    }
+  },
+  "notFound": {
+    "eyebrow": "404 · Off the map",
+    "title": "Page not found.",
+    "description": "The path {{path}} doesn't lead anywhere we know about.",
+    "backHome": "Back to home",
+    "contactSupport": "Contact support",
+    "lostPrefix": "Lost? Try the",
+    "lostHome": "homepage",
+    "lostOr": "or",
+    "lostSignIn": "sign in"
+  },
+  "loadingPage": {
+    "status": "Loading page",
+    "text": "Loading"
   }
 }

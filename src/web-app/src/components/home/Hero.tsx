@@ -1,11 +1,13 @@
 import { useNavigate } from "react-router-dom";
 import { useAppSelector } from "../../store/hooks";
+import { useTranslation } from "react-i18next";
 import GameJoystick from "../3d-objects/GameJoystick";
 import YellowBlueSchoolBag from "../3d-objects/YellowBlueSchoolBag";
 import { Button } from "../ui/Button";
 import { cn } from "../ui/utils";
 
 export function Hero() {
+  const { t } = useTranslation("common");
   const navigate = useNavigate();
   const { accessToken, roles } = useAppSelector((state) => state.auth);
   const isTeacher =
@@ -34,7 +36,7 @@ export function Hero() {
             <div className="animate-fade-up">
               <span className="eyebrow">
                 <span className="inline-block w-1 h-1 rounded-full bg-[#d4a843]" />
-                Now in beta
+                {t("landing.hero.badge")}
               </span>
             </div>
 
@@ -47,17 +49,15 @@ export function Hero() {
               )}
               style={{ textWrap: "balance" as const }}
             >
-              Learn by playing.{" "}
+              {t("landing.hero.title1")}{" "}
               <span className="italic font-display font-light text-[#d4a843]">
-                Master
+                {t("landing.hero.titleHighlight")}
               </span>{" "}
-              by doing.
+              {t("landing.hero.title2")}
             </h1>
 
             <p className="max-w-xl text-lg text-[#faf6ee]/70 leading-relaxed animate-fade-up delay-200">
-              Seika turns study material into something you actually want to
-              open. Quizzes, flashcards, and a coin economy that pays you back
-              for paying attention.
+              {t("landing.hero.description")}
             </p>
 
             <div className="flex flex-wrap items-center gap-3 animate-fade-up delay-300">
@@ -69,7 +69,9 @@ export function Hero() {
                   navigate(accessToken ? dashboardPath : "/auth/register")
                 }
               >
-                {accessToken ? "Open dashboard" : "Start learning"}
+                {accessToken
+                  ? t("landing.hero.openDashboard")
+                  : t("landing.hero.startLearning")}
               </Button>
               <Button
                 variant="ghost"
@@ -79,16 +81,25 @@ export function Hero() {
                   el?.scrollIntoView({ behavior: "smooth" });
                 }}
               >
-                See what's inside
+                {t("landing.hero.seeInside")}
               </Button>
             </div>
 
             {/* Stats — tabular, real-feel numbers */}
             <dl className="grid grid-cols-3 gap-6 pt-10 border-t border-white/[0.06] animate-fade-up delay-400">
               {[
-                { value: "2,847", label: "Active learners" },
-                { value: "134", label: "Verified educators" },
-                { value: "47.2%", label: "Completion rate" },
+                {
+                  value: "2,847",
+                  label: t("landing.hero.stats.activeLearners"),
+                },
+                {
+                  value: "134",
+                  label: t("landing.hero.stats.verifiedEducators"),
+                },
+                {
+                  value: "47.2%",
+                  label: t("landing.hero.stats.completionRate"),
+                },
               ].map((stat) => (
                 <div key={stat.label} className="space-y-1">
                   <dt className="font-display text-3xl lg:text-4xl text-[#faf6ee] font-tabular">
@@ -130,10 +141,13 @@ export function Hero() {
                 </span>
                 <div className="space-y-0.5">
                   <p className="text-[10px] uppercase tracking-[0.18em] text-[#b8a9d9]">
-                    Earned today
+                    {t("landing.hero.chip.label")}
                   </p>
                   <p className="font-display text-xl text-[#faf6ee] font-tabular">
-                    50 <span className="text-sm text-[#d4a843]">XP</span>
+                    50{" "}
+                    <span className="text-sm text-[#d4a843]">
+                      {t("landing.hero.chip.xp")}
+                    </span>
                   </p>
                 </div>
               </div>
