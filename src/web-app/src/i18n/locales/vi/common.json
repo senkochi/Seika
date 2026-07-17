@@ -1,5 +1,34 @@
 {
   "languageSwitcher.label": "Ngôn ngữ",
+  "layout": {
+    "nav": {
+      "dashboard": "Bảng điều khiển",
+      "learningHub": "Trung tâm học tập",
+      "marketplace": "Cửa hàng",
+      "wallet": "Ví",
+      "profile": "Hồ sơ",
+      "contentManager": "Quản lý nội dung",
+      "statistics": "Thống kê",
+      "revenue": "Doanh thu",
+      "marketplaceOps": "Vận hành Cửa hàng",
+      "userManagement": "Quản lý người dùng",
+      "contentModeration": "Kiểm duyệt nội dung",
+      "systemConfig": "Cấu hình hệ thống"
+    },
+    "header": {
+      "searchStudent": "Tìm kiếm...",
+      "searchTeacher": "Tìm kiếm môn học, bài kiểm tra...",
+      "searchAdmin": "Tìm kiếm người dùng, cấu hình...",
+      "notifications": "Thông báo",
+      "markAllAsRead": "Đánh dấu tất cả đã đọc",
+      "noNotifications": "Chưa có thông báo nào.",
+      "viewAllNotifications": "Xem tất cả thông báo",
+      "settings": "Cài đặt",
+      "logout": "Đăng xuất",
+      "adminAccount": "Tài khoản Quản trị",
+      "levelLabel": "Level {{level}}"
+    }
+  },
   "actions": {
     "confirm": "Xác nhận",
     "cancel": "Hủy",

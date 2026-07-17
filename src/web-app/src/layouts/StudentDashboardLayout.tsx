@@ -27,8 +27,10 @@ import {
 } from "../store/notificationSlice";
 import { useFormatRelativeTime } from "../utils/format";
 import LanguageSwitcher from "../components/i18n/LanguageSwitcher";
+import { useTranslation } from "react-i18next";
 
 function StudentDashboardLayout() {
+  const { t } = useTranslation("common");
   const formatRelativeTime = useFormatRelativeTime();
   const navigate = useNavigate();
   const location = useLocation();
@@ -66,28 +68,33 @@ function StudentDashboardLayout() {
     navigate("/auth/login");
   };
   const navItems = [
-    { id: "home", label: "Dashboard", icon: Home, path: "/student/dashboard" },
+    {
+      id: "home",
+      label: t("layout.nav.dashboard"),
+      icon: Home,
+      path: "/student/dashboard",
+    },
     {
       id: "learning",
-      label: "Learning Hub",
+      label: t("layout.nav.learningHub"),
       icon: BookOpen,
       path: "/student/dashboard/learning",
     },
     {
       id: "marketplace",
-      label: "Marketplace",
+      label: t("layout.nav.marketplace"),
       icon: Store,
       path: "/student/dashboard/marketplace",
     },
     {
       id: "wallet",
-      label: "Wallet",
+      label: t("layout.nav.wallet"),
       icon: Wallet,
       path: "/student/dashboard/wallet",
     },
     {
       id: "profile",
-      label: "Profile",
+      label: t("layout.nav.profile"),
       icon: User,
       path: "/student/dashboard/profile",
     },
@@ -191,7 +198,7 @@ function StudentDashboardLayout() {
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-white/55 hover:bg-white/[0.03] hover:text-cream transition-colors font-sans-ui text-sm"
           >
             <Settings className="w-4 h-4" aria-hidden="true" />
-            <span className="font-medium">Settings</span>
+            <span className="font-medium">{t("layout.header.settings")}</span>
           </button>
           <button
             type="button"
@@ -199,7 +206,7 @@ function StudentDashboardLayout() {
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-white/55 hover:bg-white/[0.03] hover:text-cream transition-colors font-sans-ui text-sm"
           >
             <LogOut className="w-4 h-4" aria-hidden="true" />
-            <span className="font-medium">Logout</span>
+            <span className="font-medium">{t("layout.header.logout")}</span>
           </button>
         </div>
       </aside>
@@ -218,7 +225,7 @@ function StudentDashboardLayout() {
                 />
                 <input
                   type="text"
-                  placeholder="Search..."
+                  placeholder={t("layout.header.searchStudent")}
                   className="w-full pl-11 pr-4 py-2 bg-white/[0.04] border border-white/[0.08] rounded-lg text-cream placeholder-white/40 focus:outline-none focus:border-[#d4a843]/50 transition-colors font-sans-ui text-sm"
                 />
               </div>
@@ -244,21 +251,21 @@ function StudentDashboardLayout() {
                   <div className="absolute right-0 top-[calc(100%+0.5rem)] z-30 w-80 overflow-hidden rounded-xl border border-white/[0.08] bg-[var(--color-sidebar)] shadow-[0_8px_24px_rgba(0,0,0,0.4)]">
                     <div className="p-4 border-b border-white/[0.06] flex justify-between items-center">
                       <h3 className="font-sans-ui font-semibold text-cream text-sm">
-                        Notifications
+                        {t("layout.header.notifications")}
                       </h3>
                       {unreadCount > 0 && (
                         <button
                           onClick={() => dispatch(markAllAsRead())}
                           className="text-xs text-[#d4a843] hover:underline font-sans-ui"
                         >
-                          Mark all as read
+                          {t("layout.header.markAllAsRead")}
                         </button>
                       )}
                     </div>
                     <div className="max-h-80 overflow-y-auto custom-scrollbar">
                       {notifications.length === 0 ? (
                         <div className="p-6 text-center text-sm text-white/50 font-sans-ui">
-                          No notifications yet.
+                          {t("layout.header.noNotifications")}
                         </div>
                       ) : (
                         notifications.map((notif) => {
@@ -298,7 +305,7 @@ function StudentDashboardLayout() {
                     </div>
                     <div className="p-3 border-t border-white/[0.06] text-center">
                       <button className="text-xs font-sans-ui font-medium text-[#d4a843] hover:underline">
-                        View all notifications
+                        {t("layout.header.viewAllNotifications")}
                       </button>
                     </div>
                   </div>
@@ -333,7 +340,7 @@ function StudentDashboardLayout() {
                       {displayName}
                     </p>
                     <p className="text-white/45 text-xs font-sans-ui">
-                      Level {level}
+                      {t("layout.header.levelLabel", { level })}
                     </p>
                   </div>
                 </button>
@@ -352,7 +359,7 @@ function StudentDashboardLayout() {
                         className="w-4 h-4 text-[#d4a843]"
                         aria-hidden="true"
                       />
-                      Profile
+                      {t("layout.nav.profile")}
                     </button>
                     <button
                       type="button"
@@ -366,7 +373,7 @@ function StudentDashboardLayout() {
                         className="w-4 h-4 text-[#d4a843]"
                         aria-hidden="true"
                       />
-                      Settings
+                      {t("layout.header.settings")}
                     </button>
                     <button
                       type="button"
@@ -377,7 +384,7 @@ function StudentDashboardLayout() {
                       className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm font-sans-ui text-red-300 hover:bg-red-500/10 transition-colors"
                     >
                       <LogOut className="w-4 h-4" aria-hidden="true" />
-                      Logout
+                      {t("layout.header.logout")}
                     </button>
                   </div>
                 )}

@@ -5,33 +5,26 @@ interface ProductStatusBadgeProps {
   rejectionReason?: string | null;
 }
 
-const STYLES: Record<
-  string,
-  { bg: string; text: string; border: string; label: string }
-> = {
+const STYLES: Record<string, { bg: string; text: string; border: string }> = {
   PUBLISHED: {
     bg: "bg-emerald-500/10",
     text: "text-emerald-400",
     border: "border-emerald-500/20",
-    label: "Đã duyệt",
   },
   REJECTED: {
     bg: "bg-rose-500/10",
     text: "text-rose-400",
     border: "border-rose-500/20",
-    label: "Từ chối",
   },
   HIDDEN: {
     bg: "bg-slate-500/10",
     text: "text-slate-400",
     border: "border-slate-500/20",
-    label: "Đã ẩn",
   },
   PENDING_REVIEW: {
     bg: "bg-amber-500/10",
     text: "text-amber-400",
     border: "border-amber-500/20",
-    label: "Chờ duyệt",
   },
 };
 
@@ -39,7 +32,6 @@ export const DEFAULT_STATUS_STYLE = {
   bg: "bg-amber-500/10",
   text: "text-amber-400",
   border: "border-amber-500/20",
-  label: "Chờ duyệt",
 };
 
 function ProductStatusBadge({

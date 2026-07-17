@@ -14,7 +14,63 @@
   "product": {
     "noDescription": "Chưa có mô tả"
   },
+  "type": {
+    "flashcard": "Flashcard",
+    "quiz": "Quiz"
+  },
+  "tier": {
+    "newbie": "NEWBIE"
+  },
+  "label": {
+    "teacher": "Giáo viên",
+    "coins": "Coins"
+  },
+  "action": {
+    "details": "Chi tiết",
+    "buy": "Mua ngay"
+  },
+  "detail": {
+    "back": "Quay lại",
+    "unavailableTitle": "Sản phẩm không khả dụng",
+    "unavailableDesc": "Sản phẩm này không thể mở.",
+    "returnMarketplace": "Trở về Marketplace",
+    "purchaseRequiredTitle": "Yêu cầu mua hàng",
+    "purchaseRequiredDesc": "Hãy mua sản phẩm này trước để có thể gửi đánh giá.",
+    "ratingLabel": "Đánh giá",
+    "chooseRatingAria": "Chọn điểm đánh giá",
+    "subtitleDefault": "Tài liệu học tập trên Seika Marketplace.",
+    "ownedBadge": "Đã sở hữu",
+    "priceLabel": "Giá",
+    "teacherLabel": "Giáo viên",
+    "actionsTitle": "Hành động",
+    "actionsDesc": "Mua, mở nội dung đã sở hữu, hoặc yêu cầu hoàn tiền khi escrow còn giữ.",
+    "openInLearningHub": "Mở trong Learning Hub",
+    "buyForCoins": "Mua với giá {{price}} coins",
+    "escrowRefundTitle": "Hoàn tiền Escrow",
+    "requestRefund": "Yêu cầu hoàn tiền",
+    "refreshStatus": "Làm mới trạng thái",
+    "reviewsTitle": "Đánh giá",
+    "noReviewsTitle": "Chưa có đánh giá nào",
+    "noReviewsDesc": "Người mua đã xác thực có thể để lại đánh giá sau khi mua.",
+    "writeReviewTitle": "Viết đánh giá",
+    "writeReviewDesc": "Chỉ tài khoản mua hàng hợp lệ mới có thể gửi đánh giá.",
+    "cannotReviewOwn": "Bạn không thể tự đánh giá sản phẩm của chính mình.",
+    "commentLabel": "Nhận xét",
+    "commentPlaceholder": "Nhận xét của bạn về sản phẩm này...",
+    "submitReview": "Gửi đánh giá"
+  },
+  "refundHelp": {
+    "noEscrow": "Chưa tìm thấy bản ghi escrow nào cho sản phẩm này.",
+    "consumed": "Nội dung này đã được mở. Việc hoàn tiền hiện cần sự xét duyệt từ Admin.",
+    "refunded": "Giao dịch mua này đã được hoàn tiền.",
+    "released": "Escrow đã được giải ngân cho giáo viên.",
+    "pendingDecision": "Giao dịch mua này đang chờ quyết định từ Admin.",
+    "refundRequested": "Yêu cầu hoàn tiền đang được xử lý.",
+    "creditRequested": "Việc giải ngân Escrow đang được xử lý.",
+    "canRefund": "Bạn có thể yêu cầu hoàn tiền tự động khi escrow đang giữ và chưa mở nội dung."
+  },
   "toast": {
+    "fetchFailed": "Không thể tải danh sách sản phẩm.",
     "loginRequired": "Vui lòng đăng nhập để mua hàng",
     "checkingBalance": "Đang kiểm tra số dư...",
     "insufficientBalance": "Số dư không đủ! Bạn cần {{price}} Coins nhưng hiện tại chỉ có {{balance}} Coins.",
@@ -23,6 +79,11 @@
     "buySuccess": "Đã mua hàng thành công! Sản phẩm đã có trong Learning Hub.",
     "buyPending": "Đơn hàng đang được xử lý. Vui lòng làm mới Learning Hub sau ít giây.",
     "paymentFailed": "Thanh toán thất bại. Coin đã được giữ nguyên hoặc sẽ được hoàn theo hệ thống.",
-    "buyFailed": "Mua hàng thất bại"
+    "buyFailed": "Mua hàng thất bại",
+    "reviewReceived": "Đã nhận đánh giá và đang chờ kiểm duyệt rủi ro.",
+    "reviewSubmitted": "Đã gửi đánh giá.",
+    "reviewFailed": "Gửi đánh giá thất bại",
+    "refundSent": "Đã gửi yêu cầu hoàn tiền. Sản phẩm sẽ bị thu hồi sau khi xác nhận trên ví.",
+    "refundFailed": "Yêu cầu hoàn tiền thất bại."
   }
 }

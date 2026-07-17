@@ -27,6 +27,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { SectionCard } from "@/components/ui/SectionCard";
 import { StatusPill } from "@/components/ui/StatusPill";
 import { useAppSelector } from "@/store/hooks";
+import { useTranslation } from "react-i18next";
 
 const ORDER_POLL_ATTEMPTS = 10;
 const ORDER_POLL_DELAY_MS = 700;
@@ -34,14 +35,12 @@ const ORDER_POLL_DELAY_MS = 700;
 const wait = (ms: number) =>
   new Promise((resolve) => window.setTimeout(resolve, ms));
 
-async function waitForPaidOrder(orderId: string) {
+async function waitForPaidOrder(orderId: string, t: (key: string) => string) {
   for (let attempt = 0; attempt < ORDER_POLL_ATTEMPTS; attempt += 1) {
     const response = await marketplaceApi.getOrder(orderId);
     if (response.data.status === "PAID") return response.data;
     if (response.data.status === "FAILED") {
-      throw new Error(
-        "Payment failed. Your coins were kept or will be restored by the system.",
-      );
+      throw new Error(t("toast.paymentFailed"));
     }
     await wait(ORDER_POLL_DELAY_MS);
   }
@@ -52,10 +51,10 @@ function toNumber(value: unknown) {
   return Number(value ?? 0) || 0;
 }
 
-function productKind(product: Product) {
+function productKind(product: Product, t: (key: string) => string) {
   return product.type === "FLASHCARD"
-    ? { label: "Flashcard", icon: BookOpen, variant: "info" as const }
-    : { label: "Quiz", icon: Target, variant: "success" as const };
+    ? { label: t("type.flashcard"), icon: BookOpen, variant: "info" as const }
+    : { label: t("type.quiz"), icon: Target, variant: "success" as const };
 }
 
 function tierVariant(tier?: string | null) {
@@ -95,26 +94,24 @@ function canRequestSelfServiceRefund(
 function refundHelpText(
   escrow: EscrowTransaction | undefined,
   inventory: InventoryItem | undefined,
+  t: (key: string) => string,
 ) {
-  if (!escrow) return "No escrow record was found for this product yet.";
+  if (!escrow) return t("refundHelp.noEscrow");
   if (inventory?.consumedAt) {
-    return "This content has already been opened. Refunds now require admin review.";
+    return t("refundHelp.consumed");
   }
-  if (escrow.status === "REFUNDED")
-    return "This purchase has already been refunded.";
-  if (escrow.status === "RELEASED")
-    return "Escrow has already been released to the teacher.";
+  if (escrow.status === "REFUNDED") return t("refundHelp.refunded");
+  if (escrow.status === "RELEASED") return t("refundHelp.released");
   if (escrow.needsAdminDecision || escrow.status === "PENDING_ADMIN_DECISION") {
-    return "This purchase is already waiting for an admin decision.";
+    return t("refundHelp.pendingDecision");
   }
-  if (escrow.refundRequestedAt)
-    return "A refund request is already being processed.";
-  if (escrow.creditRequestedAt)
-    return "Escrow release is already being processed.";
-  return "You can request a self-service refund while escrow is held and the content has not been opened.";
+  if (escrow.refundRequestedAt) return t("refundHelp.refundRequested");
+  if (escrow.creditRequestedAt) return t("refundHelp.creditRequested");
+  return t("refundHelp.canRefund");
 }
 
 function ProductDetail() {
+  const { t } = useTranslation("marketplace");
   const formatNum = useFormatNumber();
   const formatDt = useFormatDate();
   const formatCoins = (value: unknown) => formatNum(toNumber(value));
@@ -193,23 +190,26 @@ function ProductDetail() {
   const handleBuy = async () => {
     if (!product) return;
     if (!userId) {
-      toast.error("Please sign in before buying.");
+      toast.error(t("toast.loginRequired"));
       return;
     }
     setBuying(true);
     try {
-      toast.loading("Checking wallet balance...", { id: "buy-product-detail" });
+      toast.loading(t("toast.checkingBalance"), { id: "buy-product-detail" });
       const balance = await walletService.getBalance();
       const currentBalance = toNumber(balance.balance);
       if (currentBalance < toNumber(product.price)) {
         toast.error(
-          `Not enough coins. You need ${formatCoins(product.price)} coins, current balance is ${formatCoins(currentBalance)}.`,
+          t("toast.insufficientBalance", {
+            price: formatCoins(product.price),
+            balance: formatCoins(currentBalance),
+          }),
           { id: "buy-product-detail" },
         );
         return;
       }
 
-      toast.loading("Creating order...", { id: "buy-product-detail" });
+      toast.loading(t("toast.creatingOrder"), { id: "buy-product-detail" });
       const order = await marketplaceApi.createOrder(userId, [
         {
           productId: product.id,
@@ -221,9 +221,9 @@ function ProductDetail() {
           sellerUserId: product.sellerUserId,
         },
       ]);
-      toast.loading("Confirming payment...", { id: "buy-product-detail" });
-      await waitForPaidOrder(order.data.id);
-      toast.success("Purchase complete. The product is now in Learning Hub.", {
+      toast.loading(t("toast.verifyingPayment"), { id: "buy-product-detail" });
+      await waitForPaidOrder(order.data.id, t);
+      toast.success(t("toast.buySuccess"), {
         id: "buy-product-detail",
       });
       await load();
@@ -233,7 +233,7 @@ function ProductDetail() {
         err.response?.data?.message ||
           err.response?.data?.error ||
           err.message ||
-          "Purchase failed.",
+          t("toast.buyFailed"),
         { id: "buy-product-detail" },
       );
     } finally {
@@ -246,9 +246,7 @@ function ProductDetail() {
     setRefunding(true);
     try {
       await marketplaceApi.requestRefund(escrow.id);
-      toast.success(
-        "Refund request sent. The product will be revoked after wallet confirmation.",
-      );
+      toast.success(t("toast.refundSent"));
       await load();
     } catch (err: any) {
       console.error(err);
@@ -256,7 +254,7 @@ function ProductDetail() {
         err.response?.data?.message ||
           err.response?.data?.error ||
           err.message ||
-          "Refund request failed.",
+          t("toast.refundFailed"),
       );
     } finally {
       setRefunding(false);
@@ -279,9 +277,9 @@ function ProductDetail() {
       setRating(5);
       await load();
       if (response.data.status === "PENDING_RISK_REVIEW") {
-        toast.info("Review received and waiting for risk review.");
+        toast.info(t("toast.reviewReceived"));
       } else {
-        toast.success("Review submitted.");
+        toast.success(t("toast.reviewSubmitted"));
       }
     } catch (err: any) {
       console.error(err);
@@ -289,7 +287,7 @@ function ProductDetail() {
         err.response?.data?.message ||
           err.response?.data?.error ||
           err.message ||
-          "Review submit failed.",
+          t("toast.reviewFailed"),
       );
     } finally {
       setReviewSubmitting(false);
@@ -309,19 +307,19 @@ function ProductDetail() {
       <div className="space-y-6 p-6 lg:p-8">
         <Button variant="ghost" size="md" onClick={() => navigate(-1)}>
           <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-          Back
+          {t("detail.back")}
         </Button>
         <EmptyState
           icon={<BookOpen className="w-5 h-5" aria-hidden="true" />}
-          title="Product unavailable"
-          description={error ?? "This product cannot be opened."}
+          title={t("detail.unavailableTitle")}
+          description={error ?? t("detail.unavailableDesc")}
           action={
             <Button
               variant="primary"
               size="md"
               onClick={() => navigate("/student/dashboard/marketplace")}
             >
-              Return to Marketplace
+              {t("detail.returnMarketplace")}
             </Button>
           }
         />
@@ -329,7 +327,7 @@ function ProductDetail() {
     );
   }
 
-  const kind = productKind(product);
+  const kind = productKind(product, t);
   const KindIcon = kind.icon;
   const targetPath =
     product.type === "FLASHCARD"
@@ -340,9 +338,7 @@ function ProductDetail() {
     <div className="space-y-8 p-6 lg:p-8">
       <PageHeader
         title={product.name}
-        subtitle={
-          product.description || "Study material from the Seika marketplace."
-        }
+        subtitle={product.description || t("detail.subtitleDefault")}
         actions={
           <Button
             variant="ghost"
@@ -350,7 +346,7 @@ function ProductDetail() {
             onClick={() => navigate("/student/dashboard/marketplace")}
           >
             <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-            Marketplace
+            {t("header.title")}
           </Button>
         }
       />
@@ -370,7 +366,11 @@ function ProductDetail() {
             >
               {product.teacherTier ?? "NEWBIE"}
             </StatusPill>
-            {owned && <StatusPill variant="success">Owned</StatusPill>}
+            {owned && (
+              <StatusPill variant="success">
+                {t("detail.ownedBadge")}
+              </StatusPill>
+            )}
           </div>
 
           <div className="aspect-[16/9] w-full rounded-2xl border border-white/[0.06] bg-white/[0.03] grid place-items-center">
@@ -384,7 +384,7 @@ function ProductDetail() {
           <div className="grid gap-4 sm:grid-cols-3">
             <div>
               <p className="text-xs uppercase tracking-[0.16em] text-white/40">
-                Price
+                {t("detail.priceLabel")}
               </p>
               <p className="mt-1 flex items-center gap-2 text-2xl font-semibold text-cream tabular-nums">
                 <Coins className="h-5 w-5 text-[#d4a843]" aria-hidden="true" />
@@ -393,7 +393,7 @@ function ProductDetail() {
             </div>
             <div>
               <p className="text-xs uppercase tracking-[0.16em] text-white/40">
-                Teacher
+                {t("detail.teacherLabel")}
               </p>
               <p className="mt-1 text-base font-medium text-cream">
                 {product.teacherDisplayName || product.sellerUserId}
@@ -401,7 +401,7 @@ function ProductDetail() {
             </div>
             <div>
               <p className="text-xs uppercase tracking-[0.16em] text-white/40">
-                Rating
+                {t("detail.ratingLabel")}
               </p>
               <p className="mt-1 text-base font-medium text-cream">
                 {toNumber(product.teacherAverageRating).toFixed(1)} / 5
@@ -416,11 +416,10 @@ function ProductDetail() {
         <SectionCard className="space-y-5">
           <div>
             <h2 className="font-sans-ui text-base font-semibold text-cream">
-              Actions
+              {t("detail.actionsTitle")}
             </h2>
             <p className="mt-1 text-sm text-white/55">
-              Buy, open owned content, or request a refund while escrow is still
-              held.
+              {t("detail.actionsDesc")}
             </p>
           </div>
 
@@ -431,7 +430,7 @@ function ProductDetail() {
               className="w-full"
               onClick={() => navigate(targetPath)}
             >
-              Open in Learning Hub
+              {t("detail.openInLearningHub")}
             </Button>
           ) : (
             <Button
@@ -441,7 +440,7 @@ function ProductDetail() {
               onClick={handleBuy}
               loading={buying}
             >
-              Buy for {formatCoins(product.price)} coins
+              {t("detail.buyForCoins", { price: formatCoins(product.price) })}
             </Button>
           )}
 
@@ -449,10 +448,10 @@ function ProductDetail() {
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="font-sans-ui text-sm font-medium text-cream">
-                  Escrow refund
+                  {t("detail.escrowRefundTitle")}
                 </p>
                 <p className="mt-1 text-sm text-white/50">
-                  {refundHelpText(escrow, ownedInventory)}
+                  {refundHelpText(escrow, ownedInventory, t)}
                 </p>
               </div>
               {escrow && (
@@ -469,7 +468,7 @@ function ProductDetail() {
                 loading={refunding}
               >
                 <Undo2 className="h-4 w-4" aria-hidden="true" />
-                Request refund
+                {t("detail.requestRefund")}
               </Button>
             )}
           </div>
@@ -482,7 +481,7 @@ function ProductDetail() {
             disabled={loading}
           >
             <RefreshCcw className="h-4 w-4" aria-hidden="true" />
-            Refresh status
+            {t("detail.refreshStatus")}
           </Button>
         </SectionCard>
       </div>
@@ -495,15 +494,15 @@ function ProductDetail() {
               aria-hidden="true"
             />
             <h2 className="font-sans-ui text-base font-semibold text-cream">
-              Reviews
+              {t("detail.reviewsTitle")}
             </h2>
           </div>
 
           {reviews.length === 0 ? (
             <EmptyState
               icon={<MessageSquare className="w-5 h-5" aria-hidden="true" />}
-              title="No reviews yet"
-              description="Verified buyers can leave a review after purchase."
+              title={t("detail.noReviewsTitle")}
+              description={t("detail.noReviewsDesc")}
             />
           ) : (
             <div className="space-y-3">
@@ -547,33 +546,33 @@ function ProductDetail() {
         <SectionCard className="space-y-5">
           <div>
             <h2 className="font-sans-ui text-base font-semibold text-cream">
-              Write a review
+              {t("detail.writeReviewTitle")}
             </h2>
             <p className="mt-1 text-sm text-white/55">
-              Only active verified purchases can submit a review.
+              {t("detail.writeReviewDesc")}
             </p>
           </div>
 
           {isOwnProduct ? (
             <p className="text-sm text-white/55">
-              Bạn không thể tự đánh giá sản phẩm của chính mình.
+              {t("detail.cannotReviewOwn")}
             </p>
           ) : !owned ? (
             <EmptyState
               icon={<ShieldCheck className="w-5 h-5" aria-hidden="true" />}
-              title="Purchase required"
-              description="Buy this product first to unlock review submission."
+              title={t("detail.purchaseRequiredTitle")}
+              description={t("detail.purchaseRequiredDesc")}
             />
           ) : (
             <form className="space-y-4" onSubmit={handleSubmitReview}>
               <div>
                 <span className="block text-sm font-medium text-cream">
-                  Rating
+                  {t("detail.ratingLabel")}
                 </span>
                 <div
                   className="mt-2 flex gap-1"
                   role="group"
-                  aria-label="Choose rating"
+                  aria-label={t("detail.chooseRatingAria")}
                 >
                   {Array.from({ length: 5 }).map((_, index) => {
                     const value = index + 1;
@@ -605,7 +604,7 @@ function ProductDetail() {
                   htmlFor="review-comment"
                   className="text-sm font-medium text-cream"
                 >
-                  Comment
+                  {t("detail.commentLabel")}
                 </label>
                 <textarea
                   id="review-comment"
@@ -613,7 +612,7 @@ function ProductDetail() {
                   onChange={(event) => setComment(event.target.value)}
                   rows={4}
                   className="mt-2 w-full rounded-xl border border-white/[0.08] bg-white/[0.04] px-4 py-3 text-sm text-cream outline-none focus:border-[#d4a843]/50"
-                  placeholder="Share what worked well for your study session."
+                  placeholder={t("detail.commentPlaceholder")}
                 />
               </div>
 
@@ -624,7 +623,7 @@ function ProductDetail() {
                 className="w-full"
                 loading={reviewSubmitting}
               >
-                Submit review
+                {t("detail.submitReview")}
               </Button>
             </form>
           )}

@@ -29,8 +29,10 @@ import {
 import { useFormatRelativeTime } from "../utils/format";
 import LanguageSwitcher from "../components/i18n/LanguageSwitcher";
 import { StatusPill } from "../components/ui/StatusPill";
+import { useTranslation } from "react-i18next";
 
 function AdminDashboardLayout() {
+  const { t } = useTranslation("common");
   const formatRelativeTime = useFormatRelativeTime();
   const navigate = useNavigate();
   const location = useLocation();
@@ -84,37 +86,37 @@ function AdminDashboardLayout() {
   const navItems = [
     {
       id: "home",
-      label: "Dashboard",
+      label: t("layout.nav.dashboard"),
       icon: LayoutDashboard,
       path: "/admin/dashboard",
     },
     {
       id: "revenue",
-      label: "Revenue",
+      label: t("layout.nav.revenue"),
       icon: TrendingUp,
       path: "/admin/dashboard/revenue",
     },
     {
       id: "marketplace",
-      label: "Marketplace Ops",
+      label: t("layout.nav.marketplaceOps"),
       icon: Store,
       path: "/admin/dashboard/marketplace",
     },
     {
       id: "users",
-      label: "User Management",
+      label: t("layout.nav.userManagement"),
       icon: Users,
       path: "/admin/dashboard/users",
     },
     {
       id: "moderation",
-      label: "Content Moderation",
+      label: t("layout.nav.contentModeration"),
       icon: ShieldCheck,
       path: "/admin/dashboard/moderation",
     },
     {
       id: "config",
-      label: "System Config",
+      label: t("layout.nav.systemConfig"),
       icon: Settings,
       path: "/admin/dashboard/config",
     },
@@ -197,7 +199,7 @@ function AdminDashboardLayout() {
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-white/55 hover:bg-white/[0.03] hover:text-cream transition-colors font-sans-ui text-sm"
           >
             <LogOut className="w-4 h-4" aria-hidden="true" />
-            <span className="font-medium">Logout</span>
+            <span className="font-medium">{t("layout.header.logout")}</span>
           </button>
         </div>
       </aside>
@@ -213,7 +215,7 @@ function AdminDashboardLayout() {
                 />
                 <input
                   type="text"
-                  placeholder="Search users, configs..."
+                  placeholder={t("layout.header.searchAdmin")}
                   className="w-full pl-11 pr-4 py-2 bg-white/[0.04] border border-white/[0.08] rounded-lg text-cream placeholder-white/40 focus:outline-none focus:border-[#d4a843]/50 transition-colors font-sans-ui text-sm"
                 />
               </div>
@@ -238,21 +240,21 @@ function AdminDashboardLayout() {
                   <div className="absolute right-0 top-[calc(100%+0.5rem)] z-30 w-80 overflow-hidden rounded-xl border border-white/[0.08] bg-[var(--color-sidebar)] shadow-[0_8px_24px_rgba(0,0,0,0.4)]">
                     <div className="p-4 border-b border-white/[0.06] flex justify-between items-center">
                       <h3 className="font-sans-ui font-semibold text-cream text-sm">
-                        Notifications
+                        {t("layout.header.notifications")}
                       </h3>
                       {unreadCount > 0 && (
                         <button
                           onClick={() => dispatch(markAllAsRead())}
                           className="text-xs text-[#d4a843] hover:underline font-sans-ui"
                         >
-                          Mark all as read
+                          {t("layout.header.markAllAsRead")}
                         </button>
                       )}
                     </div>
                     <div className="max-h-80 overflow-y-auto custom-scrollbar">
                       {notifications.length === 0 ? (
                         <div className="p-6 text-center text-sm text-white/50 font-sans-ui">
-                          No notifications yet.
+                          {t("layout.header.noNotifications")}
                         </div>
                       ) : (
                         notifications.map((notif) => {
@@ -292,7 +294,7 @@ function AdminDashboardLayout() {
                     </div>
                     <div className="p-3 border-t border-white/[0.06] text-center">
                       <button className="text-xs font-sans-ui font-medium text-[#d4a843] hover:underline">
-                        View all notifications
+                        {t("layout.header.viewAllNotifications")}
                       </button>
                     </div>
                   </div>
@@ -330,7 +332,7 @@ function AdminDashboardLayout() {
                       />
                     </p>
                     <p className="text-white/45 text-xs font-sans-ui">
-                      Administrator Account
+                      {t("layout.header.adminAccount")}
                     </p>
                   </div>
                 </button>
@@ -346,7 +348,7 @@ function AdminDashboardLayout() {
                       className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm font-sans-ui text-red-300 hover:bg-red-500/10 transition-colors"
                     >
                       <LogOut className="w-4 h-4" aria-hidden="true" />
-                      Logout
+                      {t("layout.header.logout")}
                     </button>
                   </div>
                 )}

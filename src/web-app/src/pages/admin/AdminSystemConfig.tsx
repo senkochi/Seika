@@ -29,43 +29,36 @@ type ConfigDomain = "wallet" | "marketplace";
 type RequestStatus = "idle" | "loading" | "succeeded" | "failed";
 
 type ConfigGroup = {
-  title: string;
-  description: string;
+  id: string;
   keys: string[];
 };
 
 const WALLET_GROUPS: ConfigGroup[] = [
   {
-    title: "Quy đổi",
-    description: "Tỷ giá nạp và rút coin.",
+    id: "exchange",
     keys: ["TOPUP_VND_PER_COIN", "WITHDRAWAL_VND_PER_COIN"],
   },
   {
-    title: "Coin khởi tạo",
-    description: "Số coin mặc định khi tạo ví mới.",
+    id: "initial",
     keys: ["STUDENT_INITIAL_COIN", "TEACHER_INITIAL_COIN"],
   },
   {
-    title: "Cash-out",
-    description: "Điều kiện tối thiểu khi teacher rút coin.",
+    id: "cashout",
     keys: ["CASH_OUT_MIN_COINS", "CASH_OUT_MULTIPLE"],
   },
 ];
 
 const MARKETPLACE_GROUPS: ConfigGroup[] = [
   {
-    title: "Escrow",
-    description: "Thời gian giữ escrow và phí vận hành pilot.",
+    id: "escrow",
     keys: ["ESCROW_HOLD_DAYS", "ESCROW_OPERATION_FEE_PERCENT"],
   },
   {
-    title: "Tier fee",
-    description: "Phí platform theo teacher tier.",
+    id: "tierFee",
     keys: ["TIER_PLATFORM_FEE_PERCENT"],
   },
   {
-    title: "Tier thresholds",
-    description: "Ngưỡng rating, review count và metric Phase 3.",
+    id: "tierThresholds",
     keys: [
       "TIER_RATING_THRESHOLDS",
       "TIER_CONSUME_RATE_MIN",
@@ -74,8 +67,7 @@ const MARKETPLACE_GROUPS: ConfigGroup[] = [
     ],
   },
   {
-    title: "Risk review",
-    description: "Cấu hình phát hiện collusion và cash-out hold.",
+    id: "riskReview",
     keys: [
       "COLLUSION_LOOKBACK_DAYS",
       "COLLUSION_RISK_THRESHOLD",
@@ -213,42 +205,42 @@ function ConfigSection({
   }
 
   const groupKeyMap: Record<string, { title: string; desc: string }> = {
-    "Quy đổi": {
+    exchange: {
       title: t("systemConfig.groups.wallet.exchange.title"),
       desc: t("systemConfig.groups.wallet.exchange.desc"),
     },
-    "Coin khởi tạo": {
+    initial: {
       title: t("systemConfig.groups.wallet.initial.title"),
       desc: t("systemConfig.groups.wallet.initial.desc"),
     },
-    "Cash-out": {
+    cashout: {
       title: t("systemConfig.groups.wallet.cashout.title"),
       desc: t("systemConfig.groups.wallet.cashout.desc"),
     },
-    Escrow: {
+    escrow: {
       title: t("systemConfig.groups.marketplace.escrow.title"),
       desc: t("systemConfig.groups.marketplace.escrow.desc"),
     },
-    "Tier fee": {
+    tierFee: {
       title: t("systemConfig.groups.marketplace.tierFee.title"),
       desc: t("systemConfig.groups.marketplace.tierFee.desc"),
     },
-    "Tier thresholds": {
+    tierThresholds: {
       title: t("systemConfig.groups.marketplace.tierThresholds.title"),
       desc: t("systemConfig.groups.marketplace.tierThresholds.desc"),
     },
-    "Risk review": {
+    riskReview: {
       title: t("systemConfig.groups.marketplace.riskReview.title"),
       desc: t("systemConfig.groups.marketplace.riskReview.desc"),
     },
-    Khác: {
+    other: {
       title: t("systemConfig.groups.other.title"),
       desc: t("systemConfig.groups.other.desc"),
     },
   };
 
-  const translatedTitle = groupKeyMap[group.title]?.title || group.title;
-  const translatedDesc = groupKeyMap[group.title]?.desc || group.description;
+  const translatedTitle = groupKeyMap[group.id]?.title || group.id;
+  const translatedDesc = groupKeyMap[group.id]?.desc || "";
 
   return (
     <section className="space-y-3 border-t border-white/[0.06] pt-5 font-sans-ui">
@@ -301,8 +293,7 @@ function buildGroupedConfigs(
   if (otherConfigs.length > 0) {
     grouped.push({
       group: {
-        title: "Khác",
-        description: "Các config chưa được phân nhóm trong UI.",
+        id: "other",
         keys: otherConfigs.map((config) => config.key),
       },
       configs: otherConfigs,
@@ -461,7 +452,7 @@ function AdminSystemConfig() {
       }
       return walletGroups.map(({ group, configs: entries, missingKeys }) => (
         <ConfigSection
-          key={group.title}
+          key={group.id}
           domain="wallet"
           group={group}
           configs={entries}
@@ -488,7 +479,7 @@ function AdminSystemConfig() {
     }
     return marketplaceGroups.map(({ group, configs: entries, missingKeys }) => (
       <ConfigSection
-        key={group.title}
+        key={group.id}
         domain="marketplace"
         group={group}
         configs={entries}

@@ -1,5 +1,34 @@
 {
   "languageSwitcher.label": "Language",
+  "layout": {
+    "nav": {
+      "dashboard": "Dashboard",
+      "learningHub": "Learning Hub",
+      "marketplace": "Marketplace",
+      "wallet": "Wallet",
+      "profile": "Profile",
+      "contentManager": "Content Manager",
+      "statistics": "Statistics",
+      "revenue": "Revenue",
+      "marketplaceOps": "Marketplace Ops",
+      "userManagement": "User Management",
+      "contentModeration": "Content Moderation",
+      "systemConfig": "System Config"
+    },
+    "header": {
+      "searchStudent": "Search...",
+      "searchTeacher": "Search materials, quizzes...",
+      "searchAdmin": "Search users, configs...",
+      "notifications": "Notifications",
+      "markAllAsRead": "Mark all as read",
+      "noNotifications": "No notifications yet.",
+      "viewAllNotifications": "View all notifications",
+      "settings": "Settings",
+      "logout": "Logout",
+      "adminAccount": "Administrator Account",
+      "levelLabel": "Level {{level}}"
+    }
+  },
   "actions": {
     "confirm": "Confirm",
     "cancel": "Cancel",
