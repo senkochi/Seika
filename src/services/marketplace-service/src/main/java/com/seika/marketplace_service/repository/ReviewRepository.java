@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.List;
 
 public interface ReviewRepository extends JpaRepository<Review, String> {
@@ -19,4 +20,6 @@ public interface ReviewRepository extends JpaRepository<Review, String> {
     long countBySellerIdAndStatus(String sellerId, ReviewStatus status);
     long countBySellerIdAndStatusIn(String sellerId, List<ReviewStatus> statuses);
     List<Review> findBySellerIdAndBuyerIdAndStatus(String sellerId, String buyerId, ReviewStatus status);
+    List<Review> findBySellerIdAndBuyerIdAndStatusAndCreatedAtGreaterThanEqual(
+            String sellerId, String buyerId, ReviewStatus status, Instant createdAt);
 }

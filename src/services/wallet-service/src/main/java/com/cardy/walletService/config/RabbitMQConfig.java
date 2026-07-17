@@ -6,6 +6,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.amqp.core.*;
 import org.springframework.amqp.support.converter.MessageConverter;
 
+import java.util.Map;
+
 @Configuration
 public class RabbitMQConfig {
     public static final String LEARN_FANOUT_EXCHANGE = "learn.exchange";
@@ -76,6 +78,17 @@ public class RabbitMQConfig {
 
     public static final String WALLET_EVENTS_EXCHANGE = "wallet.events";
 
+    /**
+     * Dead-letter exchange + queue. Used by the wallet outbox processor to
+     * park events that exceed {@code wallet.outbox.processor.max-attempts}.
+     * Other consumers (e.g. {@code CollusionEventConsumer}) should also bind
+     * their queues' {@code x-dead-letter-exchange} to this exchange so that
+     * poison messages that fail processing end up here instead of being
+     * re-delivered forever.
+     */
+    public static final String WALLET_EVENTS_DLX = "wallet.events.dlx";
+    public static final String WALLET_EVENTS_DLQ = "wallet.events.dlq";
+
     @Bean
     public TopicExchange walletCommandsExchange() {
         return new TopicExchange(WALLET_COMMANDS_EXCHANGE);
@@ -121,12 +134,32 @@ public class RabbitMQConfig {
 
     @Bean
     public Queue collusionFlagsQueue() {
-        return new Queue(COLLUSION_FLAGS_QUEUE, true);
+        // route consumer-side poison messages to the wallet DLX so they don't
+        // get re-delivered forever. Consumer-level handling is owned by
+        // CollusionEventConsumer (Task 6).
+        return new Queue(COLLUSION_FLAGS_QUEUE, true, false, false,
+                Map.of("x-dead-letter-exchange", WALLET_EVENTS_DLX));
     }
 
     @Bean
     public Binding collusionFlagsBinding(Queue collusionFlagsQueue, TopicExchange marketplaceEventsExchange) {
         return BindingBuilder.bind(collusionFlagsQueue).to(marketplaceEventsExchange).with(COLLUSION_FLAGGED_ROUTING_KEY);
     }
-}
 
+    // --- DLX / DLQ ---
+
+    @Bean
+    public DirectExchange walletEventsDlx() {
+        return new DirectExchange(WALLET_EVENTS_DLX, true, false);
+    }
+
+    @Bean
+    public Queue walletEventsDlq() {
+        return new Queue(WALLET_EVENTS_DLQ, true);
+    }
+
+    @Bean
+    public Binding walletEventsDlqBinding(Queue walletEventsDlq, DirectExchange walletEventsDlx) {
+        return BindingBuilder.bind(walletEventsDlq).to(walletEventsDlx).with("");
+    }
+}

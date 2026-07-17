@@ -5,12 +5,15 @@ import com.cardy.walletService.service.WalletHoldService;
 import com.cardy.walletService.service.WalletService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
+import org.springframework.amqp.AmqpRejectAndDontRequeueException;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageProperties;
 
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -66,6 +69,44 @@ class CollusionEventConsumerTest {
                 "FLAG-2", "SYSTEM_COLLUSION");
         verify(walletService).applyFreeze(buyerId, "Collusion flag MALICIOUS: malicious abuse",
                 "FLAG-2", "SYSTEM_COLLUSION");
+        verify(holdService, never()).placeHold(any(), any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void handleCollusionFlaggedMaliciousWithoutBuyerIdRethrows() throws Exception {
+        WalletHoldService holdService = mock(WalletHoldService.class);
+        WalletService walletService = mock(WalletService.class);
+        CollusionEventConsumer consumer = new CollusionEventConsumer(holdService, walletService);
+
+        UUID teacherId = UUID.randomUUID();
+        CollusionFlaggedEvent event = CollusionFlaggedEvent.builder()
+                .flagId("FLAG-3")
+                .teacherId(teacherId.toString())
+                .buyerId(null)
+                .status("MALICIOUS")
+                .reason("malicious abuse")
+                .holdDays(30)
+                .build();
+
+        assertThrows(AmqpRejectAndDontRequeueException.class,
+                () -> consumer.handleCollusionFlaggedEvent(message(event)));
+
+        verify(walletService, never()).applyFreeze(any(), any(), any(), any());
+        verify(holdService, never()).placeHold(any(), any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void handleCollusionFlaggedWithPoisonPayloadRethrows() {
+        WalletHoldService holdService = mock(WalletHoldService.class);
+        WalletService walletService = mock(WalletService.class);
+        CollusionEventConsumer consumer = new CollusionEventConsumer(holdService, walletService);
+
+        Message poison = new Message("{not json".getBytes(StandardCharsets.UTF_8), new MessageProperties());
+
+        assertThrows(AmqpRejectAndDontRequeueException.class,
+                () -> consumer.handleCollusionFlaggedEvent(poison));
+
+        verify(walletService, never()).applyFreeze(any(), any(), any(), any());
         verify(holdService, never()).placeHold(any(), any(), any(), any(), any(), any());
     }
 

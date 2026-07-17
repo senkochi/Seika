@@ -54,6 +54,12 @@ class CollusionFlagServiceTest {
         Review validReview = Review.builder().id("REV1").sellerId("T1").buyerId("B1").status(com.seika.marketplace_service.enums.ReviewStatus.VALID).build();
         org.mockito.Mockito.when(reviewRepo.findBySellerIdAndBuyerIdAndStatus("T1", "B1", com.seika.marketplace_service.enums.ReviewStatus.VALID))
                 .thenReturn(java.util.List.of(validReview));
+        org.mockito.Mockito.when(reviewRepo.findBySellerIdAndBuyerIdAndStatusAndCreatedAtGreaterThanEqual(
+                org.mockito.ArgumentMatchers.eq("T1"),
+                org.mockito.ArgumentMatchers.eq("B1"),
+                org.mockito.ArgumentMatchers.eq(com.seika.marketplace_service.enums.ReviewStatus.VALID),
+                org.mockito.ArgumentMatchers.any(java.time.Instant.class)
+        )).thenReturn(java.util.List.of(validReview));
 
         CollusionFlag flag = service.detectAndFlagCollusion("T1", "B1", 10, new BigDecimal("0.8"), new BigDecimal("0.9"), new BigDecimal("0.8"), true);
 
@@ -127,6 +133,53 @@ class CollusionFlagServiceTest {
                 objectMapper.readValue(outbox.getPayload(), com.seika.marketplace_service.event.CollusionFlaggedEvent.class);
         assertThat(payload.getHoldDays()).isEqualTo(14);
         assertThat(payload.getStatus()).isEqualTo("MALICIOUS");
+    }
+
+    @Test
+    void transitionToPendingReviewsOnlyConsidersLookbackWindow() {
+        com.seika.marketplace_service.repository.CollusionFlagRepository flagRepo = org.mockito.Mockito.mock(com.seika.marketplace_service.repository.CollusionFlagRepository.class);
+        com.seika.marketplace_service.repository.ReviewRepository reviewRepo = org.mockito.Mockito.mock(com.seika.marketplace_service.repository.ReviewRepository.class);
+        com.seika.marketplace_service.repository.EscrowTransactionRepository escrowRepo = org.mockito.Mockito.mock(com.seika.marketplace_service.repository.EscrowTransactionRepository.class);
+        com.seika.marketplace_service.repository.UserInventoryRepository inventoryRepo = org.mockito.Mockito.mock(com.seika.marketplace_service.repository.UserInventoryRepository.class);
+        TeacherRatingService ratingService = org.mockito.Mockito.mock(TeacherRatingService.class);
+        AdminActionLogService logService = org.mockito.Mockito.mock(AdminActionLogService.class);
+        MarketplaceConfigService configService = org.mockito.Mockito.mock(MarketplaceConfigService.class);
+        CollusionFlagService service = new CollusionFlagService(flagRepo, reviewRepo, ratingService, logService, configService, null, escrowRepo, inventoryRepo);
+
+        java.time.Instant oldReviewCreatedAt = java.time.Instant.parse("2025-01-01T00:00:00Z");
+        java.time.Instant recentReviewCreatedAt = java.time.Instant.parse("2026-07-15T00:00:00Z");
+        Review oldReview = Review.builder()
+                .id("OLD_REV").sellerId("T1").buyerId("B1")
+                .status(com.seika.marketplace_service.enums.ReviewStatus.VALID)
+                .createdAt(oldReviewCreatedAt).build();
+        Review recentReview = Review.builder()
+                .id("RECENT_REV").sellerId("T1").buyerId("B1")
+                .status(com.seika.marketplace_service.enums.ReviewStatus.VALID)
+                .createdAt(recentReviewCreatedAt).build();
+
+        org.mockito.Mockito.when(reviewRepo.findBySellerIdAndBuyerIdAndStatusAndCreatedAtGreaterThanEqual(
+                org.mockito.ArgumentMatchers.eq("T1"),
+                org.mockito.ArgumentMatchers.eq("B1"),
+                org.mockito.ArgumentMatchers.eq(com.seika.marketplace_service.enums.ReviewStatus.VALID),
+                org.mockito.ArgumentMatchers.any(java.time.Instant.class)
+        )).thenReturn(java.util.List.of(recentReview));
+
+        org.mockito.Mockito.when(reviewRepo.saveAll(org.mockito.ArgumentMatchers.anyList()))
+                .thenAnswer(inv -> inv.getArgument(0));
+
+        java.time.Instant lookbackStart = java.time.Instant.parse("2026-07-09T00:00:00Z");
+        int transitioned = service.transitionValidReviewsToPending("T1", "B1", lookbackStart);
+
+        assertThat(transitioned).isEqualTo(1);
+        assertThat(recentReview.getStatus()).isEqualTo(com.seika.marketplace_service.enums.ReviewStatus.PENDING_RISK_REVIEW);
+        assertThat(oldReview.getStatus()).isEqualTo(com.seika.marketplace_service.enums.ReviewStatus.VALID);
+        org.mockito.ArgumentCaptor<java.util.List<Review>> saveCaptor =
+                org.mockito.ArgumentCaptor.forClass(java.util.List.class);
+        org.mockito.Mockito.verify(reviewRepo).saveAll(saveCaptor.capture());
+        java.util.List<Review> saved = saveCaptor.getValue();
+        assertThat(saved).hasSize(1);
+        assertThat(saved.get(0).getId()).isEqualTo("RECENT_REV");
+        org.mockito.Mockito.verify(ratingService).recompute("T1");
     }
 
     @Test

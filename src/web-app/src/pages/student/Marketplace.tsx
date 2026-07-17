@@ -31,7 +31,7 @@ async function waitForPaidOrder(orderId: string) {
     if (response.data.status === "PAID") return response.data;
     if (response.data.status === "FAILED") {
       throw new Error(
-        "Payment failed. Your coins were kept or will be restored by the system.",
+        "Thanh toán thất bại. Coin đã được giữ nguyên hoặc sẽ được hoàn theo hệ thống.",
       );
     }
     await wait(ORDER_POLL_DELAY_MS);
@@ -82,24 +82,24 @@ function Marketplace() {
   const handleBuy = async (product: Product) => {
     try {
       if (!userId) {
-        toast.error("Please sign in before buying.");
+        toast.error("Vui lòng đăng nhập để mua hàng");
         return;
       }
 
-      toast.loading("Checking wallet balance...", { id: "buy-product" });
+      toast.loading("Đang kiểm tra số dư...", { id: "buy-product" });
       const balanceRes = await walletService.getBalance();
       const currentBalance = toNumber(balanceRes.balance);
       const price = toNumber(product.price);
 
       if (currentBalance < price) {
         toast.error(
-          `Not enough coins. You need ${price.toLocaleString("vi-VN")} coins, current balance is ${currentBalance.toLocaleString("vi-VN")}.`,
+          `Số dư không đủ! Bạn cần ${price.toLocaleString("vi-VN")} Coins nhưng hiện tại chỉ có ${currentBalance.toLocaleString("vi-VN")} Coins.`,
           { id: "buy-product" },
         );
         return;
       }
 
-      toast.loading("Creating order...", { id: "buy-product" });
+      toast.loading("Đang tạo đơn hàng...", { id: "buy-product" });
       const orderResponse = await marketplaceApi.createOrder(userId, [
         {
           productId: product.id,
@@ -112,20 +112,20 @@ function Marketplace() {
         },
       ]);
 
-      toast.loading("Confirming payment...", { id: "buy-product" });
+      toast.loading("Đang xác nhận thanh toán...", { id: "buy-product" });
       const paidOrder = await waitForPaidOrder(orderResponse.data.id);
       await fetchProducts();
 
       if (paidOrder) {
         toast.success(
-          "Purchase complete. The product is now in Learning Hub.",
+          "Đã mua hàng thành công! Sản phẩm đã có trong Learning Hub.",
           {
             id: "buy-product",
           },
         );
       } else {
         toast.info(
-          "Order is still processing. Refresh Learning Hub in a moment.",
+          "Đơn hàng đang được xử lý. Vui lòng làm mới Learning Hub sau ít giây.",
           {
             id: "buy-product",
           },
@@ -137,7 +137,7 @@ function Marketplace() {
         error.response?.data?.message ||
         error.response?.data?.error ||
         error.message ||
-        "Purchase failed.";
+        "Mua hàng thất bại";
       toast.error(errorMessage, { id: "buy-product" });
       void fetchProducts();
     }
@@ -147,7 +147,7 @@ function Marketplace() {
     <div className="space-y-8 p-6 lg:p-8">
       <PageHeader
         title="Marketplace"
-        subtitle="Browse teacher-made flashcard decks and quiz packs."
+        subtitle="Khám phá các bộ thẻ và quiz do giáo viên trên hệ thống đăng bán."
         actions={
           <Button
             variant="ghost"
@@ -159,7 +159,7 @@ function Marketplace() {
               className={`h-4 w-4 ${loading ? "animate-spin" : ""}`}
               aria-hidden="true"
             />
-            Refresh
+            Làm mới
           </Button>
         }
       />
@@ -168,19 +168,19 @@ function Marketplace() {
         <div className="flex items-center gap-2 mb-5">
           <Store className="w-4 h-4 text-[#d4a843]" aria-hidden="true" />
           <h2 className="font-sans-ui text-base font-semibold text-cream">
-            All products
+            Tất cả sản phẩm
           </h2>
         </div>
 
         {loading ? (
           <div className="font-sans-ui text-white/55 text-sm">
-            Loading products...
+            Đang tải sản phẩm…
           </div>
         ) : products.length === 0 ? (
           <EmptyState
             icon={<Store className="w-5 h-5" aria-hidden="true" />}
-            title="No products yet"
-            description="Marketplace products will appear here when teachers publish them."
+            title="Chưa có sản phẩm nào"
+            description="Marketplace hiện chưa có sản phẩm. Quay lại sau nhé."
           />
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -220,7 +220,7 @@ function Marketplace() {
                     {item.name}
                   </h3>
                   <p className="font-sans-ui text-sm text-white/55 line-clamp-2 flex-1 mb-4">
-                    {item.description || "No description yet."}
+                    {item.description || "Chưa có mô tả"}
                   </p>
 
                   <div className="mb-5 rounded-xl border border-white/[0.06] bg-white/[0.025] p-3 font-sans-ui">

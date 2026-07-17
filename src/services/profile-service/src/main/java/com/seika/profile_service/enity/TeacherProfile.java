@@ -56,4 +56,7 @@ public class TeacherProfile {
 
     @Column(name = "teacher_tier_updated_at")
     Instant teacherTierUpdatedAt;
+
+    @Column(name = "last_processed_event_id", length = 64)
+    String lastProcessedEventId;
 }

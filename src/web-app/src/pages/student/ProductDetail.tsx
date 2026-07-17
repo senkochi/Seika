@@ -184,7 +184,14 @@ function ProductDetail() {
     () => (product ? latestEscrowForProduct(escrows, product.id) : undefined),
     [escrows, product],
   );
-  const canRefund = canRequestSelfServiceRefund(escrow, ownedInventory);
+  const isEscrowBuyer = Boolean(
+    userId && escrow && escrow.buyerId === userId,
+  );
+  const canRefund =
+    isEscrowBuyer && canRequestSelfServiceRefund(escrow, ownedInventory);
+  const isOwnProduct = Boolean(
+    userId && product && product.sellerUserId === userId,
+  );
 
   const handleBuy = async () => {
     if (!product) return;
@@ -550,7 +557,11 @@ function ProductDetail() {
             </p>
           </div>
 
-          {!owned ? (
+          {isOwnProduct ? (
+            <p className="text-sm text-white/55">
+              Bạn không thể tự đánh giá sản phẩm của chính mình.
+            </p>
+          ) : !owned ? (
             <EmptyState
               icon={<ShieldCheck className="w-5 h-5" aria-hidden="true" />}
               title="Purchase required"

@@ -16,7 +16,8 @@ import java.util.UUID;
     indexes = {
         @Index(name = "idx_wallet_outbox_status", columnList = "status"),
         @Index(name = "idx_wallet_outbox_created_at", columnList = "created_at"),
-        @Index(name = "idx_wallet_outbox_aggregate", columnList = "aggregate_type, aggregate_id")
+        @Index(name = "idx_wallet_outbox_aggregate", columnList = "aggregate_type, aggregate_id"),
+        @Index(name = "idx_wallet_outbox_status_next_attempt", columnList = "status, next_attempt_at")
     }
 )
 @Getter
@@ -60,4 +61,14 @@ public class WalletOutboxEvent {
 
     @Column(name = "last_error", length = 2000)
     private String lastError;
+
+    @Column(name = "claimed_at")
+    private Instant claimedAt;
+
+    @Column(name = "next_attempt_at")
+    private Instant nextAttemptAt;
+
+    @Column(name = "attempt_count", nullable = false)
+    @Builder.Default
+    private int attemptCount = 0;
 }

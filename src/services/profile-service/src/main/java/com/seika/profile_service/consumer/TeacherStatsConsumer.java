@@ -104,11 +104,23 @@ public class TeacherStatsConsumer {
             }
 
             TeacherProfile teacherProfile = ensureTeacherProfileExists(event.getTeacherId());
+
+            String incomingEventId = event.getEventId();
+            String currentEventId = teacherProfile.getLastProcessedEventId();
+            if (incomingEventId != null && !incomingEventId.isBlank()
+                    && currentEventId != null && !currentEventId.isBlank()
+                    && incomingEventId.compareTo(currentEventId) < 0) {
+                log.warn("Skipped stale teacher.tier.updated event for teacherId={} incomingEventId={} currentEventId={}",
+                        event.getTeacherId(), incomingEventId, currentEventId);
+                return;
+            }
+
             teacherProfile.setTeacherTier(event.getTier());
             teacherProfile.setTeacherAverageRating(defaultDecimal(event.getAverageRating()));
             teacherProfile.setTeacherValidReviewCount(event.getValidReviewCount());
             teacherProfile.setTeacherTierFeePercent(defaultDecimal(event.getTierFeePercent()));
             teacherProfile.setTeacherTierUpdatedAt(event.getOccurredAt());
+            teacherProfile.setLastProcessedEventId(event.getEventId());
             teacherProfileRepository.save(teacherProfile);
 
             log.info("Updated teacher profile tier display for teacherId={} tier={} rating={} reviews={}",

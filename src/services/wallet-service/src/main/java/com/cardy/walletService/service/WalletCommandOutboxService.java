@@ -110,7 +110,7 @@ public class WalletCommandOutboxService {
                 .occurredAt(Instant.now())
                 .reason(reason)
                 .build();
-        saveOutbox("Order", requestEvent.getOrderId(), eventType, outEvent);
+        enqueueOutboxResult("Order", requestEvent.getOrderId(), eventType, outEvent);
     }
 
     private void enqueueCreditResult(WalletCreditRequestedEvent requestEvent, String eventType, String reason) {
@@ -130,7 +130,7 @@ public class WalletCommandOutboxService {
                 .occurredAt(Instant.now())
                 .reason(reason)
                 .build();
-        saveOutbox("EscrowTransaction", requestEvent.getEscrowId(), eventType, outEvent);
+        enqueueOutboxResult("EscrowTransaction", requestEvent.getEscrowId(), eventType, outEvent);
     }
 
     private void enqueueRefundResult(WalletRefundRequestedEvent requestEvent, String eventType, String reason) {
@@ -149,16 +149,23 @@ public class WalletCommandOutboxService {
                 .occurredAt(Instant.now())
                 .reason(reason)
                 .build();
-        saveOutbox("EscrowTransaction", requestEvent.getEscrowId(), eventType, outEvent);
+        enqueueOutboxResult("EscrowTransaction", requestEvent.getEscrowId(), eventType, outEvent);
     }
 
-    private void saveOutbox(String aggregateType, String aggregateId, String eventType, Object event) {
+    /**
+     * Shared helper that serialises {@code payload} and persists a {@link WalletOutboxEvent}
+     * row with the supplied aggregate identity and event type. Note that
+     * {@link WalletOutboxEvent} has no reason column — callers embed the reason inside
+     * their typed payload (e.g. {@link WalletDebitEvent#getReason()} /
+     * {@link WalletEscrowResultEvent#getReason()}).
+     */
+    private void enqueueOutboxResult(String aggregateType, String aggregateId, String eventType, Object payload) {
         try {
             walletOutboxEventRepository.save(WalletOutboxEvent.builder()
                     .aggregateType(aggregateType)
                     .aggregateId(aggregateId == null ? "UNKNOWN" : aggregateId)
                     .eventType(eventType)
-                    .payload(objectMapper.writeValueAsString(event))
+                    .payload(objectMapper.writeValueAsString(payload))
                     .status(WalletOutboxStatus.PENDING)
                     .build());
         } catch (JsonProcessingException exception) {
