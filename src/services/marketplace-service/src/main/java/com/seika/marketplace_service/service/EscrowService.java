@@ -261,6 +261,7 @@ public class EscrowService {
                 .occurredAt(Instant.now())
                 .build();
         saveOutbox("EscrowTransaction", escrow.getId(), REFUND_REQUESTED, event);
+        escrow.setCreditRequestedAt(null);
         escrow.setRefundRequestedAt(Instant.now());
         escrow.setNeedsAdminDecision(false);
         escrow.setReviewReason(reason);

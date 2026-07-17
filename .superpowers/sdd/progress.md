@@ -25,26 +25,22 @@ Branch: cuong/dev (no commits until user review)
 
 - [x] Task 10 (rollback vn→en regression): complete. Files: `Marketplace.tsx` (16 English strings reverted to their pre-regression Vietnamese wording). Verify: typecheck ✓ lint ✓ build ✓. Important correction: brief blamed commit `e44fec1`, but the regression actually came from `1d8618d` (phase 3 commit). Pre-`1d8618d` Vietnamese wording was restored, verified against `git show 1d8618d^:...Marketplace.tsx`. 8 English strings left as-is because they're NEW copy from `1d8618d` itself (no prior Vietnamese exists): "Flashcard", "Quiz", "Teacher", "NEWBIE", "Coins", "Details", "Buy", "Failed to load marketplace products.". `"Buy"` had a pre-existing `"Mua"` counterpart — flagged for user if they want it translated too, otherwise leave alone.
 
+- [x] Task 11 (merge-blocker fix: requestRefund must invalidate prior creditRequestedAt): complete. Files: `EscrowService.java` (mirrored Task 3's one-line `escrow.setCreditRequestedAt(null);` into `requestRefund`), `EscrowFullRefundInvalidatesCreditTest.java` (new, mirrors `EscrowPartialRefundInvalidatesCreditTest`'s ArgumentCaptor pattern but exercises `adminFullRefund`). Tests: 5/5 pass (1 new + 1 partial-refund + 3 pre-existing EscrowServiceTest). Both files un-staged per session-wide no-commit rule.
+
 ## Final whole-branch review
 
-**Verdict: Request changes** — for ONE blocker only.
+**Verdict: Approve** — all merge-blockers resolved.
 
 | Item | Status |
 |---|---|
 | C-1, R-1, R-2, R-3, R-4, R-5, R-6, R-7, R-8, R-9, R-10, R-12, vn→en rollback | ✅ 13/13 pass |
-| Cross-cutting concerns | 12 low-severity follow-ups noted |
+| Cross-cutting concerns | 11 low-severity follow-ups noted |
 | Open-concern #1 — reciprocalRatio semantics shifted under canonicalization | follow-up |
-| Open-concern #2 — `requestRefund` (full refund) has same R-2 bug as partial | **MERGE-BLOCKER** |
+| Open-concern #2 — `requestRefund` (full refund) had same R-2 bug as partial | ✅ RESOLVED in Task 11 |
 | Open-concern #3 — `findTop50ByStatusInOrderByCreatedAtAsc` dead code in repo | follow-up |
 | Open-concern #4 — 8 English strings left on Marketplace.tsx (NEW copy from phase 3) | not-a-concern (verified) |
 
-**One merge-blocker to address before merge:**
-
-`EscrowService.requestRefund(escrow, reason)` at lines 248-269 has the same `creditRequestedAt` non-invalidation bug we just fixed in `requestPartialRefund` (Task 3). The `adminFullRefund` path (line 163-169) calls `requestRefund` without any pre-guard, so a full refund on an escrow with a previously-scheduled release credit will publish both `wallet.refund.requested` and `wallet.credit.requested`. (`requestSelfServiceRefund` at line 149-152 already guards on `creditRequestedAt != null`, so the buyer path is safe — only the admin full-refund path is exposed.)
-
-**Proposed one-line fix:** mirror Task 3's pattern — add `escrow.setCreditRequestedAt(null);` immediately after `escrow.setRefundRequestedAt(Instant.now());` at EscrowService.java:264.
-
-**Other follow-ups (not blocking merge):**
+**All follow-ups (not blocking merge):**
 - `WalletOutboxProcessor` does not register a `ConfirmCallback` / `ReturnsCallback` despite publisher-confirm-type being enabled — broker accept-without-route still marks SENT silently. Add a `CorrelationData` per event + confirm/return callbacks OR set `spring.rabbitmq.template.mandatory: true` + a returns callback.
 - `computeRiskScore` (static, lines 100-109) is now dead — only `computeConfiguredRiskScore` is reachable. Remove or deprecate.
 - `WalletOutboxProcessorTest.java:169-171` has unused `eq` helper. Remove.
