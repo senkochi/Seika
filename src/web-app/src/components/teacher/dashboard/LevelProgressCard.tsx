@@ -1,4 +1,6 @@
+import { useTranslation } from "react-i18next";
 import { SectionCard } from "../../ui/SectionCard";
+import { useFormatNumber } from "../../../utils/format";
 
 interface LevelProgressCardProps {
   level: number;
@@ -14,12 +16,14 @@ function LevelProgressCard({
   currentXP,
   nextXP,
 }: LevelProgressCardProps) {
+  const { t } = useTranslation("teacher");
+  const formatNumber = useFormatNumber();
   const percent = nextXP > 0 ? Math.round((currentXP / nextXP) * 100) : 0;
 
   return (
     <SectionCard className="flex flex-col items-center justify-center">
       <h3 className="font-sans-ui text-base font-semibold text-cream mb-6 w-full text-left">
-        Tiến độ cấp độ
+        {t("levelProgress.title")}
       </h3>
 
       <div className="relative w-40 h-40 mb-6">
@@ -50,21 +54,23 @@ function LevelProgressCard({
             {percent}%
           </p>
           <p className="text-white/45 text-xs uppercase tracking-[0.12em] mt-1">
-            Hoàn thành
+            {t("levelProgress.completed")}
           </p>
         </div>
       </div>
 
       <div className="text-center font-sans-ui">
         <p className="text-white/45 text-xs uppercase tracking-[0.12em] mb-1">
-          Cấp hiện tại
+          {t("levelProgress.currentLevelLabel")}
         </p>
         <p className="text-xl font-semibold text-cream mb-3 tabular-nums">
-          Level {level}
+          {t("levelProgress.level", { level })}
         </p>
         <p className="text-xs text-white/55 tabular-nums">
-          {currentXP.toLocaleString("vi-VN")} / {nextXP.toLocaleString("vi-VN")}{" "}
-          XP
+          {t("levelProgress.xpProgress", {
+            current: formatNumber(currentXP),
+            next: formatNumber(nextXP),
+          })}
         </p>
       </div>
     </SectionCard>

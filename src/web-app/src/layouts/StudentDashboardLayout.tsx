@@ -25,10 +25,11 @@ import {
   markAsRead,
   markAllAsRead,
 } from "../store/notificationSlice";
-import { formatDistanceToNow } from "date-fns";
+import { useFormatRelativeTime } from "../utils/format";
 import LanguageSwitcher from "../components/i18n/LanguageSwitcher";
 
 function StudentDashboardLayout() {
+  const formatRelativeTime = useFormatRelativeTime();
   const navigate = useNavigate();
   const location = useLocation();
   const [avatarMenuOpen, setAvatarMenuOpen] = useState(false);
@@ -288,12 +289,7 @@ function StudentDashboardLayout() {
                                 {notif.content}
                               </p>
                               <span className="text-[10px] text-white/40 mt-2 block font-sans-ui">
-                                {formatDistanceToNow(
-                                  new Date(notif.createdAt),
-                                  {
-                                    addSuffix: true,
-                                  },
-                                )}
+                                {formatRelativeTime(notif.createdAt)}
                               </span>
                             </div>
                           );

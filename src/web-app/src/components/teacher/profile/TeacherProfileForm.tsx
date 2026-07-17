@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Calendar, Edit3, Loader2, Save, User } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { userProfilesService } from "../../../api";
 import { showError, showSuccess } from "../../toast/toastUtils";
@@ -23,6 +24,7 @@ function TeacherProfileForm({
   initialProfilePictureUrl = "",
   onSaved,
 }: TeacherProfileFormProps) {
+  const { t } = useTranslation("teacher");
   const [isEditing, setIsEditing] = useState(false);
   const [loadingSubmit, setLoadingSubmit] = useState(false);
   const [fullName, setFullName] = useState(initialFullName);
@@ -58,8 +60,8 @@ function TeacherProfileForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!userId) return;
-    if (!fullName.trim()) return showError("Họ tên là bắt buộc.");
-    if (!dateOfBirth) return showError("Ngày sinh là bắt buộc.");
+    if (!fullName.trim()) return showError(t("profile.errorNameRequired"));
+    if (!dateOfBirth) return showError(t("profile.errorDobRequired"));
 
     setLoadingSubmit(true);
     try {
@@ -75,12 +77,12 @@ function TeacherProfileForm({
       } else {
         await userProfilesService.create(payload);
       }
-      showSuccess("Cập nhật thông tin thành công!");
+      showSuccess(t("profile.successUpdate"));
       setIsEditing(false);
       onSaved();
     } catch (err) {
       console.error(err);
-      showError("Không thể cập nhật thông tin.");
+      showError(t("profile.errorUpdate"));
     } finally {
       setLoadingSubmit(false);
     }
@@ -91,7 +93,7 @@ function TeacherProfileForm({
       <div className="flex justify-between items-center mb-6 border-b border-[var(--border)] pb-4">
         <h3 className="text-lg font-bold text-[var(--foreground)] flex items-center gap-2">
           <User className="w-5 h-5 text-[var(--primary)]" />
-          Thông tin cá nhân
+          {t("profile.formTitle")}
         </h3>
         {!isEditing && (
           <button
@@ -99,7 +101,7 @@ function TeacherProfileForm({
             className="flex items-center gap-1 px-3 py-1.5 bg-purple-900/40 text-purple-300 border border-purple-800 rounded-xl text-xs font-semibold hover:bg-purple-900/60 transition-all"
           >
             <Edit3 className="w-3.5 h-3.5" />
-            Chỉnh sửa
+            {t("profile.editBtn")}
           </button>
         )}
       </div>
@@ -107,7 +109,7 @@ function TeacherProfileForm({
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm text-[var(--muted-foreground)] mb-2">
-            Họ và tên
+            {t("profile.fullNameLabel")}
           </label>
           <input
             type="text"
@@ -122,7 +124,7 @@ function TeacherProfileForm({
         <div className="grid md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm text-[var(--muted-foreground)] mb-2">
-              Ngày sinh
+              {t("profile.dobLabel")}
             </label>
             <div className="relative">
               <Calendar className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted-foreground)]" />
@@ -139,7 +141,7 @@ function TeacherProfileForm({
 
           <div>
             <label className="block text-sm text-[var(--muted-foreground)] mb-2">
-              Giới tính
+              {t("profile.genderLabel")}
             </label>
             <select
               disabled={!isEditing}
@@ -148,13 +150,13 @@ function TeacherProfileForm({
               className="w-full px-4 py-3 bg-[rgba(255,255,255,0.06)] border border-[var(--border)] rounded-xl text-[var(--foreground)] focus:outline-none focus:border-[var(--ring)] disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <option value="Male" className="bg-[var(--card)]">
-                Nam
+                {t("profile.genderMale")}
               </option>
               <option value="Female" className="bg-[var(--card)]">
-                Nữ
+                {t("profile.genderFemale")}
               </option>
               <option value="Other" className="bg-[var(--card)]">
-                Khác
+                {t("profile.genderOther")}
               </option>
             </select>
           </div>
@@ -162,12 +164,12 @@ function TeacherProfileForm({
 
         <div>
           <label className="block text-sm text-[var(--muted-foreground)] mb-2">
-            URL ảnh đại diện
+            {t("profile.avatarUrlLabel")}
           </label>
           <input
             type="url"
             disabled={!isEditing}
-            placeholder="https://example.com/avatar.jpg"
+            placeholder={t("profile.avatarUrlPlaceholder")}
             value={profilePictureUrl}
             onChange={(e) => setProfilePictureUrl(e.target.value)}
             className="w-full px-4 py-3 bg-[rgba(255,255,255,0.06)] border border-[var(--border)] rounded-xl text-[var(--foreground)] focus:outline-none focus:border-[var(--ring)] disabled:opacity-50 disabled:cursor-not-allowed"
@@ -181,7 +183,7 @@ function TeacherProfileForm({
               onClick={handleCancel}
               className="px-6 py-2.5 border border-[var(--border)] rounded-xl text-sm font-bold text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-all"
             >
-              Hủy
+              {t("profile.cancelBtn")}
             </button>
             <button
               type="submit"
@@ -193,7 +195,7 @@ function TeacherProfileForm({
               ) : (
                 <Save className="w-4 h-4" />
               )}
-              Lưu thay đổi
+              {t("profile.saveBtn")}
             </button>
           </div>
         )}

@@ -20,6 +20,7 @@ import {
   type Product,
   type ReviewResponse,
 } from "@/api";
+import { useFormatDate, useFormatNumber } from "@/utils/format";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -49,15 +50,6 @@ async function waitForPaidOrder(orderId: string) {
 
 function toNumber(value: unknown) {
   return Number(value ?? 0) || 0;
-}
-
-function formatCoins(value: unknown) {
-  return toNumber(value).toLocaleString("vi-VN");
-}
-
-function formatDate(value?: string | null) {
-  if (!value) return "-";
-  return new Date(value).toLocaleDateString("vi-VN");
 }
 
 function productKind(product: Product) {
@@ -123,6 +115,13 @@ function refundHelpText(
 }
 
 function ProductDetail() {
+  const formatNum = useFormatNumber();
+  const formatDt = useFormatDate();
+  const formatCoins = (value: unknown) => formatNum(toNumber(value));
+  const formatDate = (value?: string | null) => {
+    if (!value) return "-";
+    return formatDt(value);
+  };
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const userId = useAppSelector((state) => state.userProfile.userId);
@@ -184,9 +183,7 @@ function ProductDetail() {
     () => (product ? latestEscrowForProduct(escrows, product.id) : undefined),
     [escrows, product],
   );
-  const isEscrowBuyer = Boolean(
-    userId && escrow && escrow.buyerId === userId,
-  );
+  const isEscrowBuyer = Boolean(userId && escrow && escrow.buyerId === userId);
   const canRefund =
     isEscrowBuyer && canRequestSelfServiceRefund(escrow, ownedInventory);
   const isOwnProduct = Boolean(

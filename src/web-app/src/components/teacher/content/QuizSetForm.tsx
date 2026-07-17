@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { DollarSign, Loader2, Plus, Trash2, X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import type { QuizSetResponse } from "../../../api";
 import { quizzesService } from "../../../api";
@@ -15,6 +16,7 @@ interface QuizSetFormProps {
 }
 
 function QuizSetForm({ initial, onSaved, onCancel }: QuizSetFormProps) {
+  const { t } = useTranslation("teacher");
   const { minPrice, maxPrice } = useProductPriceRange();
 
   const [title, setTitle] = useState<string>(initial?.title ?? "");
@@ -60,14 +62,14 @@ function QuizSetForm({ initial, onSaved, onCancel }: QuizSetFormProps) {
   };
 
   const handleSubmit = async () => {
-    if (!title.trim()) return showError("Tiêu đề bộ đề là bắt buộc.");
+    if (!title.trim()) return showError(t("content.errTitleRequired"));
     if (questions.length === 0) {
-      return showError("Bộ đề phải có ít nhất một câu hỏi.");
+      return showError(t("content.errMinQuestions"));
     }
-    if (price < 0) return showError("Giá sản phẩm không được nhỏ hơn 0.");
+    if (price < 0) return showError(t("content.errPriceMinZero"));
     if (price > 0 && (price < minPrice || price > maxPrice)) {
       return showError(
-        `Giá sản phẩm phải nằm trong khoảng từ ${minPrice} đến ${maxPrice} coin!`,
+        t("content.errPriceRange", { min: minPrice, max: maxPrice }),
       );
     }
 
@@ -81,18 +83,18 @@ function QuizSetForm({ initial, onSaved, onCancel }: QuizSetFormProps) {
       };
       if (isEditing && editingId) {
         await quizzesService.updateQuizSet(editingId, payload);
-        showSuccess("Bộ đề Quiz đã được cập nhật thành công!");
+        showSuccess(t("content.successQuizUpdated"));
       } else {
         await quizzesService.createQuizSet(payload);
-        showSuccess("Bộ đề Quiz đã được tạo thành công!");
+        showSuccess(t("content.successQuizCreated"));
       }
       onSaved();
     } catch (err) {
       console.error(err);
       showError(
         isEditing
-          ? "Không thể cập nhật Bộ đề Quiz."
-          : "Không thể tạo Bộ đề Quiz.",
+          ? t("content.errQuizUpdateFailed")
+          : t("content.errQuizCreateFailed"),
       );
     } finally {
       setLoading(false);
@@ -103,7 +105,9 @@ function QuizSetForm({ initial, onSaved, onCancel }: QuizSetFormProps) {
     <div className="bg-[var(--card)] backdrop-blur-xl border border-[var(--border)] rounded-3xl p-8 max-w-4xl mx-auto space-y-6">
       <div className="border-b border-[var(--border)] pb-4 flex justify-between items-center">
         <h2 className="text-xl font-bold text-[var(--foreground)]">
-          {isEditing ? "Cập nhật Bộ đề Quiz" : "Tạo Bộ Đề Quiz Mới"}
+          {isEditing
+            ? t("content.editQuizTitle")
+            : t("content.createQuizTitle")}
         </h2>
         <button
           type="button"
@@ -117,12 +121,12 @@ function QuizSetForm({ initial, onSaved, onCancel }: QuizSetFormProps) {
       <div className="space-y-4">
         <div>
           <label className="block text-sm font-bold text-[var(--foreground)] mb-2">
-            Tiêu đề Bộ đề
+            {t("content.labelTitle")}
           </label>
           <input
             type="text"
             required
-            placeholder="VD: Bài kiểm tra 15 phút Toán học"
+            placeholder={t("content.placeholderQuizTitle")}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             className="w-full px-4 py-3 bg-[rgba(255,255,255,0.06)] border border-[var(--border)] rounded-xl text-[var(--foreground)] focus:outline-none"
@@ -130,10 +134,10 @@ function QuizSetForm({ initial, onSaved, onCancel }: QuizSetFormProps) {
         </div>
         <div>
           <label className="block text-sm font-bold text-[var(--foreground)] mb-2">
-            Mô tả
+            {t("content.labelDescription")}
           </label>
           <textarea
-            placeholder="Mô tả về bộ đề..."
+            placeholder={t("content.placeholderDescription")}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={2}
@@ -143,23 +147,20 @@ function QuizSetForm({ initial, onSaved, onCancel }: QuizSetFormProps) {
         <div>
           <label className="block text-sm font-bold text-[var(--foreground)] mb-2 flex items-center gap-2">
             <DollarSign className="w-4 h-4 text-amber-400" />
-            Giá (coin)
+            {t("content.labelPriceCoin")}
           </label>
           <input
             id="quiz-set-price"
             type="number"
             min={0}
             step={1}
-            placeholder="0 = Miễn phí"
+            placeholder={t("content.placeholderFreeZero")}
             value={price}
             onChange={(e) => setPrice(Number(e.target.value))}
             className="w-full px-4 py-3 bg-[rgba(255,255,255,0.06)] border border-[var(--border)] rounded-xl text-[var(--foreground)] focus:outline-none"
           />
           <p className="mt-1.5 text-xs text-[var(--muted-foreground)]">
-            Để 0 nếu miễn phí. Khi bán trên Marketplace, giá phải từ{" "}
-            <span className="font-semibold text-amber-400">{minPrice}</span> đến{" "}
-            <span className="font-semibold text-amber-400">{maxPrice}</span>{" "}
-            coin.
+            {t("content.priceHintZero", { min: minPrice, max: maxPrice })}
           </p>
         </div>
       </div>
@@ -167,7 +168,7 @@ function QuizSetForm({ initial, onSaved, onCancel }: QuizSetFormProps) {
       <div className="border-t border-[var(--border)] pt-6 space-y-4">
         <div className="flex justify-between items-center">
           <h3 className="text-lg font-bold text-[var(--foreground)]">
-            Danh sách Câu hỏi ({questions.length})
+            {t("content.questionsListTitle", { count: questions.length })}
           </h3>
         </div>
 
@@ -201,7 +202,7 @@ function QuizSetForm({ initial, onSaved, onCancel }: QuizSetFormProps) {
             className="w-full py-4 border-2 border-dashed border-[var(--border)] rounded-2xl text-[var(--muted-foreground)] hover:border-[var(--primary)] hover:text-[var(--primary)] transition-all font-semibold flex flex-col items-center justify-center gap-2"
           >
             <Plus className="w-6 h-6" />
-            Thêm Câu hỏi mới
+            {t("content.addQuestionBtn")}
           </button>
         ) : (
           <QuizQuestionForm
@@ -217,7 +218,7 @@ function QuizSetForm({ initial, onSaved, onCancel }: QuizSetFormProps) {
           onClick={onCancel}
           className="px-6 py-3 border border-[var(--border)] rounded-xl text-sm font-bold text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
         >
-          Hủy
+          {t("content.cancel")}
         </button>
         <button
           type="button"
@@ -226,7 +227,7 @@ function QuizSetForm({ initial, onSaved, onCancel }: QuizSetFormProps) {
           className="px-8 py-3 bg-[var(--primary)] text-white rounded-xl text-sm font-bold hover:opacity-90 disabled:opacity-50 flex items-center gap-2"
         >
           {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-          {isEditing ? "Lưu thay đổi" : "Xuất bản Bộ đề"}
+          {isEditing ? t("content.saveChanges") : t("content.publishQuiz")}
         </button>
       </div>
     </div>

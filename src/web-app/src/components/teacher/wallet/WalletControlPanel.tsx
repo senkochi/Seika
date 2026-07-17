@@ -4,8 +4,10 @@ import {
   LockKeyhole,
   TimerReset,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import type { WalletHold } from "../../../api";
+import { useFormatDate } from "../../../utils/format";
 
 interface WalletControlPanelProps {
   frozen: boolean;
@@ -13,13 +15,8 @@ interface WalletControlPanelProps {
   loading: boolean;
 }
 
-function formatDate(value: string | null | undefined) {
-  if (!value) return "Không thời hạn";
-  return new Date(value).toLocaleString("vi-VN");
-}
-
-function holdLabel(type: string) {
-  if (type === "WASH_HOLD") return "Rà soát wash trading";
+function holdLabel(type: string, t: (key: string) => string) {
+  if (type === "WASH_HOLD") return t("controlPanel.washHold");
   return type.replaceAll("_", " ");
 }
 
@@ -28,6 +25,12 @@ export default function WalletControlPanel({
   holds,
   loading,
 }: WalletControlPanelProps) {
+  const { t } = useTranslation("wallet");
+  const formatDt = useFormatDate();
+  const formatDate = (value: string | null | undefined) => {
+    if (!value) return t("controlPanel.noExpiration");
+    return formatDt(value);
+  };
   const hasBlockingState = frozen || holds.length > 0;
 
   return (
@@ -46,10 +49,10 @@ export default function WalletControlPanel({
                 aria-hidden="true"
               />
             )}
-            Trạng thái kiểm soát ví
+            {t("controlPanel.title")}
           </h2>
           <p className="mt-1 text-sm text-[var(--muted-foreground)]">
-            Các hold hoặc freeze đang ảnh hưởng tới rút tiền và thao tác ví.
+            {t("controlPanel.subtitle")}
           </p>
         </div>
         <span
@@ -59,7 +62,9 @@ export default function WalletControlPanel({
               : "rounded-md border border-emerald-400/25 bg-emerald-400/10 px-2 py-1 text-xs font-semibold text-emerald-200"
           }
         >
-          {hasBlockingState ? "Đang bị giới hạn" : "Bình thường"}
+          {hasBlockingState
+            ? t("controlPanel.statusRestricted")
+            : t("controlPanel.statusNormal")}
         </span>
       </div>
 
@@ -67,15 +72,14 @@ export default function WalletControlPanel({
         <div
           className="mt-5 space-y-3"
           aria-busy="true"
-          aria-label="Đang tải trạng thái kiểm soát ví"
+          aria-label={t("controlPanel.title")}
         >
           <div className="h-16 animate-pulse rounded-md bg-white/[0.05]" />
           <div className="h-16 animate-pulse rounded-md bg-white/[0.05]" />
         </div>
       ) : !hasBlockingState ? (
         <div className="mt-5 rounded-md border border-emerald-400/20 bg-emerald-400/10 p-4 text-sm text-emerald-100">
-          Không có hold hoặc freeze đang hoạt động. Cash-out dùng số dư "Có thể
-          rút".
+          {t("controlPanel.normalMsg")}
         </div>
       ) : (
         <div className="mt-5 space-y-3">
@@ -83,11 +87,10 @@ export default function WalletControlPanel({
             <div className="rounded-md border border-red-400/25 bg-red-400/10 p-4">
               <div className="flex items-center gap-2 font-semibold text-red-200">
                 <LockKeyhole className="h-4 w-4" aria-hidden="true" />
-                Ví đang bị freeze
+                {t("controlPanel.frozenTitle")}
               </div>
               <p className="mt-1 text-sm text-red-100/80">
-                Spend, top-up, cash-out, reward credit và escrow release credit
-                sẽ bị chặn cho tới khi admin mở freeze.
+                {t("controlPanel.frozenDesc")}
               </p>
             </div>
           )}
@@ -101,14 +104,14 @@ export default function WalletControlPanel({
                 <div>
                   <div className="flex items-center gap-2 font-semibold text-amber-100">
                     <TimerReset className="h-4 w-4" aria-hidden="true" />
-                    {holdLabel(hold.holdType)}
+                    {holdLabel(hold.holdType, t)}
                   </div>
                   <p className="mt-1 text-sm text-amber-100/80">
-                    {hold.reason || "Đang được rà soát bởi hệ thống quản trị."}
+                    {hold.reason || t("controlPanel.reviewReasonDefault")}
                   </p>
                 </div>
                 <div className="text-left text-xs text-amber-100/70 sm:text-right">
-                  <div>Hết hạn</div>
+                  <div>{t("controlPanel.expiresLabel")}</div>
                   <div className="font-mono text-amber-100">
                     {formatDate(hold.expiresAt)}
                   </div>
@@ -116,7 +119,7 @@ export default function WalletControlPanel({
               </div>
               {hold.sourceFlagId && (
                 <p className="mt-2 font-mono text-xs text-amber-100/60">
-                  Flag {hold.sourceFlagId}
+                  {t("controlPanel.flagLabel", { id: hold.sourceFlagId })}
                 </p>
               )}
             </div>

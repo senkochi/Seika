@@ -18,6 +18,7 @@ import { showError, showSuccess } from "../../components/toast/toastUtils";
 import { fetchAdminConfigs, updateAdminConfig } from "../../store/adminSlice";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { PageHeader } from "../../components/ui/PageHeader";
+import { useFormatDate } from "../../utils/format";
 import { SectionCard } from "../../components/ui/SectionCard";
 import { IconChip } from "../../components/ui/IconChip";
 import { Button } from "../../components/ui/Button";
@@ -105,6 +106,7 @@ function ConfigRow({
   ) => void;
   isSaving: boolean;
 }) {
+  const formatDate = useFormatDate();
   const [draft, setDraft] = useState(entry.value);
   const [isDirty, setIsDirty] = useState(false);
   const inputId = `${domain}-${entry.key}`;
@@ -120,9 +122,7 @@ function ConfigRow({
     setIsDirty(next !== entry.value);
   };
 
-  const updatedAt = entry.updatedAt
-    ? new Date(entry.updatedAt).toLocaleString("vi-VN")
-    : null;
+  const updatedAt = entry.updatedAt ? formatDate(entry.updatedAt) : null;
 
   return (
     <SectionCard className="flex flex-col gap-4 lg:flex-row lg:items-start">
@@ -292,10 +292,7 @@ function ErrorState({
   return (
     <div className="flex min-h-64 items-center justify-center rounded-lg border border-white/[0.06] bg-white/[0.02] p-8 font-sans-ui">
       <div className="flex max-w-md flex-col items-center gap-3 text-center">
-        <AlertCircle
-          className="h-9 w-9 text-[#d4a843]"
-          aria-hidden="true"
-        />
+        <AlertCircle className="h-9 w-9 text-[#d4a843]" aria-hidden="true" />
         <p className="font-semibold text-cream">Không thể tải cấu hình</p>
         <p className="text-sm text-white/55">{message}</p>
         <Button variant="primary" size="md" onClick={onRetry}>
@@ -406,11 +403,7 @@ function AdminSystemConfig() {
         );
       }
       if (configs.length === 0) {
-        return (
-          <EmptyState
-            title="Chưa có wallet config nào trong hệ thống."
-          />
-        );
+        return <EmptyState title="Chưa có wallet config nào trong hệ thống." />;
       }
       return walletGroups.map(({ group, configs: entries, missingKeys }) => (
         <ConfigSection
@@ -438,9 +431,7 @@ function AdminSystemConfig() {
     }
     if (marketplaceConfigs.length === 0) {
       return (
-        <EmptyState
-          title="Chưa có marketplace config nào trong hệ thống."
-        />
+        <EmptyState title="Chưa có marketplace config nào trong hệ thống." />
       );
     }
     return marketplaceGroups.map(({ group, configs: entries, missingKeys }) => (

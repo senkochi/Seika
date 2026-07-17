@@ -17,6 +17,7 @@
     "earned": "Total Earned / Top-up",
     "spent": "Total Spent",
     "streak": "Study Streak",
+    "activeStreak": "Active Streak",
     "daysUnit": "days"
   },
   "history": {
@@ -24,6 +25,7 @@
     "loading": "Loading transactions…",
     "emptyTitle": "No transactions yet",
     "emptyDesc": "Your top-up, withdrawal, and reward history will appear here.",
+    "emptyTeacher": "No transactions recorded yet.",
     "coinsUnit": "Coins"
   },
   "topUpForm": {
@@ -59,6 +61,81 @@
     "minAmount": "Minimum top-up amount is 1,000 VND!",
     "insufficientRate": "Amount is not enough for 1 Coin (Rate: {{rate}} VND/Coin)!",
     "topUpSuccess": "Successfully topped up {{coins}} Coins!",
-    "topUpError": "Error topping up money!"
+    "topUpError": "Error topping up money!",
+    "invalidCashOutAmount": "Amount is invalid.",
+    "multipleOfTen": "Cash-out amount must be a multiple of 10 coins.",
+    "insufficientBalance": "Withdrawable balance is not enough.",
+    "frozenReason": "Wallet is frozen, so cash-out is temporarily blocked.",
+    "holdReason": "Wallet has an active hold, so cash-out is temporarily blocked.",
+    "cashOutSuccess": "Successfully requested cash-out!",
+    "cashOutError": "Error requesting cash-out!",
+    "cashOutDescription": "Conversion: {{coins}} Coins = {{amount}} VND ({{bankName}} - {{bankAccount}})"
+  },
+  "teacherHeader": {
+    "title": "Teacher Wallet",
+    "refresh": "Refresh",
+    "subtitle": "Track withdrawable balance, app-only coins, and escrow stream.",
+    "withdrawable": "Withdrawable",
+    "withdrawableSub": "EARNED_WITHDRAWABLE",
+    "appOnly": "App-Only",
+    "appOnlySub": "BONUS / REWARD / PAID / PROMO",
+    "total": "Total Wallet",
+    "totalSub": "Subtotal for verification"
+  },
+  "cashOut": {
+    "title": "Request Cash Out",
+    "available": "Available to cash out:",
+    "coinsUnit": "Coins",
+    "amountLabel": "Amount of Coins to Withdraw",
+    "amountPlaceholder": "Min 10 Coins",
+    "bankLabel": "Bank / Payment Partner",
+    "accountLabel": "Account Number & Full Name",
+    "accountPlaceholder": "e.g. 1029312093 - NGUYEN VAN A",
+    "submitBtn": "Confirm Cash Out",
+    "modalTitle": "Confirm Cash Out",
+    "modalHint": "Please double-check the cash-out request details below:",
+    "amountCoinsLabel": "Coin amount:",
+    "rateLabel": "Exchange rate:",
+    "rateValue": "{{rate}} VND / Coin",
+    "payoutLabel": "Estimated payout:",
+    "bankNameLabel": "Bank:",
+    "accountInfoLabel": "Beneficiary account:",
+    "confirmBtn": "Confirm Cash Out",
+    "cancelBtn": "Cancel"
+  },
+  "escrow": {
+    "title": "Pending Escrow",
+    "subtitle": "Marketplace revenue only enters the wallet after escrow is released.",
+    "pendingLabel": "Pending escrow",
+    "paidBacked": "Paid-backed",
+    "needsDecision": "Needs review",
+    "loading": "Loading escrows...",
+    "empty": "No paid marketplace order is currently in seller escrow.",
+    "colProduct": "Product",
+    "colStatus": "Status",
+    "colGross": "Gross",
+    "colPaidBacked": "Paid-backed",
+    "colPromoBacked": "Promo-backed",
+    "colReleaseAt": "Release at",
+    "colNote": "Note",
+    "statusAdminDecision": "Needs admin review",
+    "statusReleasing": "Releasing",
+    "statusHeld": "Pending escrow",
+    "statusReleased": "Released",
+    "statusRefunded": "Refunded"
+  },
+  "controlPanel": {
+    "title": "Wallet Control Status",
+    "subtitle": "Holds or freezes affecting withdrawal and wallet actions.",
+    "statusRestricted": "Restricted",
+    "statusNormal": "Normal",
+    "normalMsg": "No active holds or freezes. Cash-out uses \"Withdrawable\" balance.",
+    "frozenTitle": "Wallet is frozen",
+    "frozenDesc": "Spend, top-up, cash-out, reward credit, and escrow release credit are blocked until admin unfreezes.",
+    "washHold": "Wash trading review",
+    "reviewReasonDefault": "Under review by admin system.",
+    "expiresLabel": "Expires",
+    "noExpiration": "No expiration",
+    "flagLabel": "Flag {{id}}"
   }
 }

@@ -7,6 +7,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { useTranslation } from "react-i18next";
 
 import type { RevenuePoint } from "../../../api/types";
 import { formatCurrency } from "./OverviewStatsGrid";
@@ -17,14 +18,15 @@ interface RevenueChartCardProps {
 }
 
 function RevenueChartCard({ period, data }: RevenueChartCardProps) {
+  const { t } = useTranslation("teacher");
   return (
     <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] backdrop-blur-xl p-6">
       <h2 className="mb-4 text-lg font-semibold text-[var(--foreground)]">
-        Doanh thu ({period === "month" ? "theo tháng" : "theo ngày"})
+        {period === "month" ? t("revenue.titleMonth") : t("revenue.titleDay")}
       </h2>
       {data.length === 0 ? (
         <p className="py-12 text-center text-sm text-[var(--muted-foreground)]">
-          Chưa có dữ liệu doanh thu trong khoảng thời gian này.
+          {t("revenue.empty")}
         </p>
       ) : (
         <div className="h-[300px] w-full">
@@ -55,7 +57,7 @@ function RevenueChartCard({ period, data }: RevenueChartCardProps) {
                 labelStyle={{ color: "var(--muted-foreground)" }}
                 formatter={(value: number) => [
                   formatCurrency(value),
-                  "Doanh thu",
+                  t("revenue.tooltipLabel"),
                 ]}
               />
               <Line

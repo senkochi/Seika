@@ -1,6 +1,7 @@
+import { useTranslation } from "react-i18next";
 import type { TopProduct } from "../../../api/types";
 import StatisticsLoadingState from "./StatisticsLoadingState";
-import { formatCurrency, formatNumber } from "./OverviewStatsGrid";
+import { useOverviewFormatters } from "./OverviewStatsGrid";
 
 interface TopProductsCardProps {
   products: TopProduct[];
@@ -13,27 +14,37 @@ function TopProductsCard({
   status,
   onOpenAttempts,
 }: TopProductsCardProps) {
+  const { t } = useTranslation("teacher");
+  const { formatCurrency, formatNumber } = useOverviewFormatters();
   return (
     <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] backdrop-blur-xl p-6">
       <h2 className="mb-4 text-lg font-semibold text-[var(--foreground)]">
-        Sản phẩm bán chạy
+        {t("statistics.topProductsTitle")}
       </h2>
       {status === "loading" ? (
-        <StatisticsLoadingState message="Đang tải..." />
+        <StatisticsLoadingState message={t("statistics.loading")} />
       ) : !products || products.length === 0 ? (
         <p className="py-12 text-center text-sm text-[var(--muted-foreground)]">
-          Chưa có sản phẩm nào được bán.
+          {t("statistics.topProductsEmpty")}
         </p>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="text-left text-[var(--muted-foreground)]">
-                <th className="pb-3 font-medium">Sản phẩm</th>
-                <th className="pb-3 font-medium">Loại</th>
-                <th className="pb-3 font-medium text-right">Giá</th>
-                <th className="pb-3 font-medium text-right">Lượt mua</th>
-                <th className="pb-3 font-medium text-right">Doanh thu</th>
+                <th className="pb-3 font-medium">
+                  {t("statistics.colProduct")}
+                </th>
+                <th className="pb-3 font-medium">{t("statistics.colType")}</th>
+                <th className="pb-3 font-medium text-right">
+                  {t("statistics.colPrice")}
+                </th>
+                <th className="pb-3 font-medium text-right">
+                  {t("statistics.colOrders")}
+                </th>
+                <th className="pb-3 font-medium text-right">
+                  {t("statistics.colRevenue")}
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[var(--border)]">
@@ -56,7 +67,11 @@ function TopProductsCard({
                   </td>
                   <td className="py-3">
                     <span className="inline-flex rounded-full bg-[var(--primary)]/10 px-2 py-1 text-xs font-medium text-[var(--primary)]">
-                      {product.productType}
+                      {product.productType === "FLASHCARD_SET"
+                        ? t("statistics.typeFlashcard")
+                        : product.productType === "QUIZ_SET"
+                          ? t("statistics.typeQuiz")
+                          : product.productType}
                     </span>
                   </td>
                   <td className="py-3 text-right text-[var(--foreground)]">

@@ -14,10 +14,12 @@ import {
   quickStatsConfig,
 } from "../../components/student/dashboard/topStats";
 import { StatCard } from "../../components/ui/StatCard";
+import { useFormatNumber } from "../../utils/format";
 
 const XP_PER_LEVEL = 1000;
 
 function DashboardHome() {
+  const formatNumber = useFormatNumber();
   const dispatch = useAppDispatch();
   const {
     status,
@@ -64,7 +66,7 @@ function DashboardHome() {
   }
 
   const topStatValues: Record<string, string | number> = {
-    "Total XP": exp.toLocaleString("vi-VN"),
+    "Total XP": formatNumber(exp),
     "Quizzes Completed": quizzesCompleted,
   };
 
@@ -98,9 +100,7 @@ function DashboardHome() {
           {quickStatsConfig.map((stat) => {
             const Icon = stat.icon;
             const value =
-              stat.label === "Current Streak"
-                ? currentStreak
-                : longestStreak;
+              stat.label === "Current Streak" ? currentStreak : longestStreak;
             return (
               <StatCard
                 key={stat.label}

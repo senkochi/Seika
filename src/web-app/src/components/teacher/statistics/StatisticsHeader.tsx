@@ -1,4 +1,5 @@
 import { BarChart3, RefreshCcw } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export type StatisticsPeriod = "month" | "day";
 
@@ -13,16 +14,16 @@ function StatisticsHeader({
   onPeriodChange,
   onReload,
 }: StatisticsHeaderProps) {
+  const { t } = useTranslation("teacher");
   return (
     <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
       <div>
         <h1 className="flex items-center gap-3 text-2xl font-bold text-[var(--foreground)]">
           <BarChart3 className="h-7 w-7 text-[var(--primary)]" />
-          Thống kê giáo viên
+          {t("statistics.headerTitle")}
         </h1>
         <p className="mt-1 text-sm text-[var(--muted-foreground)]">
-          Theo dõi doanh thu, học sinh và kết quả học tập của các sản phẩm bạn
-          đã tạo.
+          {t("statistics.headerDesc")}
         </p>
       </div>
 
@@ -38,7 +39,9 @@ function StatisticsHeader({
                   : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
               }`}
             >
-              {value === "month" ? "Theo tháng" : "Theo ngày"}
+              {value === "month"
+                ? t("statistics.byMonth")
+                : t("statistics.byDay")}
             </button>
           ))}
         </div>
@@ -46,7 +49,7 @@ function StatisticsHeader({
           onClick={onReload}
           className="inline-flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--card)] backdrop-blur-md px-3 py-2 text-sm font-medium text-[var(--foreground)] hover:border-[var(--primary)]"
         >
-          <RefreshCcw className="h-4 w-4" /> Làm mới
+          <RefreshCcw className="h-4 w-4" /> {t("statistics.refresh")}
         </button>
       </div>
     </div>

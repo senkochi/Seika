@@ -1,4 +1,5 @@
 import { AlertTriangle, Loader2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface ConfirmDialogProps {
   title: string;
@@ -15,6 +16,7 @@ function ConfirmDialog({
   onCancel,
   loading,
 }: ConfirmDialogProps) {
+  const { t } = useTranslation("teacher");
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
       <div className="bg-[var(--card)] backdrop-blur-xl border border-red-500/30 rounded-2xl p-6 max-w-md w-full mx-4">
@@ -37,7 +39,7 @@ function ConfirmDialog({
             disabled={loading}
             className="px-5 py-2 rounded-xl border border-[var(--border)] text-sm font-semibold text-[var(--muted-foreground)] hover:text-[var(--foreground)] disabled:opacity-50"
           >
-            Hủy
+            {t("content.cancel")}
           </button>
           <button
             onClick={onConfirm}
@@ -45,7 +47,7 @@ function ConfirmDialog({
             className="px-5 py-2 rounded-xl bg-red-600 text-white text-sm font-bold hover:bg-red-500 disabled:opacity-50 flex items-center gap-2"
           >
             {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-            Xóa
+            {t("content.confirmDelete")}
           </button>
         </div>
       </div>

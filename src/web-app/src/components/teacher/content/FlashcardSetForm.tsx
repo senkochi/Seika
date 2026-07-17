@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { DollarSign, FileText, Loader2, Trash2, X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import type { Card, CardSetResponse } from "../../../api";
 import { flashcardsService } from "../../../api";
@@ -17,6 +18,7 @@ function FlashcardSetForm({
   onSaved,
   onCancel,
 }: FlashcardSetFormProps) {
+  const { t } = useTranslation("teacher");
   const { minPrice, maxPrice } = useProductPriceRange();
 
   const [title, setTitle] = useState<string>(initial?.title ?? "");
@@ -59,14 +61,14 @@ function FlashcardSetForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim()) return showError("Tiêu đề là bắt buộc.");
+    if (!title.trim()) return showError(t("content.errTitleRequired"));
     if (cards.some((c) => !c.frontSide.trim() || !c.backSide.trim())) {
-      return showError("Mỗi thẻ phải có nội dung mặt trước và mặt sau.");
+      return showError(t("content.errCardContentRequired"));
     }
-    if (price < 0) return showError("Giá sản phẩm không được nhỏ hơn 0.");
+    if (price < 0) return showError(t("content.errPriceMinZero"));
     if (price > 0 && (price < minPrice || price > maxPrice)) {
       return showError(
-        `Giá sản phẩm phải nằm trong khoảng từ ${minPrice} đến ${maxPrice} coin!`,
+        t("content.errPriceRange", { min: minPrice, max: maxPrice }),
       );
     }
 
@@ -80,18 +82,18 @@ function FlashcardSetForm({
       };
       if (isEditing && editingId) {
         await flashcardsService.update(editingId, payload);
-        showSuccess("Flashcard Set đã được cập nhật thành công!");
+        showSuccess(t("content.successFlashcardUpdated"));
       } else {
         await flashcardsService.create(payload);
-        showSuccess("Flashcard Set đã được tạo thành công!");
+        showSuccess(t("content.successFlashcardCreated"));
       }
       onSaved();
     } catch (err) {
       console.error(err);
       showError(
         isEditing
-          ? "Không thể cập nhật Flashcard Set."
-          : "Không thể tạo Flashcard Set.",
+          ? t("content.errFlashcardUpdateFailed")
+          : t("content.errFlashcardCreateFailed"),
       );
     } finally {
       setLoading(false);
@@ -105,7 +107,9 @@ function FlashcardSetForm({
     >
       <div className="border-b border-[var(--border)] pb-4 flex justify-between items-center">
         <h2 className="text-xl font-bold text-[var(--foreground)]">
-          {isEditing ? "Cập nhật Bộ Flashcard" : "Tạo Bộ Flashcard Mới"}
+          {isEditing
+            ? t("content.editFlashcardTitle")
+            : t("content.createFlashcardTitle")}
         </h2>
         <button
           type="button"
@@ -120,7 +124,7 @@ function FlashcardSetForm({
         <div className="md:col-span-2 space-y-4">
           <div>
             <label className="block text-sm font-bold text-[var(--foreground)] mb-2">
-              Tiêu đề Bộ thẻ
+              {t("content.labelTitle")}
             </label>
             <input
               type="text"
@@ -132,7 +136,7 @@ function FlashcardSetForm({
           </div>
           <div>
             <label className="block text-sm font-bold text-[var(--foreground)] mb-2">
-              Mô tả
+              {t("content.labelDescription")}
             </label>
             <textarea
               value={description}
@@ -144,7 +148,7 @@ function FlashcardSetForm({
         </div>
         <div>
           <label className="block text-sm font-bold text-[var(--foreground)] mb-2">
-            Giá Marketplace (Coins)
+            {t("content.labelPrice")}
           </label>
           <div className="relative">
             <DollarSign className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted-foreground)]" />
@@ -157,10 +161,7 @@ function FlashcardSetForm({
             />
           </div>
           <p className="mt-1.5 text-xs text-[var(--muted-foreground)]">
-            Không nhập gì nếu miễn phí. Khi bán trên Marketplace, giá phải từ{" "}
-            <span className="font-semibold text-amber-400">{minPrice}</span> đến{" "}
-            <span className="font-semibold text-amber-400">{maxPrice}</span>{" "}
-            coin.
+            {t("content.priceHint", { min: minPrice, max: maxPrice })}
           </p>
         </div>
       </div>
@@ -169,14 +170,14 @@ function FlashcardSetForm({
         <div className="flex justify-between items-center">
           <h3 className="text-lg font-bold text-[var(--foreground)] flex items-center gap-2">
             <FileText className="w-5 h-5 text-[var(--primary)]" />
-            Danh sách Thẻ ({cards.length})
+            {t("content.cardsListTitle", { count: cards.length })}
           </h3>
           <button
             type="button"
             onClick={handleAddCard}
             className="px-4 py-2 bg-purple-900/40 text-purple-300 border border-purple-800 rounded-xl text-xs font-semibold"
           >
-            + Thêm thẻ
+            {t("content.addCardBtn")}
           </button>
         </div>
         <div className="space-y-4 max-h-[30rem] overflow-y-auto pr-2">
@@ -191,7 +192,7 @@ function FlashcardSetForm({
               <div className="flex-1 grid md:grid-cols-2 gap-4">
                 <input
                   type="text"
-                  placeholder="Mặt trước"
+                  placeholder={t("content.placeholderFront")}
                   required
                   value={card.frontSide}
                   onChange={(e) =>
@@ -201,7 +202,7 @@ function FlashcardSetForm({
                 />
                 <input
                   type="text"
-                  placeholder="Mặt sau"
+                  placeholder={t("content.placeholderBack")}
                   required
                   value={card.backSide}
                   onChange={(e) =>
@@ -229,7 +230,7 @@ function FlashcardSetForm({
           onClick={onCancel}
           className="px-6 py-3 border border-[var(--border)] rounded-xl text-sm font-bold text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
         >
-          Hủy
+          {t("content.cancel")}
         </button>
         <button
           type="submit"
@@ -237,7 +238,7 @@ function FlashcardSetForm({
           className="px-8 py-3 bg-[var(--primary)] text-white rounded-xl text-sm font-bold hover:opacity-90 flex items-center gap-2"
         >
           {loading && <Loader2 className="w-4 h-4 animate-spin" />}{" "}
-          {isEditing ? "Lưu thay đổi" : "Xuất bản Bộ thẻ"}
+          {isEditing ? t("content.saveChanges") : t("content.publishFlashcard")}
         </button>
       </div>
     </form>

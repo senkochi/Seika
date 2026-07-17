@@ -27,12 +27,7 @@ import { SectionCard } from "../../components/ui/SectionCard";
 import { StatCard } from "../../components/ui/StatCard";
 import { Button } from "../../components/ui/Button";
 import { EmptyState } from "../../components/ui/EmptyState";
-
-const numberFormatter = new Intl.NumberFormat("vi-VN");
-
-function formatNumber(value: number | undefined | null) {
-  return numberFormatter.format(value ?? 0);
-}
+import { useFormatNumber } from "../../utils/format";
 
 function LoadingState() {
   return (
@@ -49,6 +44,9 @@ function LoadingState() {
 }
 
 function AdminDashboardHome() {
+  const formatNum = useFormatNumber();
+  const formatNumber = (value: number | undefined | null) =>
+    formatNum(value ?? 0);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { dashboard, dashboardStatus, dashboardError } = useAppSelector(

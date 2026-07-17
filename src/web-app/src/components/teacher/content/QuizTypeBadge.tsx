@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 interface QuizTypeBadgeStyle {
   bg: string;
   text: string;
@@ -27,9 +29,7 @@ export const QUIZ_TYPE_BADGES: Record<string, QuizTypeBadgeStyle> = {
   },
 };
 
-export function getQuizTypeBadge(
-  type: string,
-): QuizTypeBadgeStyle {
+export function getQuizTypeBadge(type: string): QuizTypeBadgeStyle {
   return (
     QUIZ_TYPE_BADGES[type] ?? {
       bg: "bg-gray-500/10",
@@ -44,12 +44,27 @@ interface QuizTypeBadgeProps {
 }
 
 function QuizTypeBadge({ type }: QuizTypeBadgeProps) {
+  const { t } = useTranslation("teacher");
   const badge = getQuizTypeBadge(type);
+  const getLabel = (tp: string) => {
+    switch (tp) {
+      case "MULTIPLE_CHOICE":
+        return t("content.quizTypeMC");
+      case "MATCHING":
+        return t("content.quizTypeMatching");
+      case "REORDER":
+        return t("content.quizTypeReorder");
+      case "FILL_IN_THE_BLANK":
+        return t("content.quizTypeFill");
+      default:
+        return tp;
+    }
+  };
   return (
     <span
       className={`inline-block mb-2 px-2 py-0.5 ${badge.bg} ${badge.text} text-xs font-semibold rounded-md`}
     >
-      {badge.label}
+      {getLabel(type)}
     </span>
   );
 }

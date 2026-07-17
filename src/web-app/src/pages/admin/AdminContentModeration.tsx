@@ -27,8 +27,7 @@ import { Button } from "../../components/ui/Button";
 import ConfirmModal from "../../components/ui/ConfirmModal";
 import { showError, showSuccess } from "../../components/toast/toastUtils";
 import type { PendingProduct } from "../../api/types";
-
-const currencyFormatter = new Intl.NumberFormat("vi-VN", {});
+import { useFormatDate, useFormatNumber } from "../../utils/format";
 
 function typeVariant(type: string): "info" | "success" {
   return type.toUpperCase().includes("QUIZ") ? "info" : "success";
@@ -51,6 +50,8 @@ function TypeBadge({ type }: { type: string }) {
 }
 
 function AdminContentModeration() {
+  const formatDate = useFormatDate();
+  const formatNumber = useFormatNumber();
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { products, mutationStatus } = useAppSelector((state) => state.admin);
@@ -122,7 +123,10 @@ function AdminContentModeration() {
     if (products.status === "loading" && products.content.length === 0) {
       return (
         <tr>
-          <td colSpan={6} className="py-12 text-center font-sans-ui text-white/55">
+          <td
+            colSpan={6}
+            className="py-12 text-center font-sans-ui text-white/55"
+          >
             <Loader2
               className="mx-auto h-6 w-6 animate-spin text-[#d4a843]"
               aria-hidden="true"
@@ -134,7 +138,10 @@ function AdminContentModeration() {
     if (products.status === "failed") {
       return (
         <tr>
-          <td colSpan={6} className="py-12 text-center font-sans-ui text-red-300">
+          <td
+            colSpan={6}
+            className="py-12 text-center font-sans-ui text-red-300"
+          >
             {products.error ?? "Lỗi không xác định"}
           </td>
         </tr>
@@ -189,10 +196,10 @@ function AdminContentModeration() {
             : p.sellerUserId}
         </td>
         <td className="py-3 pr-4 font-sans-ui text-cream tabular-nums">
-          {currencyFormatter.format(p.price)} coin
+          {formatNumber(p.price)} coin
         </td>
         <td className="py-3 pr-4 font-sans-ui text-xs text-white/55">
-          {new Date(p.createdAt).toLocaleString("vi-VN")}
+          {formatDate(p.createdAt)}
         </td>
         <td className="py-3">
           <div className="flex justify-end gap-2">
@@ -234,7 +241,7 @@ function AdminContentModeration() {
     <div className="space-y-8 p-6 lg:p-8">
       <PageHeader
         title="Duyệt nội dung"
-        subtitle={`Tổng ${currencyFormatter.format(products.totalElements)} sản phẩm đang chờ duyệt.`}
+        subtitle={`Tổng ${formatNumber(products.totalElements)} sản phẩm đang chờ duyệt.`}
         actions={
           <Button
             variant="ghost"
@@ -285,7 +292,12 @@ function AdminContentModeration() {
         onClose={closeReject}
         onConfirm={handleReject}
         title="Từ chối sản phẩm"
-        icon={<AlertTriangle className="h-5 w-5 text-amber-300" aria-hidden="true" />}
+        icon={
+          <AlertTriangle
+            className="h-5 w-5 text-amber-300"
+            aria-hidden="true"
+          />
+        }
         confirmText="Xác nhận từ chối"
         isLoading={isMutating}
         variant="danger"

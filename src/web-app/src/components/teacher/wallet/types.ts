@@ -1,3 +1,5 @@
+import { useFormatNumber } from "../../../utils/format";
+
 export interface Transaction {
   id: string;
   amount: number;
@@ -17,6 +19,11 @@ export function isPositiveTransaction(tx: Transaction): boolean {
   );
 }
 
-export function formatVnd(n: number): string {
-  return n.toLocaleString("vi-VN");
+export function formatVnd(n: number, locale = "vi-VN"): string {
+  return n.toLocaleString(locale);
 }
+
+export const useFormatVnd = () => {
+  const formatNumber = useFormatNumber();
+  return (n: number) => formatNumber(n);
+};

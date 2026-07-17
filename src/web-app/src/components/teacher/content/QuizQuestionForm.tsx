@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Plus, Trash2, X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import type { QuizType } from "../../../api";
 import { showError } from "../../toast/toastUtils";
@@ -24,14 +25,8 @@ interface QuizQuestionFormProps {
   onCancel: () => void;
 }
 
-const QUIZ_TYPE_OPTIONS: { value: QuizType; label: string }[] = [
-  { value: "MULTIPLE_CHOICE", label: "Trắc nghiệm (MCQ)" },
-  { value: "MATCHING", label: "Ghép cặp" },
-  { value: "REORDER", label: "Sắp xếp thứ tự" },
-  { value: "FILL_IN_THE_BLANK", label: "Điền vào chỗ trống" },
-];
-
 function QuizQuestionForm({ onAdd, onCancel }: QuizQuestionFormProps) {
+  const { t } = useTranslation("teacher");
   const [quizText, setQuizText] = useState<string>("");
   const [quizType, setQuizType] = useState<QuizType>("MULTIPLE_CHOICE");
   const [mcqOptions, setMcqOptions] = useState<string[]>(["", "", "", ""]);
@@ -42,20 +37,27 @@ function QuizQuestionForm({ onAdd, onCancel }: QuizQuestionFormProps) {
   const [reorderItems, setReorderItems] = useState<string[]>(["", ""]);
   const [blankAnswers, setBlankAnswers] = useState<string[]>([""]);
 
+  const quizTypeOptions: { value: QuizType; label: string }[] = [
+    { value: "MULTIPLE_CHOICE", label: t("content.quizTypeMCLabel") },
+    { value: "MATCHING", label: t("content.quizTypeMatchingLabel") },
+    { value: "REORDER", label: t("content.quizTypeReorderLabel") },
+    { value: "FILL_IN_THE_BLANK", label: t("content.quizTypeFillLabel") },
+  ];
+
   const handleSubmit = () => {
-    if (!quizText.trim()) return showError("Nội dung câu hỏi là bắt buộc.");
+    if (!quizText.trim()) return showError(t("content.errQuestionRequired"));
 
     const payload: QuestionDraft = { questionText: quizText, type: quizType };
 
     if (quizType === "MULTIPLE_CHOICE") {
       if (mcqOptions.some((o) => !o.trim())) {
-        return showError("Vui lòng điền đầy đủ các lựa chọn MCQ.");
+        return showError(t("content.errMCQOptions"));
       }
       payload.options = mcqOptions;
       payload.correctOptionIndex = mcqCorrectIndex;
     } else if (quizType === "MATCHING") {
       if (matchingPairs.some((p) => !p.key.trim() || !p.val.trim())) {
-        return showError("Vui lòng điền đầy đủ các cặp matching.");
+        return showError(t("content.errMatchingPairs"));
       }
       const pairRecord: Record<string, string> = {};
       matchingPairs.forEach((p) => {
@@ -64,17 +66,15 @@ function QuizQuestionForm({ onAdd, onCancel }: QuizQuestionFormProps) {
       payload.matchingPairs = pairRecord;
     } else if (quizType === "REORDER") {
       if (reorderItems.some((item) => !item.trim())) {
-        return showError("Vui lòng điền đầy đủ các phần tử reorder.");
+        return showError(t("content.errReorderItems"));
       }
       payload.correctOrder = reorderItems;
     } else if (quizType === "FILL_IN_THE_BLANK") {
       if (blankAnswers.some((ans) => !ans.trim())) {
-        return showError("Vui lòng điền đầy đủ các đáp án được chấp nhận.");
+        return showError(t("content.errBlankAnswers"));
       }
       if (!quizText.includes("_")) {
-        return showError(
-          "Nội dung câu hỏi phải chứa dấu gạch dưới '_' để đại diện cho chỗ trống.",
-        );
+        return showError(t("content.errFillBlankUnderscore"));
       }
       payload.acceptedAnswers = blankAnswers;
     }
@@ -90,19 +90,21 @@ function QuizQuestionForm({ onAdd, onCancel }: QuizQuestionFormProps) {
       >
         <X className="w-5 h-5" />
       </button>
-      <h4 className="font-bold text-[var(--foreground)]">Soạn Câu hỏi</h4>
+      <h4 className="font-bold text-[var(--foreground)]">
+        {t("content.composeQuestion")}
+      </h4>
 
       <div className="grid md:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-bold text-[var(--foreground)] mb-2">
-            Loại câu hỏi
+            {t("content.questionType")}
           </label>
           <select
             value={quizType}
             onChange={(e) => setQuizType(e.target.value as QuizType)}
             className="w-full px-4 py-3 bg-[var(--card)] border border-[var(--border)] rounded-xl text-[var(--foreground)] focus:outline-none"
           >
-            {QUIZ_TYPE_OPTIONS.map((opt) => (
+            {quizTypeOptions.map((opt) => (
               <option key={opt.value} value={opt.value}>
                 {opt.label}
               </option>
@@ -113,14 +115,14 @@ function QuizQuestionForm({ onAdd, onCancel }: QuizQuestionFormProps) {
 
       <div>
         <label className="block text-sm font-bold text-[var(--foreground)] mb-2">
-          Nội dung câu hỏi
+          {t("content.questionContent")}
         </label>
         <textarea
           required
           placeholder={
             quizType === "FILL_IN_THE_BLANK"
-              ? "VD: Paris là thủ đô của _."
-              : "Nhập câu hỏi..."
+              ? t("content.placeholderFillBlank")
+              : t("content.placeholderQuestion")
           }
           value={quizText}
           onChange={(e) => setQuizText(e.target.value)}
@@ -132,7 +134,7 @@ function QuizQuestionForm({ onAdd, onCancel }: QuizQuestionFormProps) {
       {quizType === "MULTIPLE_CHOICE" && (
         <div className="space-y-3">
           <label className="block text-sm font-bold text-[var(--foreground)]">
-            Các lựa chọn & Đáp án đúng
+            {t("content.optionsAndCorrect")}
           </label>
           {mcqOptions.map((opt, idx) => (
             <div key={idx} className="flex items-center gap-3">
@@ -166,7 +168,7 @@ function QuizQuestionForm({ onAdd, onCancel }: QuizQuestionFormProps) {
         <div className="space-y-3">
           <div className="flex justify-between items-center">
             <label className="block text-sm font-bold text-[var(--foreground)]">
-              Cặp ghép (Key ↔ Value)
+              {t("content.matchingPairsTitle")}
             </label>
             <button
               type="button"
@@ -175,14 +177,14 @@ function QuizQuestionForm({ onAdd, onCancel }: QuizQuestionFormProps) {
               }
               className="px-3 py-1 bg-purple-900/40 text-purple-300 rounded-lg text-xs"
             >
-              + Thêm
+              {t("content.addBtn")}
             </button>
           </div>
           {matchingPairs.map((pair, idx) => (
             <div key={idx} className="flex items-center gap-3">
               <input
                 type="text"
-                placeholder="Từ khoá"
+                placeholder={t("content.placeholderKeyword")}
                 value={pair.key}
                 onChange={(e) => {
                   const newP = [...matchingPairs];
@@ -194,7 +196,7 @@ function QuizQuestionForm({ onAdd, onCancel }: QuizQuestionFormProps) {
               <span className="text-[var(--muted-foreground)]">⇔</span>
               <input
                 type="text"
-                placeholder="Ghép với"
+                placeholder={t("content.placeholderMatchWith")}
                 value={pair.val}
                 onChange={(e) => {
                   const newP = [...matchingPairs];
@@ -222,14 +224,14 @@ function QuizQuestionForm({ onAdd, onCancel }: QuizQuestionFormProps) {
         <div className="space-y-3">
           <div className="flex justify-between items-center">
             <label className="block text-sm font-bold text-[var(--foreground)]">
-              Thứ tự đúng
+              {t("content.correctOrderTitle")}
             </label>
             <button
               type="button"
               onClick={() => setReorderItems([...reorderItems, ""])}
               className="px-3 py-1 bg-purple-900/40 text-purple-300 rounded-lg text-xs"
             >
-              + Thêm
+              {t("content.addBtn")}
             </button>
           </div>
           {reorderItems.map((item, idx) => (
@@ -266,14 +268,14 @@ function QuizQuestionForm({ onAdd, onCancel }: QuizQuestionFormProps) {
         <div className="space-y-3">
           <div className="flex justify-between items-center">
             <label className="block text-sm font-bold text-[var(--foreground)]">
-              Đáp án được chấp nhận
+              {t("content.acceptedAnswersTitle")}
             </label>
             <button
               type="button"
               onClick={() => setBlankAnswers([...blankAnswers, ""])}
               className="px-3 py-1 bg-purple-900/40 text-purple-300 rounded-lg text-xs"
             >
-              + Thêm
+              {t("content.addBtn")}
             </button>
           </div>
           {blankAnswers.map((ans, idx) => (
@@ -310,7 +312,7 @@ function QuizQuestionForm({ onAdd, onCancel }: QuizQuestionFormProps) {
           className="px-5 py-2 bg-[var(--primary)] text-white text-sm font-bold rounded-xl"
         >
           <Plus className="w-4 h-4 inline-block mr-1" />
-          Thêm vào Bộ đề
+          {t("content.addToQuizSetBtn")}
         </button>
       </div>
     </div>

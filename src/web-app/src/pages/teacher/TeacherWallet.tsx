@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { useAppSelector } from "../../store/hooks";
 import { walletService } from "../../api";
@@ -16,6 +17,7 @@ import CashOutConfirmModal from "../../components/teacher/wallet/CashOutConfirmM
 import SellerEscrowPanel from "../../components/teacher/wallet/SellerEscrowPanel";
 import WalletControlPanel from "../../components/teacher/wallet/WalletControlPanel";
 import { useWalletData } from "../../components/teacher/wallet/useWalletData";
+import { useFormatNumber } from "../../utils/format";
 
 interface PendingCashOut {
   amount: number;
@@ -24,6 +26,8 @@ interface PendingCashOut {
 }
 
 function TeacherWallet() {
+  const { t } = useTranslation("wallet");
+  const formatNumber = useFormatNumber();
   const { currentStreak } = useAppSelector((state) => state.userProfile);
   const streak = currentStreak ?? 0;
   const wallet = useWalletData();
@@ -34,9 +38,9 @@ function TeacherWallet() {
   const [escrowsLoading, setEscrowsLoading] = useState(false);
 
   const cashOutDisabledReason = wallet.breakdown.frozen
-    ? "Ví đang bị freeze nên cash-out tạm thời bị chặn."
+    ? t("toast.frozenReason")
     : wallet.holds.length > 0
-      ? "Ví đang có active hold nên cash-out tạm thời bị chặn."
+      ? t("toast.holdReason")
       : undefined;
 
   const loadEscrows = async () => {
@@ -69,16 +73,21 @@ function TeacherWallet() {
   const handleWithdraw = async () => {
     if (!pending) return;
     const vnd = pending.amount * wallet.withdrawalRate;
-    const description = `Quy đổi: ${pending.amount} Coins = ${vnd.toLocaleString("vi-VN")} VNĐ (${pending.bankName} - ${pending.bankAccount})`;
+    const description = t("toast.cashOutDescription", {
+      coins: pending.amount,
+      amount: formatNumber(vnd),
+      bankName: pending.bankName,
+      bankAccount: pending.bankAccount,
+    });
     setLoading(true);
     try {
       await walletService.cashOut({ amount: pending.amount, description });
-      showSuccess("Rút tiền thành công!");
+      showSuccess(t("toast.cashOutSuccess"));
       setPending(null);
       void reloadAll();
     } catch (err: unknown) {
       const e = err as { response?: { data?: { message?: string } } };
-      showError(e.response?.data?.message ?? "Lỗi khi rút tiền!");
+      showError(e.response?.data?.message ?? t("toast.cashOutError"));
     } finally {
       setLoading(false);
     }

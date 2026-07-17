@@ -1,9 +1,14 @@
+import { useTranslation } from "react-i18next";
+
 interface ProductStatusBadgeProps {
   status: string | undefined;
   rejectionReason?: string | null;
 }
 
-const STYLES: Record<string, { bg: string; text: string; border: string; label: string }> = {
+const STYLES: Record<
+  string,
+  { bg: string; text: string; border: string; label: string }
+> = {
   PUBLISHED: {
     bg: "bg-emerald-500/10",
     text: "text-emerald-400",
@@ -41,17 +46,38 @@ function ProductStatusBadge({
   status,
   rejectionReason,
 }: ProductStatusBadgeProps) {
+  const { t } = useTranslation("teacher");
   const s = STYLES[status ?? ""] ?? DEFAULT_STATUS_STYLE;
   const isRejected = status === "REJECTED";
+
+  const getLabel = (st: string | undefined) => {
+    switch (st) {
+      case "PUBLISHED":
+        return t("content.statusPublished");
+      case "REJECTED":
+        return t("content.statusRejected");
+      case "HIDDEN":
+        return t("content.statusHidden");
+      case "PENDING_REVIEW":
+      default:
+        return t("content.statusPending");
+    }
+  };
 
   return (
     <span
       className={`px-3 py-1 ${s.bg} ${s.text} text-xs font-semibold rounded-full border ${s.border} ${
         isRejected ? "cursor-help relative group/tooltip" : ""
       }`}
-      title={isRejected ? (rejectionReason ? `Lý do từ chối: ${rejectionReason}` : "Bị từ chối") : undefined}
+      title={
+        isRejected
+          ? rejectionReason
+            ? `${t("content.rejectionReasonPrefix")}: ${rejectionReason}`
+            : t("content.statusRejected")
+          : undefined
+      }
     >
-      {isRejected ? "Từ chối" : s.label}
+      {getLabel(status)}
       {isRejected && rejectionReason && (
         <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 hidden group-hover/tooltip:block bg-slate-900 border border-red-500/30 text-red-200 text-xs rounded-lg p-2.5 shadow-xl z-20 whitespace-normal text-center">
           {rejectionReason}

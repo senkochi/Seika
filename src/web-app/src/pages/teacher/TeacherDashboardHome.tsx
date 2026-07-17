@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { BookOpen, DollarSign, Users } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { fetchCurrentUserProfile } from "../../store/userProfileSlice";
@@ -19,12 +20,15 @@ import DashboardLoadingState from "../../components/teacher/dashboard/DashboardL
 import DashboardFailedState from "../../components/teacher/dashboard/DashboardFailedState";
 import TeacherTierBadge from "../../components/teacher/TeacherTierBadge";
 import { useTeacherRating } from "../../components/teacher/useTeacherRating";
+import { useFormatNumber } from "../../utils/format";
 
 const XP_PER_LEVEL = 1000;
 
 function TeacherDashboardHome() {
+  const { t } = useTranslation("teacher");
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
+  const formatNumber = useFormatNumber();
   const { status, error, fullName, username, exp, level, userId } =
     useAppSelector((state) => state.userProfile);
   const { revenue } = useAppSelector((state) => state.statistics);
@@ -88,23 +92,23 @@ function TeacherDashboardHome() {
 
   const stats: TeacherTopStat[] = [
     {
-      label: "Có thể rút",
-      value: `${withdrawableBalance.toLocaleString("vi-VN")} Coins`,
-      trend: "Hiện tại",
+      label: t("stats.withdrawable"),
+      value: `${formatNumber(withdrawableBalance)} Coins`,
+      trend: t("stats.current"),
       icon: DollarSign,
       variant: "gold",
     },
     {
-      label: "Tổng học viên đã tiếp cận",
-      value: `${teacherProfile?.totalStudentsReached ?? 0}`,
-      trend: "Tổng thể",
+      label: t("stats.totalStudents"),
+      value: `${formatNumber(teacherProfile?.totalStudentsReached ?? 0)}`,
+      trend: t("stats.overall"),
       icon: Users,
       variant: "info",
     },
     {
-      label: "Nội dung đã xuất bản",
-      value: `${contentPublished} mục`,
-      trend: "Tổng thể",
+      label: t("stats.contentPublished"),
+      value: t("stats.itemsCount", { count: formatNumber(contentPublished) }),
+      trend: t("stats.overall"),
       icon: BookOpen,
       variant: "success",
     },

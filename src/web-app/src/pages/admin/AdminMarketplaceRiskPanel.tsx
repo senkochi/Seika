@@ -23,6 +23,7 @@ import { showError, showSuccess } from "../../components/toast/toastUtils";
 import { PageHeader } from "../../components/ui/PageHeader";
 import { SectionCard } from "../../components/ui/SectionCard";
 import { StatCard } from "../../components/ui/StatCard";
+import { useFormatDate, useFormatNumber } from "../../utils/format";
 import { StatusPill } from "../../components/ui/StatusPill";
 import { Button } from "../../components/ui/Button";
 import { EmptyState } from "../../components/ui/EmptyState";
@@ -42,15 +43,6 @@ const ESCROW_FILTERS: EscrowFilter[] = [
   "RELEASED",
   "REFUNDED",
 ];
-
-function formatCoins(value: number | null | undefined) {
-  return (value ?? 0).toLocaleString("vi-VN");
-}
-
-function formatDate(value: string | null | undefined) {
-  if (!value) return "N/A";
-  return new Date(value).toLocaleString("vi-VN");
-}
 
 function shortId(value: string | null | undefined) {
   if (!value) return "N/A";
@@ -82,6 +74,14 @@ function escrowStatusVariant(status: string) {
 }
 
 export default function AdminMarketplaceRiskPanel() {
+  const formatNum = useFormatNumber();
+  const formatDt = useFormatDate();
+  const formatCoins = (value: number | null | undefined) =>
+    formatNum(value ?? 0);
+  const formatDate = (value: string | null | undefined) => {
+    if (!value) return "N/A";
+    return formatDt(value);
+  };
   const [activeTab, setActiveTab] = useState<ViewTab>("escrow");
   const [escrowFilter, setEscrowFilter] = useState<EscrowFilter>("HELD");
   const [escrows, setEscrows] = useState<EscrowTransaction[]>([]);

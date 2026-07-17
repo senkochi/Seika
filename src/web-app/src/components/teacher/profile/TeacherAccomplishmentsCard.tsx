@@ -1,5 +1,6 @@
 import { AlertTriangle, Award } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import StatTile from "./StatTile";
 
 export interface TeacherStatCard {
@@ -22,17 +23,18 @@ function TeacherAccomplishmentsCard({
   loadingStats,
   statsError,
 }: TeacherAccomplishmentsCardProps) {
+  const { t } = useTranslation("teacher");
   return (
     <div className="bg-[var(--card)] backdrop-blur-xl border border-[var(--border)] rounded-3xl p-6">
       <div className="flex items-center justify-between mb-5">
         <h3 className="text-lg font-bold text-[var(--foreground)] flex items-center gap-2">
           <Award className="w-5 h-5 text-amber-400" />
-          Thành tích Giảng dạy
+          {t("profile.accomplishmentsTitle")}
         </h3>
         {statsError && (
           <div className="flex items-center gap-1.5 text-xs text-amber-400">
             <AlertTriangle className="w-3.5 h-3.5" />
-            Không thể tải thống kê
+            {t("profile.statsErrorBadge")}
           </div>
         )}
       </div>

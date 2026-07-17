@@ -1,4 +1,5 @@
 import { PlusCircle, RefreshCcw } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Button } from "../../ui/Button";
 
 interface DashboardWelcomeHeaderProps {
@@ -12,14 +13,15 @@ function DashboardWelcomeHeader({
   onRefresh,
   onCreateMaterial,
 }: DashboardWelcomeHeaderProps) {
+  const { t } = useTranslation("teacher");
   return (
     <div className="mb-8 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
       <div>
         <h1 className="font-sans-ui text-2xl font-semibold tracking-tight text-cream">
-          Chào, {displayName}
+          {t("welcome.hello", { name: displayName })}
         </h1>
         <p className="mt-1 font-sans-ui text-sm text-white/55">
-          Tổng quan giảng dạy và thu nhập Marketplace của bạn hôm nay.
+          {t("welcome.subtitle")}
         </p>
       </div>
       <div className="flex flex-wrap items-center gap-3">
@@ -30,7 +32,7 @@ function DashboardWelcomeHeader({
           className="inline-flex items-center justify-center gap-2"
         >
           <RefreshCcw className="w-4 h-4 shrink-0" aria-hidden="true" />
-          <span>Làm mới</span>
+          <span>{t("welcome.refresh")}</span>
         </Button>
         <Button
           variant="primary"
@@ -39,7 +41,7 @@ function DashboardWelcomeHeader({
           className="inline-flex items-center justify-center gap-2"
         >
           <PlusCircle className="w-4 h-4 shrink-0" aria-hidden="true" />
-          <span>Tạo nội dung mới</span>
+          <span>{t("welcome.createMaterial")}</span>
         </Button>
       </div>
     </div>

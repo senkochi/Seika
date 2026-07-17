@@ -1,12 +1,15 @@
 import { Clock } from "lucide-react";
 import type { TransactionResponse } from "../../../api/services/wallet";
 import { IconChip } from "../../ui/IconChip";
+import { useFormatDate, useFormatNumber } from "../../../utils/format";
 
 interface TransactionListItemProps {
   tx: TransactionResponse;
 }
 
 function TransactionListItem({ tx }: TransactionListItemProps) {
+  const formatDate = useFormatDate();
+  const formatNumber = useFormatNumber();
   const isNegative = tx.amount < 0;
   return (
     <div className="flex items-center gap-4 p-3 rounded-xl border border-white/[0.04] bg-white/[0.02] hover:bg-white/[0.04] transition-colors">
@@ -18,7 +21,7 @@ function TransactionListItem({ tx }: TransactionListItemProps) {
           {tx.description}
         </p>
         <p className="font-sans-ui text-xs text-white/55">
-          {new Date(tx.createdAt).toLocaleDateString("vi-VN")}
+          {formatDate(tx.createdAt)}
         </p>
       </div>
       <div
@@ -29,7 +32,7 @@ function TransactionListItem({ tx }: TransactionListItemProps) {
         }
       >
         {isNegative ? "-" : "+"}
-        {Math.abs(tx.amount).toLocaleString("vi-VN")} coin
+        {formatNumber(Math.abs(tx.amount))} coin
       </div>
     </div>
   );

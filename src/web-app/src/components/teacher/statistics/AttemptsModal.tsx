@@ -1,8 +1,8 @@
 import { CheckCircle2, X, XCircle } from "lucide-react";
-import { format } from "date-fns";
-
+import { useTranslation } from "react-i18next";
 import type { QuizAttempt } from "../../../api/types";
 import StatisticsLoadingState from "./StatisticsLoadingState";
+import { useFormatDate } from "../../../utils/format";
 
 interface AttemptsModalProps {
   open: boolean;
@@ -19,6 +19,8 @@ function AttemptsModal({
   attempts,
   isLoading,
 }: AttemptsModalProps) {
+  const { t } = useTranslation("teacher");
+  const formatDate = useFormatDate();
   if (!open) return null;
 
   return (
@@ -27,14 +29,14 @@ function AttemptsModal({
         <div className="flex items-center justify-between border-b border-[var(--border)] p-4">
           <div>
             <h3 className="text-lg font-semibold text-[var(--foreground)]">
-              Lịch sử làm bài
+              {t("statistics.attemptsTitle")}
             </h3>
             <p className="text-sm text-[var(--muted-foreground)]">
               {productName}
             </p>
           </div>
           <button
-            aria-label="Đóng"
+            aria-label={t("statistics.close")}
             onClick={onClose}
             className="rounded-lg p-2 text-[var(--muted-foreground)] hover:bg-[var(--background)]"
           >
@@ -44,19 +46,27 @@ function AttemptsModal({
 
         <div className="max-h-[60vh] overflow-y-auto p-4">
           {isLoading ? (
-            <StatisticsLoadingState message="Đang tải lịch sử làm bài..." />
+            <StatisticsLoadingState message={t("statistics.loadingAttempts")} />
           ) : !attempts || attempts.length === 0 ? (
             <p className="py-12 text-center text-[var(--muted-foreground)]">
-              Chưa có lượt làm bài nào.
+              {t("statistics.attemptsEmpty")}
             </p>
           ) : (
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-[var(--muted-foreground)]">
-                  <th className="pb-3 font-medium">Học sinh</th>
-                  <th className="pb-3 font-medium">Điểm</th>
-                  <th className="pb-3 font-medium">Trạng thái</th>
-                  <th className="pb-3 font-medium">Ngày</th>
+                  <th className="pb-3 font-medium">
+                    {t("statistics.colStudent")}
+                  </th>
+                  <th className="pb-3 font-medium">
+                    {t("statistics.colScore")}
+                  </th>
+                  <th className="pb-3 font-medium">
+                    {t("statistics.colStatus")}
+                  </th>
+                  <th className="pb-3 font-medium">
+                    {t("statistics.colDate")}
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[var(--border)]">
@@ -73,16 +83,18 @@ function AttemptsModal({
                     <td className="py-3">
                       {attempt.passed ? (
                         <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-1 text-xs font-medium text-emerald-400">
-                          <CheckCircle2 className="h-3.5 w-3.5" /> Đạt
+                          <CheckCircle2 className="h-3.5 w-3.5" />{" "}
+                          {t("statistics.passed")}
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-1 rounded-full bg-rose-500/10 px-2 py-1 text-xs font-medium text-rose-400">
-                          <XCircle className="h-3.5 w-3.5" /> Chưa đạt
+                          <XCircle className="h-3.5 w-3.5" />{" "}
+                          {t("statistics.failed")}
                         </span>
                       )}
                     </td>
                     <td className="py-3 text-[var(--muted-foreground)]">
-                      {format(new Date(attempt.attemptAt), "dd/MM/yyyy HH:mm")}
+                      {formatDate(attempt.attemptAt)}
                     </td>
                   </tr>
                 ))}

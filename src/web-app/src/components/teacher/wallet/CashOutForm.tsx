@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { ArrowUpRight, Coins, Loader2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { showError } from "../../toast/toastUtils";
+import { useFormatNumber } from "../../../utils/format";
 
 interface CashOutFormProps {
   withdrawableBalance: number;
@@ -18,6 +20,8 @@ function CashOutForm({
   onSubmit,
   disabledReason,
 }: CashOutFormProps) {
+  const { t } = useTranslation("wallet");
+  const formatNumber = useFormatNumber();
   const [amount, setAmount] = useState<string>("");
   const [bankName, setBankName] = useState<string>("Vietcombank");
   const [bankAccount, setBankAccount] = useState<string>(
@@ -32,15 +36,15 @@ function CashOutForm({
     }
     const parsed = parseInt(amount, 10);
     if (isNaN(parsed) || parsed <= 0) {
-      showError("Amount is invalid.");
+      showError(t("toast.invalidCashOutAmount"));
       return;
     }
     if (parsed % 10 !== 0) {
-      showError("Cash-out amount must be a multiple of 10 coins.");
+      showError(t("toast.multipleOfTen"));
       return;
     }
     if (parsed > withdrawableBalance) {
-      showError("Withdrawable balance is not enough.");
+      showError(t("toast.insufficientBalance"));
       return;
     }
     onSubmit({ amount: parsed, bankName, bankAccount });
@@ -50,16 +54,16 @@ function CashOutForm({
     <div className="lg:col-span-2 h-fit rounded-lg border border-[var(--border)] bg-[var(--card)] p-6 backdrop-blur-xl">
       <h2 className="mb-6 flex items-center gap-2 text-xl font-bold text-[var(--foreground)]">
         <ArrowUpRight className="h-5 w-5 text-amber-400" />
-        Request Cash Out
+        {t("cashOut.title")}
       </h2>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="rounded-md border border-emerald-400/20 bg-emerald-400/10 px-3 py-2 text-xs text-emerald-200">
-          Available to cash out:{" "}
+          {t("cashOut.available")}{" "}
           <span className="font-mono font-bold text-[var(--foreground)]">
-            {withdrawableBalance.toLocaleString("vi-VN")}
+            {formatNumber(withdrawableBalance)}
           </span>{" "}
-          Coins
+          {t("cashOut.coinsUnit")}
         </div>
 
         {disabledReason && (
@@ -70,7 +74,7 @@ function CashOutForm({
 
         <div>
           <label className="mb-2 block text-sm text-[var(--muted-foreground)]">
-            Amount of Coins to Withdraw
+            {t("cashOut.amountLabel")}
           </label>
           <div className="relative">
             <Coins className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-[var(--muted-foreground)]" />
@@ -78,7 +82,7 @@ function CashOutForm({
               type="number"
               required
               min={10}
-              placeholder="Min 10 Coins"
+              placeholder={t("cashOut.amountPlaceholder")}
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               disabled={Boolean(disabledReason)}
@@ -89,7 +93,7 @@ function CashOutForm({
 
         <div>
           <label className="mb-2 block text-sm text-[var(--muted-foreground)]">
-            Bank / Payment Partner
+            {t("cashOut.bankLabel")}
           </label>
           <select
             value={bankName}
@@ -126,12 +130,12 @@ function CashOutForm({
 
         <div>
           <label className="mb-2 block text-sm text-[var(--muted-foreground)]">
-            Account Number & Full Name
+            {t("cashOut.accountLabel")}
           </label>
           <input
             type="text"
             required
-            placeholder="e.g. 1029312093 - NGUYEN VAN A"
+            placeholder={t("cashOut.accountPlaceholder")}
             value={bankAccount}
             onChange={(e) => setBankAccount(e.target.value)}
             disabled={Boolean(disabledReason)}
@@ -146,7 +150,7 @@ function CashOutForm({
             className="flex w-full items-center justify-center gap-2 rounded-md bg-gradient-to-r from-amber-400 to-yellow-500 py-3 font-black text-purple-950 transition-all hover:scale-[1.01] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Loader2 className="hidden h-4 w-4 animate-spin" />
-            Confirm Cash Out
+            {t("cashOut.submitBtn")}
           </button>
         </div>
       </form>

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import {
@@ -24,6 +25,7 @@ import StatisticsErrorState from "../../components/teacher/statistics/Statistics
 import { useStatisticsOverview } from "../../components/teacher/statistics/useStatisticsOverview";
 
 function TeacherStatistics() {
+  const { t } = useTranslation("teacher");
   const dispatch = useAppDispatch();
   const {
     overviewStatus,
@@ -42,7 +44,11 @@ function TeacherStatistics() {
   const [period, setPeriod] = useState<StatisticsPeriod>("month");
   const [modalQuizSetId, setModalQuizSetId] = useState<string | null>(null);
 
-  const totals = useStatisticsOverview(revenue ?? [], flashcardOverview, quizOverview);
+  const totals = useStatisticsOverview(
+    revenue ?? [],
+    flashcardOverview,
+    quizOverview,
+  );
 
   const refetch = () => {
     void dispatch(fetchStatisticsOverview());
@@ -67,7 +73,8 @@ function TeacherStatistics() {
       dispatch(fetchQuizAttempts(quizSetId)).then((result) => {
         if (fetchQuizAttempts.rejected.match(result)) {
           const message =
-            (result.payload as string | undefined) ?? "Không thể tải lịch sử làm bài.";
+            (result.payload as string | undefined) ??
+            t("statistics.errorTitle");
           showError(message);
         }
       });
@@ -77,13 +84,13 @@ function TeacherStatistics() {
   const hasOverview = quizOverview || flashcardOverview;
 
   if (overviewStatus === "loading" && !hasOverview) {
-    return <StatisticsLoadingState message="Đang tải bảng thống kê..." />;
+    return <StatisticsLoadingState message={t("statistics.loadingOverview")} />;
   }
 
   if (overviewStatus === "failed" && !hasOverview) {
     return (
       <StatisticsErrorState
-        message={overviewError ?? "Lỗi không xác định"}
+        message={overviewError ?? t("statistics.errorDefault")}
         onRetry={refetch}
       />
     );
@@ -91,12 +98,17 @@ function TeacherStatistics() {
 
   const modalProductName =
     modalQuizSetId && topProducts
-      ? topProducts.find((p) => p.productId === modalQuizSetId)?.productName ?? ""
+      ? (topProducts.find((p) => p.productId === modalQuizSetId)?.productName ??
+        "")
       : "";
 
   return (
     <div className="space-y-6 p-6 lg:p-8">
-      <StatisticsHeader period={period} onPeriodChange={setPeriod} onReload={refetch} />
+      <StatisticsHeader
+        period={period}
+        onPeriodChange={setPeriod}
+        onReload={refetch}
+      />
 
       <OverviewStatsGrid
         totalRevenue={totals.totalRevenue}
@@ -128,7 +140,9 @@ function TeacherStatistics() {
         open={modalQuizSetId !== null}
         onClose={() => setModalQuizSetId(null)}
         productName={modalProductName}
-        attempts={modalQuizSetId ? attemptsByQuizSet[modalQuizSetId] : undefined}
+        attempts={
+          modalQuizSetId ? attemptsByQuizSet[modalQuizSetId] : undefined
+        }
         isLoading={attemptsStatus === "loading"}
       />
     </div>

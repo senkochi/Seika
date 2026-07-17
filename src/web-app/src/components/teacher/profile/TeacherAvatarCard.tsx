@@ -1,4 +1,5 @@
 import { Star } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface TeacherAvatarCardProps {
   profilePictureUrl?: string | null;
@@ -17,6 +18,16 @@ function TeacherAvatarCard({
   level,
   exp,
 }: TeacherAvatarCardProps) {
+  const { t } = useTranslation("teacher");
+  const genderDisplay =
+    gender === "Male"
+      ? t("profile.genderMale")
+      : gender === "Female"
+        ? t("profile.genderFemale")
+        : gender === "Other"
+          ? t("profile.genderOther")
+          : gender || t("profile.genderFallback");
+
   return (
     <div className="bg-[var(--card)] backdrop-blur-xl border border-[var(--border)] rounded-3xl p-6 flex flex-col items-center justify-center text-center h-fit sticky top-8">
       <div className="relative mb-4">
@@ -42,25 +53,33 @@ function TeacherAvatarCard({
         {displayName}
       </h2>
       <p className="text-amber-400 font-bold text-xs uppercase tracking-wider mb-1">
-        Verified Teacher
+        {t("profile.verifiedTeacher")}
       </p>
       <p className="text-[var(--muted-foreground)] text-xs mb-5">@{username}</p>
 
       <div className="w-full pt-4 border-t border-[var(--border)] text-left space-y-3 text-sm">
         <div className="flex justify-between items-center">
-          <span className="text-[var(--muted-foreground)]">Level:</span>
+          <span className="text-[var(--muted-foreground)]">
+            {t("profile.levelLabel")}
+          </span>
           <span className="font-bold text-[var(--foreground)] bg-[var(--primary)]/10 text-[var(--primary)] px-2 py-0.5 rounded-md text-xs">
-            Lv. {level ?? 1}
+            {t("profile.levelBadge", { level: level ?? 1 })}
           </span>
         </div>
         <div className="flex justify-between items-center">
-          <span className="text-[var(--muted-foreground)]">XP:</span>
-          <span className="font-semibold text-amber-400">{exp ?? 0} XP</span>
+          <span className="text-[var(--muted-foreground)]">
+            {t("profile.xpLabel")}
+          </span>
+          <span className="font-semibold text-amber-400">
+            {t("profile.xpValue", { xp: exp ?? 0 })}
+          </span>
         </div>
         <div className="flex justify-between items-center">
-          <span className="text-[var(--muted-foreground)]">Giới tính:</span>
+          <span className="text-[var(--muted-foreground)]">
+            {t("profile.genderLabel")}
+          </span>
           <span className="font-semibold text-[var(--foreground)]">
-            {gender || "–"}
+            {genderDisplay}
           </span>
         </div>
       </div>

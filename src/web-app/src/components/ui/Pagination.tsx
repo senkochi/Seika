@@ -4,6 +4,7 @@ import {
   ChevronsLeft,
   ChevronsRight,
 } from "lucide-react";
+import { useFormatNumber } from "../../utils/format";
 
 interface PaginationProps {
   currentPage: number; // 0-indexed
@@ -31,6 +32,7 @@ export function Pagination({
   pageSizeOptions = [10, 20, 50, 100],
   className = "",
 }: PaginationProps) {
+  const formatNumber = useFormatNumber();
   if (totalPages <= 1 && !totalElements) return null;
 
   const startItem = totalElements === 0 ? 0 : currentPage * pageSize + 1;
@@ -84,10 +86,10 @@ export function Pagination({
           <div>
             Hiển thị{" "}
             <span className="font-semibold text-cream">{startItem}</span> -{" "}
-            <span className="font-semibold text-cream">{endItem}</span> trên tổng
-            số{" "}
+            <span className="font-semibold text-cream">{endItem}</span> trên
+            tổng số{" "}
             <span className="font-semibold text-cream">
-              {new Intl.NumberFormat("vi-VN").format(totalElements)}
+              {formatNumber(totalElements)}
             </span>{" "}
             kết quả
           </div>
@@ -102,7 +104,11 @@ export function Pagination({
               className="rounded-lg border border-white/[0.08] bg-white/[0.04] px-2 py-1 text-xs font-medium text-cream focus:outline-none focus:border-[#d4a843]/50 transition-colors"
             >
               {pageSizeOptions.map((size) => (
-                <option key={size} value={size} className="bg-[#1c0f2e] text-cream">
+                <option
+                  key={size}
+                  value={size}
+                  className="bg-[#1c0f2e] text-cream"
+                >
                   {size} / trang
                 </option>
               ))}

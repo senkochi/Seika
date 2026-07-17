@@ -7,17 +7,10 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { useTranslation } from "react-i18next";
 import type { RevenuePoint } from "../../../api/types";
 import { SectionCard } from "../../ui/SectionCard";
-
-const currencyFormatter = new Intl.NumberFormat("vi-VN", {
-  style: "currency",
-  currency: "VND",
-  maximumFractionDigits: 0,
-});
-
-const formatCurrency = (value: number | undefined | null) =>
-  currencyFormatter.format(value ?? 0);
+import { useFormatNumber } from "../../../utils/format";
 
 interface RevenueChartCardProps {
   chartData: RevenuePoint[];
@@ -30,11 +23,19 @@ function RevenueChartCard({
   period,
   onPeriodChange,
 }: RevenueChartCardProps) {
+  const { t } = useTranslation("teacher");
+  const formatNumber = useFormatNumber();
+  const formatCurrency = (value: number | undefined | null) =>
+    formatNumber(value ?? 0, {
+      style: "currency",
+      currency: "VND",
+      maximumFractionDigits: 0,
+    });
   return (
     <SectionCard className="lg:col-span-2">
       <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <h2 className="font-sans-ui text-base font-semibold text-cream">
-          Doanh thu ({period === "month" ? "theo tháng" : "theo ngày"})
+          {period === "month" ? t("revenue.titleMonth") : t("revenue.titleDay")}
         </h2>
         <div className="inline-flex rounded-lg border border-white/[0.06] bg-white/[0.02] p-0.5 font-sans-ui text-xs font-medium">
           {(["month", "day"] as const).map((value) => (
@@ -49,7 +50,7 @@ function RevenueChartCard({
                   : "rounded-md px-3 py-1 transition-colors text-white/55 hover:text-cream"
               }
             >
-              {value === "month" ? "Theo tháng" : "Theo ngày"}
+              {value === "month" ? t("revenue.byMonth") : t("revenue.byDay")}
             </button>
           ))}
         </div>
@@ -57,7 +58,7 @@ function RevenueChartCard({
 
       {chartData.length === 0 ? (
         <div className="flex h-[280px] w-full items-center justify-center font-sans-ui text-sm text-white/45">
-          Chưa có dữ liệu doanh thu trong khoảng thời gian này.
+          {t("revenue.empty")}
         </div>
       ) : (
         <div className="h-[280px] w-full">
@@ -66,7 +67,10 @@ function RevenueChartCard({
               data={chartData}
               margin={{ top: 10, right: 16, left: 0, bottom: 0 }}
             >
-              <CartesianGrid stroke="rgba(255,255,255,0.06)" strokeDasharray="3 3" />
+              <CartesianGrid
+                stroke="rgba(255,255,255,0.06)"
+                strokeDasharray="3 3"
+              />
               <XAxis
                 dataKey="period"
                 stroke="rgba(255,255,255,0.45)"
@@ -93,7 +97,7 @@ function RevenueChartCard({
                 itemStyle={{ color: "#d4a843" }}
                 formatter={(value: number) => [
                   formatCurrency(value),
-                  "Doanh thu",
+                  t("revenue.tooltipLabel"),
                 ]}
               />
               <Line

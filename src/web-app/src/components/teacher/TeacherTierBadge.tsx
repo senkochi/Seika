@@ -1,6 +1,8 @@
 import { Award, Star } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import type { TeacherRating } from "../../api/services/marketplace";
+import { useFormatNumber } from "../../utils/format";
 
 // Tier styling on the new dashboard palette:
 // NEWBIE / SILVER / BRONZE → neutral cream-on-aubergine hairline
@@ -19,16 +21,16 @@ interface TeacherTierBadgeProps {
   compact?: boolean;
 }
 
-function pct(value: number | null | undefined) {
-  return `${Number(value ?? 0).toLocaleString("vi-VN")}%`;
-}
-
 export default function TeacherTierBadge({
   rating,
   loading = false,
   compact = false,
 }: TeacherTierBadgeProps) {
-  const tier = loading ? "..." : (rating?.tier ?? "NEWBIE");
+  const { t } = useTranslation("teacher");
+  const formatNumber = useFormatNumber();
+  const pct = (value: number | null | undefined) =>
+    `${formatNumber(Number(value ?? 0))}%`;
+  const tier = loading ? t("tierBadge.loading") : (rating?.tier ?? "NEWBIE");
   const style = TIER_STYLES[tier] ?? TIER_STYLES.NEWBIE;
 
   if (compact) {
@@ -51,19 +53,23 @@ export default function TeacherTierBadge({
           <Award className="h-5 w-5" aria-hidden="true" />
           <div>
             <p className="text-xs uppercase tracking-wider opacity-80">
-              Teacher tier
+              {t("tierBadge.tierLabel")}
             </p>
             <p className="text-lg font-semibold">{tier}</p>
           </div>
         </div>
         <div className="text-right text-xs opacity-90">
-          <p>Fee {pct(rating?.tierFeePercent)}</p>
-          <p>{rating?.validReviewCount ?? 0} reviews</p>
+          <p>{t("tierBadge.fee", { pct: pct(rating?.tierFeePercent) })}</p>
+          <p>
+            {t("tierBadge.reviews", { count: rating?.validReviewCount ?? 0 })}
+          </p>
         </div>
       </div>
       <div className="mt-3 flex items-center gap-2 text-xs opacity-90">
         <Star className="h-4 w-4" aria-hidden="true" />
-        {(rating?.averageRating ?? 0).toFixed(2)} average rating
+        {t("tierBadge.avgRating", {
+          rating: (rating?.averageRating ?? 0).toFixed(2),
+        })}
       </div>
     </div>
   );

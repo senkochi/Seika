@@ -22,38 +22,7 @@ import { IconChip } from "../../components/ui/IconChip";
 import { StatusPill } from "../../components/ui/StatusPill";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { Button } from "../../components/ui/Button";
-
-const currencyFormatter = new Intl.NumberFormat("vi-VN", {
-  style: "currency",
-  currency: "VND",
-  maximumFractionDigits: 0,
-});
-
-const numberFormatter = new Intl.NumberFormat("vi-VN");
-
-function formatCurrency(value: number | undefined | null) {
-  return currencyFormatter.format(value ?? 0);
-}
-
-function formatNumber(value: number | undefined | null) {
-  return numberFormatter.format(value ?? 0);
-}
-
-function formatDate(dateStr: string | undefined) {
-  if (!dateStr) return "N/A";
-  try {
-    const date = new Date(dateStr);
-    return new Intl.DateTimeFormat("vi-VN", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-    }).format(date);
-  } catch {
-    return dateStr;
-  }
-}
+import { useFormatDate, useFormatNumber } from "../../utils/format";
 
 function FilterChip({
   active,
@@ -68,12 +37,11 @@ function FilterChip({
     <button
       type="button"
       onClick={onClick}
-      aria-pressed={active}
-      className={
+      className={`px-3.5 py-1.5 rounded-lg font-sans-ui text-xs font-medium transition-all ${
         active
-          ? "px-3 py-1.5 rounded-full border border-[#d4a843]/30 bg-[#d4a843]/10 text-[#d4a843] text-xs font-sans-ui transition-colors"
-          : "px-3 py-1.5 rounded-full border border-white/[0.08] bg-white/[0.02] text-white/55 hover:text-cream text-xs font-sans-ui transition-colors"
-      }
+          ? "bg-[#d4a843] text-[#1c0f2e] shadow-sm font-semibold"
+          : "bg-white/[0.04] text-white/70 hover:bg-white/[0.08] hover:text-white"
+      }`}
     >
       {children}
     </button>
@@ -81,6 +49,26 @@ function FilterChip({
 }
 
 export default function AdminRevenue() {
+  const formatNum = useFormatNumber();
+  const formatDt = useFormatDate();
+  const formatCurrency = (value: number | undefined | null) =>
+    formatNum(value ?? 0, {
+      style: "currency",
+      currency: "VND",
+      maximumFractionDigits: 0,
+    });
+  const formatNumber = (value: number | undefined | null) =>
+    formatNum(value ?? 0);
+  const formatDate = (dateStr: string | undefined) => {
+    if (!dateStr) return "N/A";
+    return formatDt(dateStr, {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
   const [stats, setStats] = useState<AdminRevenueStats | null>(null);
   const [transactions, setTransactions] = useState<AdminTransactionResponse[]>(
     [],

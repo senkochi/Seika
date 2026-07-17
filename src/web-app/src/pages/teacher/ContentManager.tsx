@@ -1,14 +1,12 @@
 import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { fetchCurrentUserProfile } from "../../store/userProfileSlice";
 import { flashcardsService, quizzesService } from "../../api";
 import { marketplaceApi } from "../../api/services/marketplace";
-import type {
-  CardSetResponse,
-  QuizSetResponse,
-} from "../../api";
+import type { CardSetResponse, QuizSetResponse } from "../../api";
 import type { Product } from "../../api/services/marketplace";
 import { showError, showSuccess } from "../../components/toast/toastUtils";
 
@@ -30,6 +28,7 @@ type DeleteTarget = {
 };
 
 function ContentManager() {
+  const { t } = useTranslation("teacher");
   const dispatch = useAppDispatch();
   const { userId, status } = useAppSelector((state) => state.userProfile);
 
@@ -41,8 +40,9 @@ function ContentManager() {
 
   const [editingFlashcard, setEditingFlashcard] =
     useState<CardSetResponse | null>(null);
-  const [editingQuizSet, setEditingQuizSet] =
-    useState<QuizSetResponse | null>(null);
+  const [editingQuizSet, setEditingQuizSet] = useState<QuizSetResponse | null>(
+    null,
+  );
 
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
   const [loadingDelete, setLoadingDelete] = useState<boolean>(false);
@@ -73,7 +73,7 @@ function ContentManager() {
       }
     } catch (err) {
       console.error(err);
-      showError("Không thể tải danh sách nội dung.");
+      showError(t("content.errLoadContent"));
     } finally {
       setLoadingList(false);
     }
@@ -93,16 +93,16 @@ function ContentManager() {
     try {
       if (deleteTarget.type === "flashcard") {
         await flashcardsService.deleteSet(deleteTarget.id);
-        showSuccess("Đã xóa Flashcard Set thành công.");
+        showSuccess(t("content.successDeleteFlashcard"));
       } else {
         await quizzesService.deleteQuizSet(deleteTarget.id);
-        showSuccess("Đã xóa Bộ đề Quiz thành công.");
+        showSuccess(t("content.successDeleteQuiz"));
       }
       setDeleteTarget(null);
       void loadData();
     } catch (err) {
       console.error(err);
-      showError("Xóa thất bại. Vui lòng thử lại.");
+      showError(t("content.errDeleteFailed"));
     } finally {
       setLoadingDelete(false);
     }
@@ -122,8 +122,11 @@ function ContentManager() {
     if (loadingList) {
       return (
         <div className="flex flex-col items-center justify-center p-20 text-white/55 gap-4 font-sans-ui">
-          <Loader2 className="w-10 h-10 animate-spin text-[#d4a843]" aria-hidden="true" />
-          <p>Đang tải nội dung của bạn...</p>
+          <Loader2
+            className="w-10 h-10 animate-spin text-[#d4a843]"
+            aria-hidden="true"
+          />
+          <p>{t("content.loadingContent")}</p>
         </div>
       );
     }
@@ -189,10 +192,12 @@ function ContentManager() {
         <ConfirmDialog
           title={
             deleteTarget.type === "flashcard"
-              ? "Xóa Flashcard Set?"
-              : "Xóa Bộ đề Quiz?"
+              ? t("content.confirmDeleteFlashcardTitle")
+              : t("content.confirmDeleteQuizTitle")
           }
-          description={`Bạn có chắc chắn muốn xóa "${deleteTarget.title}" không? Hành động này không thể hoàn tác.`}
+          description={t("content.confirmDeleteDesc", {
+            title: deleteTarget.title,
+          })}
           onConfirm={handleDelete}
           onCancel={() => setDeleteTarget(null)}
           loading={loadingDelete}
@@ -204,12 +209,15 @@ function ContentManager() {
         activeTab={activeTab}
         showCreate={showHeaderActions}
         onCreate={() => {
-          if (activeTab === "flashcards") setEditingFlashcard({} as CardSetResponse);
+          if (activeTab === "flashcards")
+            setEditingFlashcard({} as CardSetResponse);
           else setEditingQuizSet({} as QuizSetResponse);
         }}
       />
 
-      {showTabs && <ContentManagerTabs activeTab={activeTab} onChange={setActiveTab} />}
+      {showTabs && (
+        <ContentManagerTabs activeTab={activeTab} onChange={setActiveTab} />
+      )}
 
       {!editingAny && renderList()}
 

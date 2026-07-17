@@ -2,6 +2,7 @@ import { RefreshCw } from "lucide-react";
 
 import { PageHeader } from "../../ui/PageHeader";
 import { Button } from "../../ui/Button";
+import { useFormatNumber } from "../../../utils/format";
 
 interface UsersHeaderProps {
   totalElements: number;
@@ -17,18 +18,17 @@ const ROLE_FILTERS = [
   { value: "ADMIN", label: "Admin" },
 ] as const;
 
-const numberFormatter = new Intl.NumberFormat("vi-VN");
-
 function UsersHeader({
   totalElements,
   filterRole,
   onFilterChange,
   onReload,
 }: UsersHeaderProps) {
+  const formatNumber = useFormatNumber();
   return (
     <PageHeader
       title="Quản lý người dùng"
-      subtitle={`Tổng ${numberFormatter.format(totalElements)} user`}
+      subtitle={`Tổng ${formatNumber(totalElements)} user`}
       actions={
         <div className="flex flex-wrap items-center gap-2">
           <div

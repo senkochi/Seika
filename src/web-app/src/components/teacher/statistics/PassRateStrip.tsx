@@ -1,4 +1,5 @@
 import { TrendingUp } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { formatNumber } from "./OverviewStatsGrid";
 
@@ -13,18 +14,22 @@ function PassRateStrip({
   totalPassed,
   totalAttempts,
 }: PassRateStripProps) {
+  const { t } = useTranslation("teacher");
   return (
     <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] backdrop-blur-xl p-6">
       <div className="flex items-center gap-3">
         <TrendingUp className="h-5 w-5 text-[var(--primary)]" />
         <div>
           <p className="text-sm text-[var(--muted-foreground)]">
-            Tỷ lệ đạt quiz trung bình
+            {t("statistics.passRateAvg")}
           </p>
           <p className="text-xl font-bold text-[var(--foreground)]">
             {passRate.toFixed(1)}%
             <span className="ml-2 text-sm font-medium text-[var(--muted-foreground)]">
-              ({formatNumber(totalPassed)} / {formatNumber(totalAttempts)} lượt)
+              {t("statistics.passRateSummary", {
+                passed: formatNumber(totalPassed),
+                total: formatNumber(totalAttempts),
+              })}
             </span>
           </p>
         </div>

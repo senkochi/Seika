@@ -1,12 +1,17 @@
 import { DollarSign, Loader2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { isPositiveTransaction, type Transaction } from "./types";
+import { useFormatDate, useFormatNumber } from "../../../utils/format";
 
 interface TransactionItemProps {
   tx: Transaction;
 }
 
 function TransactionItem({ tx }: TransactionItemProps) {
+  const { t } = useTranslation("wallet");
+  const formatDate = useFormatDate();
+  const formatNumber = useFormatNumber();
   const positive = isPositiveTransaction(tx);
   return (
     <div className="flex items-center justify-between p-4 bg-[var(--second-card)] border border-[var(--border)] rounded-xl hover:bg-[var(--second-muted)] transition-colors">
@@ -15,7 +20,7 @@ function TransactionItem({ tx }: TransactionItemProps) {
           {tx.description}
         </p>
         <p className="text-xs text-[var(--muted-foreground)] mt-1">
-          {new Date(tx.createdAt).toLocaleString("vi-VN")}
+          {formatDate(tx.createdAt)}
         </p>
       </div>
       <div
@@ -24,7 +29,7 @@ function TransactionItem({ tx }: TransactionItemProps) {
         }`}
       >
         {positive ? "+" : "-"}
-        {Math.abs(tx.amount).toLocaleString()} Coins
+        {formatNumber(Math.abs(tx.amount))} {t("history.coinsUnit")}
       </div>
     </div>
   );
@@ -36,21 +41,22 @@ interface TransactionHistoryProps {
 }
 
 function TransactionHistory({ history, loading }: TransactionHistoryProps) {
+  const { t } = useTranslation("wallet");
   return (
     <div className="lg:col-span-3 bg-[var(--card)] backdrop-blur-xl border border-[var(--border)] rounded-3xl p-6">
       <h2 className="text-xl font-bold text-[var(--foreground)] mb-6 flex items-center gap-2">
         <DollarSign className="w-5 h-5 text-amber-400" />
-        Transaction History
+        {t("history.title")}
       </h2>
 
       {loading ? (
         <div className="flex flex-col items-center justify-center py-20 text-[var(--muted-foreground)] gap-2">
           <Loader2 className="w-8 h-8 animate-spin text-[var(--primary)]" />
-          <p className="text-sm">Loading transactions...</p>
+          <p className="text-sm">{t("history.loading")}</p>
         </div>
       ) : history.length === 0 ? (
         <div className="text-center py-20 text-[var(--muted-foreground)]">
-          No transactions recorded yet.
+          {t("history.emptyTeacher")}
         </div>
       ) : (
         <div className="space-y-4 max-h-[26rem] overflow-y-auto pr-2">
