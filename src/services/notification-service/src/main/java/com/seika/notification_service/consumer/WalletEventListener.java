@@ -45,7 +45,7 @@ public class WalletEventListener {
             if ("TOP_UP".equals(type) || "DEPOSIT".equals(type)) {
                 title = "Nạp Coin thành công 💰";
                 content = String.format("Bạn đã nạp thành công %s Coin vào ví%s.", amount.toPlainString(), descStr);
-            } else if ("CASH_OUT".equals(type) || "WITHDRAW".equals(type)) {
+            } else if ("CASH_OUT".equals(type)) {
                 title = "Rút Coin thành công 💸";
                 content = String.format("Giao dịch rút/quy đổi %s Coin của bạn đã được thực hiện thành công%s.", amount.toPlainString(), descStr);
             } else {

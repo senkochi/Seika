@@ -83,8 +83,8 @@ public class WalletOutboxProcessor {
                 event.setPublishedAt(now);
                 event.setLastError(null);
             } catch (Exception exception) {
-                int next = event.getAttemptCount() + 1;
-                event.setAttemptCount(next);
+                int next = event.getRetryCount() + 1;
+                event.setRetryCount(next);
                 event.setLastError(truncateError(exception.getMessage()));
                 if (next >= maxAttempts) {
                     event.setStatus(WalletOutboxStatus.DEAD);

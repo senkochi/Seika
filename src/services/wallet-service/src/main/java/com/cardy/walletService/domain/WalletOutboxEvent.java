@@ -67,8 +67,4 @@ public class WalletOutboxEvent {
 
     @Column(name = "next_attempt_at")
     private Instant nextAttemptAt;
-
-    @Column(name = "attempt_count", nullable = false)
-    @Builder.Default
-    private int attemptCount = 0;
 }
