@@ -258,7 +258,6 @@ public class WalletService {
                     .operation(WalletLedgerType.PURCHASE_DEBIT.name())
                     .build());
         }
-        walletNotificationPublisher.publishWalletUpdated(userId, amount.negate(), TransactionType.WITHDRAW.name(), description);
         return new WalletDebitResult(result.amounts(), ledgerIds);
     }
 

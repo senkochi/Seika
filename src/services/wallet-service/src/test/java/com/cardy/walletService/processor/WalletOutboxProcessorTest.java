@@ -60,7 +60,7 @@ class WalletOutboxProcessorTest {
                 .eventType("wallet.refund.succeeded")
                 .payload("{}")
                 .status(WalletOutboxStatus.PENDING)
-                .attemptCount(0)
+                .retryCount(0)
                 .build();
         when(repository.claimNextPendingBatch(anyInt(), any(Instant.class)))
                 .thenReturn(List.of(event));
@@ -79,7 +79,7 @@ class WalletOutboxProcessorTest {
         verify(repository).save(captor.capture());
         WalletOutboxEvent saved = captor.getValue();
         assertThat(saved.getStatus()).isEqualTo(WalletOutboxStatus.PENDING);
-        assertThat(saved.getAttemptCount()).isEqualTo(1);
+        assertThat(saved.getRetryCount()).isEqualTo(1);
         assertThat(saved.getLastError()).isEqualTo("broker down");
         assertThat(saved.getNextAttemptAt()).isNotNull();
         // first retry: 30s * 2^1 = 60s
@@ -96,7 +96,7 @@ class WalletOutboxProcessorTest {
                 .eventType("wallet.debit.failed")
                 .payload("{\"foo\":1}")
                 .status(WalletOutboxStatus.PENDING)
-                .attemptCount(maxAttempts - 1) // next failure will exceed
+                .retryCount(maxAttempts - 1) // next failure will exceed
                 .build();
         when(repository.claimNextPendingBatch(anyInt(), any(Instant.class)))
                 .thenReturn(List.of(event));
@@ -113,7 +113,7 @@ class WalletOutboxProcessorTest {
         verify(repository).save(captor.capture());
         WalletOutboxEvent saved = captor.getValue();
         assertThat(saved.getStatus()).isEqualTo(WalletOutboxStatus.DEAD);
-        assertThat(saved.getAttemptCount()).isEqualTo(maxAttempts);
+        assertThat(saved.getRetryCount()).isEqualTo(maxAttempts);
         assertThat(saved.getLastError()).isEqualTo("broker down");
     }
 
@@ -126,7 +126,7 @@ class WalletOutboxProcessorTest {
                 .eventType("wallet.credit.succeeded")
                 .payload("{}")
                 .status(WalletOutboxStatus.PENDING)
-                .attemptCount(2)
+                .retryCount(2)
                 .build();
         when(repository.claimNextPendingBatch(anyInt(), any(Instant.class)))
                 .thenReturn(List.of(event));
@@ -139,7 +139,7 @@ class WalletOutboxProcessorTest {
         verify(repository).save(captor.capture());
         WalletOutboxEvent saved = captor.getValue();
         assertThat(saved.getStatus()).isEqualTo(WalletOutboxStatus.PENDING);
-        assertThat(saved.getAttemptCount()).isEqualTo(3);
+        assertThat(saved.getRetryCount()).isEqualTo(3);
         // next attempt = 3: 30s * 2^3 = 240s
         assertThat(saved.getNextAttemptAt()).isEqualTo(NOW.plusSeconds(240));
     }
