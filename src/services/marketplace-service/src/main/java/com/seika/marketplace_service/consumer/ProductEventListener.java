@@ -1,6 +1,7 @@
 package com.seika.marketplace_service.consumer;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.seika.marketplace_service.entity.Product;
 import com.seika.marketplace_service.enums.ProductStatus;
@@ -34,8 +35,10 @@ public class ProductEventListener {
 
     @RabbitListener(queues = "${messaging.events.marketplace-content-queue:marketplace.content-events}")
     public void handleContentCreatedEvent(org.springframework.amqp.core.Message message, @Header(AmqpHeaders.RECEIVED_ROUTING_KEY) String routingKey) {
-        String rawMessage = new String(message.getBody(), java.nio.charset.StandardCharsets.UTF_8);
+        String messageBody = new String(message.getBody(), java.nio.charset.StandardCharsets.UTF_8);
+        String rawMessage = messageBody;
         try {
+            rawMessage = unwrapJsonString(messageBody);
             if ("flashcard.set.created".equals(routingKey)) {
                 FlashcardSetCreatedEvent event = objectMapper.readValue(rawMessage, FlashcardSetCreatedEvent.class);
                 saveProduct(event.getCardSetId(), ProductType.FLASHCARD, event.getTitle(), event.getDescription(), event.getPrice(), event.getCreatedBy());
@@ -58,6 +61,11 @@ public class ProductEventListener {
             log.error("Failed to process content event. routingKey={}, payload={}", routingKey, rawMessage, exception);
             throw exception;
         }
+    }
+
+    private String unwrapJsonString(String messageBody) throws JsonProcessingException {
+        JsonNode root = objectMapper.readTree(messageBody);
+        return root != null && root.isTextual() ? root.textValue() : messageBody;
     }
 
     private void markConsumed(ContentConsumedEvent event, ProductType type) {
