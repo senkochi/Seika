@@ -351,6 +351,7 @@ export interface AdminTransactionResponse {
   userId: string;
   walletId: string;
   type: string;
+  flowDirection?: "INFLOW" | "OUTFLOW" | "NEUTRAL";
   amount: number;
   amountVnd: number;
   description: string;

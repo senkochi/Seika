@@ -81,7 +81,17 @@
       "type": {
         "topUp": "Top-up",
         "cashOut": "Cash-out",
-        "reward": "Income / Reward"
+        "initialBonus": "Initial bonus",
+        "learningReward": "Learning reward",
+        "purchaseDebit": "Marketplace purchase",
+        "escrowRelease": "Escrow payout",
+        "escrowRefund": "Escrow refund",
+        "platformFeeReal": "Platform fee (paid-backed)",
+        "platformFeePromoSink": "Promo fee sink",
+        "walletHold": "Wallet hold",
+        "walletFreeze": "Wallet freeze",
+        "walletUnfreeze": "Wallet unfreeze",
+        "unknown": "Other transaction"
       },
       "noDesc": "No description"
     }

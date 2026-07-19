@@ -24,6 +24,7 @@ import { StatusPill } from "../../components/ui/StatusPill";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { Button } from "../../components/ui/Button";
 import { useFormatDate, useFormatNumber } from "../../utils/format";
+import { getAdminTransactionPresentation } from "./adminRevenuePresentation";
 
 function FilterChip({
   active,
@@ -305,37 +306,11 @@ export default function AdminRevenue() {
                 </tr>
               ) : (
                 paginatedTransactions.map((tx) => {
-                  const isTopup = tx.type === "TOP_UP";
-                  const isCashout = tx.type === "CASH_OUT";
-                  const isReward =
-                    tx.type === "REWARD" || tx.type === "DEPOSIT";
-
-                  let pill: React.ReactNode = null;
-                  if (isTopup) {
-                    pill = (
-                      <StatusPill variant="success">
-                        {t("revenue.transactions.type.topUp")}
-                      </StatusPill>
-                    );
-                  } else if (isCashout) {
-                    pill = (
-                      <StatusPill variant="danger">
-                        {t("revenue.transactions.type.cashOut")}
-                      </StatusPill>
-                    );
-                  } else if (isReward) {
-                    pill = (
-                      <StatusPill variant="info">
-                        {t("revenue.transactions.type.reward")}
-                      </StatusPill>
-                    );
-                  } else {
-                    pill = <StatusPill variant="neutral">{tx.type}</StatusPill>;
-                  }
-
-                  const coinSign = isTopup || isReward ? "+" : "-";
-                  const coinColor =
-                    isTopup || isReward ? "text-emerald-300" : "text-red-300";
+                  const amount = tx.amount ?? 0;
+                  const presentation = getAdminTransactionPresentation(
+                    tx.type,
+                    tx.flowDirection,
+                  );
 
                   return (
                     <tr
@@ -351,25 +326,21 @@ export default function AdminRevenue() {
                       >
                         {tx.userId ? `${tx.userId.substring(0, 8)}…` : "N/A"}
                       </td>
-                      <td className="py-3.5 pr-4 whitespace-nowrap">{pill}</td>
+                      <td className="py-3.5 pr-4 whitespace-nowrap">
+                        <StatusPill variant={presentation.pillVariant}>
+                          {t(presentation.labelKey)}
+                        </StatusPill>
+                      </td>
                       <td
-                        className={`py-3.5 pr-4 whitespace-nowrap text-right font-mono font-medium tabular-nums ${coinColor}`}
+                        className={`py-3.5 pr-4 whitespace-nowrap text-right font-mono font-medium tabular-nums ${presentation.valueClassName}`}
                       >
-                        {coinSign}
-                        {formatNumber(Math.abs(tx.amount || 0))} Coins
+                        {presentation.sign}
+                        {formatNumber(Math.abs(amount))} Coins
                       </td>
                       <td className="py-3.5 pr-4 whitespace-nowrap text-right font-mono text-cream tabular-nums">
                         {tx.amountVnd && tx.amountVnd > 0 ? (
-                          <span
-                            className={
-                              isTopup
-                                ? "text-emerald-300"
-                                : isCashout
-                                  ? "text-red-300"
-                                  : ""
-                            }
-                          >
-                            {isTopup ? "+" : isCashout ? "-" : ""}
+                          <span className={presentation.valueClassName}>
+                            {presentation.sign}
                             {formatCurrency(tx.amountVnd)}
                           </span>
                         ) : (

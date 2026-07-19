@@ -15,6 +15,7 @@ public class AdminTransactionDTO {
     private String userId;
     private String walletId;
     private String type;
+    private String flowDirection;
     private BigDecimal amount;
     private BigDecimal amountVnd;
     private String description;

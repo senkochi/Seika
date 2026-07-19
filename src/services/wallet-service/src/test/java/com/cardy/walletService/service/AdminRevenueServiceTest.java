@@ -3,6 +3,7 @@ package com.cardy.walletService.service;
 import com.cardy.walletService.domain.Wallet;
 import com.cardy.walletService.domain.WalletLedgerEntry;
 import com.cardy.walletService.dto.admin.AdminRevenueStatsDTO;
+import com.cardy.walletService.dto.admin.AdminTransactionDTO;
 import com.cardy.walletService.enums.WalletLedgerSource;
 import com.cardy.walletService.enums.WalletLedgerType;
 import com.cardy.walletService.repository.TransactionRepository;
@@ -18,6 +19,38 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class AdminRevenueServiceTest {
+
+    @Test
+    void systemTransactionsUseAdminCashFlowPerspective() {
+        TransactionRepository transactionRepository = mock(TransactionRepository.class);
+        WalletLedgerEntryRepository ledgerRepository = mock(WalletLedgerEntryRepository.class);
+        WalletRepository walletRepository = mock(WalletRepository.class);
+        SystemConfigService configService = mock(SystemConfigService.class);
+        AdminRevenueService service = new AdminRevenueService(
+                transactionRepository, ledgerRepository, walletRepository, configService);
+
+        when(configService.getBigDecimal(SystemConfigService.KEY_TOPUP_VND_PER_COIN, new BigDecimal("100")))
+                .thenReturn(new BigDecimal("100"));
+        when(configService.getBigDecimal(SystemConfigService.KEY_WITHDRAWAL_VND_PER_COIN, new BigDecimal("90")))
+                .thenReturn(new BigDecimal("90"));
+        when(ledgerRepository.findAllByOrderByCreatedAtDesc()).thenReturn(List.of(
+                ledger(WalletLedgerType.TOP_UP, WalletLedgerSource.PAID, "100", "10000"),
+                ledger(WalletLedgerType.PLATFORM_FEE_REAL, WalletLedgerSource.PLATFORM_FEE_REAL, "6", null),
+                ledger(WalletLedgerType.ESCROW_RELEASE_CREDIT, WalletLedgerSource.EARNED_WITHDRAWABLE, "24", null),
+                ledger(WalletLedgerType.ESCROW_REFUND_CREDIT, WalletLedgerSource.PAID, "10", null),
+                ledger(WalletLedgerType.LEARNING_REWARD, WalletLedgerSource.REWARD, "5", null),
+                ledger(WalletLedgerType.PURCHASE_DEBIT, WalletLedgerSource.PAID, "-30", null),
+                ledger(WalletLedgerType.PLATFORM_FEE_PROMO_SINK, WalletLedgerSource.PLATFORM_FEE_PROMO_SINK, "4", null),
+                ledger(WalletLedgerType.CASH_OUT, WalletLedgerSource.EARNED_WITHDRAWABLE, "-8", "720")
+        ));
+
+        List<AdminTransactionDTO> transactions = service.getSystemTransactions("ALL");
+
+        assertThat(transactions).extracting(AdminTransactionDTO::getFlowDirection)
+                .containsExactly(
+                        "INFLOW", "INFLOW", "OUTFLOW", "OUTFLOW",
+                        "OUTFLOW", "NEUTRAL", "NEUTRAL", "OUTFLOW");
+    }
 
     @Test
     void revenueStatsSeparateRealFeesPromoSinkAndWithdrawableLiability() {

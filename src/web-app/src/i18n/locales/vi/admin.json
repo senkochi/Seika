@@ -81,7 +81,17 @@
       "type": {
         "topUp": "Nạp tiền",
         "cashOut": "Rút tiền",
-        "reward": "Thu nhập / Thưởng"
+        "initialBonus": "Thưởng khởi tạo",
+        "learningReward": "Thưởng học tập",
+        "purchaseDebit": "Thanh toán mua hàng",
+        "escrowRelease": "Chi trả Escrow",
+        "escrowRefund": "Hoàn tiền Escrow",
+        "platformFeeReal": "Phí nền tảng (tiền thật)",
+        "platformFeePromoSink": "Phí Promo triệt tiêu",
+        "walletHold": "Tạm giữ ví",
+        "walletFreeze": "Đóng băng ví",
+        "walletUnfreeze": "Gỡ đóng băng ví",
+        "unknown": "Giao dịch khác"
       },
       "noDesc": "Không có mô tả"
     }

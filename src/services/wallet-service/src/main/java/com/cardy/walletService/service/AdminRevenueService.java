@@ -125,12 +125,28 @@ public class AdminRevenueService {
                     .userId(userIdStr)
                     .walletId(walletIdStr)
                     .type(entry.getType() != null ? entry.getType().toString() : "")
+                    .flowDirection(resolveAdminFlowDirection(entry.getType()))
                     .amount(entry.getAmount())
                     .amountVnd(vnd)
                     .description(entry.getDescription())
                     .createdAt(entry.getCreatedAt())
                     .build();
         }).collect(Collectors.toList());
+    }
+
+    private String resolveAdminFlowDirection(WalletLedgerType type) {
+        if (type == null) {
+            return "NEUTRAL";
+        }
+
+        // The admin report follows the platform economic perspective, not the user wallet balance.
+        return switch (type) {
+            case TOP_UP, PLATFORM_FEE_REAL -> "INFLOW";
+            case INITIAL_BONUS, LEARNING_REWARD, ESCROW_RELEASE_CREDIT,
+                    ESCROW_REFUND_CREDIT, CASH_OUT -> "OUTFLOW";
+            case PURCHASE_DEBIT, PLATFORM_FEE_PROMO_SINK, WALLET_HOLD,
+                    WALLET_FREEZE, WALLET_UNFREEZE -> "NEUTRAL";
+        };
     }
 
     private BigDecimal resolveLedgerVnd(WalletLedgerEntry entry, BigDecimal defaultRate) {
