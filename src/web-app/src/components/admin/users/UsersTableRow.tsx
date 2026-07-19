@@ -20,7 +20,7 @@ function roleVariant(role: string) {
   return "info" as const;
 }
 
-const compactBtn = "!h-8 !px-3 !text-xs gap-1.5 rounded-full";
+const compactBtn = "!h-8 !px-3 !text-xs gap-1.5 rounded-lg";
 
 function UsersTableRow({
   user,

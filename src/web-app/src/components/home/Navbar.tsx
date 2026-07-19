@@ -33,7 +33,7 @@ export function Navbar() {
         <div className="w-full max-w-[1100px] mx-auto mt-5 px-4 sm:px-6 pointer-events-auto">
           <div
             className={cn(
-              "flex items-center justify-between h-14 pl-5 pr-2 rounded-full",
+              "flex items-center justify-between h-14 pl-5 pr-2 rounded-2xl",
               "bg-[var(--color-header)]/70 backdrop-blur-2xl",
               "border border-white/[0.08]",
               "shadow-[inset_0_1px_1px_rgba(255,255,255,0.08),0_8px_32px_-12px_rgba(0,0,0,0.5)]",
@@ -50,7 +50,7 @@ export function Navbar() {
                   key={link.href}
                   href={link.href}
                   className={cn(
-                    "px-4 py-2 text-sm font-medium text-[#faf6ee]/75 rounded-full",
+                    "px-4 py-2 text-sm font-medium text-[#faf6ee]/75 rounded-lg",
                     "hover:text-[#faf6ee] hover:bg-white/[0.04]",
                     "transition-colors duration-300 ease-soft",
                   )}
@@ -75,7 +75,7 @@ export function Navbar() {
                   <button
                     type="button"
                     onClick={() => navigate("/auth/login")}
-                    className="px-4 h-10 text-sm font-medium text-[#faf6ee]/75 hover:text-[#faf6ee] transition-colors duration-300 ease-soft rounded-full"
+                    className="px-4 h-10 text-sm font-medium text-[#faf6ee]/75 hover:text-[#faf6ee] transition-colors duration-300 ease-soft rounded-xl"
                   >
                     {t("landing.navbar.signIn")}
                   </button>
@@ -100,7 +100,7 @@ export function Navbar() {
                   : t("landing.navbar.openMenu")
               }
               onClick={() => setOpen((v) => !v)}
-              className="md:hidden relative w-10 h-10 rounded-full bg-white/[0.04] border border-white/[0.06] flex items-center justify-center"
+              className="md:hidden relative w-10 h-10 rounded-xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center"
             >
               <span
                 className={cn(
@@ -179,7 +179,7 @@ export function Navbar() {
                     setOpen(false);
                     navigate("/auth/login");
                   }}
-                  className="w-full h-12 rounded-full border border-white/[0.12] text-[#faf6ee] font-medium hover:bg-white/[0.04] transition-colors"
+                  className="w-full h-12 rounded-xl border border-white/[0.12] text-[#faf6ee] font-medium hover:bg-white/[0.04] transition-colors"
                 >
                   {t("landing.navbar.signIn")}
                 </button>

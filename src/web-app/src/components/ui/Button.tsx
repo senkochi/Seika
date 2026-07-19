@@ -39,7 +39,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     ref,
   ) => {
     const base =
-      "group relative inline-flex items-center justify-center gap-2 font-medium rounded-full magnetic-press select-none disabled:opacity-60 disabled:cursor-not-allowed focus-visible:outline-none";
+      "group relative inline-flex items-center justify-center gap-2 font-medium rounded-xl magnetic-press select-none disabled:opacity-60 disabled:cursor-not-allowed focus-visible:outline-none";
 
     const sizes: Record<Size, string> = {
       md: "h-11 px-5 text-sm",
@@ -90,7 +90,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
             {trailing && !isLink && (
               <span
                 aria-hidden
-                className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-[#1c0f2e]/15 group-hover:bg-[#1c0f2e]/25 group-hover:translate-x-[2px] group-hover:-translate-y-[1px] transition-transform duration-300 ease-spring"
+                className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-[#1c0f2e]/15 group-hover:bg-[#1c0f2e]/25 group-hover:translate-x-[2px] group-hover:-translate-y-[1px] transition-transform duration-300 ease-spring"
               >
                 <ArrowUpRight className="w-3.5 h-3.5" strokeWidth={2} />
               </span>

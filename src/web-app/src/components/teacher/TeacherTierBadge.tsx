@@ -8,11 +8,11 @@ import { useFormatNumber } from "../../utils/format";
 // NEWBIE / SILVER / BRONZE → neutral cream-on-aubergine hairline
 // GOLD / ELITE             → gold accent
 const TIER_STYLES: Record<string, string> = {
-  NEWBIE: "border-white/[0.08] bg-white/[0.04] text-white/65",
-  BRONZE: "border-amber-700/30 bg-amber-700/10 text-amber-200",
-  SILVER: "border-white/[0.12] bg-white/[0.06] text-white/80",
-  GOLD: "border-[#d4a843]/30 bg-[#d4a843]/10 text-[#d4a843]",
-  ELITE: "border-[#d4a843]/40 bg-[#d4a843]/15 text-[#f1e4c0]",
+  NEWBIE: "bg-white/[0.06] text-white/75",
+  BRONZE: "bg-amber-700/20 text-amber-200",
+  SILVER: "bg-white/[0.08] text-white/85",
+  GOLD: "bg-[#d4a843]/15 text-[#d4a843]",
+  ELITE: "bg-[#d4a843]/20 text-[#f1e4c0]",
 };
 
 interface TeacherTierBadgeProps {
@@ -36,7 +36,7 @@ export default function TeacherTierBadge({
   if (compact) {
     return (
       <span
-        className={`inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs font-sans-ui ${style}`}
+        className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium font-sans-ui ${style}`}
       >
         <Award className="h-3.5 w-3.5" aria-hidden="true" />
         {tier}
@@ -46,7 +46,7 @@ export default function TeacherTierBadge({
 
   return (
     <div
-      className={`rounded-lg border p-4 font-sans-ui backdrop-blur-xl ${style}`}
+      className={`rounded-xl border border-white/[0.08] p-4 font-sans-ui backdrop-blur-xl ${style}`}
     >
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">

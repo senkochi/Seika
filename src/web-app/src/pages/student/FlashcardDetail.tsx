@@ -300,7 +300,7 @@ function FlashcardDetail() {
                       onClick={(e) =>
                         handleSpeak(e, cards[currentIndex].frontSide)
                       }
-                      className="p-3 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-white/65 hover:text-cream rounded-full transition-colors flex items-center justify-center"
+                      className="p-3 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-white/65 hover:text-cream rounded-xl transition-colors flex items-center justify-center"
                       title={t("learning:flashcardDetail.speakTitle")}
                       aria-label={t("learning:flashcardDetail.speakTitle")}
                     >
@@ -334,7 +334,7 @@ function FlashcardDetail() {
                       onClick={(e) =>
                         handleSpeak(e, cards[currentIndex].backSide)
                       }
-                      className="p-3 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-white/65 hover:text-cream rounded-full transition-colors flex items-center justify-center"
+                      className="p-3 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-white/65 hover:text-cream rounded-xl transition-colors flex items-center justify-center"
                       title={t("learning:flashcardDetail.speakTitle")}
                       aria-label={t("learning:flashcardDetail.speakTitle")}
                     >
@@ -356,7 +356,7 @@ function FlashcardDetail() {
             </div>
 
             {/* Keyboard Shortcuts Hint */}
-            <div className="flex items-center gap-2 font-sans-ui text-xs text-white/55 bg-white/[0.02] px-4 py-2.5 rounded-full border border-white/[0.06]">
+            <div className="flex items-center gap-2 font-sans-ui text-xs text-white/55 bg-white/[0.02] px-4 py-2.5 rounded-xl border border-white/[0.06]">
               <Keyboard className="w-4 h-4 text-[#d4a843]" aria-hidden="true" />
               <span>
                 <strong>Space</strong>:{" "}

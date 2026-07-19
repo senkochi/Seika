@@ -582,7 +582,7 @@ function ProductDetail() {
                         key={value}
                         type="button"
                         aria-label={`${value} star rating`}
-                        className={`rounded-full p-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d4a843] ${
+                        className={`rounded-lg p-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d4a843] ${
                           active
                             ? "text-[#d4a843]"
                             : "text-white/25 hover:text-white/55"

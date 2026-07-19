@@ -35,7 +35,7 @@ function UsersHeader({
           <div
             role="group"
             aria-label="Filter by role"
-            className="flex items-center gap-1 rounded-full border border-white/[0.08] bg-white/[0.02] p-1"
+            className="flex items-center gap-1 rounded-xl border border-white/[0.08] bg-white/[0.02] p-1"
           >
             {roleFilters.map((opt) => {
               const active = filterRole === opt.value;
@@ -47,8 +47,8 @@ function UsersHeader({
                   aria-pressed={active}
                   className={
                     active
-                      ? "rounded-full bg-[#d4a843]/10 border border-[#d4a843]/30 px-3 py-1 text-xs font-medium text-[#d4a843] transition-colors"
-                      : "rounded-full border border-transparent px-3 py-1 text-xs font-medium text-white/60 hover:bg-white/[0.04] hover:text-cream transition-colors"
+                      ? "rounded-lg bg-[#d4a843]/10 border border-[#d4a843]/30 px-3 py-1 text-xs font-medium text-[#d4a843] transition-colors"
+                      : "rounded-lg border border-transparent px-3 py-1 text-xs font-medium text-white/60 hover:bg-white/[0.04] hover:text-cream transition-colors"
                   }
                 >
                   {opt.label}

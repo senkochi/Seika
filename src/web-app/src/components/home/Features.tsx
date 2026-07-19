@@ -198,7 +198,7 @@ export function Features() {
                   ].map((tag) => (
                     <span
                       key={tag}
-                      className="px-3 py-1.5 rounded-full text-xs font-medium text-[#faf6ee]/85 bg-white/[0.06] border border-white/[0.08]"
+                      className="px-2.5 py-1 rounded-md text-xs font-medium text-[#faf6ee]/85 bg-white/[0.06]"
                     >
                       {tag}
                     </span>

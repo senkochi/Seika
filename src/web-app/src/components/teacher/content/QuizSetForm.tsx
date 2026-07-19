@@ -145,22 +145,25 @@ function QuizSetForm({ initial, onSaved, onCancel }: QuizSetFormProps) {
           />
         </div>
         <div>
-          <label className="block text-sm font-bold text-[var(--foreground)] mb-2 flex items-center gap-2">
-            <DollarSign className="w-4 h-4 text-amber-400" />
-            {t("content.labelPriceCoin")}
+          <label
+            htmlFor="quiz-set-price"
+            className="block text-sm font-bold text-[var(--foreground)] mb-2"
+          >
+            {t("content.labelPrice")}
           </label>
-          <input
-            id="quiz-set-price"
-            type="number"
-            min={0}
-            step={1}
-            placeholder={t("content.placeholderFreeZero")}
-            value={price}
-            onChange={(e) => setPrice(Number(e.target.value))}
-            className="w-full px-4 py-3 bg-[rgba(255,255,255,0.06)] border border-[var(--border)] rounded-xl text-[var(--foreground)] focus:outline-none"
-          />
+          <div className="relative">
+            <DollarSign className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted-foreground)]" />
+            <input
+              id="quiz-set-price"
+              type="number"
+              min={0}
+              value={price === 0 ? "" : price}
+              onChange={(e) => setPrice(Number(e.target.value))}
+              className="w-full pl-10 pr-4 py-3 bg-[rgba(255,255,255,0.06)] border border-[var(--border)] rounded-xl text-[var(--foreground)] focus:outline-none focus:border-[var(--ring)]"
+            />
+          </div>
           <p className="mt-1.5 text-xs text-[var(--muted-foreground)]">
-            {t("content.priceHintZero", { min: minPrice, max: maxPrice })}
+            {t("content.priceHint", { min: minPrice, max: maxPrice })}
           </p>
         </div>
       </div>

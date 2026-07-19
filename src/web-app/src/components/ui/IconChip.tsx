@@ -1,38 +1,44 @@
 import type { ReactNode } from "react";
 import { cn } from "./utils";
 
-export type Variant = "gold" | "muted" | "info" | "success" | "danger" | "warning";
+export type Variant =
+  | "gold"
+  | "muted"
+  | "info"
+  | "success"
+  | "danger"
+  | "warning";
 
 const tone: Record<Variant, { bg: string; fg: string; border: string }> = {
   gold: {
-    bg: "bg-[#d4a843]/10",
+    bg: "bg-[#d4a843]/15",
     fg: "text-[#d4a843]",
-    border: "border-[#d4a843]/25",
+    border: "border-transparent",
   },
   muted: {
-    bg: "bg-white/[0.04]",
-    fg: "text-white/70",
-    border: "border-white/[0.08]",
+    bg: "bg-white/[0.06]",
+    fg: "text-white/75",
+    border: "border-transparent",
   },
   info: {
-    bg: "bg-sky-400/10",
+    bg: "bg-sky-500/15",
     fg: "text-sky-300",
-    border: "border-sky-400/25",
+    border: "border-transparent",
   },
   success: {
-    bg: "bg-emerald-400/10",
+    bg: "bg-emerald-500/15",
     fg: "text-emerald-300",
-    border: "border-emerald-400/25",
+    border: "border-transparent",
   },
   danger: {
-    bg: "bg-red-400/10",
+    bg: "bg-red-500/15",
     fg: "text-red-300",
-    border: "border-red-400/25",
+    border: "border-transparent",
   },
   warning: {
-    bg: "bg-amber-400/10",
+    bg: "bg-amber-500/15",
     fg: "text-amber-300",
-    border: "border-amber-400/25",
+    border: "border-transparent",
   },
 };
 

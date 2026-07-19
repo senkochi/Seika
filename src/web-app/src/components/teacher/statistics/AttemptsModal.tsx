@@ -82,12 +82,12 @@ function AttemptsModal({
                     </td>
                     <td className="py-3">
                       {attempt.passed ? (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-1 text-xs font-medium text-emerald-400">
+                        <span className="inline-flex items-center gap-1.5 rounded-md bg-emerald-500/15 px-2.5 py-1 text-xs font-medium text-emerald-300">
                           <CheckCircle2 className="h-3.5 w-3.5" />{" "}
                           {t("statistics.passed")}
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-rose-500/10 px-2 py-1 text-xs font-medium text-rose-400">
+                        <span className="inline-flex items-center gap-1.5 rounded-md bg-rose-500/15 px-2.5 py-1 text-xs font-medium text-rose-300">
                           <XCircle className="h-3.5 w-3.5" />{" "}
                           {t("statistics.failed")}
                         </span>

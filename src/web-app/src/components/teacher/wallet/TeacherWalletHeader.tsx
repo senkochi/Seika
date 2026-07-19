@@ -31,7 +31,7 @@ function TeacherWalletHeader({
             <button
               type="button"
               onClick={onReload}
-              className="inline-flex items-center gap-2 rounded-md border border-[var(--border)] bg-[var(--card)] backdrop-blur-md px-3 py-2 text-sm font-medium text-[var(--foreground)] transition-all hover:border-[var(--primary)]"
+              className="inline-flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--card)] backdrop-blur-md px-3 py-2 text-sm font-medium text-[var(--foreground)] transition-all hover:border-[var(--primary)]"
             >
               <RefreshCcw className="h-4 w-4" aria-hidden="true" />
               {t("teacherHeader.refresh")}

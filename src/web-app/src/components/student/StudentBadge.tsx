@@ -23,14 +23,14 @@ type StudentBadgeProps = {
 // All variants now use the new dashboard palette tokens. No Tailwind
 // amber/purple/green gradients — just hairline + tinted fill.
 const variantClasses: Record<StudentBadgeVariant, string> = {
-  glass: "bg-white/[0.04] text-cream border border-white/[0.08]",
-  default: "bg-white/[0.025] text-cream border border-white/[0.06]",
-  success: "bg-emerald-400/10 text-emerald-300 border border-emerald-400/25",
-  warning: "bg-amber-400/10 text-amber-300 border border-amber-400/25",
-  danger: "bg-red-400/10 text-red-300 border border-red-400/25",
-  info: "bg-sky-400/10 text-sky-300 border border-sky-400/25",
-  purple: "bg-white/[0.04] text-[#b8a9d9] border border-white/[0.08]",
-  gold: "bg-[#d4a843]/10 text-[#d4a843] border border-[#d4a843]/25",
+  glass: "bg-white/[0.06] text-cream",
+  default: "bg-white/[0.04] text-cream",
+  success: "bg-emerald-500/15 text-emerald-300",
+  warning: "bg-amber-500/15 text-amber-300",
+  danger: "bg-red-500/15 text-red-300",
+  info: "bg-sky-500/15 text-sky-300",
+  purple: "bg-purple-500/15 text-[#b8a9d9]",
+  gold: "bg-[#d4a843]/15 text-[#d4a843]",
 };
 
 function StudentBadge({
@@ -43,7 +43,7 @@ function StudentBadge({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-sans-ui",
+        "inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium font-sans-ui",
         uppercase && "uppercase tracking-wider",
         variantClasses[variant],
         className,

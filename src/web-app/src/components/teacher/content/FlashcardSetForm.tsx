@@ -147,12 +147,16 @@ function FlashcardSetForm({
           </div>
         </div>
         <div>
-          <label className="block text-sm font-bold text-[var(--foreground)] mb-2">
+          <label
+            htmlFor="flashcard-set-price"
+            className="block text-sm font-bold text-[var(--foreground)] mb-2"
+          >
             {t("content.labelPrice")}
           </label>
           <div className="relative">
             <DollarSign className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted-foreground)]" />
             <input
+              id="flashcard-set-price"
               type="number"
               min={0}
               value={price === 0 ? "" : price}

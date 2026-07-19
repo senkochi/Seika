@@ -18,7 +18,7 @@ function StudentActionButton({
 }: StudentActionButtonProps) {
   const sizeClasses =
     size === "lg"
-      ? "px-6 py-4 text-lg rounded-2xl"
+      ? "px-6 py-4 text-lg rounded-xl"
       : "px-4 py-3 text-base rounded-xl";
 
   const widthClasses = fullWidth ? "w-full" : "";

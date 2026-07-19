@@ -66,7 +66,7 @@ function TopProductsCard({
                     {product.productName}
                   </td>
                   <td className="py-3">
-                    <span className="inline-flex rounded-full bg-[var(--primary)]/10 px-2 py-1 text-xs font-medium text-[var(--primary)]">
+                    <span className="inline-flex rounded-md bg-[var(--primary)]/15 px-2.5 py-1 text-xs font-medium text-[var(--primary)]">
                       {product.productType === "FLASHCARD_SET"
                         ? t("statistics.typeFlashcard")
                         : product.productType === "QUIZ_SET"

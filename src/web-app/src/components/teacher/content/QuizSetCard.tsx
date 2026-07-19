@@ -21,7 +21,7 @@ function QuizSetCard({ set, product, onEdit, onDelete }: QuizSetCardProps) {
       <div>
         <div className="flex justify-between items-start mb-4">
           <div className="flex flex-wrap gap-2">
-            <span className="px-3 py-1 bg-blue-500/10 text-blue-400 text-xs font-semibold rounded-full">
+            <span className="px-2.5 py-1 bg-blue-500/15 text-blue-300 text-xs font-medium rounded-md">
               {t("content.questionsCount", { count: set.quizzes?.length || 0 })}
             </span>
             <ProductStatusBadge

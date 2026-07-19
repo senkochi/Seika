@@ -7,31 +7,31 @@ interface ProductStatusBadgeProps {
 
 const STYLES: Record<string, { bg: string; text: string; border: string }> = {
   PUBLISHED: {
-    bg: "bg-emerald-500/10",
-    text: "text-emerald-400",
-    border: "border-emerald-500/20",
+    bg: "bg-emerald-500/15",
+    text: "text-emerald-300",
+    border: "",
   },
   REJECTED: {
-    bg: "bg-rose-500/10",
-    text: "text-rose-400",
-    border: "border-rose-500/20",
+    bg: "bg-rose-500/15",
+    text: "text-rose-300",
+    border: "",
   },
   HIDDEN: {
-    bg: "bg-slate-500/10",
-    text: "text-slate-400",
-    border: "border-slate-500/20",
+    bg: "bg-slate-500/15",
+    text: "text-slate-300",
+    border: "",
   },
   PENDING_REVIEW: {
-    bg: "bg-amber-500/10",
-    text: "text-amber-400",
-    border: "border-amber-500/20",
+    bg: "bg-amber-500/15",
+    text: "text-amber-300",
+    border: "",
   },
 };
 
 export const DEFAULT_STATUS_STYLE = {
-  bg: "bg-amber-500/10",
-  text: "text-amber-400",
-  border: "border-amber-500/20",
+  bg: "bg-amber-500/15",
+  text: "text-amber-300",
+  border: "",
 };
 
 function ProductStatusBadge({
@@ -58,7 +58,7 @@ function ProductStatusBadge({
 
   return (
     <span
-      className={`px-3 py-1 ${s.bg} ${s.text} text-xs font-semibold rounded-full border ${s.border} ${
+      className={`px-2.5 py-1 ${s.bg} ${s.text} text-xs font-medium rounded-md ${
         isRejected ? "cursor-help relative group/tooltip" : ""
       }`}
       title={
