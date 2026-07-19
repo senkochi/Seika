@@ -4,6 +4,7 @@ import com.cardy.walletService.domain.Wallet;
 import com.cardy.walletService.domain.WalletLedgerEntry;
 import com.cardy.walletService.dto.admin.AdminRevenueStatsDTO;
 import com.cardy.walletService.dto.admin.AdminTransactionDTO;
+import com.cardy.walletService.enums.WalletLedgerSource;
 import com.cardy.walletService.enums.WalletLedgerType;
 import com.cardy.walletService.repository.TransactionRepository;
 import com.cardy.walletService.repository.WalletLedgerEntryRepository;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -63,6 +65,9 @@ public class AdminRevenueService {
         BigDecimal withdrawableCoinCirculation = wallets.stream()
                 .map(wallet -> zeroIfNull(wallet.getEarnedWithdrawableBalance()))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal paidCoinCirculation = wallets.stream()
+                .map(wallet -> zeroIfNull(wallet.getPaidBalance()))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
         BigDecimal nonWithdrawableCoinCirculation = wallets.stream()
                 .map(wallet -> zeroIfNull(wallet.getBonusBalance())
                         .add(zeroIfNull(wallet.getRewardBalance()))
@@ -71,26 +76,35 @@ public class AdminRevenueService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         BigDecimal netRevenueVnd = totalTopupVnd.subtract(totalWithdrawalVnd);
-        BigDecimal realRevenueVnd = paidBackedFeeCoins.multiply(currentTopupRate);
+        BigDecimal averageTopupRate = averageRate(totalTopupVnd, totalTopupCoins);
+        BigDecimal averageWithdrawalRate = averageRate(totalWithdrawalVnd, totalWithdrawalCoins);
+        BigDecimal paidBackedFeeEstimatedVnd = paidBackedFeeCoins.multiply(currentTopupRate);
         BigDecimal cashOutLiabilityVnd = withdrawableCoinCirculation.multiply(currentWithdrawalRate);
         BigDecimal totalCoinCirculation = withdrawableCoinCirculation.add(nonWithdrawableCoinCirculation);
-        BigDecimal guaranteedProfitVnd = netRevenueVnd.subtract(cashOutLiabilityVnd);
+        BigDecimal netCashAfterCurrentLiabilityVnd = netRevenueVnd.subtract(cashOutLiabilityVnd);
 
         return AdminRevenueStatsDTO.builder()
                 .totalTopupCoins(totalTopupCoins)
                 .totalTopupVnd(totalTopupVnd)
                 .totalWithdrawalCoins(totalWithdrawalCoins)
                 .totalWithdrawalVnd(totalWithdrawalVnd)
-                .realRevenueVnd(realRevenueVnd)
+                .averageTopupRate(averageTopupRate)
+                .averageWithdrawalRate(averageWithdrawalRate)
+                // Compatibility alias: historical clients still read realRevenueVnd.
+                .realRevenueVnd(paidBackedFeeEstimatedVnd)
+                .paidBackedFeeEstimatedVnd(paidBackedFeeEstimatedVnd)
                 .paidBackedFeeCoins(paidBackedFeeCoins)
                 .promoSinkCoins(promoSinkCoins)
                 .cashOutLiabilityVnd(cashOutLiabilityVnd)
                 .withdrawableCoinCirculation(withdrawableCoinCirculation)
+                .paidCoinCirculation(paidCoinCirculation)
                 .nonWithdrawableCoinCirculation(nonWithdrawableCoinCirculation)
                 .netRevenueVnd(netRevenueVnd)
                 .totalCoinCirculation(totalCoinCirculation)
                 .potentialLiabilityVnd(cashOutLiabilityVnd)
-                .guaranteedProfitVnd(guaranteedProfitVnd)
+                // Compatibility alias: this is a current snapshot, not guaranteed profit.
+                .guaranteedProfitVnd(netCashAfterCurrentLiabilityVnd)
+                .netCashAfterCurrentLiabilityVnd(netCashAfterCurrentLiabilityVnd)
                 .currentTopupRate(currentTopupRate)
                 .currentWithdrawalRate(currentWithdrawalRate)
                 .build();
@@ -113,8 +127,7 @@ public class AdminRevenueService {
                 SystemConfigService.KEY_WITHDRAWAL_VND_PER_COIN, new BigDecimal("90"));
 
         return ledgerEntries.stream().map(entry -> {
-            BigDecimal rate = entry.getType() == WalletLedgerType.CASH_OUT ? currentWithdrawalRate : currentTopupRate;
-            BigDecimal vnd = resolveLedgerVnd(entry, rate);
+            BigDecimal vnd = resolveAdminTransactionVnd(entry, currentTopupRate, currentWithdrawalRate);
 
             String userIdStr = entry.getUserId() != null ? entry.getUserId().toString() : "N/A";
             String walletIdStr = (entry.getWallet() != null && entry.getWallet().getId() != null)
@@ -125,7 +138,8 @@ public class AdminRevenueService {
                     .userId(userIdStr)
                     .walletId(walletIdStr)
                     .type(entry.getType() != null ? entry.getType().toString() : "")
-                    .flowDirection(resolveAdminFlowDirection(entry.getType()))
+                    .source(entry.getSource() != null ? entry.getSource().toString() : "")
+                    .flowDirection(resolveAdminFlowDirection(entry.getType(), entry.getSource()))
                     .amount(entry.getAmount())
                     .amountVnd(vnd)
                     .description(entry.getDescription())
@@ -134,7 +148,7 @@ public class AdminRevenueService {
         }).collect(Collectors.toList());
     }
 
-    private String resolveAdminFlowDirection(WalletLedgerType type) {
+    private String resolveAdminFlowDirection(WalletLedgerType type, WalletLedgerSource source) {
         if (type == null) {
             return "NEUTRAL";
         }
@@ -142,10 +156,28 @@ public class AdminRevenueService {
         // The admin report follows the platform economic perspective, not the user wallet balance.
         return switch (type) {
             case TOP_UP, PLATFORM_FEE_REAL -> "INFLOW";
-            case INITIAL_BONUS, LEARNING_REWARD, ESCROW_RELEASE_CREDIT,
-                    ESCROW_REFUND_CREDIT, CASH_OUT -> "OUTFLOW";
-            case PURCHASE_DEBIT, PLATFORM_FEE_PROMO_SINK, WALLET_HOLD,
-                    WALLET_FREEZE, WALLET_UNFREEZE -> "NEUTRAL";
+            case CASH_OUT -> "OUTFLOW";
+            case ESCROW_RELEASE_CREDIT -> source == WalletLedgerSource.EARNED_WITHDRAWABLE
+                    ? "OUTFLOW" : "NEUTRAL";
+            case INITIAL_BONUS, LEARNING_REWARD, PURCHASE_DEBIT, ESCROW_REFUND_CREDIT,
+                    PLATFORM_FEE_PROMO_SINK, WALLET_HOLD, WALLET_FREEZE, WALLET_UNFREEZE -> "NEUTRAL";
+        };
+    }
+
+    private BigDecimal resolveAdminTransactionVnd(WalletLedgerEntry entry,
+                                                   BigDecimal currentTopupRate,
+                                                   BigDecimal currentWithdrawalRate) {
+        if (entry.getType() == null) {
+            return null;
+        }
+
+        return switch (entry.getType()) {
+            case TOP_UP -> resolveLedgerVnd(entry, currentTopupRate);
+            case CASH_OUT -> resolveLedgerVnd(entry, currentWithdrawalRate);
+            case PLATFORM_FEE_REAL -> resolveLedgerVnd(entry, currentTopupRate);
+            case ESCROW_RELEASE_CREDIT -> entry.getSource() == WalletLedgerSource.EARNED_WITHDRAWABLE
+                    ? resolveLedgerVnd(entry, currentWithdrawalRate) : null;
+            default -> null;
         };
     }
 
@@ -164,5 +196,12 @@ public class AdminRevenueService {
 
     private BigDecimal zeroIfNull(BigDecimal value) {
         return value == null ? BigDecimal.ZERO : value;
+    }
+
+    private BigDecimal averageRate(BigDecimal totalVnd, BigDecimal totalCoins) {
+        if (totalCoins.signum() == 0) {
+            return BigDecimal.ZERO.setScale(2);
+        }
+        return totalVnd.divide(totalCoins, 2, RoundingMode.HALF_UP);
     }
 }

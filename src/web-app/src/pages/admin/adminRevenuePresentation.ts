@@ -23,12 +23,12 @@ const transactionTypeDefinitions: Record<string, TransactionTypeDefinition> = {
   INITIAL_BONUS: {
     labelKey: "revenue.transactions.type.initialBonus",
     pillVariant: "info",
-    fallbackFlowDirection: "OUTFLOW",
+    fallbackFlowDirection: "NEUTRAL",
   },
   LEARNING_REWARD: {
     labelKey: "revenue.transactions.type.learningReward",
     pillVariant: "info",
-    fallbackFlowDirection: "OUTFLOW",
+    fallbackFlowDirection: "NEUTRAL",
   },
   PURCHASE_DEBIT: {
     labelKey: "revenue.transactions.type.purchaseDebit",
@@ -42,8 +42,8 @@ const transactionTypeDefinitions: Record<string, TransactionTypeDefinition> = {
   },
   ESCROW_REFUND_CREDIT: {
     labelKey: "revenue.transactions.type.escrowRefund",
-    pillVariant: "danger",
-    fallbackFlowDirection: "OUTFLOW",
+    pillVariant: "info",
+    fallbackFlowDirection: "NEUTRAL",
   },
   PLATFORM_FEE_REAL: {
     labelKey: "revenue.transactions.type.platformFeeReal",
@@ -77,22 +77,60 @@ const transactionTypeDefinitions: Record<string, TransactionTypeDefinition> = {
   },
 };
 
+const withdrawableEscrowDefinition: TransactionTypeDefinition = {
+  labelKey: "revenue.transactions.type.escrowReleaseWithdrawable",
+  pillVariant: "danger",
+  fallbackFlowDirection: "OUTFLOW",
+};
+
+const promoEscrowDefinition: TransactionTypeDefinition = {
+  labelKey: "revenue.transactions.type.escrowReleasePromo",
+  pillVariant: "gold",
+  fallbackFlowDirection: "NEUTRAL",
+};
+
 function isAdminFlowDirection(value: unknown): value is AdminFlowDirection {
   return value === "INFLOW" || value === "OUTFLOW" || value === "NEUTRAL";
 }
 
+function resolveDefinition(
+  type: string | undefined,
+  source: string | undefined,
+): { definition: TransactionTypeDefinition; isKnownType: boolean } {
+  if (type === "ESCROW_RELEASE_CREDIT") {
+    if (source === "EARNED_WITHDRAWABLE") {
+      return { definition: withdrawableEscrowDefinition, isKnownType: true };
+    }
+    if (source === "EARNED_PROMO") {
+      return { definition: promoEscrowDefinition, isKnownType: true };
+    }
+  }
+
+  const definition = transactionTypeDefinitions[type ?? ""];
+  if (definition) {
+    return { definition, isKnownType: true };
+  }
+
+  return {
+    definition: {
+      labelKey: "revenue.transactions.type.unknown",
+      pillVariant: "neutral",
+      fallbackFlowDirection: "NEUTRAL",
+    },
+    isKnownType: false,
+  };
+}
+
 export function getAdminTransactionPresentation(
   type: string | undefined,
+  source: string | undefined,
   apiFlowDirection: unknown,
 ) {
-  const definition = transactionTypeDefinitions[type ?? ""] ?? {
-    labelKey: "revenue.transactions.type.unknown",
-    pillVariant: "neutral" as const,
-    fallbackFlowDirection: "NEUTRAL" as const,
-  };
-  const flowDirection = isAdminFlowDirection(apiFlowDirection)
-    ? apiFlowDirection
-    : definition.fallbackFlowDirection;
+  const { definition, isKnownType } = resolveDefinition(type, source);
+  const flowDirection =
+    !isKnownType && isAdminFlowDirection(apiFlowDirection)
+      ? apiFlowDirection
+      : definition.fallbackFlowDirection;
 
   if (flowDirection === "INFLOW") {
     return {

@@ -27,7 +27,7 @@
   },
   "revenue": {
     "title": "Quản lý Thu nhập & Tài chính Nền tảng",
-    "subtitle": "Theo dõi dòng tiền thực tế nạp/rút, lợi nhuận chênh lệch tỷ giá và nợ phải trả tiềm năng của hệ thống.",
+    "subtitle": "Theo dõi tiền nạp/rút thực tế, nghĩa vụ cash-out hiện tại và các luồng coin nội bộ.",
     "loading": "Đang tải dữ liệu tài chính và doanh thu nền tảng…",
     "error": {
       "title": "Lỗi tải dữ liệu tài chính",
@@ -37,30 +37,34 @@
     "refresh": "Làm mới",
     "kpi": {
       "inflow": {
-        "label": "Tổng dòng tiền vào (Inflow)",
-        "hint": "{{coins}} Coins đã nạp ({{rate}} ₫/Coin)"
+        "label": "Tổng tiền nạp thực tế",
+        "hint": "{{coins}} Coin đã nạp · bình quân lịch sử {{rate}} ₫/Coin"
       },
       "outflow": {
-        "label": "Tổng chi trả (Outflow)",
-        "hint": "{{coins}} Coins đã rút ({{rate}} ₫/Coin)"
+        "label": "Tổng tiền đã rút",
+        "hint": "{{coins}} Coin đã rút · bình quân lịch sử {{rate}} ₫/Coin"
       },
       "paidBacked": {
-        "label": "Doanh thu phí paid-backed",
-        "hint": "{{coins}} paid-backed fee Coins"
+        "label": "Giá trị ước tính phí paid-backed",
+        "hint": "{{coins}} Coin phí × tỷ giá nạp hiện tại {{rate}} ₫"
       },
       "liability": {
-        "label": "Nợ cash-out hiện tại",
-        "hint": "{{coins}} Coins lưu hành × {{rate}} ₫"
+        "label": "Nghĩa vụ cash-out hiện tại",
+        "hint": "{{coins}} Coin có thể rút × {{rate}} ₫"
+      },
+      "promoSink": {
+        "label": "Promo Coin đã triệt tiêu",
+        "hint": "Coin promo bị loại khỏi lưu hành; không phải doanh thu VND"
       }
     },
     "guaranteedProfit": {
-      "title": "Lợi nhuận đảm bảo tối thiểu của nền tảng",
-      "badge": "Locked in",
-      "subtitle": "Phần lợi nhuận chắc chắn thuộc về nền tảng từ chênh lệch tỷ giá Nạp - Rút (ngay cả khi toàn bộ user rút sạch Coin lưu hành)."
+      "title": "Tiền ròng sau nghĩa vụ hiện tại",
+      "badge": "Ảnh chụp hiện tại",
+      "subtitle": "Tiền nạp trừ tiền đã rút và nghĩa vụ từ {{withdrawableCoins}} Coin có thể rút. Chưa gồm {{paidCoins}} Coin paid đang lưu hành hoặc escrow paid-backed có thể trở thành nghĩa vụ sau này."
     },
     "transactions": {
       "title": "Lịch sử đối soát dòng tiền toàn hệ thống",
-      "subtitle": "Sắp xếp từ mới nhất đến cũ nhất. Dùng bộ lọc để kiểm tra dòng tiền vào và ra.",
+      "subtitle": "Sắp xếp từ mới nhất đến cũ nhất và phân loại theo góc nhìn kinh tế của nền tảng.",
       "filter": {
         "all": "Tất cả",
         "topUp": "Nạp VNĐ",
@@ -71,7 +75,7 @@
         "userId": "User ID",
         "type": "Loại giao dịch",
         "coinChange": "Biến động Coin",
-        "vnd": "Quy đổi VNĐ",
+        "vnd": "Tác động / ước tính VND",
         "desc": "Mô tả"
       },
       "empty": {
@@ -91,7 +95,9 @@
         "walletHold": "Tạm giữ ví",
         "walletFreeze": "Đóng băng ví",
         "walletUnfreeze": "Gỡ đóng băng ví",
-        "unknown": "Giao dịch khác"
+        "unknown": "Giao dịch khác",
+        "escrowReleaseWithdrawable": "Chi trả Escrow có thể rút",
+        "escrowReleasePromo": "Chi trả Escrow promo nội bộ"
       },
       "noDesc": "Không có mô tả"
     }

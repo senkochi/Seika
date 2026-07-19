@@ -27,7 +27,7 @@
   },
   "revenue": {
     "title": "Revenue & Platform Finance Management",
-    "subtitle": "Track real cash flow, exchange-rate profit and potential liabilities.",
+    "subtitle": "Track actual top-ups and cash-outs, current cash-out liability, and internal coin movements.",
     "loading": "Loading financial data and platform revenue…",
     "error": {
       "title": "Failed to load financial data",
@@ -37,30 +37,34 @@
     "refresh": "Refresh",
     "kpi": {
       "inflow": {
-        "label": "Total Inflow",
-        "hint": "{{coins}} Coins topped up ({{rate}} ₫/Coin)"
+        "label": "Total Actual Top-ups",
+        "hint": "{{coins}} Coins topped up · historical average {{rate}} ₫/Coin"
       },
       "outflow": {
-        "label": "Total Outflow",
-        "hint": "{{coins}} Coins withdrawn ({{rate}} ₫/Coin)"
+        "label": "Total Actual Cash-outs",
+        "hint": "{{coins}} Coins withdrawn · historical average {{rate}} ₫/Coin"
       },
       "paidBacked": {
-        "label": "Paid-backed Fee Revenue",
-        "hint": "{{coins}} paid-backed fee Coins"
+        "label": "Estimated Paid-backed Fee Value",
+        "hint": "{{coins}} fee Coins × current top-up rate {{rate}} ₫"
       },
       "liability": {
         "label": "Current Cash-out Liability",
-        "hint": "{{coins}} Circulating Coins × {{rate}} ₫"
+        "hint": "{{coins}} withdrawable Coins × {{rate}} ₫"
+      },
+      "promoSink": {
+        "label": "Promo Coins Sunk",
+        "hint": "Promo Coins removed from circulation; not VND revenue"
       }
     },
     "guaranteedProfit": {
-      "title": "Minimum Guaranteed Platform Profit",
-      "badge": "Locked in",
-      "subtitle": "Profit guaranteed to the platform from exchange-rate differences (even if all users cash out)."
+      "title": "Net Cash After Current Liability",
+      "badge": "Current snapshot",
+      "subtitle": "Top-ups minus completed cash-outs and liability from {{withdrawableCoins}} withdrawable Coins. Excludes {{paidCoins}} circulating paid Coins and paid-backed escrow that may become future liability."
     },
     "transactions": {
       "title": "System-wide Transaction History",
-      "subtitle": "Sorted newest to oldest. Use filters to inspect inflow and outflow.",
+      "subtitle": "Sorted newest to oldest and classified from the platform economic perspective.",
       "filter": {
         "all": "All",
         "topUp": "Top-up VND",
@@ -71,7 +75,7 @@
         "userId": "User ID",
         "type": "Transaction Type",
         "coinChange": "Coin Change",
-        "vnd": "VND Equivalent",
+        "vnd": "VND Impact / Estimate",
         "desc": "Description"
       },
       "empty": {
@@ -91,7 +95,9 @@
         "walletHold": "Wallet hold",
         "walletFreeze": "Wallet freeze",
         "walletUnfreeze": "Wallet unfreeze",
-        "unknown": "Other transaction"
+        "unknown": "Other transaction",
+        "escrowReleaseWithdrawable": "Withdrawable escrow payout",
+        "escrowReleasePromo": "Internal promo escrow payout"
       },
       "noDesc": "No description"
     }

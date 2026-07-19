@@ -9,6 +9,7 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   Coins,
+  CircleOff,
 } from "lucide-react";
 import { adminService } from "../../api/services/admin";
 import type {
@@ -167,7 +168,7 @@ export default function AdminRevenue() {
       />
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-5">
         <StatCard
           label={t("revenue.kpi.inflow.label")}
           value={formatCurrency(stats?.totalTopupVnd)}
@@ -176,7 +177,9 @@ export default function AdminRevenue() {
           iconVariant="success"
           hint={t("revenue.kpi.inflow.hint", {
             coins: formatNumber(stats?.totalTopupCoins),
-            rate: stats?.currentTopupRate ?? 100,
+            rate: formatNumber(
+              stats?.averageTopupRate ?? stats?.currentTopupRate ?? 100,
+            ),
           })}
         />
         <StatCard
@@ -186,17 +189,31 @@ export default function AdminRevenue() {
           iconVariant="danger"
           hint={t("revenue.kpi.outflow.hint", {
             coins: formatNumber(stats?.totalWithdrawalCoins),
-            rate: stats?.currentWithdrawalRate ?? 90,
+            rate: formatNumber(
+              stats?.averageWithdrawalRate ??
+                stats?.currentWithdrawalRate ??
+                90,
+            ),
           })}
         />
         <StatCard
           label={t("revenue.kpi.paidBacked.label")}
-          value={formatCurrency(stats?.realRevenueVnd)}
+          value={formatCurrency(
+            stats?.paidBackedFeeEstimatedVnd ?? stats?.realRevenueVnd,
+          )}
           icon={<DollarSign className="w-4 h-4" aria-hidden="true" />}
           iconVariant="info"
           hint={t("revenue.kpi.paidBacked.hint", {
             coins: formatNumber(stats?.paidBackedFeeCoins),
+            rate: formatNumber(stats?.currentTopupRate ?? 100),
           })}
+        />
+        <StatCard
+          label={t("revenue.kpi.promoSink.label")}
+          value={formatNumber(stats?.promoSinkCoins) + " Coins"}
+          icon={<CircleOff className="w-4 h-4" aria-hidden="true" />}
+          iconVariant="gold"
+          hint={t("revenue.kpi.promoSink.hint")}
         />
         <StatCard
           label={t("revenue.kpi.liability.label")}
@@ -205,12 +222,12 @@ export default function AdminRevenue() {
           iconVariant="warning"
           hint={t("revenue.kpi.liability.hint", {
             coins: formatNumber(stats?.withdrawableCoinCirculation),
-            rate: stats?.currentWithdrawalRate ?? 90,
+            rate: formatNumber(stats?.currentWithdrawalRate ?? 90),
           })}
         />
       </div>
 
-      {/* Guaranteed Profit Banner */}
+      {/* Current Liability Snapshot */}
       <SectionCard>
         <div className="flex flex-col md:flex-row items-start md:items-center gap-5">
           <IconChip variant="gold" className="h-12 w-12 shrink-0">
@@ -221,15 +238,23 @@ export default function AdminRevenue() {
               <h3 className="font-sans-ui text-base font-semibold text-cream">
                 {t("revenue.guaranteedProfit.title")}
               </h3>
-              <StatusPill variant="success">
+              <StatusPill variant="warning">
                 {t("revenue.guaranteedProfit.badge")}
               </StatusPill>
             </div>
             <p className="font-sans-ui text-3xl font-semibold text-cream tabular-nums mt-2">
-              {formatCurrency(stats?.guaranteedProfitVnd)}
+              {formatCurrency(
+                stats?.netCashAfterCurrentLiabilityVnd ??
+                  stats?.guaranteedProfitVnd,
+              )}
             </p>
             <p className="mt-1 text-sm text-white/55 font-sans-ui">
-              {t("revenue.guaranteedProfit.subtitle")}
+              {t("revenue.guaranteedProfit.subtitle", {
+                withdrawableCoins: formatNumber(
+                  stats?.withdrawableCoinCirculation,
+                ),
+                paidCoins: formatNumber(stats?.paidCoinCirculation),
+              })}
             </p>
           </div>
         </div>
@@ -309,6 +334,7 @@ export default function AdminRevenue() {
                   const amount = tx.amount ?? 0;
                   const presentation = getAdminTransactionPresentation(
                     tx.type,
+                    tx.source,
                     tx.flowDirection,
                   );
 

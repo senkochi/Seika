@@ -332,16 +332,21 @@ export interface AdminRevenueStats {
   totalTopupVnd: number;
   totalWithdrawalCoins: number;
   totalWithdrawalVnd: number;
+  averageTopupRate?: number;
+  averageWithdrawalRate?: number;
   realRevenueVnd: number;
+  paidBackedFeeEstimatedVnd?: number;
   paidBackedFeeCoins: number;
   promoSinkCoins: number;
   cashOutLiabilityVnd: number;
   withdrawableCoinCirculation: number;
+  paidCoinCirculation?: number;
   nonWithdrawableCoinCirculation: number;
   netRevenueVnd: number;
   totalCoinCirculation: number;
   potentialLiabilityVnd: number;
   guaranteedProfitVnd: number;
+  netCashAfterCurrentLiabilityVnd?: number;
   currentTopupRate: number;
   currentWithdrawalRate: number;
 }
@@ -351,9 +356,10 @@ export interface AdminTransactionResponse {
   userId: string;
   walletId: string;
   type: string;
+  source?: string;
   flowDirection?: "INFLOW" | "OUTFLOW" | "NEUTRAL";
   amount: number;
-  amountVnd: number;
+  amountVnd: number | null;
   description: string;
   createdAt: string;
 }
