@@ -32,6 +32,7 @@ export function useStatisticsOverview(
   revenue: RevenuePoint[],
   flashcard: FlashcardOverview | null | undefined,
   quiz: QuizOverview | null | undefined,
+  students?: Array<{ userId?: string }> | null,
 ): StatisticsTotals {
   const revenueTotals = useMemo(() => {
     const revenueTotal = revenue.reduce(
@@ -45,13 +46,25 @@ export function useStatisticsOverview(
     return { revenueTotal, ordersTotal };
   }, [revenue]);
 
+  const marketplaceStudentsCount = useMemo(() => {
+    if (!students || !Array.isArray(students)) return 0;
+    const uniqueIds = new Set(students.map((s) => s.userId).filter(Boolean));
+    return uniqueIds.size;
+  }, [students]);
+
   const flashcardRevenue = flashcard?.totalRevenue ?? 0;
   const quizRevenue = quiz?.totalRevenue ?? 0;
   const totalRevenue =
-    revenue.length > 0 ? revenueTotals.revenueTotal : flashcardRevenue + quizRevenue;
-  const totalOrders = revenue.length > 0 ? revenueTotals.ordersTotal : 0;
+    revenue.length > 0
+      ? revenueTotals.revenueTotal
+      : flashcardRevenue + quizRevenue;
+  const totalOrders =
+    revenue.length > 0
+      ? revenueTotals.ordersTotal
+      : (flashcard?.totalPurchases ?? 0);
   const totalFlashcardSales = flashcard?.totalPurchases ?? 0;
   const totalStudents = Math.max(
+    marketplaceStudentsCount,
     flashcard?.totalStudents ?? 0,
     quiz?.totalStudents ?? 0,
   );

@@ -21,12 +21,12 @@
     "itemsCount": "{{count}} mục"
   },
   "revenue": {
-    "titleMonth": "Doanh thu (theo tháng)",
-    "titleDay": "Doanh thu (theo ngày)",
+    "titleMonth": "Gross Sales (theo tháng)",
+    "titleDay": "Gross Sales (theo ngày)",
     "byMonth": "Theo tháng",
     "byDay": "Theo ngày",
-    "empty": "Chưa có dữ liệu doanh thu trong khoảng thời gian này.",
-    "tooltipLabel": "Doanh thu"
+    "empty": "Chưa có dữ liệu Gross Sales trong khoảng thời gian này.",
+    "tooltipLabel": "Gross Sales"
   },
   "levelProgress": {
     "title": "Tiến độ cấp độ",
@@ -52,11 +52,11 @@
   },
   "statistics": {
     "headerTitle": "Thống kê giáo viên",
-    "headerDesc": "Theo dõi doanh thu, học sinh và kết quả học tập của các sản phẩm bạn đã tạo.",
+    "headerDesc": "Theo dõi Gross Sales, học sinh và kết quả học tập của các sản phẩm bạn đã tạo.",
     "byMonth": "Theo tháng",
     "byDay": "Theo ngày",
     "refresh": "Làm mới",
-    "totalRevenue": "Tổng doanh thu",
+    "totalRevenue": "Gross Sales (Tổng giá bán)",
     "totalOrders": "Tổng lượt mua",
     "studentsReached": "Học sinh đã tiếp cận",
     "productsPublished": "Sản phẩm đã đăng",

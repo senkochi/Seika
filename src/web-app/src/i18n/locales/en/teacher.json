@@ -21,12 +21,12 @@
     "itemsCount": "{{count}} items"
   },
   "revenue": {
-    "titleMonth": "Revenue (Monthly)",
-    "titleDay": "Revenue (Daily)",
+    "titleMonth": "Gross Sales (Monthly)",
+    "titleDay": "Gross Sales (Daily)",
     "byMonth": "Monthly",
     "byDay": "Daily",
-    "empty": "No revenue data available in this period.",
-    "tooltipLabel": "Revenue"
+    "empty": "No Gross Sales data available in this period.",
+    "tooltipLabel": "Gross Sales"
   },
   "levelProgress": {
     "title": "Level Progress",
@@ -52,11 +52,11 @@
   },
   "statistics": {
     "headerTitle": "Teacher Statistics",
-    "headerDesc": "Monitor revenue, students, and learning outcomes of your products.",
+    "headerDesc": "Monitor Gross Sales, students, and learning outcomes of your products.",
     "byMonth": "Monthly",
     "byDay": "Daily",
     "refresh": "Refresh",
-    "totalRevenue": "Total Revenue",
+    "totalRevenue": "Gross Sales",
     "totalOrders": "Total Purchases",
     "studentsReached": "Students Reached",
     "productsPublished": "Published Products",

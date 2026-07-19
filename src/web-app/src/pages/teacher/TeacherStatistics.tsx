@@ -48,6 +48,7 @@ function TeacherStatistics() {
     revenue ?? [],
     flashcardOverview,
     quizOverview,
+    students,
   );
 
   const refetch = () => {
@@ -112,7 +113,7 @@ function TeacherStatistics() {
 
       <OverviewStatsGrid
         totalRevenue={totals.totalRevenue}
-        totalOrders={totals.totalOrders + totals.totalFlashcardSales}
+        totalOrders={totals.totalOrders}
         totalStudents={totals.totalStudents}
         totalContent={totals.totalContent}
       />
