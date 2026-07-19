@@ -2,13 +2,14 @@ package com.seika.marketplace_service.service;
 
 import java.util.List;
 
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.seika.marketplace_service.entity.MarketplaceConfig;
 import com.seika.marketplace_service.repository.MarketplaceConfigRepository;
 
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -51,7 +52,8 @@ public class MarketplaceConfigService {
             new DefaultEntry(KEY_WASH_HOLD_DAYS, "30", "Số ngày giữ cash-out khi confirmed wash")
     );
 
-    @PostConstruct
+    @EventListener(ApplicationReadyEvent.class)
+    @Transactional
     public void seedDefaults() {
         for (DefaultEntry def : DEFAULTS) {
             if (!repository.existsById(def.key())) {

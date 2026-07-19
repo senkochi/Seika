@@ -59,11 +59,10 @@ class EscrowPartialRefundInvalidatesCreditTest {
         when(escrowRepository.save(any(EscrowTransaction.class))).thenAnswer(inv -> inv.getArgument(0));
         when(outboxRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
-        service.adminPartialRefund("ITEM1", new BigDecimal("50"), "admin-1", "half refund");
-
-        ArgumentCaptor<EscrowTransaction> savedEscrowCaptor = ArgumentCaptor.forClass(EscrowTransaction.class);
-        org.mockito.Mockito.verify(escrowRepository, org.mockito.Mockito.atLeastOnce()).save(savedEscrowCaptor.capture());
-        EscrowTransaction savedEscrow = savedEscrowCaptor.getValue();
-        assertThat(savedEscrow.getCreditRequestedAt()).isNull();
+        org.assertj.core.api.Assertions.assertThatThrownBy(
+                        () -> service.adminPartialRefund("ITEM1", new BigDecimal("50"), "admin-1", "half refund"))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("in progress");
+        org.mockito.Mockito.verify(outboxRepository, org.mockito.Mockito.never()).save(any());
     }
 }

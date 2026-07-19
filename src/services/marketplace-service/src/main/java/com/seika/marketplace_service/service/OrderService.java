@@ -18,12 +18,15 @@ import com.seika.marketplace_service.dto.statistics.TopProductResponse;
 import com.seika.marketplace_service.entity.Order;
 import com.seika.marketplace_service.entity.OrderItem;
 import com.seika.marketplace_service.entity.OutboxEvent;
+import com.seika.marketplace_service.entity.Product;
 import com.seika.marketplace_service.enums.OrderStatus;
 import com.seika.marketplace_service.enums.OutboxStatus;
+import com.seika.marketplace_service.enums.ProductStatus;
 import com.seika.marketplace_service.event.WalletDebitRequestedEvent;
 import com.seika.marketplace_service.repository.OrderItemRepository;
 import com.seika.marketplace_service.repository.OrderRepository;
 import com.seika.marketplace_service.repository.OutboxEventRepository;
+import com.seika.marketplace_service.repository.ProductRepository;
 
 @Service
 @RequiredArgsConstructor
@@ -33,6 +36,7 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
     private final OutboxEventRepository outboxEventRepository;
+    private final ProductRepository productRepository;
     private final ObjectMapper objectMapper;
 
     @Transactional
@@ -45,6 +49,8 @@ public class OrderService {
         if (items == null || items.isEmpty()) {
             throw new IllegalArgumentException("items is required");
         }
+
+        canonicalizeItems(items);
 
         // Check if buying own item
         for (OrderItem item : items) {
@@ -142,6 +148,35 @@ public class OrderService {
         return total;
     }
 
+    private void canonicalizeItems(List<OrderItem> items) {
+        java.util.Set<String> productIds = new java.util.HashSet<>();
+        for (OrderItem item : items) {
+            if (item == null || item.getProductId() == null || item.getProductId().isBlank()) {
+                throw new IllegalArgumentException("productId is required");
+            }
+            if (item.getQuantity() != 1) {
+                throw new IllegalArgumentException("quantity must be 1 for digital content");
+            }
+            if (!productIds.add(item.getProductId())) {
+                throw new IllegalArgumentException("Duplicate product in order: " + item.getProductId());
+            }
+
+            Product product = productRepository
+                    .findByIdAndActiveTrueAndStatus(item.getProductId(), ProductStatus.PUBLISHED)
+                    .orElseThrow(() -> new IllegalArgumentException(
+                            "Product is not available for purchase: " + item.getProductId()));
+            if (product.getPrice() == null || product.getPrice().compareTo(BigDecimal.ZERO) <= 0) {
+                throw new IllegalArgumentException("Product has an invalid price: " + product.getId());
+            }
+
+            item.setProductType(product.getType());
+            item.setReferenceId(product.getReferenceId());
+            item.setProductName(product.getName());
+            item.setSellerUserId(product.getSellerUserId());
+            item.setUnitPrice(product.getPrice());
+            item.setQuantity(1);
+        }
+    }
     private String toJson(Object value) {
         try {
             return objectMapper.writeValueAsString(value);

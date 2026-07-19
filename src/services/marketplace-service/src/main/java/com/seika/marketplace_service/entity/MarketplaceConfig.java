@@ -19,7 +19,7 @@ public class MarketplaceConfig {
     @Column(name = "config_key", nullable = false, length = 128)
     private String key;
 
-    @Column(nullable = false, length = 2000)
+    @Column(name = "config_value", nullable = false, length = 2000)
     private String value;
 
     @Column(length = 500)

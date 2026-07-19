@@ -69,13 +69,10 @@ class EscrowFullRefundInvalidatesCreditTest {
         when(escrowRepository.save(any(EscrowTransaction.class))).thenAnswer(inv -> inv.getArgument(0));
         when(outboxRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
-        service.adminFullRefund("ITEM1", "admin-1", "full refund approved");
-
-        ArgumentCaptor<EscrowTransaction> savedEscrowCaptor = ArgumentCaptor.forClass(EscrowTransaction.class);
-        org.mockito.Mockito.verify(escrowRepository, org.mockito.Mockito.atLeastOnce()).save(savedEscrowCaptor.capture());
-        EscrowTransaction savedEscrow = savedEscrowCaptor.getValue();
-        assertThat(savedEscrow.getCreditRequestedAt())
-                .as("Full refund must clear prior creditRequestedAt to prevent double-credit")
-                .isNull();
+        org.assertj.core.api.Assertions.assertThatThrownBy(
+                        () -> service.adminFullRefund("ITEM1", "admin-1", "full refund approved"))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("in progress");
+        org.mockito.Mockito.verify(outboxRepository, org.mockito.Mockito.never()).save(any());
     }
 }

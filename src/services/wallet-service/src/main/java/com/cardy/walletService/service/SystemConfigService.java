@@ -2,7 +2,8 @@ package com.cardy.walletService.service;
 
 import com.cardy.walletService.entity.SystemConfig;
 import com.cardy.walletService.repository.SystemConfigRepository;
-import jakarta.annotation.PostConstruct;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -44,7 +45,8 @@ public class SystemConfigService {
             new DefaultEntry(KEY_FLASHCARD_REWARD_COOLDOWN_DAYS, "3", "Số ngày cooldown giữa 2 lần nhận flashcard reward")
     );
 
-    @PostConstruct
+    @EventListener(ApplicationReadyEvent.class)
+    @Transactional
     public void seedDefaults() {
         repository.findByKey("COIN_TO_VND_RATE").ifPresent(old -> {
             repository.delete(old);

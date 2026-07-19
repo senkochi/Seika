@@ -163,6 +163,7 @@ public class EscrowService {
     public EscrowTransaction adminFullRefund(String orderItemId, String adminId, String reason) {
         EscrowTransaction escrow = escrowRepository.findByOrderItemId(orderItemId)
                 .orElseThrow(() -> new IllegalArgumentException("Escrow not found for orderItem: " + orderItemId));
+        ensureWalletActionAllowed(escrow, "refund");
         requestRefund(escrow, reason == null ? "admin_full_refund" : reason);
         markAdminDecision(escrow, adminId, reason);
         return escrow;
@@ -172,6 +173,7 @@ public class EscrowService {
     public EscrowTransaction adminPartialRefund(String orderItemId, BigDecimal amount, String adminId, String reason) {
         EscrowTransaction escrow = escrowRepository.findByOrderItemId(orderItemId)
                 .orElseThrow(() -> new IllegalArgumentException("Escrow not found for orderItem: " + orderItemId));
+        ensureWalletActionAllowed(escrow, "refund");
         BigDecimal refundAmount = money(amount);
         requestPartialRefund(escrow, refundAmount, reason == null ? "admin_partial_refund" : reason);
         markAdminDecision(escrow, adminId, reason);
@@ -184,11 +186,11 @@ public class EscrowService {
     public EscrowTransaction adminForceRelease(String orderItemId, String adminId, String reason) {
         EscrowTransaction escrow = escrowRepository.findByOrderItemId(orderItemId)
                 .orElseThrow(() -> new IllegalArgumentException("Escrow not found for orderItem: " + orderItemId));
+        ensureWalletActionAllowed(escrow, "release");
         escrow.setStatus(EscrowStatus.HELD);
         escrow.setNeedsAdminDecision(false);
         escrow.setReviewReason(null);
         escrow.setReleaseAt(Instant.now());
-        escrow.setCreditRequestedAt(null);
         escrow.setLastWalletError(null);
         markAdminDecision(escrow, adminId, reason);
         requestRelease(escrow);
@@ -199,10 +201,21 @@ public class EscrowService {
     public EscrowTransaction adminNoRefund(String orderItemId, String adminId, String reason) {
         EscrowTransaction escrow = escrowRepository.findByOrderItemId(orderItemId)
                 .orElseThrow(() -> new IllegalArgumentException("Escrow not found for orderItem: " + orderItemId));
-        escrow.setNeedsAdminDecision(true);
-        escrow.setStatus(EscrowStatus.PENDING_ADMIN_DECISION);
+        ensureWalletActionAllowed(escrow, "no-refund");
+        escrow.setStatus(EscrowStatus.HELD);
+        escrow.setNeedsAdminDecision(false);
+        escrow.setReviewReason(null);
+        escrow.setLastWalletError(null);
         markAdminDecision(escrow, adminId, reason == null ? "admin_no_refund" : reason);
-        return escrowRepository.save(escrow);
+        logAdminAction(adminId, "NO_REFUND_ESCROW", "ORDER_ITEM", orderItemId, reason,
+                "{\"escrowId\":\"" + escrow.getId() + "\"}");
+        if (escrow.getReleaseAt() == null || !escrow.getReleaseAt().isAfter(Instant.now())) {
+            requestRelease(escrow);
+        } else {
+            updateOrderItemState(escrow, EscrowState.HELD, false, null);
+            escrowRepository.save(escrow);
+        }
+        return escrow;
     }
 
     private void requestPartialRefund(EscrowTransaction escrow, BigDecimal amount, String reason) {
@@ -224,7 +237,8 @@ public class EscrowService {
         WalletRefundRequestedEvent event = WalletRefundRequestedEvent.builder()
                 .eventId(UUID.randomUUID().toString())
                 .eventType(REFUND_REQUESTED)
-                .idempotencyKey("escrow:" + escrow.getId() + ":partial-refund:" + refundAmount.toPlainString())
+                .idempotencyKey("escrow:" + escrow.getId() + ":partial-refund:"
+                        + gross.toPlainString() + ":" + refundAmount.toPlainString())
                 .escrowId(escrow.getId())
                 .orderId(escrow.getOrderId())
                 .orderItemId(escrow.getOrderItemId())
@@ -236,7 +250,6 @@ public class EscrowService {
                 .occurredAt(Instant.now())
                 .build();
         saveOutbox("EscrowTransaction", escrow.getId(), REFUND_REQUESTED, event);
-        escrow.setCreditRequestedAt(null);
         escrow.setRefundRequestedAt(Instant.now());
         escrow.setNeedsAdminDecision(true);
         escrow.setStatus(EscrowStatus.PENDING_ADMIN_DECISION);
@@ -261,7 +274,6 @@ public class EscrowService {
                 .occurredAt(Instant.now())
                 .build();
         saveOutbox("EscrowTransaction", escrow.getId(), REFUND_REQUESTED, event);
-        escrow.setCreditRequestedAt(null);
         escrow.setRefundRequestedAt(Instant.now());
         escrow.setNeedsAdminDecision(false);
         escrow.setReviewReason(reason);
@@ -280,6 +292,7 @@ public class EscrowService {
             escrow.setLastWalletError(null);
             updateOrderItemState(escrow, EscrowState.RELEASED, false, null);
         } else if ("wallet.refund.succeeded".equals(event.getEventType()) && isPartialRefundResult(event)) {
+            applyPartialRefund(escrow, event);
             escrow.setStatus(EscrowStatus.PENDING_ADMIN_DECISION);
             escrow.setRefundedAt(event.getOccurredAt() == null ? Instant.now() : event.getOccurredAt());
             escrow.setNeedsAdminDecision(true);
@@ -337,6 +350,55 @@ public class EscrowService {
         return event.getIdempotencyKey() != null && event.getIdempotencyKey().contains(":partial-refund:");
     }
 
+    private void ensureWalletActionAllowed(EscrowTransaction escrow, String action) {
+        if (escrow.getStatus() == EscrowStatus.RELEASED) {
+            throw new IllegalStateException("Escrow has already been released; " + action + " requires a reversal flow");
+        }
+        if (escrow.getStatus() == EscrowStatus.REFUNDED) {
+            throw new IllegalStateException("Escrow has already been refunded");
+        }
+        if (escrow.getCreditRequestedAt() != null || escrow.getRefundRequestedAt() != null) {
+            throw new IllegalStateException("A wallet operation is already in progress for this escrow");
+        }
+    }
+
+    private void applyPartialRefund(EscrowTransaction escrow, WalletEscrowResultEvent event) {
+        BigDecimal bonus = money(zero(event.getBonusAmount()));
+        BigDecimal reward = money(zero(event.getRewardAmount()));
+        BigDecimal paid = money(zero(event.getPaidAmount()));
+        BigDecimal earnedPromo = money(zero(event.getEarnedPromoAmount()));
+        BigDecimal refundTotal = bonus.add(reward).add(paid).add(earnedPromo);
+
+        escrow.setBonusBackedAmount(subtractRefund(escrow.getBonusBackedAmount(), bonus, "bonus"));
+        escrow.setRewardBackedAmount(subtractRefund(escrow.getRewardBackedAmount(), reward, "reward"));
+        escrow.setPaidBackedAmount(subtractRefund(escrow.getPaidBackedAmount(), paid, "paid"));
+        escrow.setEarnedPromoBackedAmount(
+                subtractRefund(escrow.getEarnedPromoBackedAmount(), earnedPromo, "earned promo"));
+        escrow.setGrossAmount(subtractRefund(escrow.getGrossAmount(), refundTotal, "gross"));
+        escrow.setPromoBackedAmount(money(zero(escrow.getBonusBackedAmount())
+                .add(zero(escrow.getRewardBackedAmount()))
+                .add(zero(escrow.getEarnedPromoBackedAmount()))));
+        escrow.setRefundRequestedAt(null);
+        clearReleaseAmounts(escrow);
+    }
+
+    private BigDecimal subtractRefund(BigDecimal current, BigDecimal refund, String source) {
+        BigDecimal remaining = money(zero(current).subtract(zero(refund)));
+        if (remaining.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalStateException("Wallet refunded more than escrow " + source + " amount");
+        }
+        return remaining;
+    }
+
+    private void clearReleaseAmounts(EscrowTransaction escrow) {
+        escrow.setTierAtRelease(null);
+        escrow.setTierFeePercent(null);
+        escrow.setEscrowFeePercent(null);
+        escrow.setTeacherWithdrawableNet(null);
+        escrow.setTeacherPromoNet(null);
+        escrow.setPlatformFeeReal(null);
+        escrow.setPlatformFeePromoSink(null);
+    }
     private BigDecimal zero(BigDecimal value) {
         return value == null ? BigDecimal.ZERO : value;
     }
@@ -366,6 +428,8 @@ public class EscrowService {
             item.setAdminDecisionAt(Instant.now());
             item.setAdminDecisionBy(adminId);
             item.setAdminDecisionReason(reason);
+            item.setEscrowNeedsReview(false);
+            item.setEscrowReviewReason(null);
             orderItemRepository.save(item);
         });
     }

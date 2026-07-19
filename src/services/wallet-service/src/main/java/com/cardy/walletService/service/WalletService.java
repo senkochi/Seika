@@ -159,26 +159,47 @@ public class WalletService {
     }
     @Transactional
     public void createWallet(UUID userId, boolean isTeacher) {
+        String initializationKey = "user:" + userId + ":wallet-initialized";
+        if (walletIdempotencyKeyRepository.existsById(initializationKey)) {
+            return;
+        }
+
+        String legacyLedgerKey = "user:" + userId + ":initial-bonus";
+        List<WalletLedgerEntry> legacyEntries = walletLedgerEntryRepository
+                .findByIdempotencyKeyAndTypeOrderByCreatedAtAsc(legacyLedgerKey, WalletLedgerType.INITIAL_BONUS);
+        if (legacyEntries != null && !legacyEntries.isEmpty()) {
+            walletIdempotencyKeyRepository.save(WalletIdempotencyKey.builder()
+                    .idempotencyKey(initializationKey)
+                    .operation(WalletLedgerType.INITIAL_BONUS.name())
+                    .build());
+            return;
+        }
+
         BigDecimal teacherInitial = systemConfigService.getBigDecimal(
                 SystemConfigService.KEY_TEACHER_INITIAL_COIN, BigDecimal.ZERO);
         BigDecimal studentInitial = systemConfigService.getBigDecimal(
                 SystemConfigService.KEY_STUDENT_INITIAL_COIN, new BigDecimal("500"));
-        BigDecimal defaultBalance = isTeacher ? teacherInitial : studentInitial;
-        walletRepository.findByUserId(userId)
-                .orElseGet(() -> {
-                    Wallet wallet = Wallet.builder()
-                            .userId(userId)
-                            .bonusBalance(defaultBalance)
-                            .build();
-                    wallet.recalculateBalance();
-                    Wallet saved = walletRepository.save(wallet);
-                    if (defaultBalance.compareTo(BigDecimal.ZERO) > 0) {
-                        writeLedger(saved, WalletLedgerType.INITIAL_BONUS, WalletLedgerSource.BONUS,
-                                defaultBalance, null, null, null, "user:" + userId + ":initial-bonus",
-                                isTeacher ? "Initial teacher bonus" : "Initial student bonus");
-                    }
-                    return saved;
-                });
+        BigDecimal configuredBalance = isTeacher ? teacherInitial : studentInitial;
+        BigDecimal defaultBalance = configuredBalance == null ? BigDecimal.ZERO : configuredBalance;
+
+        Wallet wallet = walletRepository.findByUserId(userId)
+                .orElseGet(() -> Wallet.builder().userId(userId).build());
+        wallet.recalculateBalance();
+        if (defaultBalance.compareTo(BigDecimal.ZERO) > 0) {
+            wallet.setBonusBalance(wallet.getBonusBalance().add(defaultBalance));
+        }
+        wallet.recalculateBalance();
+        Wallet saved = walletRepository.save(wallet);
+
+        if (defaultBalance.compareTo(BigDecimal.ZERO) > 0) {
+            writeLedger(saved, WalletLedgerType.INITIAL_BONUS, WalletLedgerSource.BONUS,
+                    defaultBalance, null, null, null, "user:" + userId + ":initial-bonus",
+                    isTeacher ? "Initial teacher bonus" : "Initial student bonus");
+        }
+        walletIdempotencyKeyRepository.save(WalletIdempotencyKey.builder()
+                .idempotencyKey(initializationKey)
+                .operation(WalletLedgerType.INITIAL_BONUS.name())
+                .build());
     }
 
     @Transactional

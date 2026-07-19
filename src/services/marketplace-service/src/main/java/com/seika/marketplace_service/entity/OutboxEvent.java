@@ -39,7 +39,7 @@ public class OutboxEvent {
     @Column(name = "event_type", nullable = false, length = 128)
     String eventType;
 
-    @Column(name = "payload", nullable = false, columnDefinition = "jsonb")
+    @Column(name = "payload", nullable = false)
     @JdbcTypeCode(SqlTypes.JSON)
     String payload;
 
