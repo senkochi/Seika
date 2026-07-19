@@ -1,14 +1,14 @@
 spring:
   config:
-    import: "optional:configserver:${CONFIG_SERVER_URL:http://localhost:8888}"
+    import: "configserver:"
   application:
     name: wallet-service
   profiles:
     active: ${SPRING_PROFILE:dev}
   cloud:
     config:
-      uri: ${CONFIG_SERVER_URL:http://localhost:8888}
-      fail-fast: ${CONFIG_SERVER_FAIL_FAST:true}
+      uri: ${CONFIG_SERVER_URL}
+      fail-fast: true
       retry:
         initial-interval: 1000
         max-interval: 2000

@@ -41,11 +41,6 @@ public class OrderController {
         List<OrderItem> items = request.getItems().stream()
             .map(itemReq -> OrderItem.builder()
                 .productId(itemReq.getProductId())
-                .productType(ProductType.valueOf(itemReq.getProductType()))
-                .referenceId(itemReq.getReferenceId())
-                .productName(itemReq.getProductName())
-                .sellerUserId(itemReq.getSellerUserId())
-                .unitPrice(itemReq.getUnitPrice())
                 .quantity(itemReq.getQuantity())
                 .build())
             .toList();

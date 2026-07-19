@@ -40,7 +40,7 @@ public class WalletOutboxEvent {
     @Column(name = "event_type", nullable = false, length = 128)
     private String eventType;
 
-    @Column(name = "payload", nullable = false, columnDefinition = "jsonb")
+    @Column(name = "payload", nullable = false)
     @JdbcTypeCode(SqlTypes.JSON)
     private String payload;
 

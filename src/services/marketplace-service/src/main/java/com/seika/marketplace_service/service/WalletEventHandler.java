@@ -5,7 +5,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
+import java.util.HexFormat;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,6 +21,7 @@ import com.seika.marketplace_service.enums.InboxStatus;
 import com.seika.marketplace_service.enums.EscrowState;
 import com.seika.marketplace_service.enums.OrderStatus;
 import com.seika.marketplace_service.event.WalletDebitEvent;
+import com.seika.marketplace_service.event.WalletEscrowResultEvent;
 import com.seika.marketplace_service.repository.InboxEventRepository;
 import com.seika.marketplace_service.repository.OrderItemRepository;
 import com.seika.marketplace_service.repository.OrderRepository;
@@ -83,6 +88,66 @@ public class WalletEventHandler {
             inbox.setLastError(truncateError(exception.getMessage()));
             inboxEventRepository.save(inbox);
             throw exception;
+        }
+    }
+
+    @Transactional
+    public void handleWalletEscrowResult(WalletEscrowResultEvent event, String rawPayload) {
+        validateEscrowResult(event);
+        String messageId = escrowResultMessageId(event);
+        Optional<InboxEvent> existingInbox = inboxEventRepository.findByMessageId(messageId);
+        if (existingInbox.isPresent() && existingInbox.get().getStatus() == InboxStatus.PROCESSED) {
+            log.info("Skipped duplicate escrow result. eventType={}, idempotencyKey={}",
+                    event.getEventType(), event.getIdempotencyKey());
+            return;
+        }
+
+        InboxEvent inbox = existingInbox.orElseGet(() -> InboxEvent.builder()
+                .messageId(messageId)
+                .eventType(event.getEventType())
+                .aggregateId(event.getEscrowId())
+                .payload(rawPayload)
+                .status(InboxStatus.RECEIVED)
+                .retryCount(0)
+                .build());
+        inbox.setStatus(InboxStatus.RECEIVED);
+        inboxEventRepository.save(inbox);
+
+        try {
+            escrowService.handleWalletEscrowResult(event);
+            inbox.setStatus(InboxStatus.PROCESSED);
+            inbox.setProcessedAt(Instant.now());
+            inbox.setLastError(null);
+            inboxEventRepository.save(inbox);
+        } catch (Exception exception) {
+            inbox.setStatus(InboxStatus.FAILED);
+            inbox.setProcessedAt(Instant.now());
+            inbox.setRetryCount(inbox.getRetryCount() + 1);
+            inbox.setLastError(truncateError(exception.getMessage()));
+            inboxEventRepository.save(inbox);
+            throw exception;
+        }
+    }
+
+    private void validateEscrowResult(WalletEscrowResultEvent event) {
+        if (event == null || event.getEventType() == null || event.getEventType().isBlank()) {
+            throw new IllegalArgumentException("wallet escrow eventType is required");
+        }
+        if (event.getIdempotencyKey() == null || event.getIdempotencyKey().isBlank()) {
+            throw new IllegalArgumentException("wallet escrow idempotencyKey is required");
+        }
+        if (event.getEscrowId() == null || event.getEscrowId().isBlank()) {
+            throw new IllegalArgumentException("wallet escrow escrowId is required");
+        }
+    }
+
+    private String escrowResultMessageId(WalletEscrowResultEvent event) {
+        String businessKey = event.getEventType() + "|" + event.getIdempotencyKey();
+        try {
+            return HexFormat.of().formatHex(
+                    MessageDigest.getInstance("SHA-256").digest(businessKey.getBytes(StandardCharsets.UTF_8)));
+        } catch (NoSuchAlgorithmException exception) {
+            throw new IllegalStateException("SHA-256 is not available", exception);
         }
     }
 

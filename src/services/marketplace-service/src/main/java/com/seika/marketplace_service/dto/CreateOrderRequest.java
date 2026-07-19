@@ -13,7 +13,6 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class CreateOrderRequest {
-    @NotBlank(message = "userId is required")
     private String userId;
 
     @NotEmpty(message = "items cannot be empty")

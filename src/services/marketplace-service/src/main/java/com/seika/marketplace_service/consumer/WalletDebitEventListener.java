@@ -41,7 +41,7 @@ public class WalletDebitEventListener {
                 walletEventHandler.handleWalletDebitEvent(event, normalizedPayload);
             } else if (eventType.startsWith("wallet.credit.") || eventType.startsWith("wallet.refund.")) {
                 WalletEscrowResultEvent event = objectMapper.treeToValue(root, WalletEscrowResultEvent.class);
-                escrowService.handleWalletEscrowResult(event);
+                walletEventHandler.handleWalletEscrowResult(event, normalizedPayload);
             } else {
                 log.warn("Ignoring unsupported wallet eventType={}", eventType);
             }

@@ -228,11 +228,11 @@ public class EscrowService {
             throw new IllegalArgumentException("Partial refund amount must be lower than gross escrow amount");
         }
 
-        BigDecimal ratio = refundAmount.divide(gross, 8, RoundingMode.HALF_UP);
-        BigDecimal bonus = money(zero(escrow.getBonusBackedAmount()).multiply(ratio));
-        BigDecimal reward = money(zero(escrow.getRewardBackedAmount()).multiply(ratio));
-        BigDecimal earnedPromo = money(zero(escrow.getEarnedPromoBackedAmount()).multiply(ratio));
-        BigDecimal paid = money(refundAmount.subtract(bonus).subtract(reward).subtract(earnedPromo));
+        RefundAllocation allocation = allocatePartialRefund(escrow, refundAmount, gross);
+        BigDecimal bonus = allocation.bonus();
+        BigDecimal reward = allocation.reward();
+        BigDecimal paid = allocation.paid();
+        BigDecimal earnedPromo = allocation.earnedPromo();
 
         WalletRefundRequestedEvent event = WalletRefundRequestedEvent.builder()
                 .eventId(UUID.randomUUID().toString())
@@ -362,6 +362,50 @@ public class EscrowService {
         }
     }
 
+    private RefundAllocation allocatePartialRefund(EscrowTransaction escrow,
+                                                    BigDecimal refundAmount,
+                                                    BigDecimal gross) {
+        BigDecimal[] balances = {
+                money(zero(escrow.getBonusBackedAmount())),
+                money(zero(escrow.getRewardBackedAmount())),
+                money(zero(escrow.getPaidBackedAmount())),
+                money(zero(escrow.getEarnedPromoBackedAmount()))
+        };
+        BigDecimal available = BigDecimal.ZERO;
+        for (BigDecimal balance : balances) {
+            if (balance.compareTo(BigDecimal.ZERO) < 0) {
+                throw new IllegalStateException("Escrow source balance must not be negative");
+            }
+            available = available.add(balance);
+        }
+        if (available.compareTo(refundAmount) < 0) {
+            throw new IllegalStateException("Escrow source balances are lower than refund amount");
+        }
+
+        BigDecimal ratio = refundAmount.divide(gross, 8, RoundingMode.HALF_UP);
+        BigDecimal[] allocated = {
+                BigDecimal.ZERO.setScale(2), BigDecimal.ZERO.setScale(2),
+                BigDecimal.ZERO.setScale(2), BigDecimal.ZERO.setScale(2)
+        };
+        BigDecimal remaining = refundAmount;
+        for (int index = 0; index < balances.length && remaining.signum() > 0; index++) {
+            BigDecimal target = money(balances[index].multiply(ratio));
+            BigDecimal amount = target.min(balances[index]).min(remaining);
+            allocated[index] = amount;
+            remaining = money(remaining.subtract(amount));
+        }
+        for (int index = 0; index < balances.length && remaining.signum() > 0; index++) {
+            BigDecimal capacity = money(balances[index].subtract(allocated[index]));
+            BigDecimal amount = capacity.min(remaining);
+            allocated[index] = money(allocated[index].add(amount));
+            remaining = money(remaining.subtract(amount));
+        }
+        if (remaining.signum() != 0) {
+            throw new IllegalStateException("Unable to allocate partial refund across escrow sources");
+        }
+        return new RefundAllocation(allocated[0], allocated[1], allocated[2], allocated[3]);
+    }
+
     private void applyPartialRefund(EscrowTransaction escrow, WalletEscrowResultEvent event) {
         BigDecimal bonus = money(zero(event.getBonusAmount()));
         BigDecimal reward = money(zero(event.getRewardAmount()));
@@ -458,6 +502,10 @@ public class EscrowService {
 
     private BigDecimal money(BigDecimal value) {
         return (value == null ? BigDecimal.ZERO : value).setScale(2, RoundingMode.HALF_UP);
+    }
+
+    private record RefundAllocation(BigDecimal bonus, BigDecimal reward,
+                                    BigDecimal paid, BigDecimal earnedPromo) {
     }
 
     private record SourceSlice(BigDecimal bonus, BigDecimal reward, BigDecimal paid, BigDecimal earnedPromo) {

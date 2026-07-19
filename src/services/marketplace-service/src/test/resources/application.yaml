@@ -1,13 +1,9 @@
 spring:
-  config:
-    import: "optional:configserver:${CONFIG_SERVER_URL:http://localhost:8888}"
   cloud:
     config:
-      fail-fast: false
-      retry:
-        max-attempts: 0
+      enabled: false
   datasource:
-    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;NON_KEYWORDS=VALUE
     driver-class-name: org.h2.Driver
     username: sa
     password:
@@ -16,11 +12,11 @@ spring:
     hibernate:
       ddl-auto: create-drop
   rabbitmq:
-    host: localhost
-    port: 5672
-  autoconfigure:
-    exclude:
-      - org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration
+    listener:
+      simple:
+        auto-startup: false
+      direct:
+        auto-startup: false
 
 jwt:
   issuer: seika-identity-service-test
