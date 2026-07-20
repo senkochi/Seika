@@ -11,22 +11,40 @@ import com.seika.profile_service.event.QuizSetCreatedEvent;
 import com.seika.profile_service.event.TeacherTierUpdatedEvent;
 import com.seika.profile_service.repository.GameProfileRepository;
 import com.seika.profile_service.repository.TeacherProfileRepository;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 
 @Component
-@RequiredArgsConstructor
 @Slf4j
 public class TeacherStatsConsumer {
 
     private final TeacherProfileRepository teacherProfileRepository;
     private final GameProfileRepository gameProfileRepository;
     private final ObjectMapper objectMapper;
+    private final CacheManager cacheManager;
+
+    @Autowired
+    public TeacherStatsConsumer(TeacherProfileRepository teacherProfileRepository,
+                                GameProfileRepository gameProfileRepository,
+                                ObjectMapper objectMapper,
+                                @Autowired(required = false) CacheManager cacheManager) {
+        this.teacherProfileRepository = teacherProfileRepository;
+        this.gameProfileRepository = gameProfileRepository;
+        this.objectMapper = objectMapper;
+        this.cacheManager = cacheManager;
+    }
+
+    public TeacherStatsConsumer(TeacherProfileRepository teacherProfileRepository,
+                                GameProfileRepository gameProfileRepository,
+                                ObjectMapper objectMapper) {
+        this(teacherProfileRepository, gameProfileRepository, objectMapper, null);
+    }
 
     @RabbitListener(queues = RabbitMQConfig.PROFILE_QUIZ_SET_CREATED_QUEUE)
     @Transactional
@@ -40,6 +58,7 @@ public class TeacherStatsConsumer {
             ensureTeacherProfileExists(event.getCreatedBy());
             teacherProfileRepository.incrementQuizCreated(event.getCreatedBy());
             addTeacherExp(event.getCreatedBy(), 50L);
+            evictProfileCache(event.getCreatedBy());
             log.info("Incremented totalQuizCreated and awarded 50 EXP for teacherId={}", event.getCreatedBy());
         } catch (JsonProcessingException e) {
             log.error("Failed to deserialize quiz.set.created message. payload={}", rawMessage, e);
@@ -60,6 +79,7 @@ public class TeacherStatsConsumer {
             ensureTeacherProfileExists(event.getCreatedBy());
             teacherProfileRepository.incrementFlashcardsCreated(event.getCreatedBy());
             addTeacherExp(event.getCreatedBy(), 50L);
+            evictProfileCache(event.getCreatedBy());
             log.info("Incremented totalFlashcardsCreated and awarded 50 EXP for teacherId={}", event.getCreatedBy());
         } catch (JsonProcessingException e) {
             log.error("Failed to deserialize flashcard.set.created message. payload={}", rawMessage, e);
@@ -80,6 +100,7 @@ public class TeacherStatsConsumer {
             ensureTeacherProfileExists(event.getTeacherUserId());
             teacherProfileRepository.incrementStudentsReached(event.getTeacherUserId());
             addTeacherExp(event.getTeacherUserId(), 50L);
+            evictProfileCache(event.getTeacherUserId());
             log.info("Incremented totalStudentsReached and awarded 50 EXP for teacherId={} purchasedBy={}",
                     event.getTeacherUserId(), event.getBuyerUserId());
         } catch (JsonProcessingException e) {
@@ -122,6 +143,7 @@ public class TeacherStatsConsumer {
             teacherProfile.setTeacherTierUpdatedAt(event.getOccurredAt());
             teacherProfile.setLastProcessedEventId(event.getEventId());
             teacherProfileRepository.save(teacherProfile);
+            evictProfileCache(event.getTeacherId());
 
             log.info("Updated teacher profile tier display for teacherId={} tier={} rating={} reviews={}",
                     event.getTeacherId(), event.getTier(), event.getAverageRating(), event.getValidReviewCount());
@@ -129,6 +151,15 @@ public class TeacherStatsConsumer {
             log.error("Failed to deserialize teacher.tier.updated message. payload={}", rawMessage, e);
         } catch (Exception e) {
             log.error("Failed to process teacher.tier.updated message. payload={}", rawMessage, e);
+        }
+    }
+
+    private void evictProfileCache(String userId) {
+        if (cacheManager != null && userId != null && !userId.isBlank()) {
+            org.springframework.cache.Cache cache = cacheManager.getCache("profile:user");
+            if (cache != null) {
+                cache.evict(userId);
+            }
         }
     }
 

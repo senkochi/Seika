@@ -32,6 +32,7 @@ public class ProductEventListener {
     private final MarketplaceNotificationPublisher notificationPublisher;
     private final MarketplaceEscrowSafetyService escrowSafetyService;
     private final UserInventoryRepository userInventoryRepository;
+    private final org.springframework.cache.CacheManager cacheManager;
 
     @RabbitListener(queues = "${messaging.events.marketplace-content-queue:marketplace.content-events}")
     public void handleContentCreatedEvent(org.springframework.amqp.core.Message message, @Header(AmqpHeaders.RECEIVED_ROUTING_KEY) String routingKey) {
@@ -99,6 +100,7 @@ public class ProductEventListener {
             product.setRejectionReason(null);
             productRepository.save(product);
             escrowSafetyService.markHeldItemsPendingDecision(product.getId(), "content_edit_by_teacher");
+            evictProductCaches();
             log.info("Updated product to pending review in marketplace: type={}, referenceId={}", type, referenceId);
         } else {
             log.warn("Product to update not found: type={}, referenceId={}", type, referenceId);
@@ -123,8 +125,18 @@ public class ProductEventListener {
                 .status(ProductStatus.PENDING_REVIEW)             // cần admin duyệt
                 .build();
         Product saved = productRepository.save(product);
+        evictProductCaches();
         log.info("Saved new product to marketplace: type={}, referenceId={}, price={}", type, referenceId, saved.getPrice());
         notificationPublisher.publishContentCreated(saved.getId(), saved.getName(), saved.getType().name(), saved.getSellerUserId());
+    }
+
+    private void evictProductCaches() {
+        if (cacheManager != null) {
+            org.springframework.cache.Cache activeCache = cacheManager.getCache("marketplace:products:active");
+            if (activeCache != null) activeCache.clear();
+            org.springframework.cache.Cache detailCache = cacheManager.getCache("marketplace:products:detail");
+            if (detailCache != null) detailCache.clear();
+        }
     }
 }
 

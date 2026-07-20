@@ -24,6 +24,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -48,6 +50,7 @@ public class CardSetService {
     private final ContentEventPublisher contentEventPublisher;
     private final RabbitTemplate rabbitTemplate;
 
+    @CacheEvict(value = {"flashcards:detail", "flashcards:author"}, allEntries = true)
     public CardSetDTO create(CardSetCreateDTO req, String authorId){
         if (req.getPrice() != null && req.getPrice() < 0) {
             throw new IllegalArgumentException("Giá sản phẩm không được nhỏ hơn 0!");
@@ -92,10 +95,12 @@ public class CardSetService {
         return mapper.toDtoList(cardSetRepository.findAll());
     }
 
+    @Cacheable(value = "flashcards:author", key = "#authorId", unless = "#result == null || #result.isEmpty()")
     public List<CardSetDTO> getByAuthor(String authorId){
         return mapper.toDtoList(cardSetRepository.findByAuthorId(authorId));
     }
 
+    @Cacheable(value = "flashcards:detail", key = "#id", unless = "#result == null")
     public CardSetDTO getById(String id){
         return mapper.toDto(cardSetRepository.findById(id).orElseThrow());
     }
@@ -145,6 +150,7 @@ public class CardSetService {
     /**
      * Xóa flashcard set – chỉ author mới được xóa
      */
+    @CacheEvict(value = {"flashcards:detail", "flashcards:author"}, allEntries = true)
     public void delete(String id, String requesterId){
         CardSet cardSet = cardSetRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy bộ thẻ: " + id));
@@ -154,6 +160,7 @@ public class CardSetService {
         cardSetRepository.deleteById(id);
     }
 
+    @CacheEvict(value = {"flashcards:detail", "flashcards:author"}, allEntries = true)
     public CardSetDTO update(String id, CardSetCreateDTO req, String requesterId){
         CardSet cardSet = cardSetRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy bộ thẻ: " + id));

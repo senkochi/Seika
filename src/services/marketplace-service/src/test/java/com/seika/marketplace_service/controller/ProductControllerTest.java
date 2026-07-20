@@ -1,6 +1,6 @@
 package com.seika.marketplace_service.controller;
 
-import com.seika.marketplace_service.entity.Product;
+import com.seika.marketplace_service.dto.ProductResponse;
 import com.seika.marketplace_service.enums.ProductStatus;
 import com.seika.marketplace_service.enums.ProductType;
 import com.seika.marketplace_service.service.ProductService;
@@ -21,7 +21,7 @@ class ProductControllerTest {
     void getProductReturnsPublishedActiveProduct() {
         ProductService productService = mock(ProductService.class);
         ProductController controller = new ProductController(productService);
-        Product product = Product.builder()
+        ProductResponse product = ProductResponse.builder()
                 .id("P1")
                 .name("Advanced Algebra Pack")
                 .type(ProductType.QUIZ)
@@ -31,7 +31,7 @@ class ProductControllerTest {
                 .build();
         when(productService.getActiveProductById("P1")).thenReturn(Optional.of(product));
 
-        ResponseEntity<Product> response = controller.getProduct("P1");
+        ResponseEntity<ProductResponse> response = controller.getProduct("P1");
 
         assertThat(response.getBody()).isSameAs(product);
     }

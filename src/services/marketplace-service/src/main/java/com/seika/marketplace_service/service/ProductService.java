@@ -1,6 +1,7 @@
 package com.seika.marketplace_service.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -10,10 +11,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import com.seika.marketplace_service.dto.ProductResponse;
 import com.seika.marketplace_service.entity.Product;
 import com.seika.marketplace_service.enums.OrderStatus;
 import com.seika.marketplace_service.enums.ProductStatus;
 import com.seika.marketplace_service.enums.ProductType;
+import com.seika.marketplace_service.helper.ProductCatalogCacheHelper;
 import com.seika.marketplace_service.repository.OrderRepository;
 import com.seika.marketplace_service.repository.ProductRepository;
 import com.seika.marketplace_service.repository.UserInventoryRepository;
@@ -26,9 +29,10 @@ public class ProductService {
     private final UserInventoryRepository userInventoryRepository;
     private final OrderRepository orderRepository;
     private final MarketplaceEscrowSafetyService escrowSafetyService;
+    private final ProductCatalogCacheHelper cacheHelper;
 
-    public List<Product> getActiveProducts(String userId) {
-        List<Product> products = productRepository.findByActiveTrueAndStatusOrderByCreatedAtDesc(ProductStatus.PUBLISHED);
+    public List<ProductResponse> getActiveProducts(String userId) {
+        List<ProductResponse> products = cacheHelper.getActiveProductsCatalog();
         if (userId == null || userId.isBlank()) {
             return products;
         }
@@ -47,30 +51,38 @@ public class ProductService {
                 .toList();
     }
 
-    public List<Product> getActiveProductsByType(ProductType type) {
-        return productRepository.findByActiveTrueAndStatusAndTypeOrderByCreatedAtDesc(ProductStatus.PUBLISHED, type);
+    public List<ProductResponse> getActiveProductsByType(ProductType type) {
+        return productRepository.findByActiveTrueAndStatusAndTypeOrderByCreatedAtDesc(ProductStatus.PUBLISHED, type)
+                .stream()
+                .map(ProductResponse::fromEntity)
+                .toList();
     }
 
-    public Optional<Product> getActiveProductById(String id) {
-        return productRepository.findByIdAndActiveTrueAndStatus(id, ProductStatus.PUBLISHED);
+    public Optional<ProductResponse> getActiveProductById(String id) {
+        return cacheHelper.getActiveProductById(id);
     }
 
-    public List<Product> getMyProducts(String sellerUserId) {
+    public List<ProductResponse> getMyProducts(String sellerUserId) {
         if (sellerUserId == null || sellerUserId.isBlank()) {
             return List.of();
         }
-        return productRepository.findBySellerUserIdOrderByCreatedAtDesc(sellerUserId);
+        return productRepository.findBySellerUserIdOrderByCreatedAtDesc(sellerUserId)
+                .stream()
+                .map(ProductResponse::fromEntity)
+                .toList();
     }
 
     @Transactional
-    public Product archive(String sellerUserId, String productId) {
+    @CacheEvict(value = {"marketplace:products:active", "marketplace:products:detail"}, allEntries = true)
+    public ProductResponse archive(String sellerUserId, String productId) {
         Product product = mustOwnProduct(sellerUserId, productId);
         product.setStatus(ProductStatus.HIDDEN);
         product.setActive(false);
-        return productRepository.save(product);
+        return ProductResponse.fromEntity(productRepository.save(product));
     }
 
     @Transactional
+    @CacheEvict(value = {"marketplace:products:active", "marketplace:products:detail"}, allEntries = true)
     public void hardDelete(String sellerUserId, String productId) {
         Product product = mustOwnProduct(sellerUserId, productId);
         escrowSafetyService.assertHardDeleteAllowed(productId);

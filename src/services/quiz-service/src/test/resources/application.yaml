@@ -1,0 +1,22 @@
+spring:
+  cloud:
+    config:
+      enabled: false
+  config:
+    import: "optional:configserver:http://localhost:8888"
+  rabbitmq:
+    listener:
+      simple:
+        auto-startup: false
+      direct:
+        auto-startup: false
+
+jwt:
+  issuer: seika-identity-service-test
+  secret: testsecretkeymustbeatleast32byteslongforjwtvalidationhmacsha256
+  access-token-expiration-minutes: 60
+  refresh-token-expiration-days: 7
+
+eureka:
+  client:
+    enabled: false

@@ -5,6 +5,7 @@ import com.seika.marketplace_service.enums.ProductStatus;
 import com.seika.marketplace_service.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -33,6 +34,7 @@ public class AdminProductService {
     }
 
     @Transactional
+    @CacheEvict(value = {"marketplace:products:active", "marketplace:products:detail"}, allEntries = true)
     public Product approve(String productId) {
         Product product = mustFind(productId);
         product.setStatus(ProductStatus.PUBLISHED);
@@ -46,6 +48,7 @@ public class AdminProductService {
     }
 
     @Transactional
+    @CacheEvict(value = {"marketplace:products:active", "marketplace:products:detail"}, allEntries = true)
     public Product reject(String productId, String reason) {
         Product product = mustFind(productId);
         product.setStatus(ProductStatus.REJECTED);
@@ -60,6 +63,7 @@ public class AdminProductService {
     }
 
     @Transactional
+    @CacheEvict(value = {"marketplace:products:active", "marketplace:products:detail"}, allEntries = true)
     public Product hide(String productId) {
         Product product = mustFind(productId);
         product.setStatus(ProductStatus.HIDDEN);

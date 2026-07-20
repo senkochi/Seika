@@ -13,6 +13,7 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.support.converter.JacksonJsonMessageConverter;
+import org.springframework.cache.CacheManager;
 
 import java.math.BigDecimal;
 
@@ -39,7 +40,8 @@ class ProductEventListenerTest {
                 productRepository,
                 notificationPublisher,
                 mock(MarketplaceEscrowSafetyService.class),
-                mock(UserInventoryRepository.class)
+                mock(UserInventoryRepository.class),
+                mock(CacheManager.class)
         );
 
         String eventJson = """

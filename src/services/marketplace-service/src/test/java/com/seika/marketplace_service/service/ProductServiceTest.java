@@ -1,8 +1,10 @@
 package com.seika.marketplace_service.service;
 
+import com.seika.marketplace_service.dto.ProductResponse;
 import com.seika.marketplace_service.entity.Product;
 import com.seika.marketplace_service.enums.OrderStatus;
 import com.seika.marketplace_service.enums.ProductStatus;
+import com.seika.marketplace_service.helper.ProductCatalogCacheHelper;
 import com.seika.marketplace_service.repository.OrderRepository;
 import com.seika.marketplace_service.repository.ProductRepository;
 import com.seika.marketplace_service.repository.UserInventoryRepository;
@@ -36,9 +38,10 @@ class ProductServiceTest {
         ProductRepository productRepository = mock(ProductRepository.class);
         UserInventoryRepository inventoryRepository = mock(UserInventoryRepository.class);
         OrderRepository orderRepository = mock(OrderRepository.class);
+        ProductCatalogCacheHelper cacheHelper = mock(ProductCatalogCacheHelper.class);
 
-        when(productRepository.findByActiveTrueAndStatusOrderByCreatedAtDesc(ProductStatus.PUBLISHED))
-                .thenReturn(List.of(visible, pendingPurchase));
+        when(cacheHelper.getActiveProductsCatalog())
+                .thenReturn(List.of(ProductResponse.fromEntity(visible), ProductResponse.fromEntity(pendingPurchase)));
         when(inventoryRepository.findByUserIdAndActiveTrue("student-1"))
                 .thenReturn(List.of());
         when(orderRepository.findProductIdsByUserIdAndStatuses(eq("student-1"), anyList()))
@@ -48,10 +51,10 @@ class ProductServiceTest {
                     return List.of("product-pending");
                 });
 
-        ProductService service = new ProductService(productRepository, inventoryRepository, orderRepository, null);
+        ProductService service = new ProductService(productRepository, inventoryRepository, orderRepository, null, cacheHelper);
 
-        List<Product> products = service.getActiveProducts("student-1");
+        List<ProductResponse> products = service.getActiveProducts("student-1");
 
-        assertThat(products).extracting(Product::getId).containsExactly("product-visible");
+        assertThat(products).extracting(ProductResponse::getId).containsExactly("product-visible");
     }
 }

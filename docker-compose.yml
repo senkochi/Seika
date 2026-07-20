@@ -11,6 +11,21 @@ services:
       test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
       interval: 10s
       timeout: 5s
+    restart: unless-stopped
+
+  redis:
+    image: redis:7.4-alpine
+    command: redis-server --requirepass ${REDIS_PASSWORD:-seika_redis_secret} --maxmemory 256mb --maxmemory-policy allkeys-lru
+    ports:
+      - "6379:6379"
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-seika_redis_secret}
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-seika_redis_secret}", "ping"]
+      interval: 10s
+      timeout: 5s
       retries: 5
     restart: unless-stopped
 
@@ -476,6 +491,7 @@ services:
     restart: unless-stopped
 
 volumes:
+  redis_data:
   mongo_data:
   identity_db:
   profile_db:
