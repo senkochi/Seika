@@ -105,7 +105,11 @@ function QuizQuestionForm({ onAdd, onCancel }: QuizQuestionFormProps) {
             className="w-full px-4 py-3 bg-[var(--card)] border border-[var(--border)] rounded-xl text-[var(--foreground)] focus:outline-none"
           >
             {quizTypeOptions.map((opt) => (
-              <option key={opt.value} value={opt.value}>
+              <option
+                key={opt.value}
+                value={opt.value}
+                className="bg-[#1c0f2e] text-[#faf6ee]"
+              >
                 {opt.label}
               </option>
             ))}

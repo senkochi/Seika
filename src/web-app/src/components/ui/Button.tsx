@@ -12,6 +12,7 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   tone?: Tone;
   trailing?: boolean;
   loading?: boolean;
+  pill?: boolean;
   children: ReactNode;
 }
 
@@ -31,6 +32,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       tone = "neutral",
       trailing = false,
       loading = false,
+      pill = false,
       disabled,
       className,
       children,
@@ -39,7 +41,8 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     ref,
   ) => {
     const base =
-      "group relative inline-flex items-center justify-center gap-2 font-medium rounded-xl magnetic-press select-none disabled:opacity-60 disabled:cursor-not-allowed focus-visible:outline-none";
+      "group relative inline-flex items-center justify-center gap-2 font-medium magnetic-press select-none disabled:opacity-60 disabled:cursor-not-allowed focus-visible:outline-none";
+    const shape = pill ? "rounded-full" : "rounded-xl";
 
     const sizes: Record<Size, string> = {
       md: "h-11 px-5 text-sm",
@@ -68,6 +71,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         disabled={disabled || loading}
         className={cn(
           base,
+          shape,
           isLink ? "gap-1.5" : sizes[size],
           variants[variant],
           dangerGhost,
@@ -90,7 +94,10 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
             {trailing && !isLink && (
               <span
                 aria-hidden
-                className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-[#1c0f2e]/15 group-hover:bg-[#1c0f2e]/25 group-hover:translate-x-[2px] group-hover:-translate-y-[1px] transition-transform duration-300 ease-spring"
+                className={cn(
+                  "inline-flex items-center justify-center w-7 h-7 bg-[#1c0f2e]/15 group-hover:bg-[#1c0f2e]/25 group-hover:translate-x-[2px] group-hover:-translate-y-[1px] transition-transform duration-300 ease-spring",
+                  pill ? "rounded-full" : "rounded-lg",
+                )}
               >
                 <ArrowUpRight className="w-3.5 h-3.5" strokeWidth={2} />
               </span>

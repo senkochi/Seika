@@ -101,28 +101,16 @@ function CashOutForm({
             disabled={Boolean(disabledReason)}
             className="w-full rounded-md border border-[var(--border)] bg-[rgba(255,255,255,0.06)] px-4 py-3 text-[var(--foreground)] focus:border-[var(--ring)] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <option
-              value="Vietcombank"
-              className="bg-[var(--card)] text-[var(--foreground)]"
-            >
+            <option value="Vietcombank" className="bg-[#1c0f2e] text-[#faf6ee]">
               Vietcombank
             </option>
-            <option
-              value="Techcombank"
-              className="bg-[var(--card)] text-[var(--foreground)]"
-            >
+            <option value="Techcombank" className="bg-[#1c0f2e] text-[#faf6ee]">
               Techcombank
             </option>
-            <option
-              value="MB Bank"
-              className="bg-[var(--card)] text-[var(--foreground)]"
-            >
+            <option value="MB Bank" className="bg-[#1c0f2e] text-[#faf6ee]">
               MB Bank
             </option>
-            <option
-              value="Momo Wallet"
-              className="bg-[var(--card)] text-[var(--foreground)]"
-            >
+            <option value="Momo Wallet" className="bg-[#1c0f2e] text-[#faf6ee]">
               Momo Wallet
             </option>
           </select>

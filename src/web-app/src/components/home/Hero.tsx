@@ -65,6 +65,7 @@ export function Hero() {
                 variant="primary"
                 size="lg"
                 trailing
+                pill
                 onClick={() =>
                   navigate(accessToken ? dashboardPath : "/auth/register")
                 }
@@ -76,6 +77,7 @@ export function Hero() {
               <Button
                 variant="ghost"
                 size="lg"
+                pill
                 onClick={() => {
                   const el = document.getElementById("features");
                   el?.scrollIntoView({ behavior: "smooth" });

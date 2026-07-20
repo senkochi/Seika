@@ -66,6 +66,7 @@ export function Navbar() {
                   variant="primary"
                   size="md"
                   trailing
+                  pill
                   onClick={() => navigate(dashboardPath)}
                 >
                   {t("landing.navbar.dashboard")}
@@ -75,7 +76,7 @@ export function Navbar() {
                   <button
                     type="button"
                     onClick={() => navigate("/auth/login")}
-                    className="px-4 h-10 text-sm font-medium text-[#faf6ee]/75 hover:text-[#faf6ee] transition-colors duration-300 ease-soft rounded-xl"
+                    className="px-4 h-10 text-sm font-medium text-[#faf6ee]/75 hover:text-[#faf6ee] transition-colors duration-300 ease-soft rounded-full"
                   >
                     {t("landing.navbar.signIn")}
                   </button>
@@ -83,6 +84,7 @@ export function Navbar() {
                     variant="primary"
                     size="md"
                     trailing
+                    pill
                     onClick={() => navigate("/auth/register")}
                   >
                     {t("landing.navbar.getStarted")}
@@ -100,7 +102,7 @@ export function Navbar() {
                   : t("landing.navbar.openMenu")
               }
               onClick={() => setOpen((v) => !v)}
-              className="md:hidden relative w-10 h-10 rounded-xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center"
+              className="md:hidden relative w-10 h-10 rounded-full bg-white/[0.04] border border-white/[0.06] flex items-center justify-center"
             >
               <span
                 className={cn(
@@ -163,6 +165,7 @@ export function Navbar() {
                 variant="primary"
                 size="lg"
                 trailing
+                pill
                 className="w-full"
                 onClick={() => {
                   setOpen(false);
@@ -179,7 +182,7 @@ export function Navbar() {
                     setOpen(false);
                     navigate("/auth/login");
                   }}
-                  className="w-full h-12 rounded-xl border border-white/[0.12] text-[#faf6ee] font-medium hover:bg-white/[0.04] transition-colors"
+                  className="w-full h-12 rounded-full border border-white/[0.12] text-[#faf6ee] font-medium hover:bg-white/[0.04] transition-colors"
                 >
                   {t("landing.navbar.signIn")}
                 </button>
@@ -187,6 +190,7 @@ export function Navbar() {
                   variant="primary"
                   size="lg"
                   trailing
+                  pill
                   className="w-full"
                   onClick={() => {
                     setOpen(false);

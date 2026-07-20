@@ -149,13 +149,13 @@ function TeacherProfileForm({
               onChange={(e) => setGender(e.target.value)}
               className="w-full px-4 py-3 bg-[rgba(255,255,255,0.06)] border border-[var(--border)] rounded-xl text-[var(--foreground)] focus:outline-none focus:border-[var(--ring)] disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <option value="Male" className="bg-[var(--card)]">
+              <option value="Male" className="bg-[#1c0f2e] text-[#faf6ee]">
                 {t("profile.genderMale")}
               </option>
-              <option value="Female" className="bg-[var(--card)]">
+              <option value="Female" className="bg-[#1c0f2e] text-[#faf6ee]">
                 {t("profile.genderFemale")}
               </option>
-              <option value="Other" className="bg-[var(--card)]">
+              <option value="Other" className="bg-[#1c0f2e] text-[#faf6ee]">
                 {t("profile.genderOther")}
               </option>
             </select>

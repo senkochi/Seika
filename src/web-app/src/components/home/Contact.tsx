@@ -95,7 +95,7 @@ export function Contact() {
               </FieldRow>
 
               <div className="pt-2">
-                <Button variant="primary" size="lg" trailing type="submit">
+                <Button variant="primary" size="lg" trailing pill type="submit">
                   {t("landing.contact.submitButton")}
                 </Button>
               </div>
