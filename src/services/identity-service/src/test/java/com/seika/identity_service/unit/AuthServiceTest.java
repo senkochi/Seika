@@ -66,6 +66,12 @@ public class AuthServiceTest {
     @Mock
     private AuthMapper authMapper;
 
+    @Mock
+    private com.seika.identity_service.service.UserEventPublisher userEventPublisher;
+
+    @Mock
+    private com.seika.identity_service.service.TokenBlacklistService tokenBlacklistService;
+
     @InjectMocks
     private AuthService authService;
 

@@ -1,4 +1,11 @@
 spring:
+  config:
+    import: "optional:configserver:"
+  cloud:
+    config:
+      enabled: false
+  cache:
+    type: none
   datasource:
     url: jdbc:h2:mem:identity-test;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
     username: sa
@@ -15,3 +22,14 @@ jwt:
   secret: test-secret-key-that-is-at-least-32-bytes-long
   issuer: test-issuer
   access-token-expiration-minutes: 60
+  refresh-token-expiration-days: 7
+
+eureka:
+  client:
+    enabled: false
+
+app:
+  services:
+    profile: http://localhost:8081
+    marketplace: http://localhost:8085
+    wallet: http://localhost:8086

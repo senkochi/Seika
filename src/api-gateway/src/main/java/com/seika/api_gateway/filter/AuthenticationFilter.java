@@ -8,6 +8,7 @@ import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
 import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.data.redis.core.ReactiveStringRedisTemplate;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpResponse;
@@ -26,6 +27,7 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
     private static final String BEARER_PREFIX = "Bearer ";
     private final JwtService jwtService;
     private final ApiConfig apiConfig;
+    private final ReactiveStringRedisTemplate reactiveStringRedisTemplate;
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
@@ -60,24 +62,38 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
                 return unauthenticated(exchange.getResponse(), "Invalid JWT token");
             }
 
-            // Extract thông tin từ token
+            String jti = jwtService.extractJti(token);
             String username = jwtService.extractUsername(token);
             String userId = jwtService.extractUserId(token);
             List<String> roles = jwtService.extractRoles(token);
 
-            log.info("[GATEWAY-AUTH] ✓ Token validated for {} - user: {}, userId: {}, roles: {}", 
-                    path, username, userId, roles);
+            Mono<Boolean> isBlacklistedMono = jti != null
+                    ? reactiveStringRedisTemplate.hasKey("auth:blacklist::" + jti).defaultIfEmpty(false)
+                    : Mono.just(false);
 
-            // Thêm thông tin vào request headers để các service phía sau có thể sử dụng
-            ServerWebExchange mutatedExchange = exchange.mutate()
-                    .request(exchange.getRequest().mutate()
-                            .header("X-User-Name", username)
-                            .header("X-User-Id", userId)
-                            .header("X-User-Roles", String.join(",", roles != null ? roles : List.of()))
-                            .build())
-                    .build();
+            return isBlacklistedMono.flatMap(isRevoked -> {
+                if (Boolean.TRUE.equals(isRevoked)) {
+                    log.warn("[GATEWAY-AUTH] ✗ Revoked JWT token (JTI={}) for {}", jti, path);
+                    return unauthenticated(exchange.getResponse(), "Access token has been revoked");
+                }
 
-            return chain.filter(mutatedExchange);
+                log.info("[GATEWAY-AUTH] ✓ Token validated for {} - user: {}, userId: {}, roles: {}", 
+                        path, username, userId, roles);
+
+                // Thêm thông tin vào request headers để các service phía sau có thể sử dụng
+                ServerWebExchange mutatedExchange = exchange.mutate()
+                        .request(exchange.getRequest().mutate()
+                                .header("X-User-Name", username)
+                                .header("X-User-Id", userId)
+                                .header("X-User-Roles", String.join(",", roles != null ? roles : List.of()))
+                                .build())
+                        .build();
+
+                return chain.filter(mutatedExchange);
+            }).onErrorResume(e -> {
+                log.error("[GATEWAY-AUTH] ✗ Error checking blacklist/filtering for {}: {}", path, e.getMessage());
+                return unauthenticated(exchange.getResponse(), "Token verification failed: " + e.getMessage());
+            });
 
         } catch (Exception e) {
             log.error("[GATEWAY-AUTH] ✗ Error validating token: {}", e.getMessage());

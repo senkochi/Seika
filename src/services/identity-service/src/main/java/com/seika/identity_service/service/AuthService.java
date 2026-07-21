@@ -34,6 +34,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -60,6 +61,7 @@ public class AuthService {
     private final ProfileMapper profileMapper;
     private final AuthMapper authMapper;
     private final UserEventPublisher userEventPublisher;
+    private final TokenBlacklistService tokenBlacklistService;
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
@@ -150,6 +152,28 @@ public class AuthService {
         return userRepository.findByRoles_Name("ADMIN").stream()
                 .map(User::getId)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void logout(String authHeader, RefreshTokenRequest request) {
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String accessToken = authHeader.substring(7);
+            try {
+                String jti = jwtService.extractJti(accessToken);
+                Date expiration = jwtService.extractExpiration(accessToken);
+                tokenBlacklistService.blacklistToken(jti, expiration);
+            } catch (Exception e) {
+                log.warn("Could not blacklist access token during logout: {}", e.getMessage());
+            }
+        }
+
+        if (request != null && request.getRefreshToken() != null && !request.getRefreshToken().isBlank()) {
+            refreshTokenRepository.findByToken(request.getRefreshToken())
+                    .ifPresent(refreshToken -> {
+                        refreshTokenService.revokeToken(refreshToken);
+                        log.info("Revoked refresh token during logout for user={}", refreshToken.getUser().getUsername());
+                    });
+        }
     }
 
     private Role resolveSelfSelectableRole(String rawRole) {

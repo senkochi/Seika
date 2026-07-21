@@ -1,4 +1,12 @@
 spring:
+  cache:
+    type: redis
+  data:
+    redis:
+      host: ${REDIS_HOST:redis}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:seika_redis_secret}
+      timeout: 5000ms
   application:
     name: identity-service
   datasource:

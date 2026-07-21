@@ -1,0 +1,19 @@
+spring:
+  config:
+    import: "optional:configserver:"
+  cloud:
+    config:
+      enabled: false
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+jwt:
+  secret: test-secret-key-that-is-at-least-32-bytes-long-for-gateway
+  issuer: test-issuer
+  access-token-expiration-minutes: 60
+
+eureka:
+  client:
+    enabled: false
