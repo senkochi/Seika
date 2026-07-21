@@ -37,7 +37,7 @@ public class RedisCacheSerializationTest {
                 .allowIfBaseType("java.lang.")
                 .build();
 
-        objectMapper.activateDefaultTyping(ptv, ObjectMapper.DefaultTyping.NON_FINAL, JsonTypeInfo.As.PROPERTY);
+        objectMapper.activateDefaultTyping(ptv, ObjectMapper.DefaultTyping.EVERYTHING, JsonTypeInfo.As.PROPERTY);
 
         serializer = new GenericJackson2JsonRedisSerializer(objectMapper);
     }
@@ -79,5 +79,33 @@ public class RedisCacheSerializationTest {
         assertEquals(original.getSellerUserId(), roundTrip.getSellerUserId());
         assertEquals(original.getStatus(), roundTrip.getStatus());
         assertEquals(original.getTeacherTier(), roundTrip.getTeacherTier());
+    }
+
+    @Test
+    void testListSerializationRoundTrip() {
+        ProductResponse original = ProductResponse.builder()
+                .id("prod-123")
+                .name("Complete Java Course")
+                .price(new BigDecimal("99.99"))
+                .type(ProductType.FLASHCARD)
+                .active(true)
+                .sellerUserId("seller-789")
+                .status(ProductStatus.PUBLISHED)
+                .createdAt(Instant.now())
+                .updatedAt(Instant.now())
+                .build();
+
+        java.util.List<ProductResponse> list = java.util.List.of(original);
+
+        byte[] serializedBytes = serializer.serialize(list);
+        assertNotNull(serializedBytes);
+
+        Object deserialized = serializer.deserialize(serializedBytes);
+        assertNotNull(deserialized);
+        assertTrue(deserialized instanceof java.util.List);
+
+        java.util.List<?> roundTripList = (java.util.List<?>) deserialized;
+        assertEquals(1, roundTripList.size());
+        assertTrue(roundTripList.get(0) instanceof ProductResponse);
     }
 }

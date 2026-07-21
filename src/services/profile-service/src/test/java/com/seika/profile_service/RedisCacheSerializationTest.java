@@ -33,7 +33,7 @@ public class RedisCacheSerializationTest {
                 .allowIfBaseType("java.lang.")
                 .build();
 
-        objectMapper.activateDefaultTyping(ptv, ObjectMapper.DefaultTyping.NON_FINAL, JsonTypeInfo.As.PROPERTY);
+        objectMapper.activateDefaultTyping(ptv, ObjectMapper.DefaultTyping.EVERYTHING, JsonTypeInfo.As.PROPERTY);
 
         serializer = new GenericJackson2JsonRedisSerializer(objectMapper);
     }
