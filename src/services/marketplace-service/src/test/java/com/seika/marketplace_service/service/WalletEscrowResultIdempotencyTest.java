@@ -1,7 +1,5 @@
 package com.seika.marketplace_service.service;
 
-import com.seika.marketplace_service.entity.InboxEvent;
-import com.seika.marketplace_service.enums.InboxStatus;
 import com.seika.marketplace_service.event.WalletEscrowResultEvent;
 import com.seika.marketplace_service.repository.InboxEventRepository;
 import com.seika.marketplace_service.repository.OrderItemRepository;
@@ -15,6 +13,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -31,17 +30,13 @@ class WalletEscrowResultIdempotencyTest {
                 mock(OrderRepository.class),
                 mock(OrderItemRepository.class),
                 mock(UserInventoryRepository.class),
+                mock(com.seika.marketplace_service.repository.PurchaseClaimRepository.class),
                 mock(ContentPurchasedEventPublisher.class),
                 escrowService);
 
-        InboxEvent processed = InboxEvent.builder()
-                .messageId("existing")
-                .eventType("wallet.refund.succeeded")
-                .payload("{}")
-                .status(InboxStatus.PROCESSED)
-                .build();
-        when(inboxRepository.findByMessageId(any())).thenReturn(Optional.empty(), Optional.of(processed));
-        when(inboxRepository.save(any(InboxEvent.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(inboxRepository.claimMessage(anyString(), anyString(), anyString(), anyString(), anyString()))
+                .thenReturn(1, 0);
+        when(inboxRepository.findByMessageId(any())).thenReturn(Optional.empty());
 
         handler.handleWalletEscrowResult(partialRefundResult("result-event-1"),
                 "{\"eventId\":\"result-event-1\"}");
@@ -49,7 +44,8 @@ class WalletEscrowResultIdempotencyTest {
                 "{\"eventId\":\"result-event-2\"}");
 
         ArgumentCaptor<String> messageIdCaptor = ArgumentCaptor.forClass(String.class);
-        verify(inboxRepository, times(2)).findByMessageId(messageIdCaptor.capture());
+        verify(inboxRepository, times(2)).claimMessage(
+                anyString(), messageIdCaptor.capture(), anyString(), anyString(), anyString());
         assertThat(messageIdCaptor.getAllValues().get(0))
                 .isEqualTo(messageIdCaptor.getAllValues().get(1))
                 .hasSize(64);

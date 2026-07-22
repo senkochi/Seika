@@ -2,6 +2,7 @@ package com.cardy.walletService.service;
 
 import com.cardy.walletService.domain.WalletHold;
 import com.cardy.walletService.repository.WalletHoldRepository;
+import com.cardy.walletService.repository.WalletRepository;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
@@ -17,7 +18,7 @@ class WalletHoldServiceTest {
     @Test
     void blocksCashOutIfActiveWashHoldExists() {
         WalletHoldRepository repository = mock(WalletHoldRepository.class);
-        WalletHoldService service = new WalletHoldService(repository);
+        WalletHoldService service = new WalletHoldService(repository, mock(WalletRepository.class));
 
         UUID userId = UUID.randomUUID();
         WalletHold activeHold = WalletHold.builder()
@@ -37,7 +38,7 @@ class WalletHoldServiceTest {
     @Test
     void allowsCashOutIfHoldsAreExpired() {
         WalletHoldRepository repository = mock(WalletHoldRepository.class);
-        WalletHoldService service = new WalletHoldService(repository);
+        WalletHoldService service = new WalletHoldService(repository, mock(WalletRepository.class));
 
         UUID userId = UUID.randomUUID();
         WalletHold expiredHold = WalletHold.builder()

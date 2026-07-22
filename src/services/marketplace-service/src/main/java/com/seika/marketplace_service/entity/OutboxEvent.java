@@ -59,4 +59,10 @@ public class OutboxEvent {
 
     @Column(name = "last_error", length = 2000)
     String lastError;
+
+    @Column(name = "claimed_at")
+    Instant claimedAt;
+
+    @Column(name = "next_attempt_at")
+    Instant nextAttemptAt;
 }

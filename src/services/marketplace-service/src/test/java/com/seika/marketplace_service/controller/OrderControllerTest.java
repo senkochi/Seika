@@ -28,7 +28,7 @@ class OrderControllerTest {
         OrderController controller = new OrderController(orderService);
         HttpServletRequest httpRequest = mock(HttpServletRequest.class);
         when(httpRequest.getHeader("X-User-Id")).thenReturn("student-1");
-        when(orderService.createOrder(eq("student-1"), anyList())).thenReturn(Order.builder()
+        when(orderService.createOrder(eq("student-1"), anyList(), org.mockito.ArgumentMatchers.isNull())).thenReturn(Order.builder()
                 .id("order-1")
                 .userId("student-1")
                 .status(OrderStatus.PENDING_PAYMENT)
@@ -42,11 +42,11 @@ class OrderControllerTest {
                         .build()))
                 .build();
 
-        controller.createOrder(request, httpRequest);
+        controller.createOrder(request, httpRequest, null);
 
         @SuppressWarnings("unchecked")
         ArgumentCaptor<List<OrderItem>> itemsCaptor = ArgumentCaptor.forClass(List.class);
-        verify(orderService).createOrder(eq("student-1"), itemsCaptor.capture());
+        verify(orderService).createOrder(eq("student-1"), itemsCaptor.capture(), org.mockito.ArgumentMatchers.isNull());
         OrderItem item = itemsCaptor.getValue().get(0);
         assertThat(item.getProductId()).isEqualTo("product-1");
         assertThat(item.getQuantity()).isEqualTo(1);

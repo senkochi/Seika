@@ -5,6 +5,7 @@
 > **Quyết định gốc (D10):** Project cá nhân, dev trên nhiều máy cần baseline giống nhau, không migrate balance cũ.
 >
 > **Khi nào dùng:**
+>
 > - Lần đầu triển khai Phase 1 V3.
 > - Sau khi đổi schema V3 (thêm column, đổi enum) mà muốn tất cả dev máy giống nhau.
 > - Trước khi chạy integration test end-to-end cần DB sạch.
@@ -205,6 +206,7 @@ docker compose logs wallet-service --tail 100
 ```
 
 Thường là do:
+
 - `ddl-auto: update` không drop column cũ — cần drop manual.
 - Enum value mới trong code chưa có trong DB check constraint.
 
@@ -215,6 +217,18 @@ Nếu là schema mới, đơn giản nhất là chạy lại Phương án A từ
 Đọc tiếp [docs/ideas/teacher-tiered-economy-v3.md § MVP Scope](../ideas/teacher-tiered-economy-v3.md#mvp-scope) để biết Phase 1 cần setup gì.
 
 Verify baseline V3:
+
+Với schema Marketplace có bảo vệ race condition, xác nhận các artifact mới đã được Hibernate tạo:
+
+```sql
+SELECT to_regclass('public.purchase_claims');
+SELECT column_name
+FROM information_schema.columns
+WHERE table_name = 'orders' AND column_name = 'request_key';
+SELECT column_name
+FROM information_schema.columns
+WHERE table_name = 'outbox' AND column_name IN ('claimed_at', 'next_attempt_at');
+```
 
 1. Register user mới qua `POST /api/auth/register`.
 2. Check wallet DB: `paidBalance=0, bonusBalance=500, rewardBalance=0, earnedWithdrawableBalance=0, earnedPromoBalance=0, heldBalance=0, frozen=false`.

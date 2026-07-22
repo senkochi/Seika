@@ -2,6 +2,7 @@ package com.cardy.walletService.service;
 
 import com.cardy.walletService.domain.WalletHold;
 import com.cardy.walletService.repository.WalletHoldRepository;
+import com.cardy.walletService.repository.WalletRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -18,6 +19,7 @@ import java.util.UUID;
 public class WalletHoldService {
 
     private final WalletHoldRepository walletHoldRepository;
+    private final WalletRepository walletRepository;
 
     @Transactional(readOnly = true)
     public boolean canCashOut(UUID userId) {
@@ -42,6 +44,7 @@ public class WalletHoldService {
     @Transactional
     public WalletHold placeHold(UUID userId, String holdType, String reason,
                                 String sourceFlagId, String createdBy, LocalDateTime expiresAt) {
+        walletRepository.acquireUserLock(userId.toString());
         if (sourceFlagId != null) {
             Optional<WalletHold> existing = walletHoldRepository
                     .findByUserIdAndHoldTypeAndSourceFlagId(userId, holdType, sourceFlagId);

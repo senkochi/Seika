@@ -55,6 +55,7 @@ public class WalletService {
     }
 
     private Wallet getOrCreateWallet(UUID userId) {
+        walletRepository.acquireUserLock(userId.toString());
         return walletRepository.findByUserId(userId)
                 .map(wallet -> {
                     wallet.recalculateBalance();
@@ -159,6 +160,7 @@ public class WalletService {
     }
     @Transactional
     public void createWallet(UUID userId, boolean isTeacher) {
+        walletRepository.acquireUserLock(userId.toString());
         String initializationKey = "user:" + userId + ":wallet-initialized";
         if (walletIdempotencyKeyRepository.existsById(initializationKey)) {
             return;
@@ -301,6 +303,7 @@ public class WalletService {
 
     @Transactional
     public void cashOut(UUID userId, BigDecimal amount, String customDescription) {
+        Wallet wallet = getOrCreateWallet(userId);
         if (walletHoldService != null && !walletHoldService.canCashOut(userId)) {
             throw new IllegalStateException("Cash-out is blocked due to an active account hold (e.g. wash trading review)");
         }
@@ -316,7 +319,6 @@ public class WalletService {
         if (customDescription != null && !customDescription.trim().isEmpty()) {
             description += " (" + customDescription + ")";
         }
-        Wallet wallet = getOrCreateWallet(userId);
         WalletSourceAllocator.allocateCashOut(wallet, amount);
         walletRepository.save(wallet);
 
@@ -399,11 +401,11 @@ public class WalletService {
                                     String escrowId,
                                     String idempotencyKey) {
         requireIdempotencyKey(idempotencyKey);
+        Wallet wallet = getOrCreateWallet(sellerUserId);
         if (walletIdempotencyKeyRepository.existsById(idempotencyKey)) {
             return;
         }
 
-        Wallet wallet = getOrCreateWallet(sellerUserId);
         requireActive(wallet);
         BigDecimal withdrawable = positiveOrZero(teacherWithdrawableAmount);
         BigDecimal promo = positiveOrZero(teacherPromoAmount);
@@ -469,11 +471,11 @@ public class WalletService {
                                      String escrowId,
                                      String idempotencyKey) {
         requireIdempotencyKey(idempotencyKey);
+        Wallet wallet = getOrCreateWallet(buyerUserId);
         if (walletIdempotencyKeyRepository.existsById(idempotencyKey)) {
             return;
         }
 
-        Wallet wallet = getOrCreateWallet(buyerUserId);
         requireActive(wallet);
         BigDecimal bonus = positiveOrZero(bonusAmount);
         BigDecimal reward = positiveOrZero(rewardAmount);

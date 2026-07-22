@@ -9,8 +9,10 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 
 import java.util.List;
+import java.time.Instant;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -27,7 +29,7 @@ class OutboxProcessorTest {
                 .payload("{}")
                 .status(OutboxStatus.PENDING)
                 .build();
-        when(repository.findTop50ByStatusInOrderByCreatedAtAsc(List.of(OutboxStatus.PENDING, OutboxStatus.FAILED)))
+        when(repository.claimNextPendingBatch(org.mockito.ArgumentMatchers.eq(50), any(Instant.class)))
                 .thenReturn(List.of(event));
 
         processor.publishOutboxEvents();
@@ -48,7 +50,7 @@ class OutboxProcessorTest {
                 .payload("{\"status\":\"MALICIOUS\"}")
                 .status(OutboxStatus.PENDING)
                 .build();
-        when(repository.findTop50ByStatusInOrderByCreatedAtAsc(List.of(OutboxStatus.PENDING, OutboxStatus.FAILED)))
+        when(repository.claimNextPendingBatch(org.mockito.ArgumentMatchers.eq(50), any(Instant.class)))
                 .thenReturn(List.of(event));
 
         processor.publishOutboxEvents();

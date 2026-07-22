@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -37,7 +38,8 @@ public class OrderController {
 
     @PostMapping
     public ResponseEntity<OrderResponse> createOrder(@Valid @RequestBody CreateOrderRequest request,
-                                                     HttpServletRequest httpRequest) {
+                                                     HttpServletRequest httpRequest,
+                                                     @RequestHeader(name = "Idempotency-Key", required = false) String requestKey) {
         List<OrderItem> items = request.getItems().stream()
             .map(itemReq -> OrderItem.builder()
                 .productId(itemReq.getProductId())
@@ -46,7 +48,7 @@ public class OrderController {
             .toList();
 
         String buyerId = resolveUserId(httpRequest);
-        Order order = orderService.createOrder(buyerId, items);
+        Order order = orderService.createOrder(buyerId, items, requestKey);
         return ResponseEntity.status(HttpStatus.CREATED).body(toResponse(order));
     }
 

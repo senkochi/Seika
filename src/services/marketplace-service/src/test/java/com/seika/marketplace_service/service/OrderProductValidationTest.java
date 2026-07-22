@@ -8,9 +8,11 @@ import com.seika.marketplace_service.enums.ProductStatus;
 import com.seika.marketplace_service.enums.ProductType;
 import com.seika.marketplace_service.repository.OrderItemRepository;
 import com.seika.marketplace_service.repository.OrderRepository;
+import com.seika.marketplace_service.repository.PurchaseClaimRepository;
 import com.seika.marketplace_service.repository.OutboxEventRepository;
 import com.seika.marketplace_service.repository.ProductRepository;
 import org.junit.jupiter.api.Test;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.mockito.ArgumentCaptor;
 
 import java.math.BigDecimal;
@@ -21,6 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -34,7 +37,7 @@ class OrderProductValidationTest {
         OutboxEventRepository outboxRepository = mock(OutboxEventRepository.class);
         ProductRepository productRepository = mock(ProductRepository.class);
         OrderService service = new OrderService(orderRepository, orderItemRepository, outboxRepository,
-                productRepository, new ObjectMapper().findAndRegisterModules());
+                productRepository, mock(PurchaseClaimRepository.class), new ObjectMapper().findAndRegisterModules());
 
         Product product = Product.builder()
                 .id("product-1")
@@ -88,6 +91,7 @@ class OrderProductValidationTest {
                 mock(OrderItemRepository.class),
                 mock(OutboxEventRepository.class),
                 productRepository,
+                mock(PurchaseClaimRepository.class),
                 new ObjectMapper().findAndRegisterModules());
         when(productRepository.findByIdAndActiveTrueAndStatus("product-1", ProductStatus.PUBLISHED))
                 .thenReturn(Optional.empty());
@@ -107,6 +111,7 @@ class OrderProductValidationTest {
                 mock(OrderItemRepository.class),
                 mock(OutboxEventRepository.class),
                 productRepository,
+                mock(PurchaseClaimRepository.class),
                 new ObjectMapper().findAndRegisterModules());
         Product product = Product.builder()
                 .id("product-1")
@@ -126,5 +131,67 @@ class OrderProductValidationTest {
         assertThatThrownBy(() -> service.createOrder("student-1", List.of(item)))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("quantity must be 1");
+    }
+    @Test
+    void repeatedCheckoutIdempotencyKeyReturnsExistingOrderWithoutCreatingAnotherDebit() {
+        OrderRepository orderRepository = mock(OrderRepository.class);
+        OrderItemRepository orderItemRepository = mock(OrderItemRepository.class);
+        OutboxEventRepository outboxRepository = mock(OutboxEventRepository.class);
+        ProductRepository productRepository = mock(ProductRepository.class);
+        OrderService service = new OrderService(orderRepository, orderItemRepository, outboxRepository,
+                productRepository, mock(PurchaseClaimRepository.class), new ObjectMapper().findAndRegisterModules());
+        Order existing = Order.builder()
+                .id("order-existing")
+                .userId("student-1")
+                .build();
+        when(orderRepository.findByUserIdAndRequestKey("student-1", "checkout-123"))
+                .thenReturn(Optional.of(existing));
+
+        Order result = service.createOrder(
+                "student-1",
+                List.of(OrderItem.builder().productId("product-1").quantity(1).build()),
+                "checkout-123");
+
+        assertThat(result).isSameAs(existing);
+        verify(orderRepository, org.mockito.Mockito.never()).save(any(Order.class));
+        verify(outboxRepository, org.mockito.Mockito.never()).save(any());
+    }
+
+    @Test
+    void concurrentCheckoutClaimConflictReturnsDomainConflict() {
+        OrderRepository orderRepository = mock(OrderRepository.class);
+        OrderItemRepository orderItemRepository = mock(OrderItemRepository.class);
+        OutboxEventRepository outboxRepository = mock(OutboxEventRepository.class);
+        ProductRepository productRepository = mock(ProductRepository.class);
+        PurchaseClaimRepository claimRepository = mock(PurchaseClaimRepository.class);
+        OrderService service = new OrderService(
+                orderRepository,
+                orderItemRepository,
+                outboxRepository,
+                productRepository,
+                claimRepository,
+                new ObjectMapper().findAndRegisterModules());
+        Product product = Product.builder()
+                .id("product-1")
+                .name("Flashcard")
+                .price(new BigDecimal("100"))
+                .type(ProductType.FLASHCARD)
+                .referenceId("deck-1")
+                .sellerUserId("teacher-1")
+                .active(true)
+                .status(ProductStatus.PUBLISHED)
+                .build();
+        when(productRepository.findByIdAndActiveTrueAndStatus("product-1", ProductStatus.PUBLISHED))
+                .thenReturn(Optional.of(product));
+        when(orderRepository.existsByUserIdAndProductIdsAndStatuses(any(), anyList(), anyList()))
+                .thenReturn(false);
+        doThrow(new DataIntegrityViolationException("uk_purchase_claim_user_product"))
+                .when(claimRepository).saveAllAndFlush(anyList());
+
+        assertThatThrownBy(() -> service.createOrder(
+                "student-1",
+                List.of(OrderItem.builder().productId("product-1").quantity(1).build())))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("already");
     }
 }
