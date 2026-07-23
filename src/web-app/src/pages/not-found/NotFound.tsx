@@ -1,54 +1,83 @@
 import { useLocation, Link } from "react-router-dom";
 import { useEffect } from "react";
-import { Sparkles, Home, AlertCircle } from 'lucide-react';
+import { useTranslation } from "react-i18next";
+import { Button } from "../../components/ui/Button";
 
 const NotFound = () => {
+  const { t } = useTranslation("common");
   const location = useLocation();
 
   useEffect(() => {
     console.error(
       "404 Error: User attempted to access non-existent route:",
-      location.pathname
+      location.pathname,
     );
   }, [location.pathname]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-950 via-purple-900 to-purple-950 text-white p-4">
-      <div className="max-w-md w-full text-center">
-        {/* Biểu tượng lỗi được stylized theo logo Seika */}
-        <div className="relative mb-8 flex justify-center">
-          <div className="w-24 h-24 bg-gradient-to-br from-yellow-400 to-yellow-500 rounded-3xl flex items-center justify-center rotate-12 shadow-[0_0_30px_rgba(234,179,8,0.3)] animate-bounce">
-            <AlertCircle className="w-12 h-12 text-purple-950 -rotate-12" />
+    <div className="relative min-h-[100dvh] flex items-center justify-center overflow-hidden px-6 py-16">
+      <div className="absolute inset-0 bg-glow-aubergine pointer-events-none" />
+
+      <div className="relative w-full max-w-2xl">
+        {/* Double-bezel card */}
+        <div className="p-1 rounded-[2rem] bg-gradient-to-b from-[#d4a843]/30 to-[#d4a843]/[0.04] border border-[#d4a843]/[0.18]">
+          <div className="rounded-[calc(2rem-0.375rem)] bg-[#15091e]/85 backdrop-blur-2xl shadow-[inset_0_1px_1px_rgba(255,255,255,0.05),0_32px_80px_-24px_rgba(0,0,0,0.6)] p-10 sm:p-14 lg:p-16 text-center">
+            {/* Gold accent bar */}
+            <div className="mx-auto w-20 h-1 rounded-full bg-gradient-to-r from-[#e6c264] to-[#c89a36] mb-12" />
+
+            <span className="eyebrow">
+              <span className="inline-block w-1 h-1 rounded-full bg-[#d4a843]" />
+              {t("notFound.eyebrow")}
+            </span>
+
+            <h1
+              className="mt-6 font-display font-medium text-[#faf6ee] text-[10rem] sm:text-[12rem] leading-[0.85] tracking-[-0.04em]"
+              style={{ fontVariantNumeric: "tabular-nums" }}
+            >
+              404
+            </h1>
+
+            <h2 className="mt-2 font-display text-2xl sm:text-3xl text-[#faf6ee] tracking-[-0.02em]">
+              {t("notFound.title")}
+            </h2>
+
+            <p className="mt-4 text-[#faf6ee]/65 max-w-md mx-auto leading-relaxed">
+              {t("notFound.description", { path: location.pathname })}
+            </p>
+
+            <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-3">
+              <Link to="/">
+                <Button variant="primary" size="lg" trailing>
+                  {t("notFound.backHome")}
+                </Button>
+              </Link>
+              <Link to="/contact">
+                <Button variant="ghost" size="lg">
+                  {t("notFound.contactSupport")}
+                </Button>
+              </Link>
+            </div>
+
+            <div className="hairline mt-12" />
+
+            <p className="mt-8 text-xs text-[#faf6ee]/40">
+              {t("notFound.lostPrefix")}{" "}
+              <Link
+                to="/"
+                className="text-[#d4a843] hover:text-[#f1e4c0] underline-offset-4 hover:underline transition-colors"
+              >
+                {t("notFound.lostHome")}
+              </Link>{" "}
+              {t("notFound.lostOr")}{" "}
+              <Link
+                to="/auth/login"
+                className="text-[#d4a843] hover:text-[#f1e4c0] underline-offset-4 hover:underline transition-colors"
+              >
+                {t("notFound.lostSignIn")}
+              </Link>
+              .
+            </p>
           </div>
-          {/* Sparkles trang trí xung quanh */}
-          <Sparkles className="absolute top-0 right-1/4 w-6 h-6 text-yellow-300 animate-pulse" />
-          <Sparkles className="absolute bottom-0 left-1/4 w-4 h-4 text-purple-300 animate-pulse delay-75" />
-        </div>
-
-        {/* Nội dung thông báo */}
-        <h1 className="text-8xl font-black mb-2 bg-clip-text text-transparent bg-gradient-to-b from-yellow-300 to-yellow-500">
-          404
-        </h1>
-        <h2 className="text-2xl font-bold mb-4">Level Not Found!</h2>
-        <p className="text-purple-200 mb-8 leading-relaxed">
-          Oops! The page <span className="text-yellow-400 font-mono">"{location.pathname}"</span> seems to have vanished into another dimension. 
-          Let's get you back to the main adventure!
-        </p>
-
-        {/* Nút quay về trang chủ */}
-        <Link 
-          to="/" 
-          className="group relative inline-flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-yellow-400 to-yellow-500 text-purple-950 font-black rounded-2xl transition-all hover:scale-105 hover:shadow-[0_0_20px_rgba(234,179,8,0.5)] active:scale-95"
-        >
-          <Home className="w-5 h-5 group-hover:rotate-12 transition-transform" />
-          BACK TO HOME
-        </Link>
-
-        {/* Link hỗ trợ nhỏ ở dưới */}
-        <div className="mt-12 pt-8 border-t border-white/10">
-          <p className="text-purple-300 text-sm">
-            Need help? <Link to="/contact" className="text-yellow-400 hover:underline">Contact Support</Link>
-          </p>
         </div>
       </div>
     </div>

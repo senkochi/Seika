@@ -1,4 +1,12 @@
 spring:
+  cache:
+    type: redis
+  data:
+    redis:
+      host: ${REDIS_HOST:redis}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:seika_redis_secret}
+      timeout: 5000ms
   application:
     name: identity-service
   datasource:
@@ -50,6 +58,12 @@ messaging:
   events:
     identity-exchange: ${IDENTITY_EVENTS_EXCHANGE:identity.events}
     user-registered-routing-key: ${USER_REGISTERED_ROUTING_KEY:user.registered}
+    public-identity-snapshot-routing-key: ${PUBLIC_IDENTITY_SNAPSHOT_ROUTING_KEY:user.public-identity.snapshot}
+    public-identity-reconciliation:
+      enabled: ${PUBLIC_IDENTITY_RECONCILIATION_ENABLED:true}
+      batch-size: ${PUBLIC_IDENTITY_RECONCILIATION_BATCH_SIZE:500}
+      initial-delay-ms: ${PUBLIC_IDENTITY_RECONCILIATION_INITIAL_DELAY_MS:30000}
+      delay-ms: ${PUBLIC_IDENTITY_RECONCILIATION_DELAY_MS:86400000}
 
 management:
   metrics:

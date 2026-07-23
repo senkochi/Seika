@@ -11,6 +11,7 @@ import java.time.Instant;
 
 import com.seika.marketplace_service.enums.ProductStatus;
 import com.seika.marketplace_service.enums.ProductType;
+import com.seika.marketplace_service.enums.TeacherTier;
 
 @Entity
 @Table(
@@ -67,6 +68,21 @@ public class Product {
     @Column(name = "rejection_reason", length = 500)
     private String rejectionReason;
 
+    @Column(name = "teacher_display_name")
+    private String teacherDisplayName;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "teacher_tier", nullable = false, length = 32)
+    @Builder.Default
+    private TeacherTier teacherTier = TeacherTier.NEWBIE;
+
+    @Column(name = "teacher_average_rating", nullable = false, precision = 4, scale = 2)
+    @Builder.Default
+    private BigDecimal teacherAverageRating = BigDecimal.ZERO;
+
+    @Column(name = "teacher_valid_review_count", nullable = false)
+    @Builder.Default
+    private long teacherValidReviewCount = 0;
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;

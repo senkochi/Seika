@@ -1,6 +1,7 @@
 package com.seika.quiz_service.service;
 
 import com.seika.quiz_service.exception.ResourceNotFoundException;
+import com.seika.quiz_service.repository.QuizAttemptRepository;
 import com.seika.quiz_service.repository.QuizRepository;
 import com.seika.quiz_service.repository.QuizSetRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,6 +23,12 @@ public class QuizServiceTest {
 
     @Mock
     private QuizSetRepository quizSetRepository;
+
+    @Mock
+    private QuizAttemptRepository quizAttemptRepository;
+
+    @Mock
+    private ContentEventPublisher contentEventPublisher;
 
     @Mock
     private RabbitTemplate rabbitTemplate;
@@ -56,12 +63,14 @@ public class QuizServiceTest {
 
         when(quizRepository.existsById(id)).thenReturn(false);
         when(quizSetRepository.existsById(id)).thenReturn(true);
+        when(quizAttemptRepository.existsByUserIdAndQuizSetId(userId, id)).thenReturn(false);
 
         quizService.submitQuiz(id, userId, score);
 
         verify(rabbitTemplate, times(1)).convertAndSend(anyString(), anyString(), any(com.seika.quiz_service.dto.QuizCompletedEvent.class));
         verify(quizRepository, times(1)).existsById(id);
-        verify(quizSetRepository, times(1)).existsById(id);
+        verify(quizSetRepository, atLeastOnce()).existsById(id);
+        verify(contentEventPublisher, times(1)).publishQuizSetConsumed(id, userId);
     }
 
     @Test
@@ -80,3 +89,5 @@ public class QuizServiceTest {
         verify(rabbitTemplate, never()).convertAndSend(anyString(), anyString(), any(com.seika.quiz_service.dto.QuizCompletedEvent.class));
     }
 }
+
+

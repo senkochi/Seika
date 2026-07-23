@@ -12,6 +12,7 @@ public class RabbitMQConfig {
 
     public static final String CONTENT_EVENTS_EXCHANGE = "content.events";
     public static final String QUIZ_SET_CREATED_ROUTING_KEY = "quiz.set.created";
+    public static final String QUIZ_SET_CONSUMED_ROUTING_KEY = "quiz.set.consumed";
 
     // Learning events (for rewards)
     public static final String LEARNING_EVENTS_EXCHANGE = "learning.events";
@@ -36,4 +37,5 @@ public class RabbitMQConfig {
         return new JacksonJsonMessageConverter();
     }
 }
+
 

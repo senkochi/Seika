@@ -1,0 +1,227 @@
+{
+  "languageSwitcher.label": "Ngôn ngữ",
+  "layout": {
+    "nav": {
+      "dashboard": "Bảng điều khiển",
+      "learningHub": "Trung tâm học tập",
+      "marketplace": "Cửa hàng",
+      "wallet": "Ví",
+      "profile": "Hồ sơ",
+      "contentManager": "Quản lý nội dung",
+      "statistics": "Thống kê",
+      "revenue": "Doanh thu",
+      "marketplaceOps": "Vận hành Cửa hàng",
+      "userManagement": "Quản lý người dùng",
+      "contentModeration": "Kiểm duyệt nội dung",
+      "systemConfig": "Cấu hình hệ thống"
+    },
+    "header": {
+      "searchStudent": "Tìm kiếm...",
+      "searchTeacher": "Tìm kiếm môn học, bài kiểm tra...",
+      "searchAdmin": "Tìm kiếm người dùng, cấu hình...",
+      "notifications": "Thông báo",
+      "markAllAsRead": "Đánh dấu tất cả đã đọc",
+      "noNotifications": "Chưa có thông báo nào.",
+      "viewAllNotifications": "Xem tất cả thông báo",
+      "settings": "Cài đặt",
+      "logout": "Đăng xuất",
+      "adminAccount": "Tài khoản Quản trị",
+      "levelLabel": "Level {{level}}"
+    }
+  },
+  "actions": {
+    "confirm": "Xác nhận",
+    "cancel": "Hủy",
+    "close": "Đóng",
+    "refresh": "Làm mới",
+    "backHome": "Về trang chủ",
+    "back": "Quay lại",
+    "continue": "Tiếp tục"
+  },
+  "pagination": {
+    "showing": "Hiển thị {{start}} - {{end}} trên tổng số {{total}} kết quả",
+    "perPageLabel": "Hiển thị:",
+    "perPage": "{{size}} / trang",
+    "firstPage": "Trang đầu",
+    "previousPage": "Trang trước",
+    "nextPage": "Trang sau",
+    "lastPage": "Trang cuối",
+    "pageNumber": "Trang {{page}}"
+  },
+  "landing": {
+    "navbar": {
+      "links": {
+        "home": "Trang chủ",
+        "features": "Tính năng",
+        "about": "Đội ngũ",
+        "contact": "Liên hệ"
+      },
+      "dashboard": "Bảng điều khiển",
+      "signIn": "Đăng nhập",
+      "getStarted": "Bắt đầu",
+      "openMenu": "Mở menu",
+      "closeMenu": "Đóng menu"
+    },
+    "hero": {
+      "badge": "Đang trong bản beta",
+      "title1": "Học bằng cách chơi.",
+      "titleHighlight": "Thành thạo",
+      "title2": "bằng cách thực hành.",
+      "description": "Seika biến tài liệu học tập thành thứ bạn thực sự muốn mở. Câu hỏi kiểm tra, thẻ ghi nhớ và hệ thống kinh tế tiền xu thưởng cho sự chăm chỉ của bạn.",
+      "openDashboard": "Mở bảng điều khiển",
+      "startLearning": "Bắt đầu học",
+      "seeInside": "Khám phá ngay",
+      "stats": {
+        "activeLearners": "Học viên tích cực",
+        "verifiedEducators": "Giáo viên xác thực",
+        "completionRate": "Tỷ lệ hoàn thành"
+      },
+      "chip": {
+        "label": "Kiếm được hôm nay",
+        "xp": "XP"
+      }
+    },
+    "features": {
+      "badge": "Tính năng",
+      "title1": "Nền tảng được xây dựng cho",
+      "titleHighlight": "hai",
+      "title2": "vai trò.",
+      "description": "Cho dù bạn đang điều hành một lớp học 40 người hay tự học lúc nửa đêm, các công cụ vẫn luôn sắc bén.",
+      "socialProofTitle": "Được tin dùng trong các lớp học trên khắp Việt Nam",
+      "socialProofDesc1": "của các trường đối tác báo cáo mức tăng khả năng ghi nhớ có thể đo lường được chỉ trong một học kỳ.",
+      "flashcards": {
+        "badge": "Thư viện",
+        "title": "Bộ thẻ ghi nhớ dễ thuộc.",
+        "desc": "Tạo bộ thẻ cá nhân hoặc duyệt qua các bộ sưu tập công khai. Lặp lại ngắt quãng ghi nhớ những gì bạn đã quên để bạn không cần phải lo lắng."
+      },
+      "quizzes": {
+        "badge": "Đánh giá",
+        "title": "Bài kiểm tra thông minh, chấm điểm tức thì.",
+        "desc": "Chấm điểm ngay lập tức, phân tích chi tiết và bản đồ tiến trình cho thấy chính xác bước tiếp theo bạn cần làm."
+      },
+      "marketplace": {
+        "badge": "Cửa hàng",
+        "title": "Dùng tiền xu mua tài liệu học tập thực tế.",
+        "desc": "Các gói câu hỏi và bộ thẻ ghi nhớ cao cấp từ các nhà giáo dục trên toàn thế giới, được mua bằng số xu bạn đã kiếm được.",
+        "tags": {
+          "premium": "Gói cao cấp",
+          "expert": "Bộ thẻ chuyên gia",
+          "studyGuides": "Hướng dẫn học tập"
+        }
+      },
+      "rewards": {
+        "badge": "Phần thưởng",
+        "title": "Học tập mang lại phần thưởng. Theo đúng nghĩa đen.",
+        "desc": "Mỗi bài kiểm tra hoàn thành sẽ mang lại tiền xu vào ví của bạn. Chi tiêu chúng trong cửa hàng hoặc tích lũy cho gói cao cấp bạn đang nhắm tới."
+      },
+      "leaderboards": {
+        "badge": "Cạnh tranh",
+        "title": "Bảng xếp hạng cập nhật liên tục.",
+        "desc": "Xếp hạng theo thời gian thực trong nhóm học, trường học và cộng đồng rộng lớn hơn."
+      },
+      "notifications": {
+        "badge": "Luôn cập nhật thông tin",
+        "title": "Thông báo được điều chỉnh theo những gì bạn quan tâm.",
+        "desc": "Nội dung mới ra mắt, kết quả kiểm tra, mở khóa cột mốc — không có thông báo rác."
+      }
+    },
+    "about": {
+      "badge": "Đội ngũ",
+      "title1": "Được xây dựng bởi sinh viên,",
+      "titleHighlight": "dành cho",
+      "title2": "sinh viên.",
+      "description": "Hai kỹ sư cho rằng việc học không nhất thiết phải giống như một nghĩa vụ và đã quyết định làm một điều gì đó để thay đổi.",
+      "cuongRole": "Kỹ sư phần mềm",
+      "cuongBio": "Yêu thích việc xây dựng những sản phẩm mang lại tiếng cười trong khi học. Từ chối phát hành một quy trình hướng dẫn tẻ nhạt.",
+      "datRole": "Kỹ sư phần mềm",
+      "datBio": "Lập trình viên full-stack, người coi mỗi chuyển đổi trạng thái như một tác phẩm nghệ thuật thu nhỏ. Game thủ về đêm.",
+      "missionBadge": "Sứ mệnh của chúng tôi",
+      "missionText1": "Biến giáo dục bớt giống như một",
+      "missionHighlight": "nghĩa vụ",
+      "missionText2": "và giống như một trò chơi hấp dẫn khiến bạn luôn muốn quay lại.",
+      "members": {
+        "cuong": {
+          "role": "Kỹ sư phần mềm",
+          "bio": "Yêu thích việc xây dựng những sản phẩm mang lại tiếng cười trong khi học. Từ chối phát hành một quy trình hướng dẫn tẻ nhạt."
+        },
+        "dat": {
+          "role": "Kỹ sư phần mềm",
+          "bio": "Lập trình viên full-stack, người coi mỗi chuyển đổi trạng thái như một tác phẩm nghệ thuật thu nhỏ. Game thủ về đêm."
+        }
+      },
+      "mission": {
+        "badge": "Sứ mệnh của chúng tôi",
+        "title1": "Biến giáo dục bớt giống như một",
+        "titleHighlight": "nghĩa vụ",
+        "title2": "và giống như một trò chơi hấp dẫn khiến bạn luôn muốn quay lại."
+      }
+    },
+    "contact": {
+      "badge": "Liên hệ",
+      "title1": "Hãy cho chúng tôi biết suy nghĩ",
+      "titleHighlight": "của bạn.",
+      "description": "Một lỗi phát sinh, một yêu cầu tính năng hay chỉ là một lời chào — chúng tôi đọc từng tin nhắn.",
+      "form": {
+        "nameLabel": "Tên của bạn",
+        "namePlaceholder": "Nguyễn Văn A",
+        "emailLabel": "Email",
+        "emailPlaceholder": "you@example.com",
+        "messageLabel": "Tin nhắn",
+        "messagePlaceholder": "Bạn đang suy nghĩ điều gì?",
+        "submit": "Gửi tin nhắn"
+      },
+      "nameLabel": "Tên của bạn",
+      "namePlaceholder": "Nguyễn Văn A",
+      "emailLabel": "Email",
+      "emailPlaceholder": "you@example.com",
+      "messageLabel": "Tin nhắn",
+      "messagePlaceholder": "Bạn đang suy nghĩ điều gì?",
+      "submitButton": "Gửi tin nhắn",
+      "replyTime": "Chúng tôi thường trả lời trong vòng một ngày. Đôi khi nhanh hơn — đôi khi đi kèm bản sửa lỗi mà bạn không hề biết là mình cần.",
+      "quote": "Chúng tôi thường trả lời trong vòng một ngày. Đôi khi nhanh hơn — đôi khi đi kèm bản sửa lỗi mà bạn không hề biết là mình cần.",
+      "writeDirectly": "Gửi email trực tiếp",
+      "hours": "Thứ 2 – Thứ 6, 9h – 18h ICT",
+      "address": "Long Biên, Hà Nội",
+      "info": {
+        "writeDirectly": "Gửi email trực tiếp",
+        "hours": "Thứ 2 – Thứ 6, 9h – 18h ICT",
+        "address1": "Long Biên,",
+        "address2": "Hà Nội"
+      }
+    },
+    "footer": {
+      "tagline": "Câu hỏi kiểm tra, thẻ ghi nhớ và hệ thống kinh tế tiền xu dành cho những học viên muốn việc học bớt tẻ nhạt.",
+      "contactHeader": "Liên hệ",
+      "legalHeader": "Pháp lý",
+      "privacyPolicy": "Chính sách bảo mật",
+      "termsOfService": "Điều khoản dịch vụ",
+      "cookiePolicy": "Chính sách cookie",
+      "copyright": "© 2026 Seika. Được chế tác với tất cả tâm huyết tại Hà Nội.",
+      "build": "Được xây dựng với React, TypeScript & i18next.",
+      "columns": {
+        "contact": "Liên hệ",
+        "legal": "Pháp lý"
+      },
+      "links": {
+        "privacy": "Chính sách bảo mật",
+        "terms": "Điều khoản dịch vụ",
+        "cookies": "Chính sách cookie"
+      }
+    }
+  },
+  "notFound": {
+    "eyebrow": "404 · Ngoài bản đồ",
+    "title": "Không tìm thấy trang.",
+    "description": "Đường dẫn {{path}} không dẫn đến bất kỳ trang nào trong hệ thống.",
+    "backHome": "Về trang chủ",
+    "contactSupport": "Liên hệ hỗ trợ",
+    "lostPrefix": "Bị lạc? Thử quay về",
+    "lostHome": "trang chủ",
+    "lostOr": "hoặc",
+    "lostSignIn": "đăng nhập"
+  },
+  "loadingPage": {
+    "status": "Đang tải trang",
+    "text": "Đang tải"
+  }
+}

@@ -20,6 +20,8 @@ import com.seika.quiz_service.repository.QuizSetRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -46,6 +48,7 @@ public class QuizSetService {
     private final WalletClient walletClient;
 
     @Transactional
+    @CacheEvict(value = {"quizzes:set:detail", "quizzes:set:author"}, allEntries = true)
     public QuizSetResponse create(QuizSetCreateRequest request, String createdBy) {
         log.info("Creating new QuizSet: {} by user: {}", request.getTitle(), createdBy);
         if (request.getPrice() != null && request.getPrice().compareTo(BigDecimal.ZERO) < 0) {
@@ -98,18 +101,21 @@ public class QuizSetService {
         return convertToResponse(saved, createdQuizzes);
     }
 
+    @Cacheable(value = "quizzes:set:author", key = "#userId", unless = "#result == null || #result.isEmpty()")
     public List<QuizSetResponse> getByCreatedBy(String userId) {
         return quizSetRepository.findByCreatedBy(userId).stream()
                 .map(this::convertToResponseWithFetchedQuizzes)
                 .collect(Collectors.toList());
     }
 
+    @Cacheable(value = "quizzes:set:detail", key = "#id", unless = "#result == null")
     public QuizSetResponse getById(String id) {
         QuizSet quizSet = quizSetRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("QuizSet", id));
         return convertToResponseWithFetchedQuizzes(quizSet);
     }
 
+    @CacheEvict(value = {"quizzes:set:detail", "quizzes:set:author"}, allEntries = true)
     public void deleteByOwner(String id, String requesterId) {
         log.info("Deleting QuizSet id: {} requested by: {}", id, requesterId);
         QuizSet quizSet = quizSetRepository.findById(id)
@@ -153,6 +159,7 @@ public class QuizSetService {
     }
 
     @Transactional
+    @CacheEvict(value = {"quizzes:set:detail", "quizzes:set:author"}, allEntries = true)
     public QuizSetResponse update(String id, QuizSetCreateRequest request, String requesterId) {
         log.info("Updating QuizSet id: {} by user: {}", id, requesterId);
         QuizSet quizSet = quizSetRepository.findById(id)

@@ -1,0 +1,52 @@
+{
+  "toast": {
+    "updateSuccess": "Đã cập nhật hồ sơ.",
+    "updateError": "Cập nhật hồ sơ thất bại. Vui lòng thử lại."
+  },
+  "loading": "Đang tải hồ sơ…",
+  "errorTitle": "Không thể tải hồ sơ",
+  "retryBtn": "Thử lại",
+  "header": {
+    "title": "Hồ sơ",
+    "subtitle": "Cập nhật thông tin cá nhân và ảnh đại diện."
+  },
+  "card": {
+    "studentProfile": "Hồ sơ học sinh",
+    "username": "Username",
+    "usernameHint": "Giữ thông tin này đồng bộ với tài khoản của bạn.",
+    "accountInfo": "Thông tin tài khoản",
+    "userId": "User ID",
+    "dob": "Ngày sinh",
+    "gender": "Giới tính",
+    "levelLabel": "Cấp độ:",
+    "xpLabel": "Kinh nghiệm:",
+    "levelBadge": "Lv. {{level}}",
+    "xpValue": "{{xp}} XP",
+    "verifiedStudent": "Đang hoạt động"
+  },
+  "gender": {
+    "Male": "Nam",
+    "Female": "Nữ",
+    "Other": "Khác"
+  },
+  "form": {
+    "title": "Cập nhật hồ sơ",
+    "fullName": "Họ và tên",
+    "fullNamePlaceholder": "Họ và tên của bạn",
+    "dob": "Ngày sinh",
+    "gender": "Giới tính",
+    "avatarUrl": "URL ảnh đại diện",
+    "avatarPlaceholder": "https://example.com/avatar.jpg",
+    "saving": "Đang lưu…",
+    "saveBtn": "Lưu thay đổi",
+    "editBtn": "Chỉnh sửa",
+    "cancelBtn": "Hủy"
+  },
+  "accomplishmentsTitle": "Thành tích Học tập",
+  "stats": {
+    "quizzesCompleted": "Đã hoàn thành Quiz",
+    "currentStreak": "Streak hiện tại (ngày)",
+    "longestStreak": "Streak dài nhất (ngày)",
+    "experience": "Kinh nghiệm (XP)"
+  }
+}

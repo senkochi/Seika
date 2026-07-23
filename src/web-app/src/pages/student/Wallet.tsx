@@ -3,18 +3,25 @@ import {
   TrendingUp,
   TrendingDown,
   Loader2,
-  DollarSign,
   Zap,
   Coins,
   CreditCard,
   PlusCircle,
-  Sparkles,
   RefreshCcw,
 } from "lucide-react";
 import { walletService } from "../../api";
 import { showError, showSuccess } from "../../components/toast/toastUtils";
 import { useAppSelector } from "../../store/hooks";
+import { useTranslation } from "react-i18next";
+import { useActiveLocale } from "../../hooks/useActiveLocale";
 import ConfirmModal from "../../components/ui/ConfirmModal";
+import { PageHeader } from "../../components/ui/PageHeader";
+import { SectionCard } from "../../components/ui/SectionCard";
+import { StatCard } from "../../components/ui/StatCard";
+import { IconChip } from "../../components/ui/IconChip";
+import { StatusPill } from "../../components/ui/StatusPill";
+import { EmptyState } from "../../components/ui/EmptyState";
+import { Button } from "../../components/ui/Button";
 
 interface Transaction {
   id: string;
@@ -24,7 +31,14 @@ interface Transaction {
   createdAt: string;
 }
 
+function formatDate(dateStr: string, locale = "vi-VN") {
+  return new Date(dateStr).toLocaleString(locale);
+}
+
 function Wallet() {
+  const { t } = useTranslation(["wallet", "common"]);
+  const locale = useActiveLocale();
+  const dateLocale = locale === "vi" ? "vi-VN" : "en-US";
   const { currentStreak } = useAppSelector((state) => state.userProfile);
   const [balance, setBalance] = useState<number>(0);
   const [history, setHistory] = useState<Transaction[]>([]);
@@ -78,7 +92,7 @@ function Wallet() {
       }
     } catch (err) {
       console.error(err);
-      showError("Could not retrieve wallet details.");
+      showError(t("wallet:toast.retrieveFailed"));
       setBalance(0);
       setHistory([]);
     } finally {
@@ -94,18 +108,20 @@ function Wallet() {
     e.preventDefault();
     const amountVnd = parseInt(topUpAmount, 10);
     if (isNaN(amountVnd) || amountVnd <= 0) {
-      showError("Số tiền nạp không hợp lệ!");
+      showError(t("wallet:toast.invalidAmount"));
       return;
     }
     if (amountVnd < 1000) {
-      showError("Số tiền nạp tối thiểu là 1,000 VNĐ!");
+      showError(t("wallet:toast.minAmount"));
       return;
     }
 
     const calculatedCoins = Math.floor(amountVnd / topUpRate);
     if (calculatedCoins <= 0) {
       showError(
-        `Số tiền nạp không đủ để đổi 1 Coin (Tỷ giá: ${topUpRate.toLocaleString("vi-VN")} VNĐ/Coin)!`,
+        t("wallet:toast.insufficientRate", {
+          rate: topUpRate.toLocaleString(dateLocale),
+        }),
       );
       return;
     }
@@ -118,12 +134,17 @@ function Wallet() {
     setLoadingTopUp(true);
     try {
       const res = await walletService.topUp({ amountVnd });
-      showSuccess(res.message || `Nạp thành công ${res.coinsReceived} Coin!`);
+      showSuccess(
+        res.message ||
+          t("wallet:toast.topUpSuccess", {
+            coins: res.coinsReceived,
+          }),
+      );
       setTopUpAmount("");
       setShowConfirmModal(false);
       fetchWalletData();
     } catch (err: any) {
-      showError(err.response?.data?.message || "Lỗi khi nạp tiền!");
+      showError(err.response?.data?.message || t("wallet:toast.topUpError"));
     } finally {
       setLoadingTopUp(false);
     }
@@ -155,289 +176,288 @@ function Wallet() {
     .reduce((sum, t) => sum + Math.abs(t.amount), 0);
 
   return (
-    <div className="p-8">
-      {/* Header section */}
-      <div className="mb-8">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 w-full">
-          <div>
-            <h1 className="text-3xl font-black text-[var(--foreground)] mb-2 flex items-center gap-3">
-              <span className="bg-gradient-to-r from-amber-300 to-yellow-400 bg-clip-text text-transparent">
-                Student Wallet
-              </span>
-              <button
-                onClick={fetchWalletData}
-                className="inline-flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-sm font-medium text-[var(--foreground)] hover:border-[var(--primary)] transition-all"
-              >
-                <RefreshCcw className="h-4 w-4" /> Làm mới
-              </button>
-            </h1>
-            <p className="text-[var(--muted-foreground)]">
-              Manage your Coins, check balance and top up to unlock more courses
-              & quizzes.
-            </p>
-          </div>
+    <div className="space-y-8 p-6 lg:p-8">
+      <PageHeader
+        title={t("wallet:header.title")}
+        subtitle={t("wallet:header.subtitle")}
+        actions={
+          <Button
+            variant="ghost"
+            size="md"
+            onClick={fetchWalletData}
+            disabled={loading}
+          >
+            <RefreshCcw
+              className={`w-4 h-4 ${loading ? "animate-spin" : ""}`}
+              aria-hidden="true"
+            />{" "}
+            {t("common:actions.refresh")}
+          </Button>
+        }
+      />
 
-          {/* Balance card */}
-          <div className="relative group w-full md:w-[30rem] lg:w-[34rem] md:ml-auto">
-            <div className="relative w-full bg-gradient-to-b from-amber-400 to-yellow-500 rounded-3xl p-1 shadow-2xl">
-              <div className="rounded-[22px] px-8 py-6">
-                <div className="flex items-center gap-4">
-                  <div>
-                    <p className="text-white text-sm font-black uppercase tracking-wider mb-1">
-                      Your Balance
-                    </p>
-                    <p className="text-purple-950 text-4xl font-black">
-                      {loading ? "..." : balance.toLocaleString()}
-                    </p>
-                    <p className="text-purple-900/90 text-sm font-semibold">
-                      Coin
-                    </p>
-                  </div>
-                </div>
-                <div className="text-right w-full mt-4">
-                  <p className="text-white/85 text-xs font-semibold">
-                    Top-Up Rate
-                  </p>
-                  <p className="text-purple-950 font-black">
-                    {topUpRate.toLocaleString("vi-VN")} VNĐ / Coin
-                  </p>
-                </div>
-              </div>
+      {/* Balance card with gold left-accent */}
+      <SectionCard className="relative overflow-hidden">
+        <span
+          aria-hidden="true"
+          className="absolute left-0 top-0 bottom-0 w-px bg-[#d4a843]/60"
+        />
+        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
+          <div>
+            <p className="font-sans-ui text-xs uppercase tracking-[0.12em] text-white/45">
+              {t("wallet:balance.label")}
+            </p>
+            <p className="mt-3 font-sans-ui text-4xl font-semibold text-cream tabular-nums">
+              {loading ? "…" : balance.toLocaleString(dateLocale)}
+              <span className="ml-2 text-base font-medium text-[#d4a843]">
+                {t("wallet:balance.coins")}
+              </span>
+            </p>
+            <div className="mt-3 flex items-center gap-2">
+              <StatusPill variant="gold">
+                {t("wallet:balance.statusActive")}
+              </StatusPill>
+              <span className="font-sans-ui text-xs text-white/55">
+                {t("wallet:balance.rateText", {
+                  rate: topUpRate.toLocaleString(dateLocale),
+                })}
+              </span>
             </div>
           </div>
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="md">
+              <Coins className="w-4 h-4" aria-hidden="true" />{" "}
+              {t("wallet:actions.withdraw")}
+            </Button>
+            <Button variant="primary" size="md">
+              <PlusCircle className="w-4 h-4" aria-hidden="true" />{" "}
+              {t("wallet:actions.topUp")}
+            </Button>
+          </div>
         </div>
-      </div>
+      </SectionCard>
 
       {/* Quick stats grid */}
-      <div className="grid md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-[var(--card)] backdrop-blur-xl border border-[var(--border)] rounded-2xl p-6 flex items-center gap-4 hover:border-[var(--primary)] transition-all">
-          <div className="w-12 h-12 bg-green-500/10 rounded-xl flex items-center justify-center border border-green-500/20">
-            <TrendingUp className="w-6 h-6 text-green-400" />
-          </div>
-          <div>
-            <p className="text-[var(--muted-foreground)] text-sm">
-              Total Earned / Top-Up
-            </p>
-            <p className="text-xl font-bold text-[var(--foreground)]">
-              +{totalEarned.toLocaleString()} Coins
-            </p>
-          </div>
-        </div>
-
-        <div className="bg-[var(--card)] backdrop-blur-xl border border-[var(--border)] rounded-2xl p-6 flex items-center gap-4 hover:border-[var(--primary)] transition-all">
-          <div className="w-12 h-12 bg-red-500/10 rounded-xl flex items-center justify-center border border-red-500/20">
-            <TrendingDown className="w-6 h-6 text-red-400" />
-          </div>
-          <div>
-            <p className="text-[var(--muted-foreground)] text-sm">
-              Total Spent
-            </p>
-            <p className="text-xl font-bold text-[var(--foreground)]">
-              -{totalSpent.toLocaleString()} Coins
-            </p>
-          </div>
-        </div>
-
-        <div className="bg-[var(--card)] backdrop-blur-xl border border-[var(--border)] rounded-2xl p-6 flex items-center gap-4 hover:border-[var(--primary)] transition-all">
-          <div className="w-12 h-12 bg-amber-500/10 rounded-xl flex items-center justify-center border border-amber-500/20">
-            <Zap className="w-6 h-6 text-amber-400" />
-          </div>
-          <div>
-            <p className="text-[var(--muted-foreground)] text-sm">
-              Active Streak
-            </p>
-            <p className="text-xl font-bold text-[var(--foreground)]">
-              {currentStreak ?? 0} Days
-            </p>
-          </div>
-        </div>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <StatCard
+          label={t("wallet:stats.earned")}
+          value={`+${totalEarned.toLocaleString(dateLocale)}`}
+          unit={t("wallet:balance.coins")}
+          icon={<TrendingUp className="w-4 h-4" aria-hidden="true" />}
+          iconVariant="success"
+        />
+        <StatCard
+          label={t("wallet:stats.spent")}
+          value={`-${totalSpent.toLocaleString(dateLocale)}`}
+          unit={t("wallet:balance.coins")}
+          icon={<TrendingDown className="w-4 h-4" aria-hidden="true" />}
+          iconVariant="danger"
+        />
+        <StatCard
+          label={t("wallet:stats.streak")}
+          value={`${currentStreak ?? 0}`}
+          unit={t("wallet:stats.daysUnit")}
+          icon={<Zap className="w-4 h-4" aria-hidden="true" />}
+          iconVariant="warning"
+        />
       </div>
 
       {/* Transaction History & Top-Up Form Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-5">
         {/* Transaction History */}
-        <div className="lg:col-span-3 bg-[var(--card)] backdrop-blur-xl border border-[var(--border)] rounded-3xl p-6 shadow-lg shadow-black/20">
-          <h2 className="text-xl font-bold text-[var(--foreground)] mb-6 flex items-center gap-2">
-            <DollarSign className="w-5 h-5 text-amber-400" />
-            Transaction History
+        <SectionCard className="lg:col-span-3">
+          <h2 className="font-sans-ui text-base font-semibold text-cream flex items-center gap-2 mb-5">
+            <IconChip variant="muted" className="h-8 w-8">
+              <Coins className="w-4 h-4" aria-hidden="true" />
+            </IconChip>
+            {t("wallet:history.title")}
           </h2>
 
           {loading ? (
-            <div className="flex flex-col items-center justify-center py-20 text-[var(--muted-foreground)] gap-2">
-              <Loader2 className="w-8 h-8 animate-spin text-[var(--primary)]" />
-              <p className="text-sm">Loading transactions...</p>
+            <div className="flex flex-col items-center justify-center py-16 text-white/55 gap-2 font-sans-ui">
+              <Loader2
+                className="w-8 h-8 animate-spin text-[#d4a843]"
+                aria-hidden="true"
+              />
+              <p className="text-sm">{t("wallet:history.loading")}</p>
             </div>
           ) : history.length === 0 ? (
-            <div className="text-center py-20 text-[var(--muted-foreground)]">
-              No transactions recorded yet.
-            </div>
+            <EmptyState
+              icon={<Coins className="w-5 h-5" aria-hidden="true" />}
+              title={t("wallet:history.emptyTitle")}
+              description={t("wallet:history.emptyDesc")}
+            />
           ) : (
-            <div className="space-y-4 max-h-[28rem] overflow-y-auto pr-2">
+            <div className="space-y-3 max-h-[28rem] overflow-y-auto pr-2 custom-scrollbar">
               {history.map((tx) => {
                 const isEarn =
                   tx.type === "EARN" ||
                   tx.type === "REWARD" ||
                   tx.type === "TOP_UP" ||
                   (tx.amount > 0 && tx.type !== "CASH_OUT");
+                const pillColor =
+                  tx.type === "TOP_UP"
+                    ? "warning"
+                    : isEarn
+                      ? "success"
+                      : "danger";
                 return (
                   <div
                     key={tx.id}
-                    className="flex items-center justify-between p-4 bg-[var(--second-card)] border border-[var(--border)] rounded-xl hover:bg-[var(--second-muted)] transition-colors"
+                    className="flex items-center justify-between p-4 bg-white/[0.02] border border-white/[0.04] rounded-xl hover:bg-white/[0.04] transition-colors"
                   >
                     <div className="flex-1 min-w-0 pr-4">
                       <div className="flex items-center gap-2">
-                        {tx.type === "TOP_UP" && (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                            TOP-UP
-                          </span>
-                        )}
-                        <p className="text-sm font-semibold text-[var(--foreground)] truncate">
+                        <StatusPill variant={pillColor}>{tx.type}</StatusPill>
+                        <p className="text-sm font-sans-ui text-cream truncate">
                           {tx.description}
                         </p>
                       </div>
-                      <p className="text-xs text-[var(--muted-foreground)] mt-1">
-                        {new Date(tx.createdAt).toLocaleString("vi-VN")}
+                      <p className="font-sans-ui text-xs text-white/55 mt-1">
+                        {formatDate(tx.createdAt, dateLocale)}
                       </p>
                     </div>
                     <div
-                      className={`text-right font-bold text-base shrink-0 ml-2 ${
-                        isEarn ? "text-green-400" : "text-red-400"
+                      className={`text-right font-sans-ui font-semibold text-base shrink-0 ml-2 tabular-nums ${
+                        isEarn ? "text-emerald-300" : "text-red-300"
                       }`}
                     >
                       {isEarn ? "+" : "-"}
-                      {Math.abs(tx.amount).toLocaleString()} Coins
+                      {Math.abs(tx.amount).toLocaleString(dateLocale)}{" "}
+                      {t("wallet:history.coinsUnit")}
                     </div>
                   </div>
                 );
               })}
             </div>
           )}
-        </div>
+        </SectionCard>
 
         {/* Top-Up Form (Simulator) */}
-        <div className="lg:col-span-2 bg-[var(--card)] backdrop-blur-xl border border-[var(--border)] rounded-3xl p-6 h-fit shadow-lg shadow-black/20">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-[var(--foreground)] flex items-center gap-2">
-              <PlusCircle className="w-5 h-5 text-amber-400" />
-              Top-Up Coin
-            </h2>
-            <span className="text-xs px-2.5 py-1 bg-purple-500/20 text-purple-300 border border-purple-500/30 rounded-full font-semibold flex items-center gap-1">
-              <Sparkles className="w-3 h-3" /> MVP Demo
-            </span>
-          </div>
+        <SectionCard className="lg:col-span-2 h-fit">
+          <h2 className="font-sans-ui text-base font-semibold text-cream flex items-center gap-2 mb-5">
+            <PlusCircle className="w-4 h-4 text-[#d4a843]" aria-hidden="true" />
+            {t("wallet:topUpForm.title")}
+          </h2>
 
           <form onSubmit={handleTopUp} className="space-y-5">
             <div>
-              <label className="block text-sm text-[var(--muted-foreground)] mb-2">
-                Amount to Top-Up (VNĐ)
+              <label className="block font-sans-ui text-sm text-white/55 mb-2">
+                {t("wallet:topUpForm.amountLabel")}
               </label>
               <div className="relative">
-                <CreditCard className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted-foreground)]" />
+                <CreditCard
+                  className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-white/45"
+                  aria-hidden="true"
+                />
                 <input
                   type="number"
                   required
                   min={1000}
                   step={1000}
-                  placeholder="e.g. 20,000"
+                  placeholder={t("wallet:topUpForm.amountPlaceholder")}
                   value={topUpAmount}
                   onChange={(e) => setTopUpAmount(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 bg-[rgba(255,255,255,0.06)] border border-[var(--border)] rounded-xl text-[var(--foreground)] font-mono text-base focus:outline-none focus:border-[var(--ring)]"
+                  className="w-full pl-10 pr-4 py-3 bg-white/[0.04] border border-white/[0.08] rounded-xl text-cream font-mono text-base focus:outline-none focus:border-[#d4a843]/50 transition-colors placeholder:text-white/35"
                 />
               </div>
 
               {/* Quick Amount Buttons */}
               <div className="grid grid-cols-2 gap-2 mt-3">
-                {quickAmounts.map((amt) => (
-                  <button
-                    key={amt}
-                    type="button"
-                    onClick={() => setTopUpAmount(amt.toString())}
-                    className={`py-2 px-3 rounded-xl text-xs font-semibold border transition-all ${
-                      topUpAmount === amt.toString()
-                        ? "bg-amber-400/20 border-amber-400 text-amber-300"
-                        : "bg-[var(--second-card)] border-[var(--border)] text-[var(--muted-foreground)] hover:border-[var(--muted-foreground)]"
-                    }`}
-                  >
-                    {amt.toLocaleString("vi-VN")} đ
-                  </button>
-                ))}
+                {quickAmounts.map((amt) => {
+                  const active = topUpAmount === amt.toString();
+                  return (
+                    <button
+                      key={amt}
+                      type="button"
+                      onClick={() => setTopUpAmount(amt.toString())}
+                      aria-pressed={active}
+                      className={
+                        active
+                          ? "py-2 px-3 rounded-xl text-xs font-sans-ui font-medium border border-[#d4a843]/30 bg-[#d4a843]/10 text-[#d4a843] transition-colors"
+                          : "py-2 px-3 rounded-xl text-xs font-sans-ui font-medium border border-white/[0.08] bg-white/[0.02] text-white/55 hover:text-cream transition-colors"
+                      }
+                    >
+                      {amt.toLocaleString(dateLocale)}{" "}
+                      {t("wallet:topUpForm.quickUnit")}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
             {/* Conversion Display Box */}
-            <div className="p-4 bg-[var(--second-card)] border border-[var(--border)] rounded-2xl flex items-center justify-between">
+            <div className="p-4 bg-white/[0.02] border border-white/[0.06] rounded-xl flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-amber-400/10 border border-amber-400/20 flex items-center justify-center">
-                  <Coins className="w-5 h-5 text-amber-400" />
-                </div>
+                <IconChip variant="gold">
+                  <Coins className="w-4 h-4" aria-hidden="true" />
+                </IconChip>
                 <div>
-                  <p className="text-xs text-[var(--muted-foreground)]">
-                    You will receive
+                  <p className="font-sans-ui text-xs text-white/55">
+                    {t("wallet:topUpForm.receiveLabel")}
                   </p>
-                  <p className="text-lg font-black text-[var(--foreground)]">
-                    {estimatedCoins.toLocaleString()}{" "}
-                    <span className="text-sm font-semibold text-amber-400">
-                      Coin
+                  <p className="font-sans-ui text-lg font-semibold text-cream tabular-nums">
+                    {estimatedCoins.toLocaleString(dateLocale)}{" "}
+                    <span className="text-sm font-medium text-[#d4a843]">
+                      {t("wallet:topUpForm.receiveUnit")}
                     </span>
                   </p>
                 </div>
               </div>
               <div className="text-right">
-                <p className="text-[11px] text-[var(--muted-foreground)]">
-                  Exchange Rate
+                <p className="font-sans-ui text-[11px] text-white/55">
+                  {t("wallet:topUpForm.rateLabel")}
                 </p>
-                <p className="text-xs font-mono font-bold text-[var(--foreground)]">
-                  {topUpRate.toLocaleString("vi-VN")} đ/Coin
+                <p className="font-sans-ui text-xs font-mono font-medium text-cream">
+                  {t("wallet:topUpForm.rateValue", {
+                    rate: topUpRate.toLocaleString(dateLocale),
+                  })}
                 </p>
               </div>
             </div>
 
             <div>
-              <label className="block text-sm text-[var(--muted-foreground)] mb-2">
-                Payment Simulator Partner
+              <label className="block font-sans-ui text-sm text-white/55 mb-2">
+                {t("wallet:topUpForm.methodLabel")}
               </label>
               <select
                 value={paymentMethod}
                 onChange={(e) => setPaymentMethod(e.target.value)}
-                className="w-full px-4 py-3 bg-[rgba(255,255,255,0.06)] border border-[var(--border)] rounded-xl text-[var(--foreground)] focus:outline-none focus:border-[var(--ring)]"
+                className="w-full px-4 py-3 bg-white/[0.04] border border-white/[0.08] rounded-xl text-cream focus:outline-none focus:border-[#d4a843]/50 transition-colors"
               >
-                <option
-                  value="VNPay Simulator"
-                  className="bg-[var(--card)] text-[var(--foreground)]"
-                >
-                  VNPay (Demo Instant)
+                <option value="VNPay Simulator">
+                  {t("wallet:topUpForm.vnpay")}
                 </option>
-                <option
-                  value="Momo Simulator"
-                  className="bg-[var(--card)] text-[var(--foreground)]"
-                >
-                  Momo Wallet (Demo Instant)
+                <option value="Momo Simulator">
+                  {t("wallet:topUpForm.momo")}
                 </option>
-                <option
-                  value="Bank Transfer Demo"
-                  className="bg-[var(--card)] text-[var(--foreground)]"
-                >
-                  Bank Transfer (Demo Instant)
+                <option value="Bank Transfer Demo">
+                  {t("wallet:topUpForm.bankTransfer")}
                 </option>
               </select>
             </div>
 
             <div className="pt-2">
-              <button
+              <Button
                 type="submit"
+                variant="primary"
+                size="lg"
+                className="w-full"
                 disabled={loadingTopUp || parsedAmount < 1000}
-                className="w-full py-3.5 bg-gradient-to-r from-amber-400 to-yellow-500 text-purple-950 font-black rounded-xl hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20"
               >
                 {loadingTopUp ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <Loader2
+                    className="w-4 h-4 animate-spin"
+                    aria-hidden="true"
+                  />
                 ) : (
-                  <PlusCircle className="w-5 h-5" />
+                  <PlusCircle className="w-4 h-4" aria-hidden="true" />
                 )}
-                Confirm Top-Up (Demo)
-              </button>
+                {t("wallet:topUpForm.submitBtn")}
+              </Button>
             </div>
           </form>
-        </div>
+        </SectionCard>
       </div>
 
       {/* Confirmation Modal */}
@@ -445,46 +465,50 @@ function Wallet() {
         open={showConfirmModal}
         onClose={() => !loadingTopUp && setShowConfirmModal(false)}
         onConfirm={executeTopUp}
-        title="Xác nhận Nạp Tiền (Demo Simulator)"
-        icon={<PlusCircle className="w-5 h-5 text-amber-400" />}
-        confirmText="Xác nhận nạp"
+        title={t("wallet:confirmModal.title")}
+        icon={<PlusCircle className="w-5 h-5 text-[#d4a843]" />}
+        confirmText={t("wallet:confirmModal.confirmText")}
         isLoading={loadingTopUp}
       >
-        <div className="space-y-3">
-          <p className="text-sm text-[var(--muted-foreground)]">
-            Vui lòng kiểm tra lại thông tin giao dịch nạp Coin bên dưới:
+        <div className="space-y-3 font-sans-ui">
+          <p className="text-sm text-white/55">
+            {t("wallet:confirmModal.hint")}
           </p>
-          <div className="bg-[var(--second-card)] p-4 rounded-2xl space-y-2.5 border border-[var(--border)] text-sm">
+          <div className="bg-white/[0.02] p-4 rounded-xl space-y-2.5 border border-white/[0.06] text-sm">
             <div className="flex justify-between">
-              <span className="text-[var(--muted-foreground)]">
-                Số tiền thanh toán:
+              <span className="text-white/55">
+                {t("wallet:confirmModal.amountLabel")}
               </span>
-              <span className="font-bold text-[var(--foreground)]">
-                {parsedAmount.toLocaleString("vi-VN")} VNĐ
+              <span className="font-semibold text-cream tabular-nums">
+                {t("wallet:confirmModal.amountValue", {
+                  amount: parsedAmount.toLocaleString(dateLocale),
+                })}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-[var(--muted-foreground)]">
-                Phương thức:
+              <span className="text-white/55">
+                {t("wallet:confirmModal.methodLabel")}
               </span>
-              <span className="font-bold text-[var(--foreground)]">
-                {paymentMethod}
-              </span>
+              <span className="font-semibold text-cream">{paymentMethod}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-[var(--muted-foreground)]">
-                Tỷ giá quy đổi:
+              <span className="text-white/55">
+                {t("wallet:confirmModal.rateLabel")}
               </span>
-              <span className="font-mono text-amber-300 font-semibold">
-                {topUpRate.toLocaleString("vi-VN")} VNĐ / Coin
+              <span className="font-mono text-[#d4a843] font-semibold">
+                {t("wallet:confirmModal.rateValue", {
+                  rate: topUpRate.toLocaleString(dateLocale),
+                })}
               </span>
             </div>
-            <div className="border-t border-[var(--border)] pt-2 flex justify-between items-center">
-              <span className="text-[var(--muted-foreground)] font-semibold">
-                Bạn sẽ nhận ngay:
+            <div className="border-t border-white/[0.06] pt-2 flex justify-between items-center">
+              <span className="text-white/55 font-semibold">
+                {t("wallet:confirmModal.receiveLabel")}
               </span>
-              <span className="text-lg font-black text-green-400">
-                +{estimatedCoins.toLocaleString()} Coin
+              <span className="text-lg font-semibold text-emerald-300 tabular-nums">
+                {t("wallet:confirmModal.receiveValue", {
+                  coins: estimatedCoins.toLocaleString(dateLocale),
+                })}
               </span>
             </div>
           </div>

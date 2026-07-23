@@ -1,106 +1,160 @@
-import { Rocket, Star, Zap} from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useAppSelector } from "../../store/hooks";
+import { useTranslation } from "react-i18next";
 import GameJoystick from "../3d-objects/GameJoystick";
 import YellowBlueSchoolBag from "../3d-objects/YellowBlueSchoolBag";
-import AnimatedContent from "../reactbit/AnimatedContent";
+import { Button } from "../ui/Button";
+import { cn } from "../ui/utils";
 
 export function Hero() {
+  const { t } = useTranslation("common");
+  const navigate = useNavigate();
+  const { accessToken, roles } = useAppSelector((state) => state.auth);
+  const isTeacher =
+    roles?.some(
+      (role) =>
+        role.toUpperCase() === "ROLE_TEACHER" ||
+        role.toUpperCase() === "TEACHER",
+    ) ?? false;
+  const dashboardPath = isTeacher ? "/teacher/dashboard" : "/student/dashboard";
+
   return (
     <section
       id="home"
-      className="relative min-h-screen flex items-center overflow-hidden bg-gradient-to-br from-indigo-950 via-purple-900 to-violet-950 pt-16 pb-16"
+      className="relative min-h-[100dvh] flex items-end pb-16 lg:pb-24 pt-32 overflow-hidden"
     >
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 grid lg:grid-cols-2 gap-12 items-center">
-        <div className="space-y-8">
-          <AnimatedContent>
-            <div className="inline-flex items-center gap-2 my-2">
-              <Zap className="w-4 h-4 text-amber-300" />
-              <span className="text-sm text-violet-200">Learning Made Fun!</span>
+      {/* Background atmosphere */}
+      <div className="absolute inset-0 bg-glow-aubergine pointer-events-none" />
+
+      {/* Hairline at section top — replaces wavy divider */}
+      <div className="absolute top-24 left-1/2 -translate-x-1/2 hairline max-w-[120px]" />
+
+      <div className="relative w-full max-w-[1200px] mx-auto px-6 lg:px-10">
+        <div className="grid lg:grid-cols-[1.15fr_0.85fr] gap-16 lg:gap-20 items-center">
+          {/* LEFT — editorial type */}
+          <div className="space-y-10">
+            <div className="animate-fade-up">
+              <span className="eyebrow">
+                <span className="inline-block w-1 h-1 rounded-full bg-[#d4a843]" />
+                {t("landing.hero.badge")}
+              </span>
             </div>
 
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-black leading-tight">
-              <span className="bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-400 bg-clip-text text-transparent">
-                Level Up
-              </span>
-              <br />
-              <span className="bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-500 bg-clip-text text-transparent">
-                Your Learning!
-              </span>
+            <h1
+              className={cn(
+                "font-display font-medium text-[#faf6ee]",
+                "text-5xl sm:text-6xl lg:text-7xl xl:text-[5.5rem]",
+                "leading-[0.95] tracking-[-0.035em]",
+                "animate-fade-up delay-100",
+              )}
+              style={{ textWrap: "balance" as const }}
+            >
+              {t("landing.hero.title1")}{" "}
+              <span className="italic font-display font-light text-[#d4a843]">
+                {t("landing.hero.titleHighlight")}
+              </span>{" "}
+              {t("landing.hero.title2")}
             </h1>
 
-            <p className="text-xl my-4 text-violet-100 max-w-xl">
-              Join Seika's magical world where education meets adventure! Complete quizzes, earn rewards, and explore a
-              universe of knowledge.
+            <p className="max-w-xl text-lg text-[#faf6ee]/70 leading-relaxed animate-fade-up delay-200">
+              {t("landing.hero.description")}
             </p>
 
-            <div className="flex flex-wrap gap-4 my-6">
-              <button className="group px-8 py-4 bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-500 text-purple-950 rounded-full shadow-xl hover:scale-102 transition-all flex items-center gap-2 font-black">
-                <Rocket className="w-5 h-5 group-hover:rotate-12 transition-transform" />
-                Get Started
-              </button>
-              <button className="px-8 py-4 bg-violet-800/50 text-white border-2 border-violet-600 rounded-full hover:bg-violet-700/50 transition-all">
-                Learn More
-              </button>
-            </div>
-
-            <div className="flex items-center gap-8 pt-4">
-              <div>
-                <div className="text-3xl font-black text-amber-400">10K+</div>
-                <div className="text-sm text-violet-300">Active Students</div>
-              </div>
-              <div className="w-px h-12 bg-violet-600"></div>
-              <div>
-                <div className="text-3xl font-black text-amber-400">500+</div>
-                <div className="text-sm text-violet-300">Teachers</div>
-              </div>
-              <div className="w-px h-12 bg-violet-600"></div>
-              <div>
-                <div className="text-3xl font-black text-amber-400">98%</div>
-                <div className="text-sm text-violet-300">Success Rate</div>
-              </div>
-            </div>
-          </AnimatedContent>
-        </div>
-
-        <div className="relative">
-          <AnimatedContent>
-            <div className="relative z-10 flex items-center justify-center h-96">
-              {/* GameJoystick - background layer */}
-              <div
-                className="animate-float-joystick absolute z-10 inset-0 rotate-30 flex items-center justify-center translate-y-40 translate-x-20 hover:scale-105 transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
-                style={{ willChange: "transform" }}
+            <div className="flex flex-wrap items-center gap-3 animate-fade-up delay-300">
+              <Button
+                variant="primary"
+                size="lg"
+                trailing
+                pill
+                onClick={() =>
+                  navigate(accessToken ? dashboardPath : "/auth/register")
+                }
               >
-                <GameJoystick size={250} />
-              </div>
-
-              {/* YellowBlueSchoolBag - overlay layer with rotation */}
-              <div className="absolute inset-0 flex items-center justify-center -translate-x-25">
-                <div
-                  className="animate-float-bag transform -rotate-22 hover:scale-105 transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
-                  style={{ willChange: "transform" }}
-                >
-                  <YellowBlueSchoolBag size={500} />
-                </div>
-              </div>
+                {accessToken
+                  ? t("landing.hero.openDashboard")
+                  : t("landing.hero.startLearning")}
+              </Button>
+              <Button
+                variant="ghost"
+                size="lg"
+                pill
+                onClick={() => {
+                  const el = document.getElementById("features");
+                  el?.scrollIntoView({ behavior: "smooth" });
+                }}
+              >
+                {t("landing.hero.seeInside")}
+              </Button>
             </div>
 
-            <div className="absolute -top-6 -right-6 w-42 h-42 bg-gradient-to-br from-amber-400 to-yellow-500 rounded-3xl rotate-12 opacity-10 blur-xl"></div>
-            <div className="absolute -bottom-6 -left-6 w-52 h-52 bg-gradient-to-br from-violet-600 to-purple-700 rounded-3xl -rotate-12 opacity-20 blur-2xl"></div>
+            {/* Stats — tabular, real-feel numbers */}
+            <dl className="grid grid-cols-3 gap-6 pt-10 border-t border-white/[0.06] animate-fade-up delay-400">
+              {[
+                {
+                  value: "2,847",
+                  label: t("landing.hero.stats.activeLearners"),
+                },
+                {
+                  value: "134",
+                  label: t("landing.hero.stats.verifiedEducators"),
+                },
+                {
+                  value: "47.2%",
+                  label: t("landing.hero.stats.completionRate"),
+                },
+              ].map((stat) => (
+                <div key={stat.label} className="space-y-1">
+                  <dt className="font-display text-3xl lg:text-4xl text-[#faf6ee] font-tabular">
+                    {stat.value}
+                  </dt>
+                  <dd className="text-[11px] uppercase tracking-[0.16em] text-[#b8a9d9]">
+                    {stat.label}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </div>
 
+          {/* RIGHT — Z-axis cascade of transparent PNGs */}
+          <div className="relative h-[520px] lg:h-[600px] hidden md:block animate-fade-up delay-300">
+            {/* Back layer — joystick, raw transparent PNG */}
             <div
-              className="absolute top-8 -right-4 bg-violet-900 p-4 rounded-2xl shadow-xl border-2 border-amber-400 animate-bounce"
-              style={{ animationDuration: "3s" }}
+              className="absolute top-3/4 left-8/9 -translate-x-1/2 -translate-y-1/2 z-10 -ml-16 -mt-12"
+              style={{ animation: "float-slow 7s ease-in-out infinite" }}
             >
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-amber-400 rounded-full flex items-center justify-center">
-                  <Star className="w-5 h-5 text-purple-950" />
-                </div>
-                <div>
-                  <div className="text-xs text-violet-300">You earned</div>
-                  <div className="text-sm font-black text-amber-400">+50 XP</div>
+              <GameJoystick width={320} />
+            </div>
+
+            {/* Front layer — school bag, raw transparent PNG, slightly offset and tilted */}
+            <div
+              className="absolute bottom-1/4 right-1/10 -translate-x-1/2 -translate-y-1/2 translate-x-12 translate-y-10 rotate-[5deg]"
+              style={{
+                animation: "float-slow-reverse 5.2s ease-in-out infinite",
+              }}
+            >
+              <YellowBlueSchoolBag width={520} />
+            </div>
+
+            {/* Floating "+50 XP" chip */}
+            <div className="absolute top-8 -left-4 lg:-left-12 rotate-[-6deg] animate-fade-up delay-500">
+              <div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-[var(--color-home-bg)]/80 backdrop-blur-xl border border-white/[0.08] shadow-[inset_0_1px_1px_rgba(255,255,255,0.06),0_12px_32px_-12px_rgba(0,0,0,0.6)]">
+                <span className="w-9 h-9 rounded-full bg-gradient-to-br from-[#e6c264] to-[#c89a36] flex items-center justify-center text-[#1c0f2e] font-bold text-sm">
+                  +
+                </span>
+                <div className="space-y-0.5">
+                  <p className="text-[10px] uppercase tracking-[0.18em] text-[#b8a9d9]">
+                    {t("landing.hero.chip.label")}
+                  </p>
+                  <p className="font-display text-xl text-[#faf6ee] font-tabular">
+                    50{" "}
+                    <span className="text-sm text-[#d4a843]">
+                      {t("landing.hero.chip.xp")}
+                    </span>
+                  </p>
                 </div>
               </div>
             </div>
-          </AnimatedContent>
+          </div>
         </div>
       </div>
     </section>

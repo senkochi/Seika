@@ -1,153 +1,331 @@
-import { Store, RefreshCcw } from "lucide-react";
+import {
+  BookOpen,
+  Coins,
+  Eye,
+  RefreshCcw,
+  ShieldCheck,
+  Star,
+  Store,
+  Target,
+} from "lucide-react";
 import { useEffect, useState } from "react";
-import { marketplaceApi, Product, walletService } from "@/api";
-import { useAppSelector } from "@/store/hooks";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { marketplaceApi, type Product, walletService } from "@/api";
+import { Button } from "@/components/ui/Button";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { Pagination } from "@/components/ui/Pagination";
+import { SectionCard } from "@/components/ui/SectionCard";
+import { StatusPill } from "@/components/ui/StatusPill";
+import { useAppSelector } from "@/store/hooks";
+import { useTranslation } from "react-i18next";
+import { useActiveLocale } from "@/hooks/useActiveLocale";
+import { recognizableUsername } from "@/utils/displayName";
+
+const ORDER_POLL_ATTEMPTS = 10;
+const ORDER_POLL_DELAY_MS = 700;
+
+const wait = (ms: number) =>
+  new Promise((resolve) => window.setTimeout(resolve, ms));
+
+async function waitForPaidOrder(orderId: string, t: (key: string) => string) {
+  for (let attempt = 0; attempt < ORDER_POLL_ATTEMPTS; attempt += 1) {
+    const response = await marketplaceApi.getOrder(orderId);
+    if (response.data.status === "PAID") return response.data;
+    if (response.data.status === "FAILED") {
+      throw new Error(t("marketplace:toast.paymentFailed"));
+    }
+    await wait(ORDER_POLL_DELAY_MS);
+  }
+  return null;
+}
+
+function toNumber(value: unknown) {
+  return Number(value ?? 0) || 0;
+}
+
+function tierVariant(tier?: string | null) {
+  if (tier === "ELITE" || tier === "GOLD") return "gold" as const;
+  if (tier === "SILVER") return "info" as const;
+  if (tier === "BRONZE") return "warning" as const;
+  return "neutral" as const;
+}
+
+function productKind(product: Product, t: (key: string) => string) {
+  return product.type === "FLASHCARD"
+    ? {
+        label: t("marketplace:type.flashcard"),
+        icon: BookOpen,
+        variant: "info" as const,
+      }
+    : {
+        label: t("marketplace:type.quiz"),
+        icon: Target,
+        variant: "success" as const,
+      };
+}
 
 function Marketplace() {
+  const { t } = useTranslation(["marketplace", "common"]);
+  const locale = useActiveLocale();
+  const navigate = useNavigate();
   const userId = useAppSelector((state) => state.userProfile.userId);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(0);
+  const [size, setSize] = useState(12);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
 
   const fetchProducts = async () => {
     setLoading(true);
     try {
-      const res = await marketplaceApi.getProducts();
-      setProducts(res.data);
+      const res = await marketplaceApi.getProducts(page, size);
+      setProducts(res.data.content);
+      setTotalPages(res.data.totalPages);
+      setTotalElements(res.data.totalElements);
     } catch (error) {
       console.error("Failed to fetch products", error);
+      toast.error(t("marketplace:toast.fetchFailed"));
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchProducts();
-  }, []);
+    void fetchProducts();
+  }, [page, size]);
 
   const handleBuy = async (product: Product) => {
     try {
       if (!userId) {
-        toast.error("Vui lòng đăng nhập để mua hàng");
+        toast.error(t("marketplace:toast.loginRequired"));
         return;
       }
 
-      toast.loading("Đang kiểm tra số dư...", { id: "buy-product" });
+      toast.loading(t("marketplace:toast.checkingBalance"), {
+        id: "buy-product",
+      });
       const balanceRes = await walletService.getBalance();
-      const currentBalance = balanceRes.balance || 0;
+      const currentBalance = toNumber(balanceRes.balance);
+      const price = toNumber(product.price);
 
-      if (currentBalance < product.price) {
+      if (currentBalance < price) {
         toast.error(
-          `Số dư không đủ! Bạn cần ${product.price} Coins nhưng hiện tại chỉ có ${currentBalance} Coins.`,
+          t("marketplace:toast.insufficientBalance", {
+            price: price.toLocaleString(locale === "vi" ? "vi-VN" : "en-US"),
+            balance: currentBalance.toLocaleString(
+              locale === "vi" ? "vi-VN" : "en-US",
+            ),
+          }),
           { id: "buy-product" },
         );
         return;
       }
 
-      toast.loading("Đang xử lý yêu cầu...", { id: "buy-product" });
-      await marketplaceApi.createOrder(userId, [
+      toast.loading(t("marketplace:toast.creatingOrder"), {
+        id: "buy-product",
+      });
+      const orderResponse = await marketplaceApi.createOrder(userId, [
         {
           productId: product.id,
           productType: product.type,
           referenceId: product.referenceId,
           productName: product.name,
-          unitPrice: product.price,
+          unitPrice: price,
           quantity: 1,
           sellerUserId: product.sellerUserId,
         },
       ]);
 
-      toast.success("Đã mua hàng thành công!", { id: "buy-product" });
+      toast.loading(t("marketplace:toast.verifyingPayment"), {
+        id: "buy-product",
+      });
+      const paidOrder = await waitForPaidOrder(orderResponse.data.id, t);
+      await fetchProducts();
+
+      if (paidOrder) {
+        toast.success(t("marketplace:toast.buySuccess"), {
+          id: "buy-product",
+        });
+      } else {
+        toast.info(t("marketplace:toast.buyPending"), {
+          id: "buy-product",
+        });
+      }
     } catch (error: any) {
       console.error(error);
       const errorMessage =
         error.response?.data?.message ||
         error.response?.data?.error ||
-        "Mua hàng thất bại";
+        error.message ||
+        t("marketplace:toast.buyFailed");
       toast.error(errorMessage, { id: "buy-product" });
+      void fetchProducts();
     }
   };
 
   return (
-    <div className="p-8">
-      {/* Header */}
-      <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-[var(--foreground)] mb-2">
-            Marketplace
-          </h1>
-          <p className="text-[var(--muted-foreground)]">
-            Power up your learning with exclusive items!
-          </p>
-        </div>
-        <button
-          onClick={fetchProducts}
-          className="inline-flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-sm font-medium text-[var(--foreground)] hover:border-[var(--primary)] transition-all"
-        >
-          <RefreshCcw className="h-4 w-4" /> Làm mới
-        </button>
-      </div>
+    <div className="space-y-8 p-6 lg:p-8">
+      <PageHeader
+        title={t("marketplace:header.title")}
+        subtitle={t("marketplace:header.subtitle")}
+        actions={
+          <Button
+            variant="ghost"
+            size="md"
+            onClick={fetchProducts}
+            disabled={loading}
+          >
+            <RefreshCcw
+              className={`h-4 w-4 ${loading ? "animate-spin" : ""}`}
+              aria-hidden="true"
+            />
+            {t("common:actions.refresh")}
+          </Button>
+        }
+      />
 
-      {/* All Items */}
-      <div>
-        <div className="flex items-center gap-3 mb-6">
-          <Store className="w-8 h-8 text-[var(--primary)]" />
-          <h2 className="text-3xl font-black text-[var(--foreground)]">
-            All Items
+      <section>
+        <div className="flex items-center gap-2 mb-5">
+          <Store className="w-4 h-4 text-[#d4a843]" aria-hidden="true" />
+          <h2 className="font-sans-ui text-base font-semibold text-cream">
+            {t("marketplace:list.title")}
           </h2>
         </div>
 
         {loading ? (
-          <p>Loading items...</p>
+          <div className="font-sans-ui text-white/55 text-sm">
+            {t("marketplace:list.loading")}
+          </div>
         ) : products.length === 0 ? (
-          <p className="text-[var(--muted-foreground)]">
-            Chưa có sản phẩm nào trên chợ.
-          </p>
+          <EmptyState
+            icon={<Store className="w-5 h-5" aria-hidden="true" />}
+            title={t("marketplace:emptyState.title")}
+            description={t("marketplace:emptyState.description")}
+          />
         ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {products.map((item) => (
-              <div
-                key={item.id}
-                className="group relative bg-[var(--card)] border border-[var(--border)] rounded-2xl p-6 hover:border-[var(--primary)] transition-all overflow-hidden"
-              >
-                <div className="flex justify-between items-start mb-4">
-                  <div className="px-3 py-1 bg-[var(--primary)]/10 text-[var(--primary)] rounded-full text-xs font-bold uppercase tracking-wider">
-                    {item.type === "FLASHCARD" ? "Flashcards" : "Quiz"}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {products.map((item) => {
+              const kind = productKind(item, t);
+              const KindIcon = kind.icon;
+              const price = toNumber(item.price);
+              return (
+                <SectionCard
+                  key={item.id}
+                  className="flex flex-col h-full overflow-hidden"
+                >
+                  <div className="flex justify-between items-start gap-3 mb-4">
+                    <StatusPill
+                      variant={kind.variant}
+                      icon={<KindIcon className="h-3.5 w-3.5" />}
+                    >
+                      {kind.label}
+                    </StatusPill>
+                    <StatusPill
+                      variant={tierVariant(item.teacherTier)}
+                      icon={<ShieldCheck className="h-3.5 w-3.5" />}
+                    >
+                      {item.teacherTier ?? t("marketplace:tier.newbie")}
+                    </StatusPill>
                   </div>
-                </div>
 
-                <div className="text-5xl mb-4 text-center">
-                  {item.type === "FLASHCARD" ? "📚" : "❓"}
-                </div>
-
-                <h3 className="text-xl font-bold text-white mb-2 text-center">
-                  {item.name}
-                </h3>
-                <p className="text-sm text-[var(--muted-foreground)] text-center mb-6 line-clamp-2">
-                  {item.description || "Chưa có mô tả"}
-                </p>
-
-                <div className="flex justify-between items-center mt-auto">
-                  <div className="flex items-center gap-2">
-                    <span className="text-2xl font-black text-amber-400">
-                      {item.price}
-                    </span>
-                    <span className="text-sm text-amber-500 font-bold uppercase">
-                      Coins
-                    </span>
+                  <div className="aspect-[4/3] w-full rounded-xl bg-white/[0.03] border border-white/[0.06] grid place-items-center mb-4">
+                    <KindIcon
+                      aria-hidden="true"
+                      className="h-12 w-12 text-[#d4a843]"
+                      strokeWidth={1.5}
+                    />
                   </div>
-                  <button
-                    onClick={() => handleBuy(item)}
-                    className="px-6 py-2 bg-[var(--primary)] hover:bg-[var(--primary)]/90 text-white rounded-xl font-bold transition-colors"
-                  >
-                    Buy
-                  </button>
-                </div>
-              </div>
-            ))}
+
+                  <h3 className="font-sans-ui text-base font-semibold text-cream mb-2 line-clamp-2">
+                    {item.name}
+                  </h3>
+                  <p className="font-sans-ui text-sm text-white/55 line-clamp-2 flex-1 mb-4">
+                    {item.description || t("marketplace:product.noDescription")}
+                  </p>
+
+                  <div className="mb-5 rounded-xl border border-white/[0.06] bg-white/[0.025] p-3 font-sans-ui">
+                    <p className="text-xs uppercase tracking-[0.14em] text-white/40">
+                      {t("marketplace:label.teacher")}
+                    </p>
+                    <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+                      <span className="text-sm font-medium text-cream line-clamp-1">
+                        {recognizableUsername(item.teacherDisplayName) ||
+                          t("marketplace:label.unknownTeacher")}
+                      </span>
+                      <span className="inline-flex items-center gap-1 text-sm text-white/65">
+                        <Star
+                          className="h-3.5 w-3.5 text-[#d4a843] fill-current"
+                          aria-hidden="true"
+                        />
+                        {toNumber(item.teacherAverageRating).toFixed(1)}
+                        <span className="text-white/35">
+                          ({item.teacherValidReviewCount ?? 0})
+                        </span>
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-3 mt-auto font-sans-ui sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex items-center gap-1.5">
+                      <Coins
+                        className="w-4 h-4 text-[#d4a843]"
+                        aria-hidden="true"
+                      />
+                      <span className="text-xl font-semibold text-cream tabular-nums">
+                        {price.toLocaleString(
+                          locale === "vi" ? "vi-VN" : "en-US",
+                        )}
+                      </span>
+                      <span className="text-xs text-white/55 uppercase tracking-[0.12em]">
+                        {t("marketplace:label.coins")}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="ghost"
+                        size="md"
+                        onClick={() =>
+                          navigate("/student/dashboard/marketplace/" + item.id)
+                        }
+                      >
+                        <Eye className="h-4 w-4" aria-hidden="true" />
+                        {t("marketplace:action.details")}
+                      </Button>
+                      <Button
+                        variant="primary"
+                        size="md"
+                        onClick={() => handleBuy(item)}
+                      >
+                        {t("marketplace:action.buy")}
+                      </Button>
+                    </div>
+                  </div>
+                </SectionCard>
+              );
+            })}
           </div>
         )}
-      </div>
+
+        {!loading && products.length > 0 && (
+          <div className="mt-8">
+            <Pagination
+              currentPage={page}
+              totalPages={totalPages}
+              totalElements={totalElements}
+              pageSize={size}
+              onPageChange={setPage}
+              onPageSizeChange={(newSize) => {
+                setSize(newSize);
+                setPage(0);
+              }}
+              pageSizeOptions={[12, 24, 48]}
+            />
+          </div>
+        )}
+      </section>
     </div>
   );
 }

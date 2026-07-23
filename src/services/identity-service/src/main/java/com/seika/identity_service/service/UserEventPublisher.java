@@ -29,6 +29,9 @@ public class UserEventPublisher {
     @Value("${messaging.events.user-registered-routing-key:user.registered}")
     private String userRegisteredRoutingKey;
 
+    @Value("${messaging.events.public-identity-snapshot-routing-key:user.public-identity.snapshot}")
+    private String publicIdentitySnapshotRoutingKey;
+
     public void publishUserRegistered(User user) {
         UserRegisteredEvent event = UserRegisteredEvent.builder()
                 .eventId(UUID.randomUUID().toString())
@@ -50,6 +53,33 @@ public class UserEventPublisher {
             log.error("Failed to serialize user.registered event for userId={}", user.getId(), exception);
         } catch (Exception exception) {
             log.error("Failed to publish user.registered event for userId={}", user.getId(), exception);
+        }
+    }
+
+    public void publishPublicIdentitySnapshot(User user) {
+        UserRegisteredEvent event = UserRegisteredEvent.builder()
+                .eventId(UUID.randomUUID().toString())
+                .eventType("user.public-identity.snapshot")
+                .occurredAt(Instant.now())
+                .userId(user.getId())
+                .payload(Map.of("username", user.getUsername()))
+                .build();
+
+        try {
+            String message = objectMapper.writeValueAsString(event);
+            rabbitTemplate.convertAndSend(
+                    identityEventsExchange,
+                    publicIdentitySnapshotRoutingKey,
+                    message);
+            log.info(
+                    "Published public identity snapshot for userId={} to exchange={} with routingKey={}",
+                    user.getId(),
+                    identityEventsExchange,
+                    publicIdentitySnapshotRoutingKey);
+        } catch (JsonProcessingException exception) {
+            throw new IllegalStateException("Could not serialize public identity snapshot", exception);
+        } catch (Exception exception) {
+            throw new IllegalStateException("Could not publish public identity snapshot", exception);
         }
     }
 

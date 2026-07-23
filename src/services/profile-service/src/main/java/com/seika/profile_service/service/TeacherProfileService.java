@@ -13,6 +13,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -64,7 +66,15 @@ public class TeacherProfileService {
                 .totalQuizCreated(teacherProfile.getTotalQuizCreated())
                 .totalFlashcardsCreated(teacherProfile.getTotalFlashcardsCreated())
                 .totalStudentsReached(teacherProfile.getTotalStudentsReached())
+                .teacherTier(teacherProfile.getTeacherTier() == null ? "NEWBIE" : teacherProfile.getTeacherTier())
+                .teacherAverageRating(defaultDecimal(teacherProfile.getTeacherAverageRating(), BigDecimal.ZERO))
+                .teacherValidReviewCount(teacherProfile.getTeacherValidReviewCount())
+                .teacherTierFeePercent(defaultDecimal(teacherProfile.getTeacherTierFeePercent(), new BigDecimal("20.00")))
+                .teacherTierUpdatedAt(teacherProfile.getTeacherTierUpdatedAt())
                 .build();
     }
-}
 
+    private BigDecimal defaultDecimal(BigDecimal value, BigDecimal fallback) {
+        return value == null ? fallback : value;
+    }
+}

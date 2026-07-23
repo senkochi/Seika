@@ -33,6 +33,12 @@ spring:
     port: ${RABBITMQ_PORT}
     username: ${RABBITMQ_USERNAME}
     password: ${RABBITMQ_PASSWORD}
+    publisher-confirm-type: correlated
+    publisher-returns: true
+
+messaging:
+  events:
+    public-identity-snapshot-routing-key: ${PUBLIC_IDENTITY_SNAPSHOT_ROUTING_KEY:user.public-identity.snapshot}
 
 jwt:
   issuer: seika-identity-service

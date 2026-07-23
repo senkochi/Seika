@@ -1,11 +1,14 @@
-import { Menu, X } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Logo } from "../logo/Logo";
 import { useAppSelector } from "../../store/hooks";
+import { cn } from "../ui/utils";
+import { Button } from "../ui/Button";
 
 export function Navbar() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { t } = useTranslation("common");
+  const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const { accessToken, roles } = useAppSelector((state) => state.auth);
   const isTeacher =
@@ -16,141 +19,191 @@ export function Navbar() {
     ) ?? false;
   const dashboardPath = isTeacher ? "/teacher/dashboard" : "/student/dashboard";
 
+  const navLinks = [
+    { label: t("landing.navbar.links.home"), href: "#home" },
+    { label: t("landing.navbar.links.features"), href: "#features" },
+    { label: t("landing.navbar.links.about"), href: "#about" },
+    { label: t("landing.navbar.links.contact"), href: "#contact" },
+  ];
+
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-indigo-950/95 backdrop-blur-md border-b border-violet-800">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          <Logo
-            imageClassName="w-10 h-10"
-            textClassName="text-2xl font-black text-white cursor-pointer"
-          />
-
-          <div className="hidden md:flex items-center gap-8">
-            <a
-              href="#"
-              className="text-violet-200 hover:text-amber-400 transition-colors"
-            >
-              Home
-            </a>
-            <a
-              href="#features"
-              className="text-violet-200 hover:text-amber-400 transition-colors"
-            >
-              Features
-            </a>
-            <a
-              href="#about"
-              className="text-violet-200 hover:text-amber-400 transition-colors"
-            >
-              About
-            </a>
-            <a
-              href="#contact"
-              className="text-violet-200 hover:text-amber-400 transition-colors"
-            >
-              Contact
-            </a>
-          </div>
-
-          <div className="hidden md:flex items-center gap-3">
-            {accessToken ? (
-              <button
-                type="button"
-                onClick={() => navigate(dashboardPath)}
-                className="px-6 py-2 bg-gradient-to-r from-amber-400 to-yellow-500 text-purple-950 rounded-full hover:shadow-lg hover:scale-105 transition-all font-black"
-              >
-                Go to Dashboard
-              </button>
-            ) : (
-              <>
-                <button
-                  type="button"
-                  onClick={() => navigate("/auth/login")}
-                  className="px-4 py-2 text-white hover:text-amber-400 transition-colors"
-                >
-                  Login
-                </button>
-                <button
-                  type="button"
-                  onClick={() => navigate("/auth/register")}
-                  className="px-6 py-2 bg-gradient-to-r from-amber-400 to-yellow-500 text-purple-950 rounded-full hover:shadow-lg hover:scale-105 transition-all font-black"
-                >
-                  Register
-                </button>
-              </>
+    <>
+      {/* Floating glass pill */}
+      <nav className="fixed top-0 inset-x-0 z-50 pointer-events-none">
+        <div className="w-full max-w-[1100px] mx-auto mt-5 px-4 sm:px-6 pointer-events-auto">
+          <div
+            className={cn(
+              "flex items-center justify-between h-14 pl-5 pr-2 rounded-2xl",
+              "bg-[var(--color-header)]/70 backdrop-blur-2xl",
+              "border border-white/[0.08]",
+              "shadow-[inset_0_1px_1px_rgba(255,255,255,0.08),0_8px_32px_-12px_rgba(0,0,0,0.5)]",
             )}
-          </div>
-
-          <button
-            className="md:hidden p-2 text-white"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
-            {mobileMenuOpen ? <X /> : <Menu />}
-          </button>
-        </div>
-      </div>
+            <Logo
+              imageClassName="w-8 h-8"
+              textClassName="text-lg font-display font-medium tracking-tight text-[#faf6ee]"
+            />
 
-      {mobileMenuOpen && (
-        <div className="md:hidden bg-violet-900 border-t border-violet-800">
-          <div className="px-4 py-4 space-y-3">
-            <a
-              href="#home"
-              className="block text-violet-200 hover:text-amber-400"
-            >
-              Home
-            </a>
-            <a
-              href="#about"
-              className="block text-violet-200 hover:text-amber-400"
-            >
-              About
-            </a>
-            <a
-              href="#features"
-              className="block text-violet-200 hover:text-amber-400"
-            >
-              Features
-            </a>
-            <a
-              href="#contact"
-              className="block text-violet-200 hover:text-amber-400"
-            >
-              Contact
-            </a>
-            <div className="pt-3 border-t border-violet-800 space-y-2">
-              {accessToken ? (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    navigate(dashboardPath);
-                  }}
-                  className="w-full px-4 py-2 bg-gradient-to-r from-amber-400 to-yellow-500 text-purple-950 rounded-full font-black text-center"
+            <div className="hidden md:flex items-center gap-1">
+              {navLinks.map((link) => (
+                <a
+                  key={link.href}
+                  href={link.href}
+                  className={cn(
+                    "px-4 py-2 text-sm font-medium text-[#faf6ee]/75 rounded-lg",
+                    "hover:text-[#faf6ee] hover:bg-white/[0.04]",
+                    "transition-colors duration-300 ease-soft",
+                  )}
                 >
-                  Go to Dashboard
-                </button>
+                  {link.label}
+                </a>
+              ))}
+            </div>
+
+            <div className="hidden md:flex items-center gap-2">
+              {accessToken ? (
+                <Button
+                  variant="primary"
+                  size="md"
+                  trailing
+                  pill
+                  onClick={() => navigate(dashboardPath)}
+                >
+                  {t("landing.navbar.dashboard")}
+                </Button>
               ) : (
                 <>
                   <button
                     type="button"
                     onClick={() => navigate("/auth/login")}
-                    className="w-full px-4 py-2 text-white border border-violet-700 rounded-full"
+                    className="px-4 h-10 text-sm font-medium text-[#faf6ee]/75 hover:text-[#faf6ee] transition-colors duration-300 ease-soft rounded-full"
                   >
-                    Login
+                    {t("landing.navbar.signIn")}
                   </button>
-                  <button
-                    type="button"
+                  <Button
+                    variant="primary"
+                    size="md"
+                    trailing
+                    pill
                     onClick={() => navigate("/auth/register")}
-                    className="w-full px-4 py-2 bg-gradient-to-r from-amber-400 to-yellow-500 text-purple-950 rounded-full font-black"
                   >
-                    Register
-                  </button>
+                    {t("landing.navbar.getStarted")}
+                  </Button>
                 </>
               )}
             </div>
+
+            {/* Hamburger morphs to X */}
+            <button
+              type="button"
+              aria-label={
+                open
+                  ? t("landing.navbar.closeMenu")
+                  : t("landing.navbar.openMenu")
+              }
+              onClick={() => setOpen((v) => !v)}
+              className="md:hidden relative w-10 h-10 rounded-full bg-white/[0.04] border border-white/[0.06] flex items-center justify-center"
+            >
+              <span
+                className={cn(
+                  "absolute h-px w-4 bg-[#faf6ee] transition-all duration-500 ease-spring",
+                  open ? "rotate-45" : "-translate-y-1",
+                )}
+              />
+              <span
+                className={cn(
+                  "absolute h-px w-4 bg-[#faf6ee] transition-all duration-500 ease-spring",
+                  open ? "-rotate-45" : "translate-y-1",
+                )}
+              />
+            </button>
           </div>
         </div>
-      )}
-    </nav>
+      </nav>
+
+      {/* Mobile full-screen overlay */}
+      <div
+        className={cn(
+          "md:hidden fixed inset-0 z-40 transition-all duration-500 ease-spring",
+          open
+            ? "opacity-100 pointer-events-auto"
+            : "opacity-0 pointer-events-none",
+        )}
+      >
+        <div className="absolute inset-0 bg-[var(--color-header)]/92 backdrop-blur-3xl" />
+        <div className="relative h-full flex flex-col items-center justify-center gap-10 px-6 pt-24">
+          <div className="flex flex-col items-center gap-6">
+            {navLinks.map((link, i) => (
+              <a
+                key={link.href}
+                href={link.href}
+                onClick={() => setOpen(false)}
+                className={cn(
+                  "font-display text-4xl font-medium text-[#faf6ee] hover:text-[#d4a843]",
+                  "transition-all duration-700 ease-soft",
+                  open
+                    ? "opacity-100 translate-y-0"
+                    : "opacity-0 translate-y-12",
+                )}
+                style={{ transitionDelay: open ? `${120 + i * 80}ms` : "0ms" }}
+              >
+                {link.label}
+              </a>
+            ))}
+          </div>
+
+          <div
+            className={cn(
+              "flex flex-col items-center gap-3 mt-12 w-full max-w-xs",
+              "transition-all duration-700 ease-soft",
+              open ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8",
+            )}
+            style={{ transitionDelay: open ? "520ms" : "0ms" }}
+          >
+            {accessToken ? (
+              <Button
+                variant="primary"
+                size="lg"
+                trailing
+                pill
+                className="w-full"
+                onClick={() => {
+                  setOpen(false);
+                  navigate(dashboardPath);
+                }}
+              >
+                {t("landing.navbar.dashboard")}
+              </Button>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setOpen(false);
+                    navigate("/auth/login");
+                  }}
+                  className="w-full h-12 rounded-full border border-white/[0.12] text-[#faf6ee] font-medium hover:bg-white/[0.04] transition-colors"
+                >
+                  {t("landing.navbar.signIn")}
+                </button>
+                <Button
+                  variant="primary"
+                  size="lg"
+                  trailing
+                  pill
+                  className="w-full"
+                  onClick={() => {
+                    setOpen(false);
+                    navigate("/auth/register");
+                  }}
+                >
+                  {t("landing.navbar.getStarted")}
+                </Button>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    </>
   );
 }

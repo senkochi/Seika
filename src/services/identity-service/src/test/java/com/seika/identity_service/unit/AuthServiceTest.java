@@ -66,6 +66,12 @@ public class AuthServiceTest {
     @Mock
     private AuthMapper authMapper;
 
+    @Mock
+    private com.seika.identity_service.service.UserEventPublisher userEventPublisher;
+
+    @Mock
+    private com.seika.identity_service.service.TokenBlacklistService tokenBlacklistService;
+
     @InjectMocks
     private AuthService authService;
 
@@ -127,8 +133,8 @@ public class AuthServiceTest {
     @Test
     void register_usernameAlreadyExists() {
         when(userRepository.existsByUsername("test_student_1")).thenReturn(true);
-        Exception ex = assertThrows(IllegalArgumentException.class, () -> authService.register(mockRegisterRequest));
-        assertEquals("Username already exists", ex.getMessage());
+        Exception ex = assertThrows(com.seika.identity_service.exception.ConflictException.class, () -> authService.register(mockRegisterRequest));
+        assertTrue(ex.getMessage().contains("test_student_1"));
         verify(userRepository, never()).save(any());
     }
 
@@ -144,8 +150,8 @@ public class AuthServiceTest {
         invalidRoleRequest.setProfilePictureUrl("example.png");
 
         when(userRepository.existsByUsername("test_student_2")).thenReturn(false);
-        Exception ex = assertThrows(IllegalArgumentException.class, () -> authService.register(invalidRoleRequest));
-        assertEquals("Only STUDENT or TEACHER can be selected during registration", ex.getMessage());
+        Exception ex = assertThrows(com.seika.identity_service.exception.InvalidRequestException.class, () -> authService.register(invalidRoleRequest));
+        assertTrue(ex.getMessage().contains("STUDENT") || ex.getMessage().contains("TEACHER"));
         verify(userRepository, never()).save(any());
     }
 
@@ -177,9 +183,9 @@ public class AuthServiceTest {
         when(authenticationManager.authenticate(any())).thenReturn(authentication);
         when(userRepository.findByUsername("test_student_1")).thenReturn(Optional.empty());
 
-        Exception ex = assertThrows(IllegalArgumentException.class, () ->
+        Exception ex = assertThrows(com.seika.identity_service.exception.ResourceNotFoundException.class, () ->
                 authService.login(new com.seika.identity_service.dto.auth.LoginRequest("test_student_1", "123456")));
-        assertEquals("User not found", ex.getMessage());
+        assertTrue(ex.getMessage().contains("test_student_1"));
     }
 
     @Test

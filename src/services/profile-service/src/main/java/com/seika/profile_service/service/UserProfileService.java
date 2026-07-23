@@ -13,6 +13,9 @@ import com.seika.profile_service.repository.TeacherProfileRepository;
 import com.seika.profile_service.repository.UserProfileRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,6 +33,7 @@ public class UserProfileService {
     private final TeacherProfileRepository teacherProfileRepository;
 
     @Transactional
+    @CachePut(value = "profile:user", key = "#result.userId", unless = "#result == null")
     public UserProfileResponse createUserProfile(UserProfileRequest request) {
         if (userProfileRepository.existsByUserId(request.getUserId())) {
             throw new ConflictException("Profile already exists for userId: " + request.getUserId());
@@ -72,6 +76,7 @@ public class UserProfileService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(value = "profile:user", key = "#userId", unless = "#result == null")
     public UserProfileResponse getUserProfileByUserId(String userId) {
         UserProfile profile = userProfileRepository.findByUserId(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Profile not found for userId: " + userId));
@@ -103,6 +108,7 @@ public class UserProfileService {
     }
 
     @Transactional
+    @CachePut(value = "profile:user", key = "#userId", unless = "#result == null")
     public UserProfileResponse updateUserProfile(String userId, UserProfileRequest request) {
         UserProfile userProfile = userProfileRepository.findByUserId(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Profile not found for userId: " + userId));
@@ -120,6 +126,7 @@ public class UserProfileService {
     }
 
     @Transactional
+    @CacheEvict(value = "profile:user", key = "#userId")
     public void addExp(String userId, Integer exp) {
         GameProfile gameProfile = gameProfileRepository.findByUserId(userId)
                 .orElseGet(() -> {

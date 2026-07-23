@@ -1,6 +1,8 @@
-import { Dispatch, SetStateAction } from "react";
+import { type Dispatch, type SetStateAction } from "react";
+import { useTranslation } from "react-i18next";
 import { RegisterData } from "./types";
-import { User } from "lucide-react";
+import { TextInput } from "../ui/Input";
+import { cn } from "../ui/utils";
 
 interface PersonalStepProps {
   formData: RegisterData;
@@ -19,94 +21,96 @@ export default function PersonalStep({
   errors = {},
   setErrors = () => {},
 }: PersonalStepProps) {
-  const clearError = (field: string) => {
+  const { t } = useTranslation("auth");
+  const clearError = (field: keyof typeof errors) => {
     setErrors({ [field]: undefined });
   };
+
+  const genders = [
+    { value: "male", label: t("personalStep.genderOptions.male") },
+    { value: "female", label: t("personalStep.genderOptions.female") },
+    { value: "other", label: t("personalStep.genderOptions.other") },
+  ] as const;
+
   return (
     <div className="space-y-6">
-      <div className="text-center mb-6">
-        <h2 className="text-2xl font-black text-purple-900">
-          Personal Information
+      <div className="text-center mb-2">
+        <h2 className="font-display text-2xl text-[#faf6ee] tracking-[-0.015em]">
+          {t("personalStep.title")}
         </h2>
-        <p className="text-sm text-gray-600">Tell us a bit about yourself</p>
+        <p className="mt-2 text-sm text-[#faf6ee]/60">
+          {t("personalStep.subtitle")}
+        </p>
       </div>
 
       <div className="space-y-5">
-        <div>
-          <label className="block text-sm font-black text-purple-900 mb-2">
-            Full Name
-          </label>
-          <div className="relative">
-            <User className="w-4 h-4 text-purple-400 absolute left-4 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              value={formData.fullname}
-              onChange={(e) => {
-                setFormData({ ...formData, fullname: e.target.value });
-                if (errors.fullname) clearError("fullname");
-              }}
-              placeholder="Enter your full name"
-              className={`w-full pl-11 pr-4 py-3 text-purple-900 border-2 rounded-xl focus:outline-none transition-colors ${
-                errors.fullname
-                  ? "border-red-500 bg-red-50 focus:border-red-500"
-                  : "border-purple-200 focus:border-purple-500"
-              }`}
-            />
-          </div>
-          {errors.fullname && (
-            <p className="text-xs text-red-500 mt-1">{errors.fullname}</p>
-          )}
-        </div>
+        <TextInput
+          label={t("personalStep.fullnameLabel")}
+          value={formData.fullname}
+          onChange={(e) =>
+            setFormData({ ...formData, fullname: e.target.value })
+          }
+          placeholder={t("personalStep.fullnamePlaceholder")}
+          error={errors.fullname}
+          onClearError={() => clearError("fullname")}
+          autoComplete="name"
+        />
+
+        <TextInput
+          label={t("personalStep.dobLabel")}
+          type="date"
+          value={formData.dateOfBirth}
+          onChange={(e) =>
+            setFormData({ ...formData, dateOfBirth: e.target.value })
+          }
+          error={errors.dateOfBirth}
+          onClearError={() => clearError("dateOfBirth")}
+        />
 
         <div>
-          <label className="block text-sm font-black text-purple-900 mb-2">
-            Date of Birth
-          </label>
-          <input
-            type="date"
-            value={formData.dateOfBirth}
-            onChange={(e) => {
-              setFormData({ ...formData, dateOfBirth: e.target.value });
-              if (errors.dateOfBirth) clearError("dateOfBirth");
-            }}
-            className={`w-full px-4 py-3 border-2 text-purple-900 rounded-xl focus:outline-none transition-colors ${
-              errors.dateOfBirth
-                ? "border-red-500 bg-red-50 focus:border-red-500"
-                : "border-purple-200 focus:border-purple-500"
-            }`}
-          />
-          {errors.dateOfBirth && (
-            <p className="text-xs text-red-500 mt-1">{errors.dateOfBirth}</p>
-          )}
-        </div>
-
-        <div>
-          <label className="block text-sm font-black text-purple-900 mb-2">
-            Gender
+          <label className="block mb-2 text-[11px] uppercase tracking-[0.18em] font-medium text-[#d4a843]/80">
+            {t("personalStep.genderLabel")}
           </label>
           <div className="grid grid-cols-3 gap-3">
-            {(["male", "female", "other"] as const).map((gender) => (
-              <button
-                key={gender}
-                type="button"
-                onClick={() => {
-                  setFormData({ ...formData, gender });
-                  if (errors.gender) clearError("gender");
-                }}
-                className={`px-4 py-3 rounded-xl border-2 transition-all capitalize ${
-                  formData.gender === gender
-                    ? "border-purple-500 bg-purple-50 text-purple-900 font-black"
-                    : errors.gender
-                      ? "border-red-500 bg-red-50 text-gray-600"
-                      : "border-purple-200 text-gray-600 hover:border-purple-300 hover:bg-purple-50/50"
-                }`}
-              >
-                {gender}
-              </button>
-            ))}
+            {genders.map((g) => {
+              const selected = formData.gender === g.value;
+              return (
+                <button
+                  key={g.value}
+                  type="button"
+                  onClick={() => {
+                    setFormData({ ...formData, gender: g.value });
+                    if (errors.gender) clearError("gender");
+                  }}
+                  className={cn(
+                    "h-12 rounded-xl text-sm font-medium",
+                    "transition-all duration-500 ease-spring",
+                    "focus:outline-none",
+                    selected
+                      ? "p-px bg-gradient-to-b from-[#d4a843] to-[#a37f2a]"
+                      : errors.gender
+                        ? "p-px bg-gradient-to-b from-[#ef4444] to-[#b91c1c]"
+                        : "p-px bg-white/[0.06] hover:bg-white/[0.12]",
+                  )}
+                >
+                  <span
+                    className={cn(
+                      "flex items-center justify-center h-full w-full rounded-[calc(0.75rem-1px)]",
+                      selected
+                        ? "bg-[#1c0f2e] text-[#d4a843]"
+                        : "bg-[#1c0f2e]/40 text-[#faf6ee]/70 hover:text-[#faf6ee]",
+                    )}
+                  >
+                    {g.label}
+                  </span>
+                </button>
+              );
+            })}
           </div>
           {errors.gender && (
-            <p className="text-xs text-red-500 mt-1">{errors.gender}</p>
+            <p className="mt-2 text-xs text-[#fca5a5] font-medium">
+              {errors.gender}
+            </p>
           )}
         </div>
       </div>

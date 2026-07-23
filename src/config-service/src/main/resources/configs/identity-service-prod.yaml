@@ -1,0 +1,16 @@
+spring:
+  cache:
+    type: redis
+  data:
+    redis:
+      password: ${REDIS_PASSWORD}
+  jpa:
+    show-sql: false
+
+server:
+  port: ${IDENTITY_SERVER_PORT:8081}
+
+logging:
+  level:
+    root: WARN
+    com.seika: INFO

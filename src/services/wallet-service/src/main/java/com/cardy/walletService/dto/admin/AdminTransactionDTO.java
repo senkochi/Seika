@@ -13,8 +13,11 @@ import java.time.LocalDateTime;
 public class AdminTransactionDTO {
     private String id;
     private String userId;
+    private String username;
     private String walletId;
     private String type;
+    private String source;
+    private String flowDirection;
     private BigDecimal amount;
     private BigDecimal amountVnd;
     private String description;

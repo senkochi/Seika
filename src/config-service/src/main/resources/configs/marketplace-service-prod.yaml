@@ -1,4 +1,9 @@
 spring:
+  cache:
+    type: redis
+  data:
+    redis:
+      password: ${REDIS_PASSWORD}
   jpa:
     show-sql: false
 

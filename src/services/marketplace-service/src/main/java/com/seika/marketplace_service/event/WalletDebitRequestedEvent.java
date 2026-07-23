@@ -14,6 +14,7 @@ import java.math.BigDecimal;
 public class WalletDebitRequestedEvent {
     String eventId;
     String eventType;
+    String idempotencyKey;
     String orderId;
     String userId;
     BigDecimal amount;

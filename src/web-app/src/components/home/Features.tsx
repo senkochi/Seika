@@ -1,156 +1,276 @@
-import { Trophy, Bell, Brain, Store, CreditCard } from "lucide-react";
+import { Trophy, Bell, Brain, Store, CreditCard, Layers } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Images } from "../../assets/images";
 import AnimatedContent from "../reactbit/AnimatedContent";
 import { SocialProof } from "./SocialProof";
+import { cn } from "../ui/utils";
+
+/* ----------------------------------------------------------
+   Double-bezel card primitives
+   ---------------------------------------------------------- */
+
+function BezelCard({
+  children,
+  className,
+  tone = "dark",
+}: {
+  children: React.ReactNode;
+  className?: string;
+  tone?: "dark" | "light" | "gold";
+}) {
+  const shells = {
+    dark: "bg-white/[0.04] border-white/[0.06]",
+    light: "bg-[var(--color-cream)]/[0.04] border-[var(--color-cream)]/[0.08]",
+    gold: "bg-gradient-to-b from-[var(--color-gold)]/30 to-[var(--color-gold)]/[0.04] border-[var(--color-gold)]/[0.18]",
+  } as const;
+  const cores = {
+    dark: "bg-gradient-to-br from-[var(--color-ink)] to-[var(--color-home-bg)] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]",
+    light:
+      "bg-[var(--color-cream)] text-[var(--color-ink)] shadow-[inset_0_1px_1px_rgba(255,255,255,0.5)]",
+    gold: "bg-gradient-to-br from-[var(--color-ink)] via-[var(--color-home-bg)] to-[var(--color-home-bg)] shadow-[inset_0_1px_1px_rgba(212,168,67,0.18)]",
+  } as const;
+
+  return (
+    <div
+      className={cn(
+        "group h-full p-1.5 rounded-[2rem] border",
+        shells[tone],
+        "transition-all duration-500 ease-soft hover:-translate-y-1",
+        className,
+      )}
+    >
+      <div
+        className={cn(
+          "h-full rounded-[calc(2rem-0.375rem)] overflow-hidden",
+          cores[tone],
+        )}
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function IconChip({
+  children,
+  tone = "gold",
+}: {
+  children: React.ReactNode;
+  tone?: "gold" | "purple" | "blue" | "green";
+}) {
+  const tones = {
+    gold: "bg-gradient-to-br from-[#e6c264] to-[#c89a36] text-[#1c0f2e]",
+    purple: "bg-[var(--color-aubergine-2)] text-[#faf6ee]",
+    blue: "bg-[#1e3a5f] text-[#faf6ee]",
+    green: "bg-[#1d3a2e] text-[#faf6ee]",
+  } as const;
+  return (
+    <div
+      className={cn(
+        "inline-flex items-center justify-center w-12 h-12 rounded-2xl rotate-[-4deg] group-hover:rotate-0 transition-transform duration-500 ease-spring",
+        tones[tone],
+      )}
+    >
+      {children}
+    </div>
+  );
+}
+
+/* ----------------------------------------------------------
+   Features section
+   ---------------------------------------------------------- */
 
 export function Features() {
+  const { t } = useTranslation("common");
   return (
-    <section id="features" className="relative pb-48 pt-34 bg-gradient-to-b from-amber-400 via-yellow-500 to-amber-500">
-      {/* Shape Divider */}
-      <div className="pointer-events-none absolute left-0 top-0 w-full -translate-y-full overflow-hidden leading-none">
-        <svg className="relative block h-16 w-full md:h-24" viewBox="0 0 1440 140" preserveAspectRatio="none">
-          <path d="M0,120 C220,30 520,180 760,90 C980,10 1210,70 1440,30 L1440,140 L0,140 Z" fill="#ffba00" />
-        </svg>
-      </div>
-      {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
+    <section id="features" className="relative py-32 lg:py-40 overflow-hidden">
+      {/* Background atmosphere — seamless continuation from Hero */}
+      <div className="absolute inset-0 bg-glow-features pointer-events-none" />
+
+      <div className="relative max-w-[1200px] mx-auto px-6 lg:px-10">
+        {/* Section header — eyebrow + Fraunces headline + lede */}
         <AnimatedContent>
-          <SocialProof />
-          <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-purple-400 to-transparent opacity-50 mt-32" />
-        </AnimatedContent>
-        <AnimatedContent>
-          <div className="text-center mb-16 mt-32">
-            <h2 className="text-4xl md:text-5xl font-black mb-4">
-              <span className="bg-gradient-to-r from-purple-900 to-purple-700 bg-clip-text text-transparent">
-                Designed for Everyone
-              </span>
+          <div className="mb-20 max-w-3xl">
+            <span className="eyebrow">
+              <span className="inline-block w-1 h-1 rounded-full bg-[#d4a843]" />
+              {t("landing.features.badge")}
+            </span>
+            <h2
+              className="mt-6 font-display font-medium text-[#faf6ee] text-4xl md:text-5xl lg:text-6xl leading-[1.02] tracking-[-0.025em]"
+              style={{ textWrap: "balance" as const }}
+            >
+              {t("landing.features.title1")}{" "}
+              <span className="italic font-display font-light text-[#d4a843]">
+                {t("landing.features.titleHighlight")}
+              </span>{" "}
+              {t("landing.features.title2")}
             </h2>
-            <p className="text-xl text-purple-900 max-w-2xl mx-auto">
-              Whether you're a student or teacher, Seika has powerful tools to make education fun and effective.
+            <p className="mt-5 text-lg text-[#faf6ee]/65 max-w-xl">
+              {t("landing.features.description")}
             </p>
           </div>
         </AnimatedContent>
+
+        {/* Social proof above bento */}
         <AnimatedContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div className="md:col-span-1 bg-white/95 backdrop-blur-sm overflow-hidden rounded-3xl hover:scale-[1.02] transition-all shadow-md hover:shadow-lg group">
-              <img src={Images.FeatureImage1} alt="Feature 1" className="w-full h-full object-cover" />
-            </div>
+          <SocialProof />
+        </AnimatedContent>
 
-            <div className="bg-gradient-to-br from-purple-900 to-purple-800 rounded-3xl p-8 hover:scale-[1.02] transition-all shadow-md hover:shadow-lg text-white group">
-              <div className="w-16 h-16 bg-gradient-to-br from-amber-400 to-yellow-500 rounded-2xl flex items-center justify-center mb-6 shadow-lg rotate-6 group-hover:rotate-12 transition-transform">
-                <svg className="w-8 h-8 text-purple-900" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+        <div className="hairline mt-16" />
+
+        {/* Asymmetric 12-col bento */}
+        <AnimatedContent>
+          <div className="grid grid-cols-12 gap-4 lg:gap-5 mt-16 auto-rows-[minmax(180px,auto)]">
+            {/* Flashcard — large dark image-led card */}
+            <BezelCard
+              tone="dark"
+              className="col-span-12 md:col-span-7 md:row-span-2"
+            >
+              <div className="relative h-full min-h-[360px] flex flex-col">
+                <div className="p-8 lg:p-10 space-y-5">
+                  <IconChip tone="gold">
+                    <Layers className="w-5 h-5" strokeWidth={1.5} />
+                  </IconChip>
+                  <div>
+                    <p className="text-[11px] uppercase tracking-[0.18em] text-[#d4a843]/80">
+                      {t("landing.features.flashcards.badge")}
+                    </p>
+                    <h3 className="mt-2 font-display text-3xl lg:text-4xl text-[#faf6ee]">
+                      {t("landing.features.flashcards.title")}
+                    </h3>
+                  </div>
+                  <p className="text-[#faf6ee]/65 leading-relaxed max-w-md">
+                    {t("landing.features.flashcards.desc")}
+                  </p>
+                </div>
+                <div className="mt-auto -mx-px -mb-px overflow-hidden rounded-b-[calc(2rem-0.375rem)]">
+                  <img
+                    src={Images.FeatureImage1}
+                    alt="A student reviewing flashcards at a desk"
+                    className="w-full object-cover opacity-90 rounded-2xl"
                   />
-                </svg>
+                </div>
               </div>
-              <h3 className="text-2xl font-black mb-3 text-yellow-300">Flashcard Decks</h3>
-              <p className="text-lg text-yellow-400 mb-2">Study at Your Pace</p>
-              <p className="text-purple-100 leading-relaxed">
-                Build personal flashcard decks or explore public collections. Master concepts with spaced repetition.
-              </p>
-            </div>
-            <div className="md:col-span-2 bg-white/95 backdrop-blur-sm rounded-3xl p-8 hover:scale-[1.02] transition-all shadow-md hover:shadow-lg group overflow-hidden">
-              <div className="flex flex-col md:flex-row gap-6 h-full">
-                <div className="flex-1">
-                  <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg rotate-6 group-hover:rotate-12 transition-transform">
-                    <Brain className="w-8 h-8 text-white" />
-                  </div>
-                  <h3 className="text-3xl font-black mb-3 text-purple-900">Smart Quizzes</h3>
-                  <p className="text-lg text-purple-700 mb-2">Test What You Know</p>
-                  <p className="text-gray-700 leading-relaxed">
-                    Create and take quizzes with instant scoring, detailed results, and comprehensive progress tracking.
+            </BezelCard>
+
+            {/* Smart Quizzes — text card with circular badge */}
+            <BezelCard tone="dark" className="col-span-12 md:col-span-5">
+              <div className="p-8 lg:p-10 h-full flex flex-col gap-5">
+                <IconChip tone="purple">
+                  <Brain className="w-5 h-5" strokeWidth={1.5} />
+                </IconChip>
+                <div>
+                  <p className="text-[11px] uppercase tracking-[0.18em] text-[#d4a843]/80">
+                    {t("landing.features.quizzes.badge")}
                   </p>
+                  <h3 className="mt-2 font-display text-3xl text-[#faf6ee]">
+                    {t("landing.features.quizzes.title")}
+                  </h3>
                 </div>
-                <div className="md:w-74 flex items-end -mr-8 -mb-8 mt-auto overflow-hidden">
-                  <div className="w-full h-full overflow-hidden ml-auto">
-                    <img
-                      src={Images.Student1}
-                      alt="Student 1"
-                      className="w-full h-full object-cover object-center scale-123 transition-transform group-hover:scale-125 duration-500"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="md:row-span-2 bg-white/95 backdrop-blur-sm rounded-3xl p-8 hover:scale-[1.02] transition-all shadow-md hover:shadow-lg group flex flex-col overflow-hidden">
-              <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg rotate-6 group-hover:rotate-12 transition-transform">
-                <CreditCard className="w-8 h-8 text-white" />
-              </div>
-              <h3 className="text-2xl font-black mb-3 text-purple-900">Earn Coins</h3>
-              <p className="text-lg text-purple-700 mb-2">Learning Pays Off</p>
-              <p className="text-gray-700 leading-relaxed">
-                Complete quizzes and challenges to earn coins — your in-app currency for unlocking premium content.
-              </p>
-
-              <div className="mt-auto -mx-8 -mb-8 flex justify-center">
-                <img
-                  src={Images.Student2}
-                  alt="Student 2"
-                  className="w-full h-auto object-contain object-bottom transition-transform group-hover:scale-105 duration-500"
-                />
-              </div>
-            </div>
-
-            <div className="md:col-span-2 bg-gradient-to-br from-purple-900 to-violet-900 rounded-3xl p-8 hover:scale-[1.02] transition-all shadow-md hover:shadow-lg overflow-hidden relative group">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-yellow-400/10 rounded-full blur-3xl"></div>
-              <div className="relative">
-                <div className="w-16 h-16 bg-gradient-to-br from-amber-400 to-yellow-500 rounded-2xl flex items-center justify-center mb-6 shadow-lg rotate-6 group-hover:rotate-12 transition-transform">
-                  <Store className="w-8 h-8 text-purple-900" />
-                </div>
-                <h3 className="text-3xl font-black mb-3 text-yellow-300">Content Marketplace</h3>
-                <p className="text-lg text-yellow-400 mb-2">Unlock Premium Content</p>
-                <p className="text-purple-100 leading-relaxed max-w-2xl">
-                  Spend your earned coins to access exclusive quiz packs and flashcard decks from top educators
-                  worldwide.
+                <p className="text-[#faf6ee]/65 leading-relaxed">
+                  {t("landing.features.quizzes.desc")}
                 </p>
-                <div className="mt-6 flex flex-wrap gap-3">
-                  <div className="px-4 py-2 bg-purple-800/50 border border-purple-600 rounded-full text-sm text-purple-200">
-                    Premium Quizzes
-                  </div>
-                  <div className="px-4 py-2 bg-purple-800/50 border border-purple-600 rounded-full text-sm text-purple-200">
-                    Expert Flashcards
-                  </div>
-                  <div className="px-4 py-2 bg-purple-800/50 border border-purple-600 rounded-full text-sm text-purple-200">
-                    Study Guides
-                  </div>
+              </div>
+            </BezelCard>
+
+            {/* Marketplace — gold-bezel feature spotlight */}
+            <BezelCard tone="gold" className="col-span-12 md:col-span-5">
+              <div className="p-8 lg:p-10 h-full flex flex-col gap-5 relative">
+                <IconChip tone="gold">
+                  <Store className="w-5 h-5" strokeWidth={1.5} />
+                </IconChip>
+                <div>
+                  <p className="text-[11px] uppercase tracking-[0.18em] text-[#d4a843]">
+                    {t("landing.features.marketplace.badge")}
+                  </p>
+                  <h3 className="mt-2 font-display text-3xl text-[#faf6ee]">
+                    {t("landing.features.marketplace.title")}
+                  </h3>
+                </div>
+                <p className="text-[#faf6ee]/70 leading-relaxed">
+                  {t("landing.features.marketplace.desc")}
+                </p>
+                <div className="flex flex-wrap gap-2 mt-auto">
+                  {[
+                    t("landing.features.marketplace.tags.premium"),
+                    t("landing.features.marketplace.tags.expert"),
+                    t("landing.features.marketplace.tags.studyGuides"),
+                  ].map((tag) => (
+                    <span
+                      key={tag}
+                      className="px-2.5 py-1 rounded-md text-xs font-medium text-[#faf6ee]/85 bg-white/[0.06]"
+                    >
+                      {tag}
+                    </span>
+                  ))}
                 </div>
               </div>
-            </div>
+            </BezelCard>
 
-            <div className="bg-white/95 backdrop-blur-sm rounded-3xl p-8 hover:scale-[1.02] transition-all shadow-md hover:shadow-lg group">
-              <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-red-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg rotate-6 group-hover:rotate-12 transition-transform">
-                <Trophy className="w-8 h-8 text-white" />
-              </div>
-              <h3 className="text-2xl font-black mb-3 text-purple-900">Leaderboards</h3>
-              <p className="text-lg text-purple-700 mb-2">Compete & Rise</p>
-              <p className="text-gray-700 leading-relaxed">
-                See how you rank against peers. Real-time leaderboards keep the competition alive and motivating.
-              </p>
-            </div>
-
-            <div className="md:col-span-2 bg-white/95 backdrop-blur-sm rounded-3xl p-8 hover:scale-[1.02] transition-all shadow-md hover:shadow-lg group">
-              <div className="flex items-start gap-6">
-                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-2xl flex items-center justify-center shadow-lg rotate-6 group-hover:rotate-12 transition-transform flex-shrink-0">
-                  <Bell className="w-8 h-8 text-white" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-3xl font-black mb-3 text-purple-900">Stay Notified</h3>
-                  <p className="text-lg text-purple-700 mb-2">Never Miss a Beat</p>
-                  <p className="text-gray-700 leading-relaxed">
-                    Get instant notifications about new content drops, quiz results, reward milestones, and important
-                    platform updates.
+            {/* Earn coins — synchronized dark tone matching all other feature cards */}
+            <BezelCard tone="dark" className="col-span-12 md:col-span-7">
+              <div className="h-full p-8 lg:p-10 grid md:grid-cols-[1fr_auto] gap-6 items-end">
+                <div className="space-y-4">
+                  <IconChip tone="green">
+                    <CreditCard className="w-5 h-5" strokeWidth={1.5} />
+                  </IconChip>
+                  <div>
+                    <p className="text-[11px] uppercase tracking-[0.18em] text-[#d4a843]/80">
+                      {t("landing.features.rewards.badge")}
+                    </p>
+                    <h3 className="mt-2 font-display text-3xl text-[#faf6ee]">
+                      {t("landing.features.rewards.title")}
+                    </h3>
+                  </div>
+                  <p className="text-[#faf6ee]/65 leading-relaxed max-w-md">
+                    {t("landing.features.rewards.desc")}
                   </p>
                 </div>
+                <div className="font-display font-tabular text-6xl text-[#faf6ee]/10 leading-none">
+                  ✦
+                </div>
               </div>
-            </div>
-            <div className="md:col-span-1 bg-white/95 backdrop-blur-sm overflow-hidden rounded-3xl hover:scale-[1.02] transition-all shadow-md hover:shadow-lg group">
-              <img src={Images.FeatureImage2} alt="Feature 2" className="w-full h-60 object-cover" />
-            </div>
+            </BezelCard>
+
+            {/* Leaderboards — small dark */}
+            <BezelCard tone="dark" className="col-span-12 md:col-span-5">
+              <div className="p-8 h-full flex flex-col gap-5">
+                <IconChip tone="gold">
+                  <Trophy className="w-5 h-5" strokeWidth={1.5} />
+                </IconChip>
+                <div>
+                  <p className="text-[11px] uppercase tracking-[0.18em] text-[#d4a843]/80">
+                    {t("landing.features.leaderboards.badge")}
+                  </p>
+                  <h3 className="mt-2 font-display text-2xl text-[#faf6ee]">
+                    {t("landing.features.leaderboards.title")}
+                  </h3>
+                </div>
+                <p className="text-[#faf6ee]/65 leading-relaxed text-sm">
+                  {t("landing.features.leaderboards.desc")}
+                </p>
+              </div>
+            </BezelCard>
+
+            {/* Notifications — full-width slim band */}
+            <BezelCard tone="dark" className="col-span-12">
+              <div className="p-8 lg:p-10 flex flex-col md:flex-row md:items-center gap-6">
+                <IconChip tone="blue">
+                  <Bell className="w-5 h-5" strokeWidth={1.5} />
+                </IconChip>
+                <div className="flex-1">
+                  <p className="text-[11px] uppercase tracking-[0.18em] text-[#d4a843]/80">
+                    {t("landing.features.notifications.badge")}
+                  </p>
+                  <h3 className="mt-2 font-display text-2xl lg:text-3xl text-[#faf6ee]">
+                    {t("landing.features.notifications.title")}
+                  </h3>
+                </div>
+                <p className="text-[#faf6ee]/65 leading-relaxed md:max-w-xs">
+                  {t("landing.features.notifications.desc")}
+                </p>
+              </div>
+            </BezelCard>
           </div>
         </AnimatedContent>
       </div>

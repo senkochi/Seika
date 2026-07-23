@@ -14,5 +14,7 @@ public interface QuizAttemptRepository extends MongoRepository<QuizAttempt, Stri
 
     long countByQuizSetIdInAndPassed(Collection<String> quizSetIds, boolean passed);
 
+    boolean existsByUserIdAndQuizSetId(String userId, String quizSetId);
+
     List<QuizAttempt> findByQuizSetIdInOrderByAttemptAtDesc(Collection<String> quizSetIds);
 }

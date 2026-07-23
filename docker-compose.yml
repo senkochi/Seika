@@ -11,6 +11,21 @@ services:
       test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
       interval: 10s
       timeout: 5s
+    restart: unless-stopped
+
+  redis:
+    image: redis:7.4-alpine
+    command: redis-server --requirepass ${REDIS_PASSWORD:-seika_redis_secret} --maxmemory 256mb --maxmemory-policy allkeys-lru
+    ports:
+      - "6379:6379"
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-seika_redis_secret}
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-seika_redis_secret}", "ping"]
+      interval: 10s
+      timeout: 5s
       retries: 5
     restart: unless-stopped
 
@@ -211,6 +226,13 @@ services:
       RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
       IDENTITY_EVENTS_EXCHANGE: ${IDENTITY_EVENTS_EXCHANGE}
       USER_REGISTERED_ROUTING_KEY: ${USER_REGISTERED_ROUTING_KEY}
+      PUBLIC_IDENTITY_SNAPSHOT_ROUTING_KEY: ${PUBLIC_IDENTITY_SNAPSHOT_ROUTING_KEY:-user.public-identity.snapshot}
+      PUBLIC_IDENTITY_RECONCILIATION_ENABLED: ${PUBLIC_IDENTITY_RECONCILIATION_ENABLED:-true}
+      PUBLIC_IDENTITY_RECONCILIATION_BATCH_SIZE: ${PUBLIC_IDENTITY_RECONCILIATION_BATCH_SIZE:-500}
+      PUBLIC_IDENTITY_RECONCILIATION_INITIAL_DELAY_MS: ${PUBLIC_IDENTITY_RECONCILIATION_INITIAL_DELAY_MS:-30000}
+      PUBLIC_IDENTITY_RECONCILIATION_DELAY_MS: ${PUBLIC_IDENTITY_RECONCILIATION_DELAY_MS:-86400000}
+      MARKETPLACE_IDENTITY_EVENTS_QUEUE: ${MARKETPLACE_IDENTITY_EVENTS_QUEUE:-marketplace.identity-events}
+      MARKETPLACE_CONTENT_EVENTS_QUEUE: ${MARKETPLACE_CONTENT_EVENTS_QUEUE:-marketplace.content-events}
       USER_REGISTERED_QUEUE: ${USER_REGISTERED_QUEUE}
     healthcheck:
       test:
@@ -476,6 +498,7 @@ services:
     restart: unless-stopped
 
 volumes:
+  redis_data:
   mongo_data:
   identity_db:
   profile_db:

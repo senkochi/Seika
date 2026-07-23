@@ -9,6 +9,10 @@ import com.seika.identity_service.entity.RefreshToken;
 import com.seika.identity_service.dto.user_profile.UserProfileRequest;
 import com.seika.identity_service.entity.Role;
 import com.seika.identity_service.entity.User;
+import com.seika.identity_service.exception.ConflictException;
+import com.seika.identity_service.exception.InvalidRequestException;
+import com.seika.identity_service.exception.ResourceNotFoundException;
+import com.seika.identity_service.exception.TokenInvalidException;
 import com.seika.identity_service.mapper.AuthMapper;
 import com.seika.identity_service.mapper.ProfileMapper;
 import com.seika.identity_service.repository.RefreshTokenRepository;
@@ -30,6 +34,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -56,12 +61,13 @@ public class AuthService {
     private final ProfileMapper profileMapper;
     private final AuthMapper authMapper;
     private final UserEventPublisher userEventPublisher;
+    private final TokenBlacklistService tokenBlacklistService;
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
         if (userRepository.existsByUsername(request.getUsername())) {
             log.warn("Registration failed: Username {} already exists", request.getUsername());
-            throw new IllegalArgumentException("Username already exists");
+            throw new ConflictException("Username đã tồn tại: " + request.getUsername());
         }
 
         Role selectedRole = resolveSelfSelectableRole(request.getRole());
@@ -76,7 +82,7 @@ public class AuthService {
             log.info("Profile created for userId={}", savedUser.getId());
         } catch (FeignException exception) {
             log.error("Profile creation failed for userId={} with status={}", savedUser.getId(), exception.status());
-            throw new IllegalStateException("Could not create user profile. Registration rolled back.");
+            throw new InvalidRequestException("Không thể tạo user profile. Đăng ký đã được rollback.");
         }
         
         List<GrantedAuthority> authorities = savedUser.getRoles().stream()
@@ -98,7 +104,7 @@ public class AuthService {
         );
 
         User user = userRepository.findByUsername(request.getUsername())
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User", request.getUsername()));
 
         String accessToken = jwtService.generateAccessToken(authentication);
         String refreshToken = refreshTokenService.createTokenForUser(user);
@@ -109,14 +115,14 @@ public class AuthService {
     @Transactional
     public AuthResponse refresh(RefreshTokenRequest request) {
         RefreshToken refreshToken = refreshTokenRepository.findByToken(request.getRefreshToken())
-                .orElseThrow(() -> new IllegalArgumentException("Invalid refresh token"));
+                .orElseThrow(() -> new TokenInvalidException("Refresh token không hợp lệ"));
 
         if (refreshToken.isRevoked()) {
-            throw new IllegalArgumentException("Refresh token has been revoked");
+            throw new TokenInvalidException("Refresh token đã bị thu hồi");
         }
 
         if (refreshTokenService.isExpired(refreshToken)) {
-            throw new IllegalArgumentException("Refresh token has expired");
+            throw new TokenInvalidException("Refresh token đã hết hạn");
         }
 
         User user = refreshToken.getUser();
@@ -137,7 +143,7 @@ public class AuthService {
     public UserInfoResponse me() {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User", username));
 
         return authMapper.toUserInfoResponse(user);
     }
@@ -148,14 +154,36 @@ public class AuthService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
+    public void logout(String authHeader, RefreshTokenRequest request) {
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String accessToken = authHeader.substring(7);
+            try {
+                String jti = jwtService.extractJti(accessToken);
+                Date expiration = jwtService.extractExpiration(accessToken);
+                tokenBlacklistService.blacklistToken(jti, expiration);
+            } catch (Exception e) {
+                log.warn("Could not blacklist access token during logout: {}", e.getMessage());
+            }
+        }
+
+        if (request != null && request.getRefreshToken() != null && !request.getRefreshToken().isBlank()) {
+            refreshTokenRepository.findByToken(request.getRefreshToken())
+                    .ifPresent(refreshToken -> {
+                        refreshTokenService.revokeToken(refreshToken);
+                        log.info("Revoked refresh token during logout for user={}", refreshToken.getUser().getUsername());
+                    });
+        }
+    }
+
     private Role resolveSelfSelectableRole(String rawRole) {
         String normalizedRole = rawRole == null ? "" : rawRole.trim().toUpperCase(Locale.ROOT);
         if (!SELF_SELECTABLE_ROLES.contains(normalizedRole)) {
             log.warn("Registration failed: Invalid role attempted - {}", rawRole);
-            throw new IllegalArgumentException("Only STUDENT or TEACHER can be selected during registration");
+            throw new InvalidRequestException("Chỉ có thể chọn STUDENT hoặc TEACHER khi đăng ký");
         }
 
         return roleRepository.findById(normalizedRole)
-                .orElseThrow(() -> new IllegalStateException("Role not found: " + normalizedRole));
+                .orElseThrow(() -> new ResourceNotFoundException("Role", normalizedRole));
     }
 }

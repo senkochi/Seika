@@ -5,6 +5,7 @@ import com.seika.marketplace_service.enums.ProductStatus;
 import com.seika.marketplace_service.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -19,6 +20,7 @@ public class AdminProductService {
 
     private final ProductRepository productRepository;
     private final MarketplaceNotificationPublisher notificationPublisher;
+    private final MarketplaceEscrowSafetyService escrowSafetyService;
 
     @Transactional(readOnly = true)
     public Page<Product> listByStatus(ProductStatus status, int page, int size) {
@@ -32,6 +34,7 @@ public class AdminProductService {
     }
 
     @Transactional
+    @CacheEvict(value = {"marketplace:products:active", "marketplace:products:detail"}, allEntries = true)
     public Product approve(String productId) {
         Product product = mustFind(productId);
         product.setStatus(ProductStatus.PUBLISHED);
@@ -45,12 +48,14 @@ public class AdminProductService {
     }
 
     @Transactional
+    @CacheEvict(value = {"marketplace:products:active", "marketplace:products:detail"}, allEntries = true)
     public Product reject(String productId, String reason) {
         Product product = mustFind(productId);
         product.setStatus(ProductStatus.REJECTED);
         product.setActive(false);
         product.setRejectionReason(reason);
         Product saved = productRepository.save(product);
+        escrowSafetyService.cancelHeldItemsByAdmin(productId, "admin_reject_or_hide", "admin");
         log.info("Admin rejected product {} ({}) — reason: {}", productId, product.getName(), reason);
         notificationPublisher.publishContentReviewed(
                 saved.getId(), saved.getName(), saved.getType().name(), saved.getSellerUserId(), "REJECTED", reason);
@@ -58,11 +63,13 @@ public class AdminProductService {
     }
 
     @Transactional
+    @CacheEvict(value = {"marketplace:products:active", "marketplace:products:detail"}, allEntries = true)
     public Product hide(String productId) {
         Product product = mustFind(productId);
         product.setStatus(ProductStatus.HIDDEN);
         product.setActive(false);
         Product saved = productRepository.save(product);
+        escrowSafetyService.cancelHeldItemsByAdmin(productId, "admin_reject_or_hide", "admin");
         log.info("Admin hid product {} ({})", productId, product.getName());
         return saved;
     }

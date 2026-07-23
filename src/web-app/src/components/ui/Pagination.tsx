@@ -4,6 +4,8 @@ import {
   ChevronsLeft,
   ChevronsRight,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { useFormatNumber } from "../../utils/format";
 
 interface PaginationProps {
   currentPage: number; // 0-indexed
@@ -16,6 +18,11 @@ interface PaginationProps {
   className?: string;
 }
 
+/**
+ * Pagination — hairline-bordered, no drop shadow on the active pill, gold
+ * active state. Public API unchanged (still 0-indexed currentPage) so all
+ * existing callers continue to work.
+ */
 export function Pagination({
   currentPage,
   totalPages,
@@ -26,6 +33,8 @@ export function Pagination({
   pageSizeOptions = [10, 20, 50, 100],
   className = "",
 }: PaginationProps) {
+  const { t } = useTranslation("common");
+  const formatNumber = useFormatNumber();
   if (totalPages <= 1 && !totalElements) return null;
 
   const startItem = totalElements === 0 ? 0 : currentPage * pageSize + 1;
@@ -34,7 +43,6 @@ export function Pagination({
       ? (currentPage + 1) * pageSize
       : Math.min((currentPage + 1) * pageSize, totalElements);
 
-  // Generate page numbers to display (0-indexed internally)
   const getPageNumbers = () => {
     const pages: (number | "ellipsis")[] = [];
     if (totalPages <= 7) {
@@ -42,7 +50,6 @@ export function Pagination({
         pages.push(i);
       }
     } else {
-      // Always add first page
       pages.push(0);
 
       if (currentPage > 2) {
@@ -60,7 +67,6 @@ export function Pagination({
         pages.push("ellipsis");
       }
 
-      // Always add last page
       if (totalPages > 1) {
         pages.push(totalPages - 1);
       }
@@ -70,44 +76,39 @@ export function Pagination({
 
   const pages = getPageNumbers();
 
+  const btnBase =
+    "flex h-8 min-w-[2rem] items-center justify-center px-2.5 rounded-lg border text-xs font-sans-ui transition-colors tabular-nums";
+
   return (
     <div
-      className={`flex flex-col sm:flex-row items-center justify-between gap-4 py-4 border-t border-[var(--border)] text-sm text-[var(--muted-foreground)] ${className}`}
+      className={`flex flex-col sm:flex-row items-center justify-between gap-4 py-4 border-t border-white/[0.06] text-sm text-white/55 font-sans-ui ${className}`}
     >
       <div className="flex items-center gap-4">
         {totalElements !== undefined && (
           <div>
-            Hiển thị{" "}
-            <span className="font-semibold text-[var(--foreground)]">
-              {startItem}
-            </span>{" "}
-            -{" "}
-            <span className="font-semibold text-[var(--foreground)]">
-              {endItem}
-            </span>{" "}
-            trên tổng số{" "}
-            <span className="font-semibold text-[var(--foreground)]">
-              {new Intl.NumberFormat("vi-VN").format(totalElements)}
-            </span>{" "}
-            kết quả
+            {t("pagination.showing", {
+              start: startItem,
+              end: endItem,
+              total: formatNumber(totalElements),
+            })}
           </div>
         )}
 
         {onPageSizeChange && (
           <div className="flex items-center gap-2">
-            <span>Hiển thị:</span>
+            <span>{t("pagination.perPageLabel")}</span>
             <select
               value={pageSize}
               onChange={(e) => onPageSizeChange(Number(e.target.value))}
-              className="rounded-xl border border-[var(--border)] bg-[rgba(255,255,255,0.06)] px-2.5 py-1 text-xs font-medium text-[var(--foreground)] focus:outline-none focus:border-[var(--ring)] transition-colors"
+              className="rounded-lg border border-white/[0.08] bg-white/[0.04] px-2 py-1 text-xs font-medium text-cream focus:outline-none focus:border-[#d4a843]/50 transition-colors"
             >
               {pageSizeOptions.map((size) => (
                 <option
                   key={size}
                   value={size}
-                  className="bg-[var(--card)] text-[var(--foreground)]"
+                  className="bg-[#1c0f2e] text-cream"
                 >
-                  {size} / trang
+                  {t("pagination.perPage", { size })}
                 </option>
               ))}
             </select>
@@ -116,22 +117,24 @@ export function Pagination({
       </div>
 
       {totalPages > 1 && (
-        <div className="flex items-center gap-1.5">
+        <nav aria-label="Pagination" className="flex items-center gap-1.5">
           <button
             onClick={() => onPageChange(0)}
             disabled={currentPage === 0}
-            title="Trang đầu"
-            className="flex h-8 w-8 items-center justify-center rounded-xl border border-[var(--border)] bg-[rgba(255,255,255,0.04)] text-[var(--foreground)] hover:bg-[rgba(255,255,255,0.1)] disabled:opacity-30 disabled:pointer-events-none transition-all"
+            title={t("pagination.firstPage")}
+            aria-label={t("pagination.firstPage")}
+            className={`${btnBase} bg-white/[0.02] border-white/[0.08] text-white/65 hover:bg-white/[0.06] hover:text-cream disabled:opacity-30 disabled:pointer-events-none`}
           >
-            <ChevronsLeft className="h-4 w-4" />
+            <ChevronsLeft className="h-3.5 w-3.5" />
           </button>
           <button
             onClick={() => onPageChange(currentPage - 1)}
             disabled={currentPage === 0}
-            title="Trang trước"
-            className="flex h-8 w-8 items-center justify-center rounded-xl border border-[var(--border)] bg-[rgba(255,255,255,0.04)] text-[var(--foreground)] hover:bg-[rgba(255,255,255,0.1)] disabled:opacity-30 disabled:pointer-events-none transition-all"
+            title={t("pagination.previousPage")}
+            aria-label={t("pagination.previousPage")}
+            className={`${btnBase} bg-white/[0.02] border-white/[0.08] text-white/65 hover:bg-white/[0.06] hover:text-cream disabled:opacity-30 disabled:pointer-events-none`}
           >
-            <ChevronLeft className="h-4 w-4" />
+            <ChevronLeft className="h-3.5 w-3.5" />
           </button>
 
           <div className="flex items-center gap-1 px-1">
@@ -140,9 +143,10 @@ export function Pagination({
                 return (
                   <span
                     key={`ellipsis-${idx}`}
-                    className="px-2 text-xs text-[var(--muted-foreground)]"
+                    className="px-2 text-xs text-white/30"
+                    aria-hidden="true"
                   >
-                    •••
+                    …
                   </span>
                 );
               }
@@ -152,11 +156,13 @@ export function Pagination({
                 <button
                   key={page}
                   onClick={() => onPageChange(page)}
-                  className={`min-w-[2rem] h-8 px-2.5 rounded-xl text-xs font-bold transition-all ${
+                  aria-current={isCurrent ? "page" : undefined}
+                  aria-label={t("pagination.pageNumber", { page: page + 1 })}
+                  className={
                     isCurrent
-                      ? "bg-[var(--primary)] text-[var(--primary-foreground)] shadow-md shadow-[var(--primary)]/20 border border-[var(--primary)]"
-                      : "border border-[var(--border)] bg-[rgba(255,255,255,0.04)] text-[var(--foreground)] hover:bg-[rgba(255,255,255,0.1)] hover:border-[var(--foreground)]/20"
-                  }`}
+                      ? `${btnBase} bg-[#d4a843]/10 border-[#d4a843]/30 text-[#d4a843]`
+                      : `${btnBase} bg-white/[0.02] border-white/[0.08] text-white/65 hover:bg-white/[0.06] hover:text-cream`
+                  }
                 >
                   {page + 1}
                 </button>
@@ -167,20 +173,22 @@ export function Pagination({
           <button
             onClick={() => onPageChange(currentPage + 1)}
             disabled={currentPage >= totalPages - 1}
-            title="Trang sau"
-            className="flex h-8 w-8 items-center justify-center rounded-xl border border-[var(--border)] bg-[rgba(255,255,255,0.04)] text-[var(--foreground)] hover:bg-[rgba(255,255,255,0.1)] disabled:opacity-30 disabled:pointer-events-none transition-all"
+            title={t("pagination.nextPage")}
+            aria-label={t("pagination.nextPage")}
+            className={`${btnBase} bg-white/[0.02] border-white/[0.08] text-white/65 hover:bg-white/[0.06] hover:text-cream disabled:opacity-30 disabled:pointer-events-none`}
           >
-            <ChevronRight className="h-4 w-4" />
+            <ChevronRight className="h-3.5 w-3.5" />
           </button>
           <button
             onClick={() => onPageChange(totalPages - 1)}
             disabled={currentPage >= totalPages - 1}
-            title="Trang cuối"
-            className="flex h-8 w-8 items-center justify-center rounded-xl border border-[var(--border)] bg-[rgba(255,255,255,0.04)] text-[var(--foreground)] hover:bg-[rgba(255,255,255,0.1)] disabled:opacity-30 disabled:pointer-events-none transition-all"
+            title={t("pagination.lastPage")}
+            aria-label={t("pagination.lastPage")}
+            className={`${btnBase} bg-white/[0.02] border-white/[0.08] text-white/65 hover:bg-white/[0.06] hover:text-cream disabled:opacity-30 disabled:pointer-events-none`}
           >
-            <ChevronsRight className="h-4 w-4" />
+            <ChevronsRight className="h-3.5 w-3.5" />
           </button>
-        </div>
+        </nav>
       )}
     </div>
   );

@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import {
   BarChart3,
@@ -8,6 +9,7 @@ import {
   Loader2,
   RefreshCcw,
   TrendingUp,
+  ShieldAlert,
 } from "lucide-react";
 import {
   Bar,
@@ -21,57 +23,33 @@ import {
 
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { fetchAdminDashboard } from "../../store/adminSlice";
+import { PageHeader } from "../../components/ui/PageHeader";
+import { SectionCard } from "../../components/ui/SectionCard";
+import { StatCard } from "../../components/ui/StatCard";
+import { Button } from "../../components/ui/Button";
+import { EmptyState } from "../../components/ui/EmptyState";
+import { useFormatNumber } from "../../utils/format";
 
-const numberFormatter = new Intl.NumberFormat("vi-VN");
-
-function formatNumber(value: number | undefined | null) {
-  return numberFormatter.format(value ?? 0);
-}
-
-function StatCard({
-  label,
-  value,
-  icon: Icon,
-  accent,
-}: {
-  label: string;
-  value: string;
-  icon: typeof Users;
-  accent: string;
-}) {
+function LoadingState() {
+  const { t } = useTranslation("admin");
   return (
-    <div className="bg-[var(--card)] backdrop-blur-xl border border-[var(--border)] rounded-2xl p-6 shadow-[0_20px_60px_rgba(10,10,20,0.28)] hover:border-[var(--primary)] transition-colors">
-      <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0">
-          <p className="text-[var(--muted-foreground)] text-sm font-medium">
-            {label}
-          </p>
-          <p className="mt-3 text-2xl font-bold text-[var(--foreground)] truncate">
-            {value}
-          </p>
-        </div>
-        <div
-          className={`flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br ${accent}`}
-        >
-          <Icon className="h-6 w-6 text-white" />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function LoadingState({ message }: { message: string }) {
-  return (
-    <div className="p-8 flex items-center justify-center min-h-[60vh]">
-      <div className="flex flex-col items-center gap-4 text-[var(--muted-foreground)]">
-        <Loader2 className="w-10 h-10 animate-spin text-[var(--primary)]" />
-        <p>{message}</p>
+    <div className="p-6 lg:p-8 flex items-center justify-center min-h-[60vh]">
+      <div className="flex flex-col items-center gap-4 text-white/55 font-sans-ui">
+        <Loader2
+          className="w-8 h-8 animate-spin text-[#d4a843]"
+          aria-hidden="true"
+        />
+        <p>{t("dashboard.loading")}</p>
       </div>
     </div>
   );
 }
 
 function AdminDashboardHome() {
+  const { t } = useTranslation("admin");
+  const formatNum = useFormatNumber();
+  const formatNumber = (value: number | undefined | null) =>
+    formatNum(value ?? 0);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { dashboard, dashboardStatus, dashboardError } = useAppSelector(
@@ -83,27 +61,27 @@ function AdminDashboardHome() {
   }, [dispatch]);
 
   if (dashboardStatus === "loading" && !dashboard) {
-    return <LoadingState message="Đang tải dashboard admin..." />;
+    return <LoadingState />;
   }
 
   if (dashboardStatus === "failed" && !dashboard) {
     return (
-      <div className="p-8 flex items-center justify-center min-h-[60vh]">
-        <div className="flex flex-col items-center gap-4 text-center">
-          <div className="text-4xl">⚠️</div>
-          <p className="text-[var(--foreground)] font-bold">
-            Không thể tải dashboard
-          </p>
-          <p className="text-[var(--muted-foreground)] text-sm">
-            {dashboardError}
-          </p>
-          <button
-            onClick={() => dispatch(fetchAdminDashboard())}
-            className="inline-flex items-center gap-2 rounded-xl bg-[var(--primary)] px-4 py-2 text-sm font-medium text-[var(--primary-foreground)] hover:opacity-90"
-          >
-            <RefreshCcw className="h-4 w-4" /> Thử lại
-          </button>
-        </div>
+      <div className="p-6 lg:p-8">
+        <EmptyState
+          icon={<ShieldAlert className="w-5 h-5" aria-hidden="true" />}
+          title={t("dashboard.error.title")}
+          description={dashboardError ?? t("dashboard.error.description")}
+          action={
+            <Button
+              variant="ghost"
+              size="md"
+              onClick={() => dispatch(fetchAdminDashboard())}
+            >
+              <RefreshCcw className="h-4 w-4" aria-hidden="true" />
+              Thử lại
+            </Button>
+          }
+        />
       </div>
     );
   }
@@ -120,69 +98,69 @@ function AdminDashboardHome() {
     d?.pendingProducts === -1 ? "N/A" : formatNumber(d?.pendingProducts ?? 0);
 
   const chartData = [
-    { name: "Teacher", value: d?.totalTeachers ?? 0 },
-    { name: "Student", value: d?.totalStudents ?? 0 },
-    { name: "Locked", value: d?.totalDisabledUsers ?? 0 },
+    { name: t("dashboard.chart.teacher"), value: d?.totalTeachers ?? 0 },
+    { name: t("dashboard.chart.student"), value: d?.totalStudents ?? 0 },
+    { name: t("dashboard.chart.locked"), value: d?.totalDisabledUsers ?? 0 },
   ];
 
   return (
-    <div className="space-y-6 p-6 lg:p-8">
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <div>
-          <h1 className="flex items-center gap-3 text-2xl font-bold text-[var(--foreground)]">
-            <BarChart3 className="h-7 w-7 text-[var(--primary)]" />
-            Admin Dashboard
-          </h1>
-          <p className="mt-1 text-sm text-[var(--muted-foreground)]">
-            Tổng quan hệ thống: người dùng, nội dung chờ duyệt và coin lưu hành.
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => navigate("/admin/dashboard/revenue")}
-            className="inline-flex items-center gap-2 rounded-xl bg-[var(--primary)] px-4 py-2 text-sm font-bold text-[var(--primary-foreground)] hover:opacity-90 shadow-md transition-all"
-          >
-            <TrendingUp className="h-4 w-4" /> Quản lý Thu nhập
-          </button>
-          <button
-            onClick={() => dispatch(fetchAdminDashboard())}
-            className="inline-flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-sm font-medium text-[var(--foreground)] hover:border-[var(--primary)]"
-          >
-            <RefreshCcw className="h-4 w-4" /> Làm mới
-          </button>
-        </div>
-      </div>
+    <div className="space-y-8 p-6 lg:p-8">
+      <PageHeader
+        title={t("dashboard.title")}
+        subtitle={t("dashboard.subtitle")}
+        actions={
+          <div className="flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="md"
+              onClick={() => navigate("/admin/dashboard/revenue")}
+            >
+              <TrendingUp className="h-4 w-4" aria-hidden="true" />
+              {t("dashboard.manageRevenue")}
+            </Button>
+            <Button
+              variant="primary"
+              size="md"
+              onClick={() => dispatch(fetchAdminDashboard())}
+            >
+              <RefreshCcw className="h-4 w-4" aria-hidden="true" />
+              {t("dashboard.error.retry")}
+            </Button>
+          </div>
+        }
+      />
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
         <StatCard
-          label="Tổng giáo viên"
+          label={t("dashboard.stats.totalTeachers")}
           value={formatNumber(d?.totalTeachers ?? 0)}
-          icon={Users}
-          accent="from-amber-400 to-yellow-500"
+          icon={<Users className="w-4 h-4" aria-hidden="true" />}
+          iconVariant="gold"
         />
         <StatCard
-          label="Tổng học sinh"
+          label={t("dashboard.stats.totalStudents")}
           value={formatNumber(d?.totalStudents ?? 0)}
-          icon={Users}
-          accent="from-blue-500 to-cyan-600"
+          icon={<Users className="w-4 h-4" aria-hidden="true" />}
+          iconVariant="info"
         />
         <StatCard
-          label="Sản phẩm chờ duyệt"
+          label={t("dashboard.stats.pendingProducts")}
           value={pendingDisplay}
-          icon={Package}
-          accent="from-rose-500 to-pink-600"
+          icon={<Package className="w-4 h-4" aria-hidden="true" />}
+          iconVariant="danger"
         />
         <StatCard
-          label="Coin lưu hành"
+          label={t("dashboard.stats.circulation")}
           value={circulationDisplay}
-          icon={WalletIcon}
-          accent="from-emerald-500 to-teal-600"
+          icon={<WalletIcon className="w-4 h-4" aria-hidden="true" />}
+          iconVariant="success"
         />
       </div>
 
-      <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-6 shadow-[0_20px_60px_rgba(10,10,20,0.28)]">
-        <h2 className="mb-4 text-lg font-semibold text-[var(--foreground)]">
-          Người dùng theo vai trò
+      <SectionCard>
+        <h2 className="font-sans-ui text-base font-semibold text-cream mb-4 flex items-center gap-2">
+          <BarChart3 className="w-4 h-4 text-[#d4a843]" aria-hidden="true" />
+          {t("dashboard.section.title")}
         </h2>
         <div className="h-[300px] w-full">
           <ResponsiveContainer width="100%" height="100%">
@@ -190,38 +168,39 @@ function AdminDashboardHome() {
               data={chartData}
               margin={{ top: 10, right: 16, left: 0, bottom: 0 }}
             >
-              <CartesianGrid stroke="var(--border)" strokeDasharray="3 3" />
+              <CartesianGrid
+                stroke="rgba(255,255,255,0.06)"
+                strokeDasharray="3 3"
+                vertical={false}
+              />
               <XAxis
                 dataKey="name"
-                stroke="var(--muted-foreground)"
+                stroke="rgba(255,255,255,0.45)"
                 fontSize={12}
+                tickLine={false}
               />
-              <YAxis stroke="var(--muted-foreground)" fontSize={12} />
+              <YAxis
+                stroke="rgba(255,255,255,0.45)"
+                fontSize={12}
+                tickLine={false}
+              />
               <Tooltip
-                cursor={false}
-                shared={false}
-                isAnimationActive={false}
+                cursor={{ fill: "rgba(255,255,255,0.04)" }}
                 contentStyle={{
-                  background: "var(--card)",
-                  border: "1px solid var(--border)",
-                  color: "var(--foreground)",
-                  borderRadius: "8px",
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.25)",
+                  background: "#1c0f2e",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  color: "#faf6ee",
+                  borderRadius: "0.75rem",
+                  fontSize: "12px",
                 }}
-                labelStyle={{
-                  color: "var(--muted-foreground)",
-                  fontWeight: "bold",
-                }}
+                labelStyle={{ color: "rgba(255,255,255,0.55)" }}
+                itemStyle={{ color: "#d4a843" }}
               />
-              <Bar
-                dataKey="value"
-                fill="var(--primary)"
-                radius={[8, 8, 0, 0]}
-              />
+              <Bar dataKey="value" fill="#d4a843" radius={[6, 6, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
-      </div>
+      </SectionCard>
     </div>
   );
 }

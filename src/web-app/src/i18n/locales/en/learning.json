@@ -1,0 +1,75 @@
+{
+  "hub": {
+    "title": "Learning Hub",
+    "subtitle": "Pick a flashcard deck or quiz you've bought and start revising.",
+    "loading": "Loading your library…",
+    "flashcardSection": "Flashcard decks",
+    "quizSection": "Quizzes"
+  },
+  "productCard": {
+    "ownedBadge": "Owned",
+    "noDescription": "No description yet.",
+    "studyFlashcard": "Study now",
+    "takeQuiz": "Take quiz"
+  },
+  "emptyState": {
+    "flashcard": {
+      "title": "No flashcard decks yet",
+      "description": "Buy a deck from the Marketplace to start learning."
+    },
+    "quiz": {
+      "title": "No quizzes yet",
+      "description": "Buy a quiz from the Marketplace to start practising."
+    }
+  },
+  "sessionCommon": {
+    "backToModeration": "Back to moderation",
+    "adminPreview": "Admin Preview Mode",
+    "backToLearningHub": "Back to Learning Hub",
+    "completedBadge": "Completed",
+    "needsPracticeBadge": "Needs Practice",
+    "xpGained": "XP gained",
+    "coinsEarned": "Coins earned"
+  },
+  "flashcardDetail": {
+    "loading": "Loading flashcard deck…",
+    "notFound": "Flashcard deck not found.",
+    "exitSession": "Exit session",
+    "progressCard": "Card {{current}} / {{total}}",
+    "ariaReveal": "Show question",
+    "ariaFlip": "Flip card to reveal answer",
+    "frontLabel": "Front side",
+    "speakTitle": "Listen pronunciation",
+    "clickToFlip": "Click card to flip",
+    "backLabel": "Back side",
+    "clickToQuestion": "Click card to view question",
+    "shortcutFlip": "flip card",
+    "shortcutAnswer": "review / mastered",
+    "actionReview": "Review (1)",
+    "actionMastered": "Mastered (2)",
+    "actionFlipAnswer": "Flip card to reveal answer",
+    "completedTitle": "Deck Completed!",
+    "completedDesc": "You just completed the session \"{{title}}\".",
+    "cooldownNotice": "Currently on cooldown (1 day). You will be eligible for XP/Coin rewards after: {{time}}",
+    "oneDay": "1 day",
+    "masteryScore": "{{correct}} / {{total}} cards",
+    "masteryPercentage": "{{percent}}% correct",
+    "studyAgain": "Study again"
+  },
+  "quizDetail": {
+    "loading": "Loading quiz…",
+    "notFound": "Quiz not found.",
+    "exitSession": "Exit quiz",
+    "progressQuestion": "Question {{current}} / {{total}}",
+    "checkAnswer": "Check answer",
+    "nextQuestion": "Next question",
+    "finishQuiz": "Finish quiz",
+    "completedTitle": "Quiz Completed!",
+    "completedDesc": "You just completed the session \"{{title}}\".",
+    "alreadyCompletedNotice": "Quiz rewards are only given on the first completion. You have already completed this quiz.",
+    "minScoreNotice": "You need at least 70% accuracy to earn Coin & XP rewards (current: {{percentage}}%).",
+    "accuracyScore": "{{correct}} / {{total}} correct",
+    "accuracyPercentage": "{{percent}}% accuracy",
+    "tryAgain": "Try again"
+  }
+}

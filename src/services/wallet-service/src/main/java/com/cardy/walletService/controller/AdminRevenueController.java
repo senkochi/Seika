@@ -28,9 +28,11 @@ public class AdminRevenueController {
 
     @GetMapping("/transactions")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<AdminTransactionDTO>> getSystemTransactions(
-            @RequestParam(required = false, defaultValue = "ALL") String type) {
-        log.info("Admin request system transactions with type={}", type);
-        return ResponseEntity.ok(adminRevenueService.getSystemTransactions(type));
+    public ResponseEntity<org.springframework.data.domain.Page<AdminTransactionDTO>> getSystemTransactions(
+            @RequestParam(required = false, defaultValue = "ALL") String type,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        log.info("Admin request system transactions with type={}, page={}, size={}", type, page, size);
+        return ResponseEntity.ok(adminRevenueService.getSystemTransactions(type, page, size));
     }
 }

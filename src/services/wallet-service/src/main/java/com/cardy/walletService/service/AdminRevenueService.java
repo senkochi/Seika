@@ -1,11 +1,13 @@
 package com.cardy.walletService.service;
 
-import com.cardy.walletService.domain.Transaction;
 import com.cardy.walletService.domain.Wallet;
+import com.cardy.walletService.domain.WalletLedgerEntry;
 import com.cardy.walletService.dto.admin.AdminRevenueStatsDTO;
 import com.cardy.walletService.dto.admin.AdminTransactionDTO;
-import com.cardy.walletService.enums.TransactionType;
+import com.cardy.walletService.enums.WalletLedgerSource;
+import com.cardy.walletService.enums.WalletLedgerType;
 import com.cardy.walletService.repository.TransactionRepository;
+import com.cardy.walletService.repository.WalletLedgerEntryRepository;
 import com.cardy.walletService.repository.WalletRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,10 +15,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
-import java.util.Objects;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
@@ -25,12 +25,9 @@ import java.util.stream.Collectors;
 public class AdminRevenueService {
 
     private final TransactionRepository transactionRepository;
+    private final WalletLedgerEntryRepository walletLedgerEntryRepository;
     private final WalletRepository walletRepository;
     private final SystemConfigService systemConfigService;
-
-    private static final Pattern TOPUP_VND_PATTERN = Pattern.compile("Nạp tiền:\\s*([0-9.]+)\\s*VNĐ");
-    private static final Pattern CASHOUT_VND_PATTERN = Pattern.compile("=\\s*([0-9.]+)\\s*VNĐ");
-    private static final Pattern GENERIC_VND_PATTERN = Pattern.compile("([0-9.]+)\\s*VNĐ");
 
     @Transactional(readOnly = true)
     public AdminRevenueStatsDTO getRevenueStats() {
@@ -39,59 +36,91 @@ public class AdminRevenueService {
         BigDecimal currentWithdrawalRate = systemConfigService.getBigDecimal(
                 SystemConfigService.KEY_WITHDRAWAL_VND_PER_COIN, new BigDecimal("90"));
 
-        List<Transaction> allTransactions = transactionRepository.findAll();
+        List<WalletLedgerEntry> allLedgerEntries = walletLedgerEntryRepository.findAll();
 
         BigDecimal totalTopupCoins = BigDecimal.ZERO;
         BigDecimal totalTopupVnd = BigDecimal.ZERO;
         BigDecimal totalWithdrawalCoins = BigDecimal.ZERO;
         BigDecimal totalWithdrawalVnd = BigDecimal.ZERO;
+        BigDecimal paidBackedFeeCoins = BigDecimal.ZERO;
+        BigDecimal promoSinkCoins = BigDecimal.ZERO;
 
-        for (Transaction tx : allTransactions) {
-            if (tx.getType() == TransactionType.TOP_UP) {
-                totalTopupCoins = totalTopupCoins.add(tx.getAmount());
-                BigDecimal vnd = resolveVnd(tx, currentTopupRate, true);
-                totalTopupVnd = totalTopupVnd.add(vnd);
-            } else if (tx.getType() == TransactionType.CASH_OUT) {
-                BigDecimal absAmount = tx.getAmount() != null ? tx.getAmount().abs() : BigDecimal.ZERO;
+        for (WalletLedgerEntry entry : allLedgerEntries) {
+            if (entry.getType() == WalletLedgerType.TOP_UP) {
+                BigDecimal coins = zeroIfNull(entry.getAmount());
+                totalTopupCoins = totalTopupCoins.add(coins);
+                totalTopupVnd = totalTopupVnd.add(resolveLedgerVnd(entry, currentTopupRate));
+            } else if (entry.getType() == WalletLedgerType.CASH_OUT) {
+                BigDecimal absAmount = absAmount(entry);
                 totalWithdrawalCoins = totalWithdrawalCoins.add(absAmount);
-                BigDecimal vnd = resolveVnd(tx, currentWithdrawalRate, false);
-                totalWithdrawalVnd = totalWithdrawalVnd.add(vnd);
+                totalWithdrawalVnd = totalWithdrawalVnd.add(resolveLedgerVnd(entry, currentWithdrawalRate));
+            } else if (entry.getType() == WalletLedgerType.PLATFORM_FEE_REAL) {
+                paidBackedFeeCoins = paidBackedFeeCoins.add(absAmount(entry));
+            } else if (entry.getType() == WalletLedgerType.PLATFORM_FEE_PROMO_SINK) {
+                promoSinkCoins = promoSinkCoins.add(absAmount(entry));
             }
         }
 
-        BigDecimal netRevenueVnd = totalTopupVnd.subtract(totalWithdrawalVnd);
-
-        BigDecimal totalCoinCirculation = walletRepository.findAll().stream()
-                .map(Wallet::getBalance)
-                .filter(Objects::nonNull)
+        List<Wallet> wallets = walletRepository.findAll();
+        BigDecimal withdrawableCoinCirculation = wallets.stream()
+                .map(wallet -> zeroIfNull(wallet.getEarnedWithdrawableBalance()))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal paidCoinCirculation = wallets.stream()
+                .map(wallet -> zeroIfNull(wallet.getPaidBalance()))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal nonWithdrawableCoinCirculation = wallets.stream()
+                .map(wallet -> zeroIfNull(wallet.getBonusBalance())
+                        .add(zeroIfNull(wallet.getRewardBalance()))
+                        .add(zeroIfNull(wallet.getPaidBalance()))
+                        .add(zeroIfNull(wallet.getEarnedPromoBalance())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        BigDecimal potentialLiabilityVnd = totalCoinCirculation.multiply(currentWithdrawalRate);
-        BigDecimal guaranteedProfitVnd = netRevenueVnd.subtract(potentialLiabilityVnd);
+        BigDecimal netRevenueVnd = totalTopupVnd.subtract(totalWithdrawalVnd);
+        BigDecimal averageTopupRate = averageRate(totalTopupVnd, totalTopupCoins);
+        BigDecimal averageWithdrawalRate = averageRate(totalWithdrawalVnd, totalWithdrawalCoins);
+        BigDecimal paidBackedFeeEstimatedVnd = paidBackedFeeCoins.multiply(currentTopupRate);
+        BigDecimal cashOutLiabilityVnd = withdrawableCoinCirculation.multiply(currentWithdrawalRate);
+        BigDecimal totalCoinCirculation = withdrawableCoinCirculation.add(nonWithdrawableCoinCirculation);
+        BigDecimal netCashAfterCurrentLiabilityVnd = netRevenueVnd.subtract(cashOutLiabilityVnd);
 
         return AdminRevenueStatsDTO.builder()
                 .totalTopupCoins(totalTopupCoins)
                 .totalTopupVnd(totalTopupVnd)
                 .totalWithdrawalCoins(totalWithdrawalCoins)
                 .totalWithdrawalVnd(totalWithdrawalVnd)
+                .averageTopupRate(averageTopupRate)
+                .averageWithdrawalRate(averageWithdrawalRate)
+                // Compatibility alias: historical clients still read realRevenueVnd.
+                .realRevenueVnd(paidBackedFeeEstimatedVnd)
+                .paidBackedFeeEstimatedVnd(paidBackedFeeEstimatedVnd)
+                .paidBackedFeeCoins(paidBackedFeeCoins)
+                .promoSinkCoins(promoSinkCoins)
+                .cashOutLiabilityVnd(cashOutLiabilityVnd)
+                .withdrawableCoinCirculation(withdrawableCoinCirculation)
+                .paidCoinCirculation(paidCoinCirculation)
+                .nonWithdrawableCoinCirculation(nonWithdrawableCoinCirculation)
                 .netRevenueVnd(netRevenueVnd)
                 .totalCoinCirculation(totalCoinCirculation)
-                .potentialLiabilityVnd(potentialLiabilityVnd)
-                .guaranteedProfitVnd(guaranteedProfitVnd)
+                .potentialLiabilityVnd(cashOutLiabilityVnd)
+                // Compatibility alias: this is a current snapshot, not guaranteed profit.
+                .guaranteedProfitVnd(netCashAfterCurrentLiabilityVnd)
+                .netCashAfterCurrentLiabilityVnd(netCashAfterCurrentLiabilityVnd)
                 .currentTopupRate(currentTopupRate)
                 .currentWithdrawalRate(currentWithdrawalRate)
                 .build();
     }
 
     @Transactional(readOnly = true)
-    public List<AdminTransactionDTO> getSystemTransactions(String typeFilter) {
-        List<Transaction> transactions;
+    public org.springframework.data.domain.Page<AdminTransactionDTO> getSystemTransactions(String typeFilter, int page, int size) {
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size);
+        org.springframework.data.domain.Page<WalletLedgerEntry> ledgerEntriesPage;
+        
         if ("TOP_UP".equalsIgnoreCase(typeFilter)) {
-            transactions = transactionRepository.findByTypeInOrderByCreatedAtDesc(List.of(TransactionType.TOP_UP));
+            ledgerEntriesPage = walletLedgerEntryRepository.findByTypeInOrderByCreatedAtDesc(List.of(WalletLedgerType.TOP_UP), pageable);
         } else if ("CASH_OUT".equalsIgnoreCase(typeFilter)) {
-            transactions = transactionRepository.findByTypeInOrderByCreatedAtDesc(List.of(TransactionType.CASH_OUT));
+            ledgerEntriesPage = walletLedgerEntryRepository.findByTypeInOrderByCreatedAtDesc(List.of(WalletLedgerType.CASH_OUT), pageable);
         } else {
-            transactions = transactionRepository.findAllByOrderByCreatedAtDesc();
+            ledgerEntriesPage = walletLedgerEntryRepository.findAllByOrderByCreatedAtDesc(pageable);
         }
 
         BigDecimal currentTopupRate = systemConfigService.getBigDecimal(
@@ -99,48 +128,85 @@ public class AdminRevenueService {
         BigDecimal currentWithdrawalRate = systemConfigService.getBigDecimal(
                 SystemConfigService.KEY_WITHDRAWAL_VND_PER_COIN, new BigDecimal("90"));
 
-        return transactions.stream().map(tx -> {
-            BigDecimal vnd = BigDecimal.ZERO;
-            if (tx.getType() == TransactionType.TOP_UP) {
-                vnd = resolveVnd(tx, currentTopupRate, true);
-            } else if (tx.getType() == TransactionType.CASH_OUT) {
-                vnd = resolveVnd(tx, currentWithdrawalRate, false);
-            }
+        return ledgerEntriesPage.map(entry -> {
+            BigDecimal vnd = resolveAdminTransactionVnd(entry, currentTopupRate, currentWithdrawalRate);
 
-            String userIdStr = (tx.getWallet() != null && tx.getWallet().getUserId() != null)
-                    ? tx.getWallet().getUserId().toString() : "N/A";
-            String walletIdStr = (tx.getWallet() != null && tx.getWallet().getId() != null)
-                    ? tx.getWallet().getId().toString() : "N/A";
+            String userIdStr = entry.getUserId() != null ? entry.getUserId().toString() : "N/A";
+            String username = entry.getWallet() != null
+                    ? entry.getWallet().getUsername() : null;
+            String walletIdStr = (entry.getWallet() != null && entry.getWallet().getId() != null)
+                    ? entry.getWallet().getId().toString() : "N/A";
 
             return AdminTransactionDTO.builder()
-                    .id(tx.getId() != null ? tx.getId().toString() : "")
+                    .id(entry.getId() != null ? entry.getId().toString() : "")
                     .userId(userIdStr)
+                    .username(username)
                     .walletId(walletIdStr)
-                    .type(tx.getType() != null ? tx.getType().toString() : "")
-                    .amount(tx.getAmount())
+                    .type(entry.getType() != null ? entry.getType().toString() : "")
+                    .source(entry.getSource() != null ? entry.getSource().toString() : "")
+                    .flowDirection(resolveAdminFlowDirection(entry.getType(), entry.getSource()))
+                    .amount(entry.getAmount())
                     .amountVnd(vnd)
-                    .description(tx.getDescription())
-                    .createdAt(tx.getCreatedAt())
+                    .description(entry.getDescription())
+                    .createdAt(entry.getCreatedAt())
                     .build();
-        }).collect(Collectors.toList());
+        });
     }
 
-    private BigDecimal resolveVnd(Transaction tx, BigDecimal defaultRate, boolean isTopUp) {
-        if (tx.getDescription() != null) {
-            Matcher m = isTopUp ? TOPUP_VND_PATTERN.matcher(tx.getDescription()) : CASHOUT_VND_PATTERN.matcher(tx.getDescription());
-            if (m.find()) {
-                try {
-                    return new BigDecimal(m.group(1));
-                } catch (Exception ignored) {}
-            }
-            Matcher generic = GENERIC_VND_PATTERN.matcher(tx.getDescription());
-            if (generic.find()) {
-                try {
-                    return new BigDecimal(generic.group(1));
-                } catch (Exception ignored) {}
-            }
+    private String resolveAdminFlowDirection(WalletLedgerType type, WalletLedgerSource source) {
+        if (type == null) {
+            return "NEUTRAL";
         }
-        BigDecimal absAmount = tx.getAmount() != null ? tx.getAmount().abs() : BigDecimal.ZERO;
-        return absAmount.multiply(defaultRate);
+
+        // The admin report follows the platform economic perspective, not the user wallet balance.
+        return switch (type) {
+            case TOP_UP, PLATFORM_FEE_REAL -> "INFLOW";
+            case CASH_OUT -> "OUTFLOW";
+            case ESCROW_RELEASE_CREDIT -> source == WalletLedgerSource.EARNED_WITHDRAWABLE
+                    ? "OUTFLOW" : "NEUTRAL";
+            case INITIAL_BONUS, LEARNING_REWARD, PURCHASE_DEBIT, ESCROW_REFUND_CREDIT,
+                    PLATFORM_FEE_PROMO_SINK, WALLET_HOLD, WALLET_FREEZE, WALLET_UNFREEZE -> "NEUTRAL";
+        };
+    }
+
+    private BigDecimal resolveAdminTransactionVnd(WalletLedgerEntry entry,
+                                                   BigDecimal currentTopupRate,
+                                                   BigDecimal currentWithdrawalRate) {
+        if (entry.getType() == null) {
+            return null;
+        }
+
+        return switch (entry.getType()) {
+            case TOP_UP -> resolveLedgerVnd(entry, currentTopupRate);
+            case CASH_OUT -> resolveLedgerVnd(entry, currentWithdrawalRate);
+            case PLATFORM_FEE_REAL -> resolveLedgerVnd(entry, currentTopupRate);
+            case ESCROW_RELEASE_CREDIT -> entry.getSource() == WalletLedgerSource.EARNED_WITHDRAWABLE
+                    ? resolveLedgerVnd(entry, currentWithdrawalRate) : null;
+            default -> null;
+        };
+    }
+
+    private BigDecimal resolveLedgerVnd(WalletLedgerEntry entry, BigDecimal defaultRate) {
+        if (entry.getAmountVnd() != null) {
+            return entry.getAmountVnd();
+        }
+        BigDecimal absAmount = absAmount(entry);
+        BigDecimal rate = entry.getRateVndPerCoin() != null ? entry.getRateVndPerCoin() : defaultRate;
+        return absAmount.multiply(rate);
+    }
+
+    private BigDecimal absAmount(WalletLedgerEntry entry) {
+        return entry.getAmount() == null ? BigDecimal.ZERO : entry.getAmount().abs();
+    }
+
+    private BigDecimal zeroIfNull(BigDecimal value) {
+        return value == null ? BigDecimal.ZERO : value;
+    }
+
+    private BigDecimal averageRate(BigDecimal totalVnd, BigDecimal totalCoins) {
+        if (totalCoins.signum() == 0) {
+            return BigDecimal.ZERO.setScale(2);
+        }
+        return totalVnd.divide(totalCoins, 2, RoundingMode.HALF_UP);
     }
 }

@@ -1,0 +1,90 @@
+{
+  "header": {
+    "title": "Marketplace",
+    "subtitle": "Explore flashcard decks and quizzes published by teachers on the platform."
+  },
+  "list": {
+    "title": "All products",
+    "loading": "Loading products…"
+  },
+  "emptyState": {
+    "title": "No products available yet",
+    "description": "The Marketplace has no products at the moment. Please check back later."
+  },
+  "product": {
+    "noDescription": "No description yet."
+  },
+  "type": {
+    "flashcard": "Flashcard",
+    "quiz": "Quiz"
+  },
+  "tier": {
+    "newbie": "NEWBIE"
+  },
+  "label": {
+    "teacher": "Teacher",
+    "coins": "Coins",
+    "unknownTeacher": "Teacher"
+  },
+  "action": {
+    "details": "Details",
+    "buy": "Buy"
+  },
+  "detail": {
+    "back": "Back",
+    "unavailableTitle": "Product unavailable",
+    "unavailableDesc": "This product cannot be opened.",
+    "returnMarketplace": "Return to Marketplace",
+    "purchaseRequiredTitle": "Purchase required",
+    "purchaseRequiredDesc": "Buy this product first to unlock review submission.",
+    "ratingLabel": "Rating",
+    "chooseRatingAria": "Choose rating",
+    "subtitleDefault": "Study material from the Seika marketplace.",
+    "ownedBadge": "Owned",
+    "priceLabel": "Price",
+    "teacherLabel": "Teacher",
+    "actionsTitle": "Actions",
+    "actionsDesc": "Buy, open owned content, or request a refund while escrow is still held.",
+    "openInLearningHub": "Open in Learning Hub",
+    "buyForCoins": "Buy for {{price}} coins",
+    "escrowRefundTitle": "Escrow refund",
+    "requestRefund": "Request refund",
+    "refreshStatus": "Refresh status",
+    "reviewsTitle": "Reviews",
+    "noReviewsTitle": "No reviews yet",
+    "noReviewsDesc": "Verified buyers can leave a review after purchase.",
+    "writeReviewTitle": "Write a review",
+    "writeReviewDesc": "Only active verified purchases can submit a review.",
+    "cannotReviewOwn": "You cannot review your own product.",
+    "commentLabel": "Comment",
+    "commentPlaceholder": "Share your thoughts on this product...",
+    "submitReview": "Submit review"
+  },
+  "refundHelp": {
+    "noEscrow": "No escrow record was found for this product yet.",
+    "consumed": "This content has already been opened. Refunds now require admin review.",
+    "refunded": "This purchase has already been refunded.",
+    "released": "Escrow has already been released to the teacher.",
+    "pendingDecision": "This purchase is already waiting for an admin decision.",
+    "refundRequested": "A refund request is already being processed.",
+    "creditRequested": "Escrow release is already being processed.",
+    "canRefund": "You can request a self-service refund while escrow is held and the content has not been opened."
+  },
+  "toast": {
+    "fetchFailed": "Failed to load marketplace products.",
+    "loginRequired": "Please sign in before buying.",
+    "checkingBalance": "Checking wallet balance...",
+    "insufficientBalance": "Not enough coins. You need {{price}} coins, current balance is {{balance}}.",
+    "creatingOrder": "Creating order...",
+    "verifyingPayment": "Confirming payment...",
+    "buySuccess": "Purchase complete. The product is now in Learning Hub.",
+    "buyPending": "Order processing. Please refresh your Learning Hub in a few seconds.",
+    "paymentFailed": "Payment failed. Your Coins remain unchanged or will be refunded automatically.",
+    "buyFailed": "Purchase failed.",
+    "reviewReceived": "Review received and waiting for risk review.",
+    "reviewSubmitted": "Review submitted.",
+    "reviewFailed": "Review submission failed.",
+    "refundSent": "Refund request sent. The product will be revoked after wallet confirmation.",
+    "refundFailed": "Refund request failed."
+  }
+}

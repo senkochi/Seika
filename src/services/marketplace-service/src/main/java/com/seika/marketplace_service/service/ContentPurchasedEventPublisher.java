@@ -2,10 +2,11 @@ package com.seika.marketplace_service.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.seika.marketplace_service.config.RabbitMQConfig;
+import com.seika.marketplace_service.entity.OutboxEvent;
+import com.seika.marketplace_service.enums.OutboxStatus;
+import com.seika.marketplace_service.repository.OutboxEventRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -17,7 +18,7 @@ import java.util.UUID;
 @Slf4j
 public class ContentPurchasedEventPublisher {
 
-    private final RabbitTemplate rabbitTemplate;
+    private final OutboxEventRepository outboxEventRepository;
     private final ObjectMapper objectMapper;
 
     public void publishContentPurchased(String orderId, String buyerUserId, String teacherUserId,
@@ -33,16 +34,19 @@ public class ContentPurchasedEventPublisher {
         event.put("price", price == null ? java.math.BigDecimal.ZERO : price);
 
         try {
-            String message = objectMapper.writeValueAsString(event);
-            rabbitTemplate.convertAndSend(
-                    RabbitMQConfig.MARKETPLACE_EVENTS_EXCHANGE,
-                    RabbitMQConfig.CONTENT_PURCHASED_ROUTING_KEY,
-                    message);
-            log.info("Published content.purchased for orderId={} teacherId={}", orderId, teacherUserId);
-        } catch (JsonProcessingException e) {
-            log.error("Failed to serialize content.purchased event for orderId={}", orderId, e);
-        } catch (Exception e) {
-            log.error("Failed to publish content.purchased event for orderId={}", orderId, e);
+            outboxEventRepository.save(OutboxEvent.builder()
+                    .aggregateType("Order")
+                    .aggregateId(orderId)
+                    .eventType("content.purchased")
+                    .payload(objectMapper.writeValueAsString(event))
+                    .status(OutboxStatus.PENDING)
+                    .retryCount(0)
+                    .build());
+            log.info("Queued content.purchased in outbox for orderId={} teacherId={}", orderId, teacherUserId);
+        } catch (JsonProcessingException exception) {
+            throw new IllegalStateException(
+                    "Failed to serialize content.purchased event for orderId=" + orderId,
+                    exception);
         }
     }
 }

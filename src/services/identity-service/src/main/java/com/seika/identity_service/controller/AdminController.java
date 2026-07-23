@@ -2,14 +2,19 @@ package com.seika.identity_service.controller;
 
 import com.seika.identity_service.dto.admin.AdminDashboardStatsResponse;
 import com.seika.identity_service.dto.admin.ChangeRoleRequest;
+import com.seika.identity_service.dto.admin.PublicIdentitySnapshotResponse;
 import com.seika.identity_service.dto.admin.UserAdminResponse;
 import com.seika.identity_service.service.AdminService;
+import com.seika.identity_service.service.PublicIdentitySnapshotService;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -18,9 +23,11 @@ import java.util.Map;
 @RequestMapping("/api/admin")
 @RequiredArgsConstructor
 @Slf4j
+@Validated
 public class AdminController {
 
     private final AdminService adminService;
+    private final PublicIdentitySnapshotService publicIdentitySnapshotService;
 
     @GetMapping("/users")
     @PreAuthorize("hasRole('ADMIN')")
@@ -36,6 +43,16 @@ public class AdminController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserAdminResponse> getUser(@PathVariable String userId) {
         return ResponseEntity.ok(adminService.getUser(userId));
+    }
+
+    @PostMapping("/users/public-identities/snapshot")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<PublicIdentitySnapshotResponse> publishPublicIdentitySnapshot(
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "100") @Min(1) @Max(500) int size) {
+        log.info("Admin publish public identity snapshot page={} size={}", page, size);
+        return ResponseEntity.ok(
+                publicIdentitySnapshotService.publishPage(page, size));
     }
 
     @PostMapping("/users/{userId}/lock")

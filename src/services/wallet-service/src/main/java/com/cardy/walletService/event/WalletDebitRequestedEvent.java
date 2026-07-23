@@ -10,6 +10,7 @@ import java.math.BigDecimal;
 public class WalletDebitRequestedEvent {
     private String eventId;
     private String eventType;
+    private String idempotencyKey;
     private String orderId;
     private String userId;
     private BigDecimal amount;

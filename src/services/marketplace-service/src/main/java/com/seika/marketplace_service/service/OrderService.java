@@ -3,6 +3,7 @@ package com.seika.marketplace_service.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,12 +19,18 @@ import com.seika.marketplace_service.dto.statistics.TopProductResponse;
 import com.seika.marketplace_service.entity.Order;
 import com.seika.marketplace_service.entity.OrderItem;
 import com.seika.marketplace_service.entity.OutboxEvent;
+import com.seika.marketplace_service.entity.Product;
+import com.seika.marketplace_service.entity.PurchaseClaim;
 import com.seika.marketplace_service.enums.OrderStatus;
 import com.seika.marketplace_service.enums.OutboxStatus;
+import com.seika.marketplace_service.enums.ProductStatus;
+import com.seika.marketplace_service.enums.PurchaseClaimStatus;
 import com.seika.marketplace_service.event.WalletDebitRequestedEvent;
 import com.seika.marketplace_service.repository.OrderItemRepository;
 import com.seika.marketplace_service.repository.OrderRepository;
 import com.seika.marketplace_service.repository.OutboxEventRepository;
+import com.seika.marketplace_service.repository.ProductRepository;
+import com.seika.marketplace_service.repository.PurchaseClaimRepository;
 
 @Service
 @RequiredArgsConstructor
@@ -33,18 +40,35 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
     private final OutboxEventRepository outboxEventRepository;
+    private final ProductRepository productRepository;
+    private final PurchaseClaimRepository purchaseClaimRepository;
     private final ObjectMapper objectMapper;
 
     @Transactional
     public Order createOrder(String userId, List<OrderItem> items) {
+        return createOrder(userId, items, null);
+    }
+
+    @Transactional
+    public Order createOrder(String userId, List<OrderItem> items, String requestKey) {
 
         // Validation: xử lý trường hợp userId và danh sách OrderItem bị thiếu hoặc không hợp lệ
         if (userId == null || userId.isBlank()) {
             throw new IllegalArgumentException("userId is required");
         }
+        String normalizedRequestKey = normalizeRequestKey(requestKey);
+        if (normalizedRequestKey != null) {
+            java.util.Optional<Order> existingOrder =
+                    orderRepository.findByUserIdAndRequestKey(userId, normalizedRequestKey);
+            if (existingOrder.isPresent()) {
+                return existingOrder.get();
+            }
+        }
         if (items == null || items.isEmpty()) {
             throw new IllegalArgumentException("items is required");
         }
+
+        canonicalizeItems(items);
 
         // Check if buying own item
         for (OrderItem item : items) {
@@ -72,6 +96,7 @@ public class OrderService {
         Order order = Order.builder()
             .userId(userId)
             .status(OrderStatus.PENDING_PAYMENT)
+            .requestKey(normalizedRequestKey)
             .totalAmount(totalAmount)
             .build();
         orderRepository.save(order);
@@ -82,6 +107,20 @@ public class OrderService {
         }
         orderItemRepository.saveAll(items);
 
+
+        List<PurchaseClaim> claims = items.stream()
+                .map(item -> PurchaseClaim.builder()
+                        .userId(userId)
+                        .productId(item.getProductId())
+                        .orderId(order.getId())
+                        .status(PurchaseClaimStatus.PENDING)
+                        .build())
+                .toList();
+        try {
+            purchaseClaimRepository.saveAllAndFlush(claims);
+        } catch (DataIntegrityViolationException exception) {
+            throw new IllegalStateException("One or more products are already owned or being purchased.", exception);
+        }
         String description = items.stream()
             .map(item -> {
                 String typeStr = item.getProductType() != null ? 
@@ -98,6 +137,7 @@ public class OrderService {
         WalletDebitRequestedEvent event = WalletDebitRequestedEvent.builder()
             .eventId(UUID.randomUUID().toString())
             .eventType(EVENT_TYPE)
+            .idempotencyKey("order:" + order.getId() + ":debit")
             .orderId(order.getId())
             .userId(order.getUserId())
             .amount(order.getTotalAmount())
@@ -115,6 +155,27 @@ public class OrderService {
         return order;
     }
 
+
+
+    private String normalizeRequestKey(String requestKey) {
+        if (requestKey == null || requestKey.isBlank()) {
+            return null;
+        }
+        String normalized = requestKey.trim();
+        if (normalized.length() > 128) {
+            throw new IllegalArgumentException("Idempotency-Key must not exceed 128 characters");
+        }
+        return normalized;
+    }
+    @Transactional(readOnly = true)
+    public Order getOrderForUser(String userId, String orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderId));
+        if (userId == null || !userId.equals(order.getUserId())) {
+            throw new IllegalArgumentException("Bạn không có quyền xem đơn hàng này.");
+        }
+        return order;
+    }
     private BigDecimal calculateTotal(List<OrderItem> items) {
         BigDecimal total = BigDecimal.ZERO;
         for (OrderItem item : items) {
@@ -131,6 +192,35 @@ public class OrderService {
         return total;
     }
 
+    private void canonicalizeItems(List<OrderItem> items) {
+        java.util.Set<String> productIds = new java.util.HashSet<>();
+        for (OrderItem item : items) {
+            if (item == null || item.getProductId() == null || item.getProductId().isBlank()) {
+                throw new IllegalArgumentException("productId is required");
+            }
+            if (item.getQuantity() != 1) {
+                throw new IllegalArgumentException("quantity must be 1 for digital content");
+            }
+            if (!productIds.add(item.getProductId())) {
+                throw new IllegalArgumentException("Duplicate product in order: " + item.getProductId());
+            }
+
+            Product product = productRepository
+                    .findByIdAndActiveTrueAndStatus(item.getProductId(), ProductStatus.PUBLISHED)
+                    .orElseThrow(() -> new IllegalArgumentException(
+                            "Product is not available for purchase: " + item.getProductId()));
+            if (product.getPrice() == null || product.getPrice().compareTo(BigDecimal.ZERO) <= 0) {
+                throw new IllegalArgumentException("Product has an invalid price: " + product.getId());
+            }
+
+            item.setProductType(product.getType());
+            item.setReferenceId(product.getReferenceId());
+            item.setProductName(product.getName());
+            item.setSellerUserId(product.getSellerUserId());
+            item.setUnitPrice(product.getPrice());
+            item.setQuantity(1);
+        }
+    }
     private String toJson(Object value) {
         try {
             return objectMapper.writeValueAsString(value);

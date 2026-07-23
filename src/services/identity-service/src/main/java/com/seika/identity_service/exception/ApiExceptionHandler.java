@@ -1,5 +1,6 @@
 package com.seika.identity_service.exception;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -12,10 +13,18 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 @RestControllerAdvice
+@Slf4j
 public class ApiExceptionHandler {
+
+    @ExceptionHandler(AuthException.class)
+    public ResponseEntity<Map<String, Object>> handleAuthException(AuthException exception) {
+        log.warn("AuthException [code={}]: {}", exception.getCode(), exception.getMessage());
+        return buildError(HttpStatus.valueOf(exception.getCode()), exception.getMessage());
+    }
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, Object>> handleIllegalArgument(IllegalArgumentException exception) {
+        log.warn("IllegalArgumentException: {}", exception.getMessage());
         return buildError(HttpStatus.BAD_REQUEST, exception.getMessage());
     }
 
@@ -32,7 +41,7 @@ public class ApiExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGeneric(Exception exception) {
-        exception.printStackTrace();
+        log.error("Unexpected error", exception);
         return buildError(HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected error");
     }
 

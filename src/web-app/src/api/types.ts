@@ -289,6 +289,7 @@ export interface PendingProduct {
   type: "QUIZ" | "FLASHCARD" | string;
   referenceId: string;
   sellerUserId: string;
+  teacherDisplayName: string | null;
   status: "PENDING_REVIEW" | "PUBLISHED" | "REJECTED" | "HIDDEN" | string;
   rejectionReason: string | null;
   active: boolean;
@@ -327,15 +328,34 @@ export interface AdminProductsPage {
   size: number;
 }
 
+export interface AdminTransactionsPage {
+  content: AdminTransactionResponse[];
+  totalElements: number;
+  totalPages: number;
+  number: number;
+  size: number;
+}
+
 export interface AdminRevenueStats {
   totalTopupCoins: number;
   totalTopupVnd: number;
   totalWithdrawalCoins: number;
   totalWithdrawalVnd: number;
+  averageTopupRate?: number;
+  averageWithdrawalRate?: number;
+  realRevenueVnd: number;
+  paidBackedFeeEstimatedVnd?: number;
+  paidBackedFeeCoins: number;
+  promoSinkCoins: number;
+  cashOutLiabilityVnd: number;
+  withdrawableCoinCirculation: number;
+  paidCoinCirculation?: number;
+  nonWithdrawableCoinCirculation: number;
   netRevenueVnd: number;
   totalCoinCirculation: number;
   potentialLiabilityVnd: number;
   guaranteedProfitVnd: number;
+  netCashAfterCurrentLiabilityVnd?: number;
   currentTopupRate: number;
   currentWithdrawalRate: number;
 }
@@ -343,10 +363,21 @@ export interface AdminRevenueStats {
 export interface AdminTransactionResponse {
   id: string;
   userId: string;
+  username?: string | null;
   walletId: string;
   type: string;
+  source?: string;
+  flowDirection?: "INFLOW" | "OUTFLOW" | "NEUTRAL";
   amount: number;
-  amountVnd: number;
+  amountVnd: number | null;
   description: string;
   createdAt: string;
+}
+
+export interface PageResponse<T> {
+  content: T[];
+  totalElements: number;
+  totalPages: number;
+  number: number;
+  size: number;
 }

@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -64,5 +65,28 @@ public class ContentEventPublisher {
             log.error("Failed to publish quiz.set.updated event for quizSetId={}", quizSetId, e);
         }
     }
+    public void publishQuizSetConsumed(String quizSetId, String userId) {
+        Map<String, Object> event = Map.of(
+                "eventId", UUID.randomUUID().toString(),
+                "eventType", RabbitMQConfig.QUIZ_SET_CONSUMED_ROUTING_KEY,
+                "userId", userId,
+                "referenceId", quizSetId,
+                "productType", "QUIZ",
+                "consumedAt", java.time.Instant.now().toString()
+        );
+        try {
+            String message = objectMapper.writeValueAsString(event);
+            rabbitTemplate.convertAndSend(
+                    RabbitMQConfig.CONTENT_EVENTS_EXCHANGE,
+                    RabbitMQConfig.QUIZ_SET_CONSUMED_ROUTING_KEY,
+                    message);
+            log.info("Published quiz.set.consumed for quizSetId={} userId={}", quizSetId, userId);
+        } catch (JsonProcessingException e) {
+            log.error("Failed to serialize quiz.set.consumed event for quizSetId={}", quizSetId, e);
+        } catch (Exception e) {
+            log.error("Failed to publish quiz.set.consumed event for quizSetId={}", quizSetId, e);
+        }
+    }
 }
+
 

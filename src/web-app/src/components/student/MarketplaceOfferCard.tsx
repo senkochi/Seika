@@ -37,7 +37,7 @@ function MarketplaceOfferCard({
                 {badge}
               </StudentBadge>
             )}
-            <div className="bg-amber-500/20 px-3 py-1 rounded-full flex items-center gap-1">
+            <div className="bg-amber-500/15 px-2.5 py-1 rounded-md flex items-center gap-1">
               <Clock className="w-3 h-3 text-amber-400" />
               <span className="text-white text-xs font-black">{timeLeft}</span>
             </div>
@@ -66,7 +66,7 @@ function MarketplaceOfferCard({
                 <span className="text-[var(--muted-foreground)] line-through text-lg">
                   {originalPrice}
                 </span>
-                <span className="px-2 py-1 bg-green-500/20 text-green-400 rounded-full text-xs font-black">
+                <span className="px-2.5 py-1 bg-emerald-500/15 text-emerald-300 rounded-md text-xs font-medium">
                   {Math.round(((originalPrice - price) / originalPrice) * 100)}%
                   OFF
                 </span>

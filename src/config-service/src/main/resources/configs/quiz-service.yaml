@@ -2,9 +2,16 @@ server:
   port: ${QUIZ_SERVER_PORT:8087}
 
 spring:
+  cache:
+    type: redis
   application:
     name: quiz-service
   data:
+    redis:
+      host: ${REDIS_HOST:redis}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:seika_redis_secret}
+      timeout: 5000ms
     mongodb:
       uri: ${QUIZ_DB_URI}
   rabbitmq:

@@ -1,102 +1,141 @@
 import { LuFacebook } from "react-icons/lu";
 import { LuTwitter } from "react-icons/lu";
 import { LuInstagram } from "react-icons/lu";
+import { useTranslation } from "react-i18next";
 import MemberCard from "./MemberCard";
 import AnimatedContent from "../reactbit/AnimatedContent";
 import { Images } from "../../assets/images";
+import { cn } from "../ui/utils";
 
 export function About() {
+  const { t } = useTranslation("common");
   const teamMembers = [
     {
       name: "Nguyễn Hùng Cường",
-      role: "Software Engineer",
-      bio: "Random guy who loves coding and gaming. Passionate about creating fun, interactive learning experiences.",
+      role: t("landing.about.members.cuong.role"),
+      bio: t("landing.about.members.cuong.bio"),
       image: Images.NijiKaMember,
     },
     {
       name: "Hồ Minh Đạt",
-      role: "Software Engineer",
-      bio: "Full-stack developer with a knack for making complex systems feel intuitive. Gamer at heart, educator by passion.",
+      role: t("landing.about.members.dat.role"),
+      bio: t("landing.about.members.dat.bio"),
       image: Images.SenkoMember,
     },
   ];
 
   const socialButtonClass =
-    "w-9 h-9 rounded-full bg-violet-900/70 border border-violet-700/60 text-amber-300 flex items-center justify-center shadow-lg hover:scale-105 transition-transform";
+    "w-10 h-10 rounded-full bg-white/[0.04] border border-white/[0.08] text-[#d4a843] flex items-center justify-center hover:bg-white/[0.08] hover:border-[#d4a843]/30 transition-all duration-300 ease-soft";
 
   return (
-    <section
-      id="about"
-      className="relative py-32 bg-gradient-to-br from-indigo-950 via-purple-900 to-violet-950 overflow-hidden"
-    >
-      {/* Shape divider*/}
-      <div className="absolute top-0 left-0 right-0 h-32 overflow-hidden line-height-0">
-        <svg viewBox="0 0 1440 320" className="w-full h-full preserve-3d" preserveAspectRatio="none">
-          <path
-            fill="#fd9900" // Thay mã màu bạn muốn vào đây (ví dụ: #2f0d68)
-            d="M0,160 C360,320 720,0 1080,160 C1260,240 1380,160 1440,160 L1440,0 L0,0 Z"
-          ></path>
-        </svg>
-      </div>
+    <section id="about" className="relative py-32 lg:py-40 overflow-hidden">
+      {/* Background atmosphere — seamless continuation from Features */}
+      <div className="absolute inset-0 bg-glow-about pointer-events-none" />
 
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 lg:py-12">
-        {/* Section Header */}
-        <div className="mb-32 relative z-10">
-          <AnimatedContent>
-            <h2 className="text-4xl md:text-6xl font-black mb-4 text-center">
-              <span className="inline-block bg-gradient-to-br from-amber-300 to-amber-400 bg-clip-text text-transparent">
-                Meet our team
-              </span>
+      <div className="relative max-w-[1200px] mx-auto px-6 lg:px-10">
+        {/* Section header */}
+        <AnimatedContent>
+          <div className="max-w-3xl mb-24">
+            <span className="eyebrow">
+              <span className="inline-block w-1 h-1 rounded-full bg-[#d4a843]" />
+              {t("landing.about.badge")}
+            </span>
+            <h2
+              className="mt-6 font-display font-medium text-[#faf6ee] text-4xl md:text-5xl lg:text-6xl leading-[1.02] tracking-[-0.025em]"
+              style={{ textWrap: "balance" as const }}
+            >
+              {t("landing.about.title1")}{" "}
+              <span className="italic font-display font-light text-[#d4a843]">
+                {t("landing.about.titleHighlight")}
+              </span>{" "}
+              {t("landing.about.title2")}
             </h2>
-            <p className="text-lg md:text-xl text-violet-100/90 max-w-3xl mx-auto text-center">
-              Educators and builders who make learning feel like play.
+            <p className="mt-5 text-lg text-[#faf6ee]/65 max-w-xl">
+              {t("landing.about.description")}
             </p>
-          </AnimatedContent>
-        </div>
+          </div>
+        </AnimatedContent>
 
-        {/* Team Layout */}
-        <div className="relative max-w-8xl mx-auto">
-          <AnimatedContent>
-            <div className="grid gap-16 md:grid-cols-2">
-              {teamMembers.map((member) => (
-                <div key={member.name} className="flex flex-col items-center text-center">
-                  <div className="relative">
-                    <div className="absolute -inset-3 bg-amber-400/20 rounded-full blur-xl"></div>
-                    <MemberCard member={member} />
-                  </div>
+        {/* Team grid */}
+        <AnimatedContent>
+          <div className="grid gap-16 md:gap-20 md:grid-cols-2 max-w-4xl mx-auto">
+            {teamMembers.map((member) => (
+              <div
+                key={member.name}
+                className="flex flex-col items-center text-center"
+              >
+                <MemberCard member={member} />
 
-                  <p className="mt-6 text-xs uppercase tracking-[0.3em] text-violet-200/70">{member.role}</p>
-                  <h3 className="mt-2 text-2xl font-black text-amber-300">{member.name}</h3>
-                  <p className="mt-3 text-sm text-violet-100/80 max-w-sm leading-relaxed">{member.bio}</p>
+                <p className="mt-8 text-[11px] uppercase tracking-[0.22em] text-[#d4a843]/80">
+                  {member.role}
+                </p>
+                <h3 className="mt-3 font-display text-2xl lg:text-3xl text-[#faf6ee]">
+                  {member.name}
+                </h3>
+                <p className="mt-3 text-sm text-[#faf6ee]/70 max-w-sm leading-relaxed">
+                  {member.bio}
+                </p>
 
-                  <div className="mt-5 flex items-center gap-3">
-                    <button type="button" className={socialButtonClass} aria-label="Facebook">
-                      <LuFacebook className="w-4 h-4" />
-                    </button>
-                    <button type="button" className={socialButtonClass} aria-label="Twitter">
-                      <LuTwitter className="w-4 h-4" />
-                    </button>
-                    <button type="button" className={socialButtonClass} aria-label="Instagram">
-                      <LuInstagram className="w-4 h-4" />
-                    </button>
-                  </div>
+                <div className="mt-6 flex items-center gap-2">
+                  <button
+                    type="button"
+                    className={socialButtonClass}
+                    aria-label={`${member.name} on Facebook`}
+                  >
+                    <LuFacebook className="w-4 h-4" />
+                  </button>
+                  <button
+                    type="button"
+                    className={socialButtonClass}
+                    aria-label={`${member.name} on Twitter`}
+                  >
+                    <LuTwitter className="w-4 h-4" />
+                  </button>
+                  <button
+                    type="button"
+                    className={socialButtonClass}
+                    aria-label={`${member.name} on Instagram`}
+                  >
+                    <LuInstagram className="w-4 h-4" />
+                  </button>
                 </div>
-              ))}
-            </div>
-          </AnimatedContent>
-        </div>
+              </div>
+            ))}
+          </div>
+        </AnimatedContent>
 
-        {/* Mission - floating text, no box */}
-        <div className="mt-40 max-w-4xl mx-auto text-center relative z-10">
-          <AnimatedContent>
-            <div className="absolute inset-0 bg-gradient-to-r from-violet-600/10 to-amber-500/10 rounded-[40%_60%_60%_40%/60%_40%_40%_60%] blur-3xl -z-10"></div>
-            <h3 className="text-4xl md:text-6xl font-black text-amber-400 mb-6">Our Mission</h3>
-            <p className="text-xl md:text-2xl text-violet-100 leading-relaxed">
-              To revolutionize education by combining the excitement of gaming with the power of learning. Every student
-              deserves an engaging, rewarding experience that inspires curiosity.
-            </p>
-          </AnimatedContent>
-        </div>
+        {/* Mission — cream double-bezel card */}
+        <AnimatedContent>
+          <div className="mt-32 lg:mt-40 max-w-4xl mx-auto">
+            <div className="p-1 rounded-[2rem] bg-gradient-to-b from-[#d4a843]/30 to-[#d4a843]/[0.04] border border-[#d4a843]/[0.18]">
+              <div
+                className={cn(
+                  "rounded-[calc(2rem-0.375rem)] bg-[var(--color-cream)]",
+                  "p-10 lg:p-14 shadow-[inset_0_1px_1px_rgba(255,255,255,0.6)]",
+                  "relative overflow-hidden",
+                )}
+              >
+                <span className="absolute top-8 left-8 text-[11px] uppercase tracking-[0.22em] text-[#d4a843] font-medium">
+                  {t("landing.about.mission.badge")}
+                </span>
+                <p
+                  className="mt-12 font-display text-3xl md:text-4xl lg:text-5xl text-[#1c0f2e] leading-[1.1] tracking-[-0.02em]"
+                  style={{ textWrap: "balance" as const }}
+                >
+                  {t("landing.about.mission.title1")}{" "}
+                  <span className="italic font-light">
+                    {t("landing.about.mission.titleHighlight")}
+                  </span>{" "}
+                  {t("landing.about.mission.title2")}
+                </p>
+                <div className="mt-10 flex items-center gap-3 text-sm text-[#1c0f2e]/65">
+                  <span className="inline-block w-8 h-px bg-[#1c0f2e]/30" />
+                  <span>Nguyễn Hùng Cường & Hồ Minh Đạt</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </AnimatedContent>
       </div>
     </section>
   );

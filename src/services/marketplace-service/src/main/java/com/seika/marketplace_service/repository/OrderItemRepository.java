@@ -8,9 +8,12 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 import com.seika.marketplace_service.entity.OrderItem;
+import com.seika.marketplace_service.enums.EscrowState;
 
 public interface OrderItemRepository extends JpaRepository<OrderItem, String> {
     List<OrderItem> findByOrderId(String orderId);
+    List<OrderItem> findByProductIdAndEscrowStateIn(String productId, List<EscrowState> escrowStates);
+    boolean existsByProductIdAndEscrowStateInAndEscrowFullyRefundedFalse(String productId, List<EscrowState> escrowStates);
 
     // -------------------------------------------------------------------------
     // Teacher statistics queries
@@ -29,7 +32,12 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, String> {
                    SUM(oi.quantity)        AS totalSold,
                    SUM(oi.totalPrice)      AS totalRevenue
             FROM OrderItem oi
+            JOIN Order o ON oi.orderId = o.id
             WHERE oi.sellerUserId = :sellerUserId
+              AND o.status = com.seika.marketplace_service.enums.OrderStatus.PAID
+              AND oi.escrowFullyRefunded = false
+              AND oi.escrowState != com.seika.marketplace_service.enums.EscrowState.REFUNDED
+              AND oi.escrowState != com.seika.marketplace_service.enums.EscrowState.CANCELLED_BY_ADMIN
               AND (:productType IS NULL OR oi.productType = :productType)
             GROUP BY oi.productId, oi.productType, oi.productName, oi.unitPrice
             ORDER BY SUM(oi.quantity) DESC
@@ -50,6 +58,8 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, String> {
             JOIN Order o ON oi.orderId = o.id
             WHERE oi.sellerUserId = :sellerUserId
               AND o.status = com.seika.marketplace_service.enums.OrderStatus.PAID
+              AND (oi.escrowState = com.seika.marketplace_service.enums.EscrowState.RELEASED OR oi.escrowState = com.seika.marketplace_service.enums.EscrowState.NONE)
+              AND oi.escrowFullyRefunded = false
             GROUP BY TO_CHAR(o.createdAt, 'YYYY-MM')
             ORDER BY period ASC
             """)
@@ -67,6 +77,8 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, String> {
             JOIN orders o ON oi.order_id = o.id
             WHERE oi.seller_user_id = :sellerUserId
               AND o.status = 'PAID'
+              AND (oi.escrow_state = 'RELEASED' OR oi.escrow_state = 'NONE')
+              AND oi.escrow_fully_refunded = false
               AND o.created_at >= (CURRENT_TIMESTAMP - (:days || ' days')::interval)
             GROUP BY TO_CHAR(o.created_at, 'YYYY-MM-DD')
             ORDER BY period ASC
@@ -89,6 +101,9 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, String> {
             JOIN Order o ON oi.orderId = o.id
             WHERE oi.sellerUserId = :sellerUserId
               AND o.status = com.seika.marketplace_service.enums.OrderStatus.PAID
+              AND oi.escrowFullyRefunded = false
+              AND oi.escrowState != com.seika.marketplace_service.enums.EscrowState.REFUNDED
+              AND oi.escrowState != com.seika.marketplace_service.enums.EscrowState.CANCELLED_BY_ADMIN
             ORDER BY o.createdAt DESC
             """)
     List<StudentPurchaseProjection> findStudentsBySeller(@Param("sellerUserId") String sellerUserId,

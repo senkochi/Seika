@@ -26,11 +26,13 @@ public class JwtService {
     private final SecretKey secretKey;
     private final String issuer;
     private final long accessTokenExpirationMinutes;
+    private final TokenBlacklistService tokenBlacklistService;
 
     public JwtService(
             @Value("${jwt.secret}") String secret,
             @Value("${jwt.issuer}") String issuer,
-            @Value("${jwt.access-token-expiration-minutes}") long accessTokenExpirationMinutes
+            @Value("${jwt.access-token-expiration-minutes}") long accessTokenExpirationMinutes,
+            TokenBlacklistService tokenBlacklistService
     ) {
         byte[] keyBytes = secret.getBytes(StandardCharsets.UTF_8);
         if (keyBytes.length < 32) {
@@ -39,6 +41,7 @@ public class JwtService {
         this.secretKey = Keys.hmacShaKeyFor(keyBytes);
         this.issuer = issuer;
         this.accessTokenExpirationMinutes = accessTokenExpirationMinutes;
+        this.tokenBlacklistService = tokenBlacklistService;
         log.info("JWT service initialized: issuer={}, token-expiration={}min", issuer, accessTokenExpirationMinutes);
     }
 
@@ -75,12 +78,21 @@ public class JwtService {
 
     public boolean isValidToken(String token) {
         try {
-            parseClaims(token);
+            Claims claims = parseClaims(token);
+            String jti = claims.getId();
+            if (jti != null && tokenBlacklistService != null && tokenBlacklistService.isBlacklisted(jti)) {
+                log.warn("Token validation failed: JTI {} is blacklisted", jti);
+                return false;
+            }
             return true;
         } catch (Exception e) {
             log.warn("Token validation failed: {}", e.getClass().getSimpleName());
             return false;
         }
+    }
+
+    public Date extractExpiration(String token) {
+        return parseClaims(token).getExpiration();
     }
 
     // Trả về String username khi input token

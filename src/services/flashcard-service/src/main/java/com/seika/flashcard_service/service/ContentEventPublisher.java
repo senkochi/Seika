@@ -64,5 +64,28 @@ public class ContentEventPublisher {
             log.error("Failed to publish flashcard.set.updated event for cardSetId={}", cardSetId, e);
         }
     }
+    public void publishFlashcardSetConsumed(String cardSetId, String userId) {
+        Map<String, Object> event = Map.of(
+                "eventId", UUID.randomUUID().toString(),
+                "eventType", RabbitMQConfig.FLASHCARD_SET_CONSUMED_ROUTING_KEY,
+                "userId", userId,
+                "referenceId", cardSetId,
+                "productType", "FLASHCARD",
+                "consumedAt", java.time.Instant.now().toString()
+        );
+        try {
+            String message = objectMapper.writeValueAsString(event);
+            rabbitTemplate.convertAndSend(
+                    RabbitMQConfig.CONTENT_EVENTS_EXCHANGE,
+                    RabbitMQConfig.FLASHCARD_SET_CONSUMED_ROUTING_KEY,
+                    message);
+            log.info("Published flashcard.set.consumed for cardSetId={} userId={}", cardSetId, userId);
+        } catch (JsonProcessingException e) {
+            log.error("Failed to serialize flashcard.set.consumed event for cardSetId={}", cardSetId, e);
+        } catch (Exception e) {
+            log.error("Failed to publish flashcard.set.consumed event for cardSetId={}", cardSetId, e);
+        }
+    }
 }
+
 

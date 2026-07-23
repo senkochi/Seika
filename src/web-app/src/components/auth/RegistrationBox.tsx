@@ -1,11 +1,13 @@
-import { Dispatch, SetStateAction, useState } from "react";
+import { type Dispatch, type SetStateAction, useState } from "react";
 import { ArrowLeft, ArrowRight } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import RoleStep from "./RoleStep";
 import PersonalStep from "./PersonalStep";
 import AuthStep from "./AuthStep";
 import ProgressBar from "./ProgressBar";
 import { RegisterData } from "./types";
 import { showError } from "../toast/toastUtils";
+import { Button } from "../ui/Button";
 
 interface RegistrationBoxProps {
   currentStep: number;
@@ -30,42 +32,41 @@ export default function RegistrationBox({
   onSubmit,
   isSubmitting = false,
 }: RegistrationBoxProps) {
+  const { t: tAuth } = useTranslation("auth");
+  const { t: tCommon } = useTranslation("common");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [errors, setErrors] = useState<StepErrors>({});
 
   const validateCurrentStep = () => {
     const newErrors: StepErrors = {};
 
-    if (currentStep === 1) {
-      if (!formData.role) {
-        newErrors.role = "Please select your role.";
-      }
+    if (currentStep === 1 && !formData.role) {
+      newErrors.role = tAuth("validation.roleRequired");
     }
 
     if (currentStep === 2) {
       if (!formData.fullname.trim()) {
-        newErrors.fullname = "Full name is required.";
+        newErrors.fullname = tAuth("validation.fullnameRequired");
       }
       if (!formData.dateOfBirth) {
-        newErrors.dateOfBirth = "Date of birth is required.";
+        newErrors.dateOfBirth = tAuth("validation.dobRequired");
       }
       if (!formData.gender) {
-        newErrors.gender = "Please select your gender.";
+        newErrors.gender = tAuth("validation.genderRequired");
       }
     }
 
     if (currentStep === 3) {
       if (!formData.username.trim()) {
-        newErrors.username = "Username is required.";
+        newErrors.username = tAuth("validation.usernameRequired");
       }
       if (!formData.password) {
-        newErrors.password = "Password is required.";
+        newErrors.password = tAuth("validation.passwordRequired");
       }
       if (!confirmPassword) {
-        newErrors.confirmPassword = "Please confirm your password.";
-      }
-      if (formData.password !== confirmPassword) {
-        newErrors.confirmPassword = "Passwords do not match.";
+        newErrors.confirmPassword = tAuth("validation.confirmPasswordRequired");
+      } else if (formData.password !== confirmPassword) {
+        newErrors.confirmPassword = tAuth("validation.passwordMismatch");
       }
     }
 
@@ -95,23 +96,12 @@ export default function RegistrationBox({
   };
 
   return (
-    <div className="w-full max-w-lg bg-white/95 backdrop-blur-lg rounded-3xl shadow-2xl border-2 border-amber-400 overflow-hidden relative z-10">
-      <div className="bg-gradient-to-r from-purple-900 to-violet-900 px-8 py-6">
-        <h1 className="text-2xl font-black text-yellow-400">
-          Create Your Account
-        </h1>
-        <p className="text-sm text-purple-200 mt-2">Step {currentStep} of 3</p>
-      </div>
-
+    <div className="space-y-2">
       <ProgressBar currentStep={currentStep} />
 
-      <div className="px-8 py-6 min-h-[300px]">
+      <div className="px-8 sm:px-10 lg:px-12 py-8 min-h-[380px]">
         {currentStep === 1 && (
-          <RoleStep
-            formData={formData}
-            setFormData={setFormData}
-            error={errors.role}
-          />
+          <RoleStep formData={formData} setFormData={setFormData} />
         )}
         {currentStep === 2 && (
           <PersonalStep
@@ -145,34 +135,34 @@ export default function RegistrationBox({
         )}
       </div>
 
-      <div className="px-8 py-6 bg-gray-50 border-t-2 border-purple-100 flex justify-between items-center">
+      <div className="px-8 sm:px-10 lg:px-12 pb-8 pt-2 border-t border-white/[0.06] flex justify-between items-center gap-4">
         <button
           type="button"
           onClick={onBack}
-          className={`px-6 py-3 flex items-center gap-2 transition-all ${"text-gray-400 hover:text-purple-900 hover:underline"}`}
+          className="inline-flex items-center gap-2 text-sm text-[#faf6ee]/55 hover:text-[#faf6ee] transition-colors duration-300 ease-soft"
         >
-          <ArrowLeft className="w-4 h-4" />
-          {currentStep === 1 ? "Back to Home" : "Back"}
+          <ArrowLeft className="w-4 h-4" strokeWidth={1.5} />
+          {currentStep === 1
+            ? tCommon("actions.backHome")
+            : tCommon("actions.back")}
         </button>
 
         {currentStep < 3 ? (
-          <button
-            type="button"
-            onClick={handleNext}
-            className="px-8 py-3 bg-gradient-to-r from-amber-400 to-yellow-500 text-purple-950 rounded-full flex items-center gap-2 font-black hover:scale-105 transition-all"
-          >
-            Next
-            <ArrowRight className="w-4 h-4" />
-          </button>
+          <Button variant="primary" trailing onClick={handleNext}>
+            {tCommon("actions.continue")}
+            <ArrowRight className="w-4 h-4" strokeWidth={1.8} />
+          </Button>
         ) : (
-          <button
-            type="button"
+          <Button
+            variant="primary"
+            trailing
+            loading={isSubmitting}
             onClick={handleSubmit}
-            disabled={isSubmitting}
-            className="px-8 py-3 bg-gradient-to-r from-amber-400 to-yellow-500 text-purple-900 rounded-full font-black hover:scale-105 transition-all disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:scale-100"
           >
-            {isSubmitting ? "Creating..." : "Create Account"}
-          </button>
+            {isSubmitting
+              ? tAuth("register.creatingAccountButton")
+              : tAuth("register.createAccountButton")}
+          </Button>
         )}
       </div>
     </div>

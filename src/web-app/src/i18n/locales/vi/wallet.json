@@ -1,0 +1,141 @@
+{
+  "header": {
+    "title": "Ví của tôi",
+    "subtitle": "Quản lý Coin, kiểm tra số dư và nạp thêm để mở khóa khóa học & quiz."
+  },
+  "balance": {
+    "label": "Số dư hiện tại",
+    "coins": "Coins",
+    "statusActive": "Đang hoạt động",
+    "rateText": "{{rate}} VNĐ / Coin"
+  },
+  "actions": {
+    "withdraw": "Rút Coin",
+    "topUp": "Nạp Coin"
+  },
+  "stats": {
+    "earned": "Tổng thu nhập / Nạp",
+    "spent": "Tổng chi tiêu",
+    "streak": "Chuỗi ngày học",
+    "activeStreak": "Chuỗi hoạt động",
+    "daysUnit": "ngày"
+  },
+  "history": {
+    "title": "Lịch sử giao dịch",
+    "loading": "Đang tải giao dịch…",
+    "emptyTitle": "Chưa có giao dịch nào",
+    "emptyDesc": "Lịch sử nạp, rút và thưởng Coin của bạn sẽ hiển thị tại đây.",
+    "emptyTeacher": "Chưa có giao dịch nào được ghi nhận.",
+    "coinsUnit": "Coins"
+  },
+  "topUpForm": {
+    "title": "Nạp Coin",
+    "amountLabel": "Số tiền cần nạp (VNĐ)",
+    "amountPlaceholder": "vd. 20,000",
+    "quickUnit": "đ",
+    "receiveLabel": "Bạn sẽ nhận",
+    "receiveUnit": "Coin",
+    "rateLabel": "Tỷ giá",
+    "rateValue": "{{rate}} đ/Coin",
+    "methodLabel": "Phương thức thanh toán (Demo)",
+    "vnpay": "VNPay (Demo)",
+    "momo": "Momo Wallet (Demo)",
+    "bankTransfer": "Bank Transfer (Demo)",
+    "submitBtn": "Xác nhận nạp (Demo)"
+  },
+  "confirmModal": {
+    "title": "Xác nhận Nạp Coin (Demo)",
+    "confirmText": "Xác nhận nạp",
+    "hint": "Vui lòng kiểm tra lại thông tin giao dịch nạp Coin bên dưới:",
+    "amountLabel": "Số tiền thanh toán:",
+    "amountValue": "{{amount}} VNĐ",
+    "methodLabel": "Phương thức:",
+    "rateLabel": "Tỷ giá quy đổi:",
+    "rateValue": "{{rate}} VNĐ / Coin",
+    "receiveLabel": "Bạn sẽ nhận ngay:",
+    "receiveValue": "+{{coins}} Coin"
+  },
+  "toast": {
+    "retrieveFailed": "Không thể tải thông tin ví.",
+    "invalidAmount": "Số tiền nạp không hợp lệ!",
+    "minAmount": "Số tiền nạp tối thiểu là 1,000 VNĐ!",
+    "insufficientRate": "Số tiền nạp không đủ để đổi 1 Coin (Tỷ giá: {{rate}} VNĐ/Coin)!",
+    "topUpSuccess": "Nạp thành công {{coins}} Coin!",
+    "topUpError": "Lỗi khi nạp tiền!",
+    "invalidCashOutAmount": "Số lượng coin rút không hợp lệ.",
+    "multipleOfTen": "Số lượng coin rút phải là bội số của 10.",
+    "insufficientBalance": "Số dư có thể rút không đủ.",
+    "frozenReason": "Ví đang bị freeze nên cash-out tạm thời bị chặn.",
+    "holdReason": "Ví đang có active hold nên cash-out tạm thời bị chặn.",
+    "cashOutSuccess": "Rút tiền thành công!",
+    "cashOutError": "Lỗi khi rút tiền!",
+    "cashOutDescription": "Quy đổi: {{coins}} Coins = {{amount}} VNĐ ({{bankName}} - {{bankAccount}})"
+  },
+  "teacherHeader": {
+    "title": "Ví Giảng Viên",
+    "refresh": "Làm mới",
+    "subtitle": "Theo dõi số dư có thể rút, coin chỉ dùng trong app và dòng escrow.",
+    "withdrawable": "Có thể rút",
+    "withdrawableSub": "EARNED_WITHDRAWABLE",
+    "appOnly": "Chỉ dùng trong app",
+    "appOnlySub": "BONUS / REWARD / PAID / PROMO",
+    "total": "Tổng ví",
+    "totalSub": "Tổng phụ để đối chiếu"
+  },
+  "cashOut": {
+    "title": "Yêu cầu rút tiền",
+    "available": "Số dư có thể rút:",
+    "coinsUnit": "Coins",
+    "amountLabel": "Số lượng Coin cần rút",
+    "amountPlaceholder": "Tối thiểu 10 Coins",
+    "bankLabel": "Ngân hàng / Đối tác thanh toán",
+    "accountLabel": "Số tài khoản & Họ tên",
+    "accountPlaceholder": "vd. 1029312093 - NGUYEN VAN A",
+    "submitBtn": "Xác nhận rút tiền",
+    "modalTitle": "Xác nhận Rút tiền",
+    "modalHint": "Vui lòng kiểm tra lại thông tin yêu cầu rút Coin bên dưới:",
+    "amountCoinsLabel": "Số lượng Coin rút:",
+    "rateLabel": "Tỷ giá quy đổi:",
+    "rateValue": "{{rate}} VNĐ / Coin",
+    "payoutLabel": "Số tiền dự kiến nhận:",
+    "bankNameLabel": "Ngân hàng:",
+    "accountInfoLabel": "Tài khoản thụ hưởng:",
+    "confirmBtn": "Xác nhận rút tiền",
+    "cancelBtn": "Hủy"
+  },
+  "escrow": {
+    "title": "Đang chờ escrow",
+    "subtitle": "Doanh thu marketplace chỉ vào ví sau khi escrow được release.",
+    "pendingLabel": "Đang chờ escrow",
+    "paidBacked": "Paid-backed",
+    "needsDecision": "Cần xử lý",
+    "loading": "Đang tải escrow...",
+    "empty": "Hiện không có đơn hàng marketplace nào đang trong trạng thái chờ escrow.",
+    "colProduct": "Sản phẩm",
+    "colStatus": "Trạng thái",
+    "colGross": "Tổng",
+    "colPaidBacked": "Paid-backed",
+    "colPromoBacked": "Promo-backed",
+    "colReleaseAt": "Ngày release",
+    "colNote": "Ghi chú",
+    "statusAdminDecision": "Cần admin xử lý",
+    "statusReleasing": "Đang release",
+    "statusHeld": "Đang chờ escrow",
+    "statusReleased": "Đã release",
+    "statusRefunded": "Đã hoàn tiền"
+  },
+  "controlPanel": {
+    "title": "Trạng thái kiểm soát ví",
+    "subtitle": "Các hold hoặc freeze đang ảnh hưởng tới rút tiền và thao tác ví.",
+    "statusRestricted": "Đang bị giới hạn",
+    "statusNormal": "Bình thường",
+    "normalMsg": "Không có hold hoặc freeze đang hoạt động. Cash-out dùng số dư \"Có thể rút\".",
+    "frozenTitle": "Ví đang bị freeze",
+    "frozenDesc": "Spend, top-up, cash-out, reward credit và escrow release credit sẽ bị chặn cho tới khi admin mở freeze.",
+    "washHold": "Rà soát wash trading",
+    "reviewReasonDefault": "Đang được rà soát bởi hệ thống quản trị.",
+    "expiresLabel": "Hết hạn",
+    "noExpiration": "Không thời hạn",
+    "flagLabel": "Flag {{id}}"
+  }
+}
