@@ -82,16 +82,12 @@ export default function AdminRevenue() {
   const [filterType, setFilterType] = useState<string>("ALL");
   const [currentPage, setCurrentPage] = useState<number>(0);
   const [pageSize, setPageSize] = useState<number>(20);
+  const [totalElements, setTotalElements] = useState<number>(0);
+  const [totalPages, setTotalPages] = useState<number>(0);
 
   useEffect(() => {
     setCurrentPage(0);
   }, [filterType]);
-
-  const totalPages = Math.ceil(transactions.length / pageSize) || 1;
-  const paginatedTransactions = useMemo(() => {
-    const start = currentPage * pageSize;
-    return transactions.slice(start, start + pageSize);
-  }, [transactions, currentPage, pageSize]);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -99,16 +95,18 @@ export default function AdminRevenue() {
     try {
       const [statsData, txData] = await Promise.all([
         adminService.getRevenueStats(),
-        adminService.getSystemTransactions(filterType),
+        adminService.getSystemTransactions(filterType, currentPage, pageSize),
       ]);
       setStats(statsData);
-      setTransactions(txData);
+      setTransactions(txData.content);
+      setTotalElements(txData.totalElements);
+      setTotalPages(txData.totalPages);
     } catch (err: any) {
       setError(err?.message || t("revenue.error.default"));
     } finally {
       setLoading(false);
     }
-  }, [filterType]);
+  }, [filterType, currentPage, pageSize, t]);
 
   useEffect(() => {
     void fetchData();
@@ -330,7 +328,7 @@ export default function AdminRevenue() {
                   </td>
                 </tr>
               ) : (
-                paginatedTransactions.map((tx) => {
+                transactions.map((tx) => {
                   const amount = tx.amount ?? 0;
                   const presentation = getAdminTransactionPresentation(
                     tx.type,
@@ -389,7 +387,7 @@ export default function AdminRevenue() {
         <Pagination
           currentPage={currentPage}
           totalPages={totalPages}
-          totalElements={transactions.length}
+          totalElements={totalElements}
           pageSize={pageSize}
           onPageChange={(page) => setCurrentPage(page)}
           onPageSizeChange={(size) => {

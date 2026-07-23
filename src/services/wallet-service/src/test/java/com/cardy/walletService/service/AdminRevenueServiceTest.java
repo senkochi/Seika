@@ -33,7 +33,8 @@ class AdminRevenueServiceTest {
                 .thenReturn(new BigDecimal("100"));
         when(configService.getBigDecimal(SystemConfigService.KEY_WITHDRAWAL_VND_PER_COIN, new BigDecimal("90")))
                 .thenReturn(new BigDecimal("90"));
-        when(ledgerRepository.findAllByOrderByCreatedAtDesc()).thenReturn(List.of(
+        when(ledgerRepository.findAllByOrderByCreatedAtDesc(org.mockito.ArgumentMatchers.any())).thenReturn(
+                new org.springframework.data.domain.PageImpl<>(List.of(
                 ledger(WalletLedgerType.TOP_UP, WalletLedgerSource.PAID, "100", "10000"),
                 ledger(WalletLedgerType.PLATFORM_FEE_REAL, WalletLedgerSource.PLATFORM_FEE_REAL, "6", null),
                 ledger(WalletLedgerType.ESCROW_RELEASE_CREDIT, WalletLedgerSource.EARNED_WITHDRAWABLE, "24", null),
@@ -43,9 +44,9 @@ class AdminRevenueServiceTest {
                 ledger(WalletLedgerType.PURCHASE_DEBIT, WalletLedgerSource.PAID, "-30", null),
                 ledger(WalletLedgerType.PLATFORM_FEE_PROMO_SINK, WalletLedgerSource.PLATFORM_FEE_PROMO_SINK, "4", null),
                 ledger(WalletLedgerType.CASH_OUT, WalletLedgerSource.EARNED_WITHDRAWABLE, "-8", "720")
-        ));
+        )));
 
-        List<AdminTransactionDTO> transactions = service.getSystemTransactions("ALL");
+        List<AdminTransactionDTO> transactions = service.getSystemTransactions("ALL", 0, 20).getContent();
 
         assertThat(transactions).extracting(AdminTransactionDTO::getFlowDirection)
                 .containsExactly(

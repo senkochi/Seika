@@ -19,6 +19,12 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.web.bind.annotation.RequestParam;
+import com.seika.marketplace_service.enums.ProductType;
+
 @RestController
 @RequestMapping("/api/marketplace/inventory")
 @RequiredArgsConstructor
@@ -37,6 +43,34 @@ public class InventoryController {
 
         List<Product> products = productRepository.findAllById(productIds);
         return ResponseEntity.ok(products);
+    }
+
+    @GetMapping("/my-items/paginated")
+    public ResponseEntity<Page<Product>> getMyInventoryPaginated(
+            HttpServletRequest request,
+            @RequestParam(required = false) ProductType type,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "8") int size) {
+        String userId = resolveUserId(request);
+        List<UserInventory> inventories = userInventoryRepository.findByUserIdAndActiveTrue(userId);
+        
+        if (type != null) {
+            inventories = inventories.stream()
+                    .filter(inv -> type.equals(inv.getProductType()))
+                    .collect(Collectors.toList());
+        }
+
+        List<String> productIds = inventories.stream()
+                .map(UserInventory::getProductId)
+                .collect(Collectors.toList());
+
+        List<Product> products = productRepository.findAllById(productIds);
+        
+        int start = Math.min(page * size, products.size());
+        int end = Math.min((page + 1) * size, products.size());
+        List<Product> pageContent = products.subList(start, end);
+        
+        return ResponseEntity.ok(new PageImpl<>(pageContent, PageRequest.of(page, size), products.size()));
     }
 
     @GetMapping("/my-items/detail")

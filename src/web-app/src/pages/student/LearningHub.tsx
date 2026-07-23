@@ -8,6 +8,7 @@ import { SectionCard } from "@/components/ui/SectionCard";
 import { StatusPill } from "@/components/ui/StatusPill";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Button } from "@/components/ui/Button";
+import { Pagination } from "@/components/ui/Pagination";
 
 function ProductCard({
   emoji,
@@ -54,27 +55,68 @@ function ProductCard({
 function LearningHub() {
   const { t } = useTranslation("learning");
   const navigate = useNavigate();
-  const [inventory, setInventory] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [flashcards, setFlashcards] = useState<Product[]>([]);
+  const [flashcardsLoading, setFlashcardsLoading] = useState(true);
+  const [flashcardPage, setFlashcardPage] = useState(0);
+  const [flashcardSize, setFlashcardSize] = useState(8);
+  const [flashcardTotalPages, setFlashcardTotalPages] = useState(0);
+  const [flashcardTotalElements, setFlashcardTotalElements] = useState(0);
 
-  const fetchInventory = async () => {
-    setLoading(true);
+  const [quizzes, setQuizzes] = useState<Product[]>([]);
+  const [quizzesLoading, setQuizzesLoading] = useState(true);
+  const [quizPage, setQuizPage] = useState(0);
+  const [quizSize, setQuizSize] = useState(8);
+  const [quizTotalPages, setQuizTotalPages] = useState(0);
+  const [quizTotalElements, setQuizTotalElements] = useState(0);
+
+  const fetchFlashcards = async () => {
+    setFlashcardsLoading(true);
     try {
-      const res = await marketplaceApi.getMyInventory();
-      setInventory(res.data);
+      const res = await marketplaceApi.getMyInventoryPaginated(
+        "FLASHCARD",
+        flashcardPage,
+        flashcardSize,
+      );
+      setFlashcards(res.data.content);
+      setFlashcardTotalPages(res.data.totalPages);
+      setFlashcardTotalElements(res.data.totalElements);
     } catch (error) {
-      console.error("Failed to fetch inventory", error);
+      console.error("Failed to fetch flashcards", error);
     } finally {
-      setLoading(false);
+      setFlashcardsLoading(false);
+    }
+  };
+
+  const fetchQuizzes = async () => {
+    setQuizzesLoading(true);
+    try {
+      const res = await marketplaceApi.getMyInventoryPaginated(
+        "QUIZ",
+        quizPage,
+        quizSize,
+      );
+      setQuizzes(res.data.content);
+      setQuizTotalPages(res.data.totalPages);
+      setQuizTotalElements(res.data.totalElements);
+    } catch (error) {
+      console.error("Failed to fetch quizzes", error);
+    } finally {
+      setQuizzesLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchInventory();
-  }, []);
+    void fetchFlashcards();
+  }, [flashcardPage, flashcardSize]);
 
-  const flashcards = inventory.filter((item) => item.type === "FLASHCARD");
-  const quizzes = inventory.filter((item) => item.type === "QUIZ");
+  useEffect(() => {
+    void fetchQuizzes();
+  }, [quizPage, quizSize]);
+
+  const refreshAll = () => {
+    void fetchFlashcards();
+    void fetchQuizzes();
+  };
 
   return (
     <div className="space-y-8 p-6 lg:p-8">
@@ -85,11 +127,13 @@ function LearningHub() {
           <Button
             variant="ghost"
             size="md"
-            onClick={fetchInventory}
-            disabled={loading}
+            onClick={refreshAll}
+            disabled={flashcardsLoading || quizzesLoading}
           >
             <RefreshCcw
-              className={`h-4 w-4 ${loading ? "animate-spin" : ""}`}
+              className={`h-4 w-4 ${
+                flashcardsLoading || quizzesLoading ? "animate-spin" : ""
+              }`}
               aria-hidden="true"
             />
             {t("common:actions.refresh")}
@@ -97,28 +141,28 @@ function LearningHub() {
         }
       />
 
-      {loading ? (
-        <div className="font-sans-ui text-white/55 text-sm">
-          {t("hub.loading")}
-        </div>
-      ) : (
-        <>
-          {/* Flashcard Decks */}
-          <section>
-            <div className="flex items-center gap-2 mb-5">
-              <BookOpen className="w-4 h-4 text-[#d4a843]" aria-hidden="true" />
-              <h2 className="font-sans-ui text-base font-semibold text-cream">
-                {t("hub.flashcardSection")}
-              </h2>
-            </div>
+      <div className="space-y-12">
+        {/* Flashcard Decks */}
+        <section>
+          <div className="flex items-center gap-2 mb-5">
+            <BookOpen className="w-4 h-4 text-[#d4a843]" aria-hidden="true" />
+            <h2 className="font-sans-ui text-base font-semibold text-cream">
+              {t("hub.flashcardSection")}
+            </h2>
+          </div>
 
-            {flashcards.length === 0 ? (
-              <EmptyState
-                icon={<BookOpen className="w-5 h-5" aria-hidden="true" />}
-                title={t("emptyState.flashcard.title")}
-                description={t("emptyState.flashcard.description")}
-              />
-            ) : (
+          {flashcardsLoading ? (
+            <div className="font-sans-ui text-white/55 text-sm">
+              {t("hub.loading")}
+            </div>
+          ) : flashcards.length === 0 ? (
+            <EmptyState
+              icon={<BookOpen className="w-5 h-5" aria-hidden="true" />}
+              title={t("emptyState.flashcard.title")}
+              description={t("emptyState.flashcard.description")}
+            />
+          ) : (
+            <>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {flashcards.map((deck) => (
                   <ProductCard
@@ -135,25 +179,45 @@ function LearningHub() {
                   />
                 ))}
               </div>
-            )}
-          </section>
+              <div className="mt-8">
+                <Pagination
+                  currentPage={flashcardPage}
+                  totalPages={flashcardTotalPages}
+                  totalElements={flashcardTotalElements}
+                  pageSize={flashcardSize}
+                  onPageChange={setFlashcardPage}
+                  onPageSizeChange={(newSize) => {
+                    setFlashcardSize(newSize);
+                    setFlashcardPage(0);
+                  }}
+                  pageSizeOptions={[8, 16, 32]}
+                />
+              </div>
+            </>
+          )}
+        </section>
 
-          {/* Quiz Center */}
-          <section>
-            <div className="flex items-center gap-2 mb-5">
-              <Target className="w-4 h-4 text-[#d4a843]" aria-hidden="true" />
-              <h2 className="font-sans-ui text-base font-semibold text-cream">
-                {t("hub.quizSection")}
-              </h2>
+        {/* Quiz Center */}
+        <section>
+          <div className="flex items-center gap-2 mb-5">
+            <Target className="w-4 h-4 text-[#d4a843]" aria-hidden="true" />
+            <h2 className="font-sans-ui text-base font-semibold text-cream">
+              {t("hub.quizSection")}
+            </h2>
+          </div>
+
+          {quizzesLoading ? (
+            <div className="font-sans-ui text-white/55 text-sm">
+              {t("hub.loading")}
             </div>
-
-            {quizzes.length === 0 ? (
-              <EmptyState
-                icon={<Target className="w-5 h-5" aria-hidden="true" />}
-                title={t("emptyState.quiz.title")}
-                description={t("emptyState.quiz.description")}
-              />
-            ) : (
+          ) : quizzes.length === 0 ? (
+            <EmptyState
+              icon={<Target className="w-5 h-5" aria-hidden="true" />}
+              title={t("emptyState.quiz.title")}
+              description={t("emptyState.quiz.description")}
+            />
+          ) : (
+            <>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {quizzes.map((quiz) => (
                   <ProductCard
@@ -168,10 +232,24 @@ function LearningHub() {
                   />
                 ))}
               </div>
-            )}
-          </section>
-        </>
-      )}
+              <div className="mt-8">
+                <Pagination
+                  currentPage={quizPage}
+                  totalPages={quizTotalPages}
+                  totalElements={quizTotalElements}
+                  pageSize={quizSize}
+                  onPageChange={setQuizPage}
+                  onPageSizeChange={(newSize) => {
+                    setQuizSize(newSize);
+                    setQuizPage(0);
+                  }}
+                  pageSizeOptions={[8, 16, 32]}
+                />
+              </div>
+            </>
+          )}
+        </section>
+      </div>
     </div>
   );
 }

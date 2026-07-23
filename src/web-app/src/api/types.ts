@@ -327,6 +327,14 @@ export interface AdminProductsPage {
   size: number;
 }
 
+export interface AdminTransactionsPage {
+  content: AdminTransactionResponse[];
+  totalElements: number;
+  totalPages: number;
+  number: number;
+  size: number;
+}
+
 export interface AdminRevenueStats {
   totalTopupCoins: number;
   totalTopupVnd: number;
@@ -362,4 +370,12 @@ export interface AdminTransactionResponse {
   amountVnd: number | null;
   description: string;
   createdAt: string;
+}
+
+export interface PageResponse<T> {
+  content: T[];
+  totalElements: number;
+  totalPages: number;
+  number: number;
+  size: number;
 }

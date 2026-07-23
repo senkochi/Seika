@@ -2,6 +2,8 @@ package com.cardy.walletService.repository;
 
 import com.cardy.walletService.domain.WalletLedgerEntry;
 import com.cardy.walletService.enums.WalletLedgerType;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -11,4 +13,7 @@ public interface WalletLedgerEntryRepository extends JpaRepository<WalletLedgerE
     List<WalletLedgerEntry> findByIdempotencyKeyAndTypeOrderByCreatedAtAsc(String idempotencyKey, WalletLedgerType type);
     List<WalletLedgerEntry> findByTypeInOrderByCreatedAtDesc(List<WalletLedgerType> types);
     List<WalletLedgerEntry> findAllByOrderByCreatedAtDesc();
+    
+    Page<WalletLedgerEntry> findByTypeInOrderByCreatedAtDesc(List<WalletLedgerType> types, Pageable pageable);
+    Page<WalletLedgerEntry> findAllByOrderByCreatedAtDesc(Pageable pageable);
 }

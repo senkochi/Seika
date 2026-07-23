@@ -1,4 +1,5 @@
 import { apiClient } from "../client";
+import { PageResponse } from "../types";
 
 export interface Product {
   id: string;
@@ -122,7 +123,10 @@ export interface EscrowTransaction {
 
 export const marketplaceApi = {
   // Products
-  getProducts: () => apiClient.get<Product[]>("/marketplace/products"),
+  getProducts: (page: number = 0, size: number = 10) =>
+    apiClient.get<PageResponse<Product>>(
+      `/marketplace/products?page=${page}&size=${size}`,
+    ),
   getProductById: (productId: string) =>
     apiClient.get<Product>(
       `/marketplace/products/${encodeURIComponent(productId)}`,
@@ -133,6 +137,20 @@ export const marketplaceApi = {
   // Inventory
   getMyInventory: () =>
     apiClient.get<Product[]>("/marketplace/inventory/my-items"),
+  getMyInventoryPaginated: (
+    type?: string,
+    page: number = 0,
+    size: number = 8,
+  ) => {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      size: size.toString(),
+    });
+    if (type) params.append("type", type);
+    return apiClient.get<PageResponse<Product>>(
+      `/marketplace/inventory/my-items/paginated?${params.toString()}`,
+    );
+  },
   getMyInventoryDetails: () =>
     apiClient.get<InventoryItem[]>("/marketplace/inventory/my-items/detail"),
 

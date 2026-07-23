@@ -9,6 +9,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+
 @RestController
 @RequestMapping("/api/marketplace/products")
 @RequiredArgsConstructor
@@ -17,13 +21,27 @@ public class ProductController {
     private final ProductService productService;
 
     @GetMapping
-    public ResponseEntity<List<ProductResponse>> getProducts(HttpServletRequest request) {
+    public ResponseEntity<Page<ProductResponse>> getProducts(
+            HttpServletRequest request,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
         String userId = request.getHeader("X-User-Id");
         if (userId == null) {
             userId = request.getHeader("X-Auth-User-Id"); // Fallback
         }
 
-        return ResponseEntity.ok(productService.getActiveProducts(userId));
+        List<ProductResponse> products = productService.getActiveProducts(userId);
+        
+        int start = Math.min(page * size, products.size());
+        int end = Math.min((page + 1) * size, products.size());
+        List<ProductResponse> pageContent = products.subList(start, end);
+        
+        Page<ProductResponse> result = new PageImpl<>(
+                pageContent, 
+                PageRequest.of(page, size), 
+                products.size()
+        );
+        return ResponseEntity.ok(result);
     }
 
     @GetMapping("/{productId}")

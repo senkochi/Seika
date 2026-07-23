@@ -15,6 +15,7 @@ import { marketplaceApi, type Product, walletService } from "@/api";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { Pagination } from "@/components/ui/Pagination";
 import { SectionCard } from "@/components/ui/SectionCard";
 import { StatusPill } from "@/components/ui/StatusPill";
 import { useAppSelector } from "@/store/hooks";
@@ -71,12 +72,18 @@ function Marketplace() {
   const userId = useAppSelector((state) => state.userProfile.userId);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(0);
+  const [size, setSize] = useState(12);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
 
   const fetchProducts = async () => {
     setLoading(true);
     try {
-      const res = await marketplaceApi.getProducts();
-      setProducts(res.data);
+      const res = await marketplaceApi.getProducts(page, size);
+      setProducts(res.data.content);
+      setTotalPages(res.data.totalPages);
+      setTotalElements(res.data.totalElements);
     } catch (error) {
       console.error("Failed to fetch products", error);
       toast.error(t("marketplace:toast.fetchFailed"));
@@ -87,7 +94,7 @@ function Marketplace() {
 
   useEffect(() => {
     void fetchProducts();
-  }, []);
+  }, [page, size]);
 
   const handleBuy = async (product: Product) => {
     try {
@@ -297,6 +304,23 @@ function Marketplace() {
                 </SectionCard>
               );
             })}
+          </div>
+        )}
+
+        {!loading && products.length > 0 && (
+          <div className="mt-8">
+            <Pagination
+              currentPage={page}
+              totalPages={totalPages}
+              totalElements={totalElements}
+              pageSize={size}
+              onPageChange={setPage}
+              onPageSizeChange={(newSize) => {
+                setSize(newSize);
+                setPage(0);
+              }}
+              pageSizeOptions={[12, 24, 48]}
+            />
           </div>
         )}
       </section>

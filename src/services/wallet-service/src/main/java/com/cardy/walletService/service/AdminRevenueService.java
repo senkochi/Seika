@@ -111,14 +111,16 @@ public class AdminRevenueService {
     }
 
     @Transactional(readOnly = true)
-    public List<AdminTransactionDTO> getSystemTransactions(String typeFilter) {
-        List<WalletLedgerEntry> ledgerEntries;
+    public org.springframework.data.domain.Page<AdminTransactionDTO> getSystemTransactions(String typeFilter, int page, int size) {
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size);
+        org.springframework.data.domain.Page<WalletLedgerEntry> ledgerEntriesPage;
+        
         if ("TOP_UP".equalsIgnoreCase(typeFilter)) {
-            ledgerEntries = walletLedgerEntryRepository.findByTypeInOrderByCreatedAtDesc(List.of(WalletLedgerType.TOP_UP));
+            ledgerEntriesPage = walletLedgerEntryRepository.findByTypeInOrderByCreatedAtDesc(List.of(WalletLedgerType.TOP_UP), pageable);
         } else if ("CASH_OUT".equalsIgnoreCase(typeFilter)) {
-            ledgerEntries = walletLedgerEntryRepository.findByTypeInOrderByCreatedAtDesc(List.of(WalletLedgerType.CASH_OUT));
+            ledgerEntriesPage = walletLedgerEntryRepository.findByTypeInOrderByCreatedAtDesc(List.of(WalletLedgerType.CASH_OUT), pageable);
         } else {
-            ledgerEntries = walletLedgerEntryRepository.findAllByOrderByCreatedAtDesc();
+            ledgerEntriesPage = walletLedgerEntryRepository.findAllByOrderByCreatedAtDesc(pageable);
         }
 
         BigDecimal currentTopupRate = systemConfigService.getBigDecimal(
@@ -126,7 +128,7 @@ public class AdminRevenueService {
         BigDecimal currentWithdrawalRate = systemConfigService.getBigDecimal(
                 SystemConfigService.KEY_WITHDRAWAL_VND_PER_COIN, new BigDecimal("90"));
 
-        return ledgerEntries.stream().map(entry -> {
+        return ledgerEntriesPage.map(entry -> {
             BigDecimal vnd = resolveAdminTransactionVnd(entry, currentTopupRate, currentWithdrawalRate);
 
             String userIdStr = entry.getUserId() != null ? entry.getUserId().toString() : "N/A";
@@ -145,7 +147,7 @@ public class AdminRevenueService {
                     .description(entry.getDescription())
                     .createdAt(entry.getCreatedAt())
                     .build();
-        }).collect(Collectors.toList());
+        });
     }
 
     private String resolveAdminFlowDirection(WalletLedgerType type, WalletLedgerSource source) {

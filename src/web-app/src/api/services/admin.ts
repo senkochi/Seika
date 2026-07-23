@@ -5,6 +5,7 @@ import type {
   AdminProductsPage,
   AdminRevenueStats,
   AdminTransactionResponse,
+  AdminTransactionsPage,
   AdminUsersPage,
   PendingProduct,
   RejectProductRequest,
@@ -317,11 +318,25 @@ export const adminService = {
 
   getSystemTransactions: async (
     type = "ALL",
-  ): Promise<AdminTransactionResponse[]> => {
+    page = 0,
+    size = 20,
+  ): Promise<AdminTransactionsPage> => {
     const response = await apiClient.get(
-      `/wallet/admin/transactions?type=${type}`,
+      `/wallet/admin/transactions?type=${type}&page=${page}&size=${size}`,
     );
-    const data = unwrap<AdminTransactionResponse[]>(response.data);
-    return data ?? [];
+    const data = response.data as {
+      content: AdminTransactionResponse[];
+      totalElements: number;
+      totalPages: number;
+      number: number;
+      size: number;
+    };
+    return {
+      content: data.content ?? [],
+      totalElements: data.totalElements ?? 0,
+      totalPages: data.totalPages ?? 0,
+      number: data.number ?? page,
+      size: data.size ?? size,
+    };
   },
 };
