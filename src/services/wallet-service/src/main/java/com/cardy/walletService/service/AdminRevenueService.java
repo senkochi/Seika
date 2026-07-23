@@ -132,12 +132,15 @@ public class AdminRevenueService {
             BigDecimal vnd = resolveAdminTransactionVnd(entry, currentTopupRate, currentWithdrawalRate);
 
             String userIdStr = entry.getUserId() != null ? entry.getUserId().toString() : "N/A";
+            String username = entry.getWallet() != null
+                    ? entry.getWallet().getUsername() : null;
             String walletIdStr = (entry.getWallet() != null && entry.getWallet().getId() != null)
                     ? entry.getWallet().getId().toString() : "N/A";
 
             return AdminTransactionDTO.builder()
                     .id(entry.getId() != null ? entry.getId().toString() : "")
                     .userId(userIdStr)
+                    .username(username)
                     .walletId(walletIdStr)
                     .type(entry.getType() != null ? entry.getType().toString() : "")
                     .source(entry.getSource() != null ? entry.getSource().toString() : "")

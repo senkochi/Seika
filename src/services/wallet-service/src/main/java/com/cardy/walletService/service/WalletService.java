@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -158,11 +159,19 @@ public class WalletService {
                 .build();
         return walletLedgerEntryRepository.save(entry);
     }
+
     @Transactional
     public void createWallet(UUID userId, boolean isTeacher) {
+        createWallet(userId, isTeacher, null);
+    }
+
+    @Transactional
+    public void createWallet(UUID userId, boolean isTeacher, String rawUsername) {
         walletRepository.acquireUserLock(userId.toString());
+        String username = normalizeUsername(rawUsername);
         String initializationKey = "user:" + userId + ":wallet-initialized";
         if (walletIdempotencyKeyRepository.existsById(initializationKey)) {
+            syncExistingUsername(userId, username);
             return;
         }
 
@@ -174,9 +183,11 @@ public class WalletService {
                     .idempotencyKey(initializationKey)
                     .operation(WalletLedgerType.INITIAL_BONUS.name())
                     .build());
+            syncExistingUsername(userId, username);
             return;
         }
 
+        Optional<Wallet> existingWallet = walletRepository.findByUserId(userId);
         BigDecimal teacherInitial = systemConfigService.getBigDecimal(
                 SystemConfigService.KEY_TEACHER_INITIAL_COIN, BigDecimal.ZERO);
         BigDecimal studentInitial = systemConfigService.getBigDecimal(
@@ -184,8 +195,11 @@ public class WalletService {
         BigDecimal configuredBalance = isTeacher ? teacherInitial : studentInitial;
         BigDecimal defaultBalance = configuredBalance == null ? BigDecimal.ZERO : configuredBalance;
 
-        Wallet wallet = walletRepository.findByUserId(userId)
+        Wallet wallet = existingWallet
                 .orElseGet(() -> Wallet.builder().userId(userId).build());
+        if (username != null) {
+            wallet.setUsername(username);
+        }
         wallet.recalculateBalance();
         if (defaultBalance.compareTo(BigDecimal.ZERO) > 0) {
             wallet.setBonusBalance(wallet.getBonusBalance().add(defaultBalance));
@@ -202,6 +216,46 @@ public class WalletService {
                 .idempotencyKey(initializationKey)
                 .operation(WalletLedgerType.INITIAL_BONUS.name())
                 .build());
+    }
+
+    @Transactional
+    public boolean syncUsername(UUID userId, String rawUsername) {
+        String username = normalizeUsername(rawUsername);
+        if (username == null) {
+            throw new IllegalArgumentException("username must not be blank");
+        }
+
+        walletRepository.acquireUserLock(userId.toString());
+        return syncExistingUsername(userId, username);
+    }
+
+    private boolean syncExistingUsername(UUID userId, String username) {
+        if (username == null) {
+            return false;
+        }
+
+        Optional<Wallet> wallet = walletRepository.findByUserId(userId);
+        if (wallet.isEmpty()) {
+            log.warn("Cannot synchronize username because wallet is missing for userId={}", userId);
+            return false;
+        }
+        Wallet existing = wallet.get();
+        if (!username.equals(existing.getUsername())) {
+            existing.setUsername(username);
+            walletRepository.save(existing);
+        }
+        return true;
+    }
+
+    private String normalizeUsername(String username) {
+        if (username == null || username.isBlank()) {
+            return null;
+        }
+        String normalized = username.trim();
+        if (normalized.length() > 100) {
+            throw new IllegalArgumentException("username is too long");
+        }
+        return normalized;
     }
 
     @Transactional

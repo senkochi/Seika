@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import {
   DollarSign,
@@ -25,6 +25,7 @@ import { StatusPill } from "../../components/ui/StatusPill";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { Button } from "../../components/ui/Button";
 import { useFormatDate, useFormatNumber } from "../../utils/format";
+import { recognizableUsername } from "../../utils/displayName";
 import { getAdminTransactionPresentation } from "./adminRevenuePresentation";
 
 function FilterChip({
@@ -301,7 +302,7 @@ export default function AdminRevenue() {
                   {t("revenue.transactions.headers.time")}
                 </th>
                 <th className="pb-3 pr-4">
-                  {t("revenue.transactions.headers.userId")}
+                  {t("revenue.transactions.headers.username")}
                 </th>
                 <th className="pb-3 pr-4">
                   {t("revenue.transactions.headers.type")}
@@ -344,11 +345,9 @@ export default function AdminRevenue() {
                       <td className="py-3.5 pr-4 whitespace-nowrap text-xs text-white/55 font-mono">
                         {formatDate(tx.createdAt)}
                       </td>
-                      <td
-                        className="py-3.5 pr-4 whitespace-nowrap font-mono text-xs text-cream max-w-[120px] truncate"
-                        title={tx.userId}
-                      >
-                        {tx.userId ? `${tx.userId.substring(0, 8)}…` : "N/A"}
+                      <td className="py-3.5 pr-4 whitespace-nowrap text-sm text-cream max-w-[160px] truncate">
+                        {recognizableUsername(tx.username) ||
+                          t("revenue.transactions.unknownUser")}
                       </td>
                       <td className="py-3.5 pr-4 whitespace-nowrap">
                         <StatusPill variant={presentation.pillVariant}>

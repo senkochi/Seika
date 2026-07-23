@@ -23,7 +23,8 @@
   },
   "label": {
     "teacher": "Giáo viên",
-    "coins": "Coins"
+    "coins": "Coins",
+    "unknownTeacher": "Giáo viên"
   },
   "action": {
     "details": "Chi tiết",

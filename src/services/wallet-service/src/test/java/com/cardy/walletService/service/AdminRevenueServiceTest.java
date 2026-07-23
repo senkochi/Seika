@@ -13,12 +13,49 @@ import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class AdminRevenueServiceTest {
+
+    @Test
+    void systemTransactionsExposeUsernameFromWalletProjection() {
+        TransactionRepository transactionRepository = mock(TransactionRepository.class);
+        WalletLedgerEntryRepository ledgerRepository = mock(WalletLedgerEntryRepository.class);
+        WalletRepository walletRepository = mock(WalletRepository.class);
+        SystemConfigService configService = mock(SystemConfigService.class);
+        AdminRevenueService service = new AdminRevenueService(
+                transactionRepository, ledgerRepository, walletRepository, configService);
+
+        when(configService.getBigDecimal(
+                SystemConfigService.KEY_TOPUP_VND_PER_COIN, new BigDecimal("100")))
+                .thenReturn(new BigDecimal("100"));
+        when(configService.getBigDecimal(
+                SystemConfigService.KEY_WITHDRAWAL_VND_PER_COIN, new BigDecimal("90")))
+                .thenReturn(new BigDecimal("90"));
+
+        Wallet wallet = Wallet.builder()
+                .id(UUID.randomUUID())
+                .userId(UUID.fromString("90be3875-2f50-4cb1-835c-504afb0a67f6"))
+                .username("ngoc.anh")
+                .build();
+        WalletLedgerEntry entry = ledger(
+                WalletLedgerType.INITIAL_BONUS, WalletLedgerSource.BONUS, "300", null);
+        entry.setWallet(wallet);
+        entry.setUserId(wallet.getUserId());
+        when(ledgerRepository.findAllByOrderByCreatedAtDesc(
+                org.mockito.ArgumentMatchers.any()))
+                .thenReturn(new org.springframework.data.domain.PageImpl<>(List.of(entry)));
+
+        AdminTransactionDTO transaction =
+                service.getSystemTransactions("ALL", 0, 20).getContent().getFirst();
+
+        assertThat(transaction.getUsername()).isEqualTo("ngoc.anh");
+        assertThat(transaction.getUserId()).isEqualTo(wallet.getUserId().toString());
+    }
 
     @Test
     void systemTransactionsUseAdminCashFlowPerspective() {

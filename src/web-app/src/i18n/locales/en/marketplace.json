@@ -23,7 +23,8 @@
   },
   "label": {
     "teacher": "Teacher",
-    "coins": "Coins"
+    "coins": "Coins",
+    "unknownTeacher": "Teacher"
   },
   "action": {
     "details": "Details",

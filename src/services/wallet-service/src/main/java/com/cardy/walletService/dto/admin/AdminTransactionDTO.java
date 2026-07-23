@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 public class AdminTransactionDTO {
     private String id;
     private String userId;
+    private String username;
     private String walletId;
     private String type;
     private String source;

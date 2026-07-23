@@ -33,6 +33,10 @@ public class UserRegisteredConsumer {
             }
 
             UUID userId = UUID.fromString(event.getUserId());
+            Object usernameValue = event.getPayload() == null
+                    ? null
+                    : event.getPayload().get("username");
+            String username = usernameValue instanceof String value ? value : null;
             
             boolean isTeacher = false;
             if (event.getPayload() != null && event.getPayload().containsKey("roles")) {
@@ -42,8 +46,13 @@ public class UserRegisteredConsumer {
                 }
             }
             
-            walletService.createWallet(userId, isTeacher);
-            log.info("Created wallet for new userId={}, isTeacher={}", userId, isTeacher);
+            if ("user.public-identity.snapshot".equals(event.getEventType())) {
+                walletService.syncUsername(userId, username);
+                log.info("Synchronized wallet username for userId={}", userId);
+            } else {
+                walletService.createWallet(userId, isTeacher, username);
+                log.info("Created wallet for new userId={}, isTeacher={}", userId, isTeacher);
+            }
         } catch (JsonProcessingException exception) {
             log.error("Failed to deserialize user.registered message. payload={}", rawMessage, exception);
         } catch (Exception exception) {

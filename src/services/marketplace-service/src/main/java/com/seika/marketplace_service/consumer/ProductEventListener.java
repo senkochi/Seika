@@ -13,6 +13,7 @@ import com.seika.marketplace_service.repository.ProductRepository;
 import com.seika.marketplace_service.repository.UserInventoryRepository;
 import com.seika.marketplace_service.service.MarketplaceEscrowSafetyService;
 import com.seika.marketplace_service.service.MarketplaceNotificationPublisher;
+import com.seika.marketplace_service.service.SellerIdentityProjectionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -33,6 +34,7 @@ public class ProductEventListener {
     private final MarketplaceEscrowSafetyService escrowSafetyService;
     private final UserInventoryRepository userInventoryRepository;
     private final org.springframework.cache.CacheManager cacheManager;
+    private final SellerIdentityProjectionService identityProjectionService;
 
     @RabbitListener(queues = "${messaging.events.marketplace-content-queue:marketplace.content-events}")
     public void handleContentCreatedEvent(org.springframework.amqp.core.Message message, @Header(AmqpHeaders.RECEIVED_ROUTING_KEY) String routingKey) {
@@ -113,6 +115,8 @@ public class ProductEventListener {
             return;
         }
 
+        String teacherUsername = identityProjectionService.findUsername(sellerId).orElse(null);
+
         Product product = Product.builder()
                 .referenceId(referenceId)
                 .type(type)
@@ -120,7 +124,7 @@ public class ProductEventListener {
                 .description(description)
                 .price(price == null ? BigDecimal.ZERO : price)
                 .sellerUserId(sellerId)
-                .teacherDisplayName(sellerId)
+                .teacherDisplayName(teacherUsername)
                 .active(false)                                     // chỉ active=true khi admin duyệt
                 .status(ProductStatus.PENDING_REVIEW)             // cần admin duyệt
                 .build();

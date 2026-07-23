@@ -1,6 +1,7 @@
 package com.cardy.walletService.config;
 
 import org.springframework.amqp.support.converter.JacksonJsonMessageConverter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.amqp.core.*;
@@ -61,6 +62,17 @@ public class RabbitMQConfig {
         return BindingBuilder.bind(userRegisteredQueue)
                 .to(identityEventsExchange)
                 .with(USER_REGISTERED_ROUTING_KEY);
+    }
+
+    @Bean
+    public Binding publicIdentitySnapshotBinding(
+            Queue userRegisteredQueue,
+            TopicExchange identityEventsExchange,
+            @Value("${messaging.events.public-identity-snapshot-routing-key:user.public-identity.snapshot}")
+                    String routingKey) {
+        return BindingBuilder.bind(userRegisteredQueue)
+                .to(identityEventsExchange)
+                .with(routingKey);
     }
 
     @Bean

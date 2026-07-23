@@ -407,6 +407,20 @@ const adminSlice = createSlice({
     builder
       .addMatcher(
         (action) =>
+          action.type === lockAdminUser.pending.type ||
+          action.type === unlockAdminUser.pending.type ||
+          action.type === changeAdminUserRole.pending.type ||
+          action.type === resetAdminUserPassword.pending.type ||
+          action.type === approveAdminProduct.pending.type ||
+          action.type === rejectAdminProduct.pending.type ||
+          action.type === updateAdminConfig.pending.type,
+        (state) => {
+          state.mutationStatus = "loading";
+          state.mutationError = null;
+        },
+      )
+      .addMatcher(
+        (action) =>
           action.type === lockAdminUser.rejected.type ||
           action.type === unlockAdminUser.rejected.type ||
           action.type === changeAdminUserRole.rejected.type ||

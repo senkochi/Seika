@@ -8,6 +8,7 @@ import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.support.converter.JacksonJsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -43,6 +44,41 @@ public class RabbitMQConfig {
     }
 
     @Bean
+    public TopicExchange identityEventsExchange(
+            @Value("${messaging.events.identity-exchange:identity.events}") String exchangeName) {
+        return new TopicExchange(exchangeName, true, false);
+    }
+
+    @Bean
+    public Queue marketplaceIdentityEventsQueue(
+            @Value("${messaging.events.marketplace-identity-queue:marketplace.identity-events}")
+                    String queueName) {
+        return new Queue(queueName, true);
+    }
+
+    @Bean
+    public Binding marketplaceUserRegisteredBinding(
+            Queue marketplaceIdentityEventsQueue,
+            TopicExchange identityEventsExchange,
+            @Value("${messaging.events.user-registered-routing-key:user.registered}")
+                    String routingKey) {
+        return BindingBuilder.bind(marketplaceIdentityEventsQueue)
+                .to(identityEventsExchange)
+                .with(routingKey);
+    }
+
+    @Bean
+    public Binding marketplacePublicIdentitySnapshotBinding(
+            Queue marketplaceIdentityEventsQueue,
+            TopicExchange identityEventsExchange,
+            @Value("${messaging.events.public-identity-snapshot-routing-key:user.public-identity.snapshot}")
+                    String routingKey) {
+        return BindingBuilder.bind(marketplaceIdentityEventsQueue)
+                .to(identityEventsExchange)
+                .with(routingKey);
+    }
+
+    @Bean
     public Binding walletEventsBinding(Queue walletEventsQueue, TopicExchange walletEventsExchange) {
         return BindingBuilder
             .bind(walletEventsQueue)
@@ -70,8 +106,10 @@ public class RabbitMQConfig {
     }
 
     @Bean
-    public Queue marketplaceContentEventsQueue() {
-        return new Queue(MARKETPLACE_CONTENT_EVENTS_QUEUE, true);
+    public Queue marketplaceContentEventsQueue(
+            @Value("${messaging.events.marketplace-content-queue:marketplace.content-events}")
+                    String queueName) {
+        return new Queue(queueName, true);
     }
 
     @Bean

@@ -72,7 +72,7 @@
       },
       "headers": {
         "time": "Thời gian",
-        "userId": "User ID",
+        "username": "Username",
         "type": "Loại giao dịch",
         "coinChange": "Biến động Coin",
         "vnd": "Tác động / ước tính VND",
@@ -99,7 +99,8 @@
         "escrowReleaseWithdrawable": "Chi trả Escrow có thể rút",
         "escrowReleasePromo": "Chi trả Escrow promo nội bộ"
       },
-      "noDesc": "Không có mô tả"
+      "noDesc": "Không có mô tả",
+      "unknownUser": "Chưa đồng bộ"
     }
   },
   "moderation": {
@@ -107,6 +108,7 @@
     "subtitle": "Tổng {{count}} sản phẩm đang chờ duyệt.",
     "reload": "Tải lại",
     "preview": "Xem trước",
+    "details": "Xem chi tiết",
     "approve": "Duyệt",
     "reject": "Từ chối",
     "badge": {
@@ -140,6 +142,23 @@
       "desc": "Từ chối \"{{name}}\"?",
       "reasonLabel": "Lý do từ chối (bắt buộc)",
       "reasonPlaceholder": "Nhập lý do từ chối (tối đa 500 ký tự)"
+    },
+    "detail": {
+      "subtitle": "Kiểm tra metadata và trạng thái kiểm duyệt.",
+      "close": "Đóng chi tiết sản phẩm",
+      "description": "Mô tả",
+      "noDescription": "Chưa có mô tả.",
+      "username": "Username",
+      "userId": "User ID",
+      "referenceId": "Reference ID",
+      "type": "Loại nội dung",
+      "price": "Giá",
+      "createdAt": "Ngày tạo",
+      "status": "Trạng thái",
+      "rejectionReason": "Lý do từ chối",
+      "copyUserId": "Sao chép User ID",
+      "copyReferenceId": "Sao chép Reference ID",
+      "copyFailed": "Không thể sao chép giá trị."
     }
   },
   "users": {

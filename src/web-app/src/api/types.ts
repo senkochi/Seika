@@ -289,6 +289,7 @@ export interface PendingProduct {
   type: "QUIZ" | "FLASHCARD" | string;
   referenceId: string;
   sellerUserId: string;
+  teacherDisplayName: string | null;
   status: "PENDING_REVIEW" | "PUBLISHED" | "REJECTED" | "HIDDEN" | string;
   rejectionReason: string | null;
   active: boolean;
@@ -362,6 +363,7 @@ export interface AdminRevenueStats {
 export interface AdminTransactionResponse {
   id: string;
   userId: string;
+  username?: string | null;
   walletId: string;
   type: string;
   source?: string;

@@ -21,6 +21,7 @@ import { StatusPill } from "@/components/ui/StatusPill";
 import { useAppSelector } from "@/store/hooks";
 import { useTranslation } from "react-i18next";
 import { useActiveLocale } from "@/hooks/useActiveLocale";
+import { recognizableUsername } from "@/utils/displayName";
 
 const ORDER_POLL_ATTEMPTS = 10;
 const ORDER_POLL_DELAY_MS = 700;
@@ -251,7 +252,8 @@ function Marketplace() {
                     </p>
                     <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
                       <span className="text-sm font-medium text-cream line-clamp-1">
-                        {item.teacherDisplayName || item.sellerUserId}
+                        {recognizableUsername(item.teacherDisplayName) ||
+                          t("marketplace:label.unknownTeacher")}
                       </span>
                       <span className="inline-flex items-center gap-1 text-sm text-white/65">
                         <Star

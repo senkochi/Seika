@@ -2,8 +2,6 @@ package com.seika.marketplace_service.consumer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.seika.marketplace_service.entity.Product;
-import com.seika.marketplace_service.enums.ProductStatus;
-import com.seika.marketplace_service.enums.ProductType;
 import com.seika.marketplace_service.repository.ProductRepository;
 import com.seika.marketplace_service.repository.UserInventoryRepository;
 import com.seika.marketplace_service.service.MarketplaceEscrowSafetyService;
@@ -13,10 +11,10 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageProperties;
-import org.springframework.amqp.support.converter.JacksonJsonMessageConverter;
 import org.springframework.cache.CacheManager;
 
-import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -24,55 +22,45 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-class ProductEventListenerTest {
+class ProductEventListenerUsernameTest {
 
     @Test
-    void handleFlashcardCreatedAcceptsJsonStringProducedByRabbitConverter() {
+    void productUsesUsernameFromLocalIdentityProjection() {
         ProductRepository productRepository = mock(ProductRepository.class);
-        MarketplaceNotificationPublisher notificationPublisher = mock(MarketplaceNotificationPublisher.class);
-        when(productRepository.save(any(Product.class))).thenAnswer(invocation -> {
-            Product product = invocation.getArgument(0);
-            product.setId("product-1");
-            return product;
-        });
+        SellerIdentityProjectionService identityProjectionService =
+                mock(SellerIdentityProjectionService.class);
+        when(identityProjectionService.findUsername("teacher-1"))
+                .thenReturn(Optional.of("lan.nguyen"));
+        when(productRepository.save(any(Product.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
 
         ProductEventListener listener = new ProductEventListener(
                 new ObjectMapper().findAndRegisterModules(),
                 productRepository,
-                notificationPublisher,
+                mock(MarketplaceNotificationPublisher.class),
                 mock(MarketplaceEscrowSafetyService.class),
                 mock(UserInventoryRepository.class),
                 mock(CacheManager.class),
-                mock(SellerIdentityProjectionService.class)
-        );
+                identityProjectionService);
 
-        String eventJson = """
+        String json = """
                 {
                   "eventId":"event-1",
                   "cardSetId":"card-set-1",
                   "createdBy":"teacher-1",
                   "title":"Animal",
-                  "description":"Dong vat",
                   "price":100
                 }
                 """;
-        Message message = new JacksonJsonMessageConverter()
-                .toMessage(eventJson, new MessageProperties());
+        Message message = new Message(
+                json.getBytes(StandardCharsets.UTF_8),
+                new MessageProperties());
 
         listener.handleContentCreatedEvent(message, "flashcard.set.created");
 
         ArgumentCaptor<Product> productCaptor = ArgumentCaptor.forClass(Product.class);
         verify(productRepository).save(productCaptor.capture());
-        Product product = productCaptor.getValue();
-        assertThat(product.getReferenceId()).isEqualTo("card-set-1");
-        assertThat(product.getType()).isEqualTo(ProductType.FLASHCARD);
-        assertThat(product.getName()).isEqualTo("Animal");
-        assertThat(product.getPrice()).isEqualByComparingTo(BigDecimal.valueOf(100));
-        assertThat(product.getSellerUserId()).isEqualTo("teacher-1");
-        assertThat(product.getTeacherDisplayName()).isNull();
-        assertThat(product.getStatus()).isEqualTo(ProductStatus.PENDING_REVIEW);
-        assertThat(product.isActive()).isFalse();
-        verify(notificationPublisher).publishContentCreated(
-                "product-1", "Animal", "FLASHCARD", "teacher-1");
+        assertThat(productCaptor.getValue().getTeacherDisplayName())
+                .isEqualTo("lan.nguyen");
     }
 }

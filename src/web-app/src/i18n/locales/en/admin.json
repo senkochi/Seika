@@ -72,7 +72,7 @@
       },
       "headers": {
         "time": "Time",
-        "userId": "User ID",
+        "username": "Username",
         "type": "Transaction Type",
         "coinChange": "Coin Change",
         "vnd": "VND Impact / Estimate",
@@ -99,7 +99,8 @@
         "escrowReleaseWithdrawable": "Withdrawable escrow payout",
         "escrowReleasePromo": "Internal promo escrow payout"
       },
-      "noDesc": "No description"
+      "noDesc": "No description",
+      "unknownUser": "Not synchronized"
     }
   },
   "moderation": {
@@ -107,6 +108,7 @@
     "subtitle": "Total {{count}} items pending review.",
     "reload": "Reload",
     "preview": "Preview",
+    "details": "Details",
     "approve": "Approve",
     "reject": "Reject",
     "badge": {
@@ -140,6 +142,23 @@
       "desc": "Reject \"{{name}}\"?",
       "reasonLabel": "Rejection Reason (required)",
       "reasonPlaceholder": "Enter rejection reason (max 500 characters)"
+    },
+    "detail": {
+      "subtitle": "Review product metadata and moderation status.",
+      "close": "Close product details",
+      "description": "Description",
+      "noDescription": "No description provided.",
+      "username": "Username",
+      "userId": "User ID",
+      "referenceId": "Reference ID",
+      "type": "Content type",
+      "price": "Price",
+      "createdAt": "Created at",
+      "status": "Status",
+      "rejectionReason": "Rejection reason",
+      "copyUserId": "Copy user ID",
+      "copyReferenceId": "Copy reference ID",
+      "copyFailed": "Could not copy the value."
     }
   },
   "users": {

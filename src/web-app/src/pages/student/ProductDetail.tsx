@@ -21,6 +21,7 @@ import {
   type ReviewResponse,
 } from "@/api";
 import { useFormatDate, useFormatNumber } from "@/utils/format";
+import { recognizableUsername } from "@/utils/displayName";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -396,7 +397,8 @@ function ProductDetail() {
                 {t("detail.teacherLabel")}
               </p>
               <p className="mt-1 text-base font-medium text-cream">
-                {product.teacherDisplayName || product.sellerUserId}
+                {recognizableUsername(product.teacherDisplayName) ||
+                  t("label.unknownTeacher")}
               </p>
             </div>
             <div>

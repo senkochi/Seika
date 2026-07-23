@@ -24,6 +24,9 @@ public class Wallet {
     @Column(name = "user_id", nullable = false, unique = true)
     private UUID userId;
 
+    @Column(name = "username", length = 100)
+    private String username;
+
     @Column(nullable = false)
     @Builder.Default
     private BigDecimal balance = BigDecimal.ZERO;

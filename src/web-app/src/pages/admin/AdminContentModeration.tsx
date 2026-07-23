@@ -10,6 +10,7 @@ import {
   BookOpen,
   Layers,
   Eye,
+  Info,
 } from "lucide-react";
 
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
@@ -29,6 +30,8 @@ import ConfirmModal from "../../components/ui/ConfirmModal";
 import { showError, showSuccess } from "../../components/toast/toastUtils";
 import type { PendingProduct } from "../../api/types";
 import { useFormatDate, useFormatNumber } from "../../utils/format";
+import { recognizableUsername } from "../../utils/displayName";
+import { ProductDetailDrawer } from "../../components/admin/moderation/ProductDetailDrawer";
 
 function typeVariant(type: string): "info" | "success" {
   return type.toUpperCase().includes("QUIZ") ? "info" : "success";
@@ -51,6 +54,8 @@ function TypeBadge({ type }: { type: string }) {
   );
 }
 
+const compactBtn = "!h-8 !px-3 !text-xs gap-1.5 rounded-lg";
+
 function AdminContentModeration() {
   const { t } = useTranslation("admin");
   const formatDate = useFormatDate();
@@ -60,6 +65,9 @@ function AdminContentModeration() {
   const { products, mutationStatus } = useAppSelector((state) => state.admin);
 
   const [modalReject, setModalReject] = useState<PendingProduct | null>(null);
+  const [drawerProduct, setDrawerProduct] = useState<PendingProduct | null>(
+    null,
+  );
   const [rejectReason, setRejectReason] = useState("");
   const [rejectError, setRejectError] = useState<string | null>(null);
 
@@ -81,12 +89,15 @@ function AdminContentModeration() {
     navigate(path, { state: { pendingProduct: product } });
   };
 
-  const handleApprove = async (product: PendingProduct) => {
+  const handleApprove = async (product: PendingProduct): Promise<boolean> => {
     const result = await dispatch(approveAdminProduct(product.id));
     if (approveAdminProduct.rejected.match(result)) {
       showError((result.payload as string) ?? t("moderation.error.approve"));
+      return false;
     } else {
       showSuccess(t("moderation.success.approve", { name: product.name }));
+      setDrawerProduct(null);
+      return true;
     }
   };
 
@@ -119,6 +130,7 @@ function AdminContentModeration() {
       return;
     }
     showSuccess(t("moderation.success.reject", { name: modalReject.name }));
+    setDrawerProduct(null);
     closeReject();
   };
 
@@ -193,10 +205,8 @@ function AdminContentModeration() {
         <td className="py-3 pr-4">
           <TypeBadge type={p.type} />
         </td>
-        <td className="py-3 pr-4 font-mono text-xs text-white/55">
-          {p.sellerUserId.length > 14
-            ? `${p.sellerUserId.slice(0, 8)}…${p.sellerUserId.slice(-4)}`
-            : p.sellerUserId}
+        <td className="py-3 pr-4 font-sans-ui text-sm text-white/65">
+          {recognizableUsername(p.teacherDisplayName) || "—"}
         </td>
         <td className="py-3 pr-4 font-sans-ui text-cream tabular-nums">
           {formatNumber(p.price)} coin
@@ -209,6 +219,17 @@ function AdminContentModeration() {
             <Button
               variant="ghost"
               size="md"
+              className={compactBtn}
+              onClick={() => setDrawerProduct(p)}
+              title={t("moderation.details")}
+            >
+              <Info className="h-3.5 w-3.5" aria-hidden="true" />
+              {t("moderation.details")}
+            </Button>
+            <Button
+              variant="ghost"
+              size="md"
+              className={compactBtn}
               onClick={() => handlePreview(p)}
               title="Xem trước nội dung"
             >
@@ -218,6 +239,7 @@ function AdminContentModeration() {
             <Button
               variant="ghost"
               size="md"
+              className={compactBtn}
               onClick={() => handleApprove(p)}
               disabled={isMutating}
             >
@@ -228,6 +250,7 @@ function AdminContentModeration() {
               variant="ghost"
               tone="danger"
               size="md"
+              className={compactBtn}
               onClick={() => openReject(p)}
               disabled={isMutating}
             >
@@ -303,6 +326,15 @@ function AdminContentModeration() {
           onPageSizeChange={(size) => dispatch(setProductsSize(size))}
         />
       </SectionCard>
+
+      <ProductDetailDrawer
+        product={drawerProduct}
+        isMutating={isMutating}
+        onClose={() => setDrawerProduct(null)}
+        onPreview={handlePreview}
+        onApprove={handleApprove}
+        onReject={openReject}
+      />
 
       <ConfirmModal
         open={modalReject !== null}

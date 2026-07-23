@@ -32,6 +32,14 @@ spring:
     username: ${RABBITMQ_USERNAME}
     password: ${RABBITMQ_PASSWORD}
 
+messaging:
+  events:
+    identity-exchange: ${IDENTITY_EVENTS_EXCHANGE:identity.events}
+    user-registered-routing-key: ${USER_REGISTERED_ROUTING_KEY:user.registered}
+    public-identity-snapshot-routing-key: ${PUBLIC_IDENTITY_SNAPSHOT_ROUTING_KEY:user.public-identity.snapshot}
+    marketplace-identity-queue: ${MARKETPLACE_IDENTITY_EVENTS_QUEUE:marketplace.identity-events}
+    marketplace-content-queue: ${MARKETPLACE_CONTENT_EVENTS_QUEUE:marketplace.content-events}
+
 jwt:
   issuer: seika-identity-service
   secret: ${JWT_SECRET}
