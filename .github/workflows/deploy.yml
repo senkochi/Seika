@@ -17,7 +17,7 @@ jobs:
           echo "Bat dau xu ly cau hinh moi truong..."
           
           # Copy .env from local workspace
-          cp E:\Seika\.env .
+          cp "F:\Microservices Projects\Seika\.env" .
           
           echo "Da dong bo file .env thanh cong! Bat dau build he thong..."
           docker compose -f docker-compose.prod.yml up -d --build
