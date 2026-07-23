@@ -64,10 +64,8 @@ function RoleCard({
       className={cn(
         "group relative text-left p-6 rounded-2xl",
         "transition-all duration-500 ease-spring",
-        "focus:outline-none",
-        selected
-          ? "p-px bg-gradient-to-b from-[#d4a843] to-[#a37f2a]"
-          : "p-px bg-white/[0.06] hover:bg-white/[0.12]",
+        "focus:outline-none [-webkit-tap-highlight-color:transparent]",
+        selected ? "p-px" : "p-px bg-white/[0.06] hover:bg-white/[0.12]",
       )}
     >
       <div

@@ -17,7 +17,12 @@
     "accountInfo": "Account Information",
     "userId": "User ID",
     "dob": "Date of Birth",
-    "gender": "Gender"
+    "gender": "Gender",
+    "levelLabel": "Level:",
+    "xpLabel": "Experience:",
+    "levelBadge": "Lv. {{level}}",
+    "xpValue": "{{xp}} XP",
+    "verifiedStudent": "Active Student"
   },
   "gender": {
     "Male": "Male",
@@ -33,6 +38,15 @@
     "avatarUrl": "Profile Picture URL",
     "avatarPlaceholder": "https://example.com/avatar.jpg",
     "saving": "Saving…",
-    "saveBtn": "Save Changes"
+    "saveBtn": "Save Changes",
+    "editBtn": "Edit",
+    "cancelBtn": "Cancel"
+  },
+  "accomplishmentsTitle": "Learning Accomplishments",
+  "stats": {
+    "quizzesCompleted": "Quizzes Completed",
+    "currentStreak": "Current Streak (days)",
+    "longestStreak": "Longest Streak (days)",
+    "experience": "Experience (XP)"
   }
 }

@@ -17,7 +17,12 @@
     "accountInfo": "Thông tin tài khoản",
     "userId": "User ID",
     "dob": "Ngày sinh",
-    "gender": "Giới tính"
+    "gender": "Giới tính",
+    "levelLabel": "Cấp độ:",
+    "xpLabel": "Kinh nghiệm:",
+    "levelBadge": "Lv. {{level}}",
+    "xpValue": "{{xp}} XP",
+    "verifiedStudent": "Đang hoạt động"
   },
   "gender": {
     "Male": "Nam",
@@ -33,6 +38,15 @@
     "avatarUrl": "URL ảnh đại diện",
     "avatarPlaceholder": "https://example.com/avatar.jpg",
     "saving": "Đang lưu…",
-    "saveBtn": "Lưu thay đổi"
+    "saveBtn": "Lưu thay đổi",
+    "editBtn": "Chỉnh sửa",
+    "cancelBtn": "Hủy"
+  },
+  "accomplishmentsTitle": "Thành tích Học tập",
+  "stats": {
+    "quizzesCompleted": "Đã hoàn thành Quiz",
+    "currentStreak": "Streak hiện tại (ngày)",
+    "longestStreak": "Streak dài nhất (ngày)",
+    "experience": "Kinh nghiệm (XP)"
   }
 }

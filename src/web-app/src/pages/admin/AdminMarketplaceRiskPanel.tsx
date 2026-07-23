@@ -27,6 +27,7 @@ import { StatCard } from "../../components/ui/StatCard";
 import { useFormatDate, useFormatNumber } from "../../utils/format";
 import { StatusPill } from "../../components/ui/StatusPill";
 import { Button } from "../../components/ui/Button";
+import ConfirmModal from "../../components/ui/ConfirmModal";
 import { EmptyState } from "../../components/ui/EmptyState";
 
 type EscrowFilter =
@@ -93,6 +94,18 @@ export default function AdminMarketplaceRiskPanel() {
   const [loading, setLoading] = useState(false);
   const [actingId, setActingId] = useState<string | null>(null);
 
+  const [escrowDecision, setEscrowDecision] = useState<{
+    escrow: EscrowTransaction;
+    action: "refund" | "force-release" | "no-refund";
+  } | null>(null);
+  const [escrowReason, setEscrowReason] = useState("");
+
+  const [flagDecision, setFlagDecision] = useState<{
+    flag: AdminCollusionFlag;
+    action: CollusionAction;
+  } | null>(null);
+  const [flagReason, setFlagReason] = useState("");
+
   const loadEscrows = useCallback(async () => {
     setLoading(true);
     try {
@@ -141,25 +154,28 @@ export default function AdminMarketplaceRiskPanel() {
     };
   }, [escrows]);
 
-  const decideEscrow = async (
+  const decideEscrow = (
     escrow: EscrowTransaction,
     action: "refund" | "force-release" | "no-refund",
   ) => {
     const defaultReason =
       action === "force-release" ? "admin_test_release" : `admin_${action}`;
-    const reason = window.prompt(
-      t("marketplaceOps.prompt.decisionReason"),
-      defaultReason,
-    );
-    if (!reason?.trim()) return;
+    setEscrowReason(defaultReason);
+    setEscrowDecision({ escrow, action });
+  };
+
+  const executeEscrowDecision = async () => {
+    if (!escrowDecision || !escrowReason.trim()) return;
+    const { escrow, action } = escrowDecision;
     setActingId(escrow.id);
     try {
       await adminService.decideEscrow(
         escrow.orderItemId,
         action,
-        reason.trim(),
+        escrowReason.trim(),
       );
       showSuccess(t("marketplaceOps.success.escrowUpdated"));
+      setEscrowDecision(null);
       await loadEscrows();
     } catch (error) {
       showError(
@@ -170,19 +186,23 @@ export default function AdminMarketplaceRiskPanel() {
     }
   };
 
-  const actOnFlag = async (
-    flag: AdminCollusionFlag,
-    action: CollusionAction,
-  ) => {
-    const reason = window.prompt(
-      t("marketplaceOps.prompt.riskReason"),
-      action.toLowerCase(),
-    );
-    if (!reason?.trim()) return;
+  const actOnFlag = (flag: AdminCollusionFlag, action: CollusionAction) => {
+    setFlagReason(action.toLowerCase());
+    setFlagDecision({ flag, action });
+  };
+
+  const executeFlagDecision = async () => {
+    if (!flagDecision || !flagReason.trim()) return;
+    const { flag, action } = flagDecision;
     setActingId(flag.id);
     try {
-      await adminService.takeCollusionAction(flag.id, action, reason.trim());
+      await adminService.takeCollusionAction(
+        flag.id,
+        action,
+        flagReason.trim(),
+      );
       showSuccess(t("marketplaceOps.success.flagUpdated"));
+      setFlagDecision(null);
       await loadFlags();
     } catch (error) {
       showError(
@@ -629,6 +649,52 @@ export default function AdminMarketplaceRiskPanel() {
           </SectionCard>
         </div>
       )}
+
+      <ConfirmModal
+        open={!!escrowDecision}
+        onClose={() => setEscrowDecision(null)}
+        onConfirm={() => void executeEscrowDecision()}
+        title={t("marketplaceOps.prompt.decisionReason")}
+        isLoading={actingId !== null}
+        variant={escrowDecision?.action === "refund" ? "danger" : "primary"}
+      >
+        <div className="space-y-4">
+          <input
+            type="text"
+            className="w-full rounded-xl border border-[var(--border)] bg-black/20 px-4 py-2.5 text-sm font-medium text-cream outline-none placeholder:text-white/25 focus:border-[#d4a843] focus:ring-1 focus:ring-[#d4a843]/50 transition-all"
+            value={escrowReason}
+            onChange={(e) => setEscrowReason(e.target.value)}
+            autoFocus
+            onKeyDown={(e) => {
+              if (e.key === "Enter") void executeEscrowDecision();
+            }}
+          />
+        </div>
+      </ConfirmModal>
+
+      <ConfirmModal
+        open={!!flagDecision}
+        onClose={() => setFlagDecision(null)}
+        onConfirm={() => void executeFlagDecision()}
+        title={t("marketplaceOps.prompt.riskReason")}
+        isLoading={actingId !== null}
+        variant={
+          flagDecision?.action === "MARK_MALICIOUS" ? "danger" : "primary"
+        }
+      >
+        <div className="space-y-4">
+          <input
+            type="text"
+            className="w-full rounded-xl border border-[var(--border)] bg-black/20 px-4 py-2.5 text-sm font-medium text-cream outline-none placeholder:text-white/25 focus:border-[#d4a843] focus:ring-1 focus:ring-[#d4a843]/50 transition-all"
+            value={flagReason}
+            onChange={(e) => setFlagReason(e.target.value)}
+            autoFocus
+            onKeyDown={(e) => {
+              if (e.key === "Enter") void executeFlagDecision();
+            }}
+          />
+        </div>
+      </ConfirmModal>
     </div>
   );
 }
